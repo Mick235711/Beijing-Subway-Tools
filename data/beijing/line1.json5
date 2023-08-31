@@ -39,7 +39,7 @@
         {name: "花庄", dist: 2238},
         {name: "环球度假区", dist: 1863}
     ],
-    train_plans: {
+    train_routes: {
         "东行": {
             "全程车": {},
             "四惠回库车": {ends_with: "四惠"},
@@ -57,7 +57,7 @@
             "土桥出库车": {starts_with: "土桥"}
         }
     },
-    date_plans: {
+    date_groups: {
         "工作日": {weekday: [1, 2, 3, 4, 5]},
         "双休日": {weekday: [6, 7]}
     },
