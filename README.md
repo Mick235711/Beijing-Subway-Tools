@@ -11,7 +11,7 @@ data/<city>/
 - maps/: directory for subway maps
 ```
 
-## Line Specification Format
+# Line Specification Format
 This specification discribes the key-values within `<line x>.json5`.
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
@@ -27,8 +27,8 @@ This specification discribes the key-values within `<line x>.json5`.
 |date_plans.`<group_name>`|Yes|object||See ["Date Group Specification Format"](#group-specification-format) below.|
 |timetable|Yes|object||Data on the train schedule on this line. Keys should be the station names + direction + date group name.|
 |timetable.`<station>`.`<direction>`.`<group_name>`|Yes|object||Data on the train schedule leaving this station in this direction on those dates.|
-|timetable.`<station>`.`<direction>`.`<group_name>`.schedule|Yes|object||See ["Schedule Specification Format"](#schedule-specification-format) below.|
-|timetable.`<station>`.`<direction>`.`<group_name>`.filters|Yes|object||See ["Schedule Filter Specification Format"](#schedule-filter-specification-format) below.|
+|timetable.`<station>`.`<direction>`.`<group_name>`.schedule|Yes|array||See ["Schedule Specification Format"](#schedule-specification-format) below.|
+|timetable.`<station>`.`<direction>`.`<group_name>`.filters|Yes|array||See ["Schedule Filter Specification Format"](#schedule-filter-specification-format) below.|
 
 ## Routing Specification Format
 A train route refers to a regularly-scheduled train visiting several predetermined station in order. Common train routings include "Full route", "Short turn on Station X",
@@ -46,8 +46,47 @@ The date groups for a line is specified under `date_plans.<group_name>`.
 |weekday|No|array|`[1, 2, 3, 4, 5, 6, 7]`|Specify the day of week this group includes.|
 |dates|No|array||Specify the dates (`["2022-02-02", ...]`) this group includes. If present, all other attributes are ignored.|
 |from|No|string<br>("yyyy-mm-dd")|Forever|The starting date of this group.|
-|to|No|string<br>("yyyy-mm-dd")|Forever|The ending date of this group.|
+|until|No|string<br>("yyyy-mm-dd")|Forever|The ending date of this group.|
 
 ## Schedule Specification Format
+Train schedule is specified as one of the two format: the simple format and the delta format.
+The `timetable.<station>.<direction>.<group_name>.schedule` key is an array of a list of schedules, all schedules are added together to form the schedule of this line.
 
-## Schedule Format Specification Format
+In the simple format, the schedule is just `{trains: ["hh:mm", "hh:mm", ...]}` specifying the leaving time of trains.
+
+In the delta format, the schedule is `{first_train: "hh:mm", delta: [...]}` specifying the first leaving time, and then deltas are added to the first leaving time to get all other leaving time.
+The format of the delta array is:
+```
+delta_array := "[" (single_spec | multi_spec)* "]"
+single_spec := int
+multi_spec := "[" int "," delta_array "]"
+```
+For example: (Assume first time is 07:00)
+```
+[2, 3, 4, 5] -> 07:02, 07:05, 07:09, 07:14
+[4, [2]] = [2, 2, 2, 2] -> 07:02, 07:04, 07:06, 07:08
+[2, 3, [4, [2]]] = [2, 3, 2, 2, 2, 2]
+[3, [2, 3, 4]] = [2, 3, 4, 2, 3, 4, 2, 3, 4]
+```
+
+## Schedule Filter Specification Format
+Filters is a way to associate train routing to schedule (i.e. specify that some trains ends at station A, etc.).
+They are specified in the `timetable.<station>.<direction>.<group_name>.filters` array. Each entries contains an object with the following properties:
+|Key|Required|Type|Default|Value|
+|---|---|---|---|---|
+|plan|Yes|string||Train routing name|
+|trains|No|array||Specify the trains leaving time (`["hh:mm", ...]`) this filter includes. If present, all other attributes are ignored.|
+|first_train|No|string<br>("hh:mm")|First scheduled train|Specify the first leaving time within this filter.|
+|skip_trains|No|int|0|Specify that N trains should be skipped.|
+|until|No|string<br>("hh:mm")|Last scheduled train|Specify the last leaving time within this filter.|
+|count|No|int||Specify the number of trains within this filter. If present, `until` is ignored.|
+
+For example, assuming the schedule is train every 2 minute from 07:00:
+```
+{trains: ["07:04", "07:09"]} -> those two trains follow the plan
+{} -> all trains follow the plan
+{first_train: "08:06"} -> train leaving on and after 08:06 follow the plan
+{first_train: "08:06", skip_trains: 3, until: "08:30"} -> train leaving at 08:06, 08:14, 08:22, 08:30 follow the plan
+{first_train: "08:06", skip_trains: 3, count: 4} -> train leaving at 08:06, 08:14, 08:22, 08:30 follow the plan
+{first_train: "08:06", count: 4} -> train leaving at 08:06, 08:08, 08:10, 08:12 follow the plan
+```
