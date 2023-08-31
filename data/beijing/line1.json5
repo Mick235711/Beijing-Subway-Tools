@@ -1,0 +1,102 @@
+// 数据截止2023/09/01，八通线，大兴线完全并入1号线和4号线描述
+{
+    name: "1号线",
+    // possible shorthand:
+    // station_names: [Name1, Name2, ..., NameN]
+    // station_dists: [Dist12, Dist23, ...] (length = N - 1)
+    stations: [
+        {name: "古城"},
+        {name: "八角游乐园", dist: 1921},
+        {name: "八宝山", dist: 1953},
+        {name: "玉泉路", dist: 1479},
+        {name: "五棵松", dist: 1810},
+        {name: "万寿路", dist: 1778},
+        {name: "公主坟", dist: 1313},
+        {name: "军事博物馆", dist: 1172},
+        {name: "木樨地", dist: 1166},
+        {name: "南礼士路", dist: 1291},
+        {name: "复兴门", dist: 424},
+        {name: "西单", dist: 1596},
+        {name: "天安门西", dist: 1217},
+        {name: "天安门东", dist: 925},
+        {name: "王府井", dist: 882},
+        {name: "东单", dist: 774},
+        {name: "建国门", dist: 1230},
+        {name: "永安里", dist: 1377},
+        {name: "国贸", dist: 790},
+        {name: "大望路", dist: 1385},
+        {name: "四惠", dist: 1673},
+        {name: "四惠东", dist: 1715},
+        {name: "高碑店", dist: 1375},
+        {name: "传媒大学", dist: 2002},
+        {name: "双桥", dist: 1894},
+        {name: "管庄", dist: 1912},
+        {name: "八里桥", dist: 1763},
+        {name: "通州北苑", dist: 1700},
+        {name: "果园", dist: 1465},
+        {name: "九棵树", dist: 990},
+        {name: "梨园", dist: 1225},
+        {name: "临河里", dist: 1257},
+        {name: "土桥", dist: 776},
+        {name: "花庄", dist: 2238},
+        {name: "环球度假区", dist: 1863}
+    ],
+    train_plans: {
+        "东行": {
+            "全程车": {},
+            "四惠回库车": {ends_with: "四惠"},
+            "四惠东回库车": {ends_with: "四惠东"},
+            "果园小交路": {ends_with: "果园"},
+            "土桥回库车": {ends_with: "土桥"}
+        },
+        "西行": {
+            reversed: true,
+            "全程车": {reversed: true},
+            "复兴门小交路": {starts_with: "复兴门"},
+            "四惠出库车": {starts_with: "四惠"},
+            "四惠东出库车": {starts_with: "四惠东"},
+            "果园小交路": {starts_with: "果园"},
+            "土桥出库车": {starts_with: "土桥"}
+        }
+    },
+    date_plans: {
+        "工作日": {weekday: [1, 2, 3, 4, 5]},
+        "双休日": {weekday: [6, 7]}
+    },
+    timetable: {
+        // See README.md for timetable encoding
+        "古城": {
+            "东行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:57", delta: [4, 3, 4, 5, 3, 4, 4, [5, [3]], 4, 3, 4, [6, [3]]]},
+                        {first_train: "06:13", delta: [2, 3, 3, 2, 3, 2, 3, 2, 2, 2, 3, 2, 3, 3, 3, 3, [32, [2]]]},
+                        {first_train: "08:01", delta: [[3, [3, 2, 2, 2, 3]], 3, 2, 3, 3, 4, 3, 4]},
+                        {first_train: "09:03", delta: [2, 3, 4, 2, 3, 3, [9, [4, 2]]]},
+                        {first_train: "10:18", delta: [[53, [6]], 4]},
+                        {first_train: "15:46", delta: [[7, [2, 3, 2]], 2, 3, 3, 3, 3, 2, 3, 2, 2]},
+                        {first_train: "17:00", delta: [2, 3, 3, 2, 2, 3, [2, [2, 2, 2, 3]], 3, 3, 2, 2, 2, 2, 3, 2, 2, 3, 2]},
+                        {first_train: "18:01", delta: [[8, [3, 2, 2]], 4, 3, 3, [14, [3, 4]], 2, 5, 4, 3, 4, 3, 4, 3, [6, [3, 4]]]},
+                        {first_train: "22:02", delta: [7, 8, 8, 8, 8, 10, 6, 7, 7, 7, 7, 8]}
+                    ],
+                    filters: [
+                        {plan: "四惠回库车", first_train: "09:03", skip_trains: 1, until: "10:14"},
+                        {plan: "四惠回库车", trains: ["18:36"]},
+                        {plan: "四惠回库车", first_train: "19:14", skip_trains: 2, until: "19:56"},
+                        {plan: "四惠回库车", first_train: "20:06", skip_trains: 1, until: "21:51"},
+                        {plan: "四惠东回库车", first_train: "22:57", until: "23:33"},
+                        {plan: "果园小交路", first_train: "06:13", skip_trains: 3, until: "07:36"},
+                        {plan: "果园小交路", trains: ["07:46"]},
+                        {plan: "果园小交路", first_train: "16:58", skip_trains: 3, until: "17:36"},
+                        {plan: "土桥回库车", trains: ["07:08", "07:18", "07:32", "07:40", "07:44"]},
+                        {plan: "土桥回库车", first_train: "07:50", skip_trains: 1, count: 3},
+                        {plan: "土桥回库车", first_train: "08:01", skip_trains: 1, count: 3},
+                        {plan: "土桥回库车", first_train: "08:13", skip_trains: 1, count: 3},
+                        {plan: "土桥回库车", first_train: "08:25", skip_trains: 1, count: 3},
+                        {plan: "土桥回库车", first_train: "08:37", skip_trains: 1, count: 4},
+                    ]
+                }
+            }
+        }
+    }
+}
