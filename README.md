@@ -1,7 +1,10 @@
 # Beijing-Subway-Tools
 Tools and data from subway systems around the world (currently only doing Beijing's data)
 
-## Structure for a City
+# Running requirements
+Python 3.9+, PyPI packages: `questionary`, `pyjson5`
+
+# Structure for a City
 For every city/metro group, it should have its own directory within the `data/` folder. Under which are several [JSON5](https://json5.org/) files documenting the schedules and other data.
 ```
 data/<city>/
