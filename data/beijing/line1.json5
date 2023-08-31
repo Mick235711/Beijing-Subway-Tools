@@ -1,9 +1,6 @@
 // 数据截止2023/09/01，八通线，大兴线完全并入1号线和4号线描述
 {
     name: "1号线",
-    // possible shorthand:
-    // station_names: [Name1, Name2, ..., NameN]
-    // station_dists: [Dist12, Dist23, ...] (length = N - 1)
     stations: [
         {name: "古城"},
         {name: "八角游乐园", dist: 1921},
@@ -64,7 +61,6 @@
         "双休日": {weekday: [6, 7]}
     },
     timetable: {
-        // See README.md for timetable encoding
         "古城": {
             "东行": {
                 "工作日": {
