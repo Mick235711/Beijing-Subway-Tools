@@ -6,8 +6,9 @@
 # Libraries
 from glob import glob
 import os
+from pathlib import Path
 import pyjson5
-from line import Line, parse_line
+from city.line import Line, parse_line
 
 class City:
     """ Represents a city or a group of cities connected by metro """
@@ -55,7 +56,7 @@ def parse_city(city_root: str) -> City:
 def get_all_cities() -> dict[str, City]:
     """ Get all the cities present """
     res = {}
-    for city_root in glob("../../data/*"):
+    for city_root in glob(os.path.join(Path(__file__).resolve().parents[2], "data", "*")):
         if os.path.exists(os.path.join(city_root, "transfer.json5")):
             city = parse_city(city_root)
             res[city.name] = city

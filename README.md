@@ -2,7 +2,7 @@
 Tools and data from subway systems around the world (currently only doing Beijing's data)
 
 # Running requirements
-Python 3.9+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`
+Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`
 
 # Structure for a City
 For every city/metro group, it should have its own directory within the `data/` folder. Under which are several [JSON5](https://json5.org/) files documenting the schedules and other data.
@@ -42,6 +42,8 @@ A train route refers to a regularly-scheduled train visiting several predetermin
 |---|---|---|---|---|
 |starts_with|No|string|The first station|Specify that those trains starts at this station.|
 |ends_with|No|string|The last station|Specify that those trains ends at this station.|
+|skip|No|array|[]|Specify that those station will be skipped.|
+|stations|No|array||Specify the stations that this route stops at. If present, all other attributes are ignored.|
 
 ## Date Group Specification Format
 A date group is couple of dates where trains are scheduled the same, such as Weekdays, Saturdays, etc..

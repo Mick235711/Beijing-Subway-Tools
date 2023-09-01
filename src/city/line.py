@@ -9,7 +9,8 @@ import sys
 import pyjson5
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import distance_str
-TrainRoute = DateGroup = str
+from city.train_route import TrainRoute, parse_train_route
+DateGroup = str
 
 class Line:
     """ Represents a subway line """
@@ -21,7 +22,7 @@ class Line:
         self.station_dists: list[int] = []
         self.station_aliases: dict[str, str] = {}
         self.directions: dict[str, list[str]] = {}
-        self.train_routes: dict[str, TrainRoute] = {}
+        self.train_routes: dict[str, dict[str, TrainRoute]] = {}
         self.date_groups: dict[str, DateGroup] = {}
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
 
@@ -60,12 +61,21 @@ def parse_line(line_file: str) -> Line:
         assert max(0, len(line.stations) - 1) == len(line.station_dists), line_dict
         assert all(x in line.stations for x in line.station_aliases.keys()), line_dict
 
-    # populate directions and routes (routes TODO)
+    # populate directions and routes
     for direction, value in line_dict["train_routes"].items():
         if "reversed" in value and value["reversed"]:
             line.directions[direction] = list(reversed(line.stations))
         else:
             line.directions[direction] = line.stations
+
+        # parse route
+        if direction not in line.train_routes:
+            line.train_routes[direction] = {}
+        for route_name, route_value in value.items():
+            if route_name == "reversed":
+                continue
+            line.train_routes[direction][route_name] = parse_train_route(
+                direction, line.directions[direction], route_name, route_value)
 
     # TODO: date groups
     line.timetable_dict = line_dict["timetable"]
