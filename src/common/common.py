@@ -5,6 +5,7 @@
 
 # Libraries
 from typing import Iterable
+from datetime import datetime, date, time, timedelta
 import questionary
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import DeduplicateCompleter, Completer, Completion, CompleteEvent
@@ -74,3 +75,30 @@ def distance_str(distance: int) -> str:
     if distance < 1000:
         return f"{distance}m"
     return f"{distance / 1000:.2f}km"
+
+def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
+    """ Parse time as hh:mm """
+    if len(time_str) == 4:
+        time_str = "0" + time_str
+    assert len(time_str) == 5 and time_str[2] == ":" and (
+        time_str[:2] + time_str[3:]).isdigit(), time_str
+    if int(time_str[:2]) >= 24:
+        return time(hour=(int(time_str[:2]) - 24), minute=int(time_str[3:])), True
+    return time.fromisoformat(time_str), next_day
+
+def add_min(time_obj: time, minutes: int, next_day: bool = False) -> tuple[time, bool]:
+    """ Add minutes """
+    new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
+    return new_time, (new_time < time_obj or next_day)
+
+def get_time_str(time_obj: time, next_day: bool = False) -> str:
+    """ Get str from (time, next_day) """
+    key = str(time_obj)
+    if next_day:
+        key = str(int(key[:2]) + 24) + key[2:]
+    return key
+
+def get_time_repr(time_obj: time, next_day: bool = False) -> str:
+    """ Get representation from (time, next_day) """
+    key = f"{time_obj.hour:>02}:{time_obj.minute:>02}"
+    return key + (" (+1)" if next_day else "")

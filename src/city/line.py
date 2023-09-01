@@ -11,6 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import distance_str
 from city.train_route import TrainRoute, parse_train_route
 from city.date_group import DateGroup, parse_date_group
+from timetable.timetable import Timetable, parse_timetable
 
 class Line:
     """ Represents a subway line """
@@ -25,6 +26,7 @@ class Line:
         self.train_routes: dict[str, dict[str, TrainRoute]] = {}
         self.date_groups: dict[str, DateGroup] = {}
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
+        self.timetables_processed: dict[str, dict[str, dict[str, Timetable]]] | None = None
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -38,6 +40,23 @@ class Line:
     def total_distance(self) -> int:
         """ Total distance of this line """
         return sum(self.station_dists)
+
+    def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
+        """ Get timetables """
+        if self.timetables_processed is not None:
+            return self.timetables_processed
+        self.timetables_processed = {}
+        for station, elem1 in self.timetable_dict.items():
+            self.timetables_processed[station] = {}
+            for direction, elem2 in elem1.items():
+                self.timetables_processed[station][direction] = {}
+                for date_group, elem3 in elem2.items():
+                    self.timetables_processed[station][direction][date_group] = parse_timetable(
+                        station, list(self.train_routes[direction].values())[0],
+                        self.date_groups[date_group], self.train_routes[direction],
+                        elem3["schedule"], elem3["filters"]
+                    )
+        return self.timetables_processed
 
 def parse_line(line_file: str) -> Line:
     """ Parse JSON5 file as a line """

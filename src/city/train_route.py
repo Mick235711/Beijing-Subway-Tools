@@ -16,7 +16,11 @@ class TrainRoute:
 
     def __repr__(self) -> str:
         """ Get string representation """
-        return f"<[{self.direction}] {self.name}: {self.stations[0]} - {self.stations[-1]}>"
+        return f"<{self.direction_str()}: {self.stations[0]} - {self.stations[-1]}>"
+
+    def direction_str(self) -> str:
+        """ Get a simple directional string representation """
+        return f"[{self.direction}] {self.name}"
 
 def parse_train_route(direction: str, base: list[str],
                       name: str, spec: dict[str, Any]) -> TrainRoute:
