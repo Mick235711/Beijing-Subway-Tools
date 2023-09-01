@@ -23,6 +23,7 @@ This specification discribes the key-values within `<line x>.json5`.
 |stations|No|array||An array of `{name: <station name>, dist: <distance to last station in meters>}` (`dist` not required for first station)<br>Must be in order of the line. Not required if provided both `station_names` and `station_dists`.<br>Optionally an `alias` field can be added to suggest English aliases.|
 |station_names|No|array||An array of station names. Ignored if `stations` is provided.|
 |station_dists|No|array||An array of distance between stations in meters (length one less than `station_names`). Ignored if `stations` is provided.|
+|station_alias|No|object||A dictionary (station_name to alias) of station's English aliase. Ignored if `stations` is provided.|
 |train_routes|Yes|object||Data on all possible train routings. Must have 1 or 2 keys representing the general direction (i.e. eastbond, counterclockwise, etc.).|
 |train_routes.`<direction>`|Yes|object||Train routings in this direction. Keys should be the name of the routing (i.e. short turn, branch A, etc.).|
 |train_routes.`<direction>`.reversed|No|boolean|false|If true, these trains runs in the opposite direction to the direction specified with `stations` or `station_names`.|

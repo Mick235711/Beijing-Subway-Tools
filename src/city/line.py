@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" A class for a subway line """
+
+# Libraries
+import os
+import sys
+import pyjson5
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from common.common import distance_str
+TrainRoute = DateGroup = str
+
+class Line:
+    """ Represents a subway line """
+    def __init__(self, name: str, aliases: list[str] | None = None) -> None:
+        """ Constructor """
+        self.name = name
+        self.aliases = aliases or []
+        self.stations: list[str] = []
+        self.station_dists: list[int] = []
+        self.station_aliases: dict[str, str] = {}
+        self.directions: dict[str, list[str]] = {}
+        self.train_routes: dict[str, TrainRoute] = {}
+        self.date_groups: dict[str, DateGroup] = {}
+        self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
+
+    def __repr__(self) -> str:
+        """ Get string representation """
+        return f"<{self.name}: {self.line_str()}>"
+
+    def line_str(self) -> str:
+        """ Get the start/stop station, line distance, etc. """
+        return f"{self.stations[0]} - {self.stations[-1]}" +\
+            f", {len(self.stations)} stations, " + distance_str(self.total_distance())
+
+    def total_distance(self) -> int:
+        """ Total distance of this line """
+        return sum(self.station_dists)
+
+def parse_line(line_file: str) -> Line:
+    """ Parse JSON5 file as a line """
+    assert os.path.exists(line_file), line_file
+    with open(line_file, "r") as fp:
+        line_dict = pyjson5.decode_io(fp)
+        line = Line(line_dict["name"], line_dict.get("aliases"))
+
+    # populate stations
+    if "stations" in line_dict:
+        for i, station in enumerate(line_dict["stations"]):
+            line.stations.append(station["name"])
+            if i > 0:
+                line.station_dists.append(station["dist"])
+            if "alias" in station:
+                line.station_aliases[station["name"]] = station["alias"]
+    else:
+        line.stations = line_dict["station_names"]
+        line.station_dists = line_dict["station_dists"]
+        line.station_aliases = line_dict["station_aliases"]
+        assert max(0, len(line.stations) - 1) == len(line.station_dists), line_dict
+        assert all(x in line.stations for x in line.station_aliases.keys()), line_dict
+
+    # populate directions and routes (routes TODO)
+    for direction, value in line_dict["train_routes"].items():
+        if "reversed" in value and value["reversed"]:
+            line.directions[direction] = list(reversed(line.stations))
+        else:
+            line.directions[direction] = line.stations
+
+    # TODO: date groups
+    line.timetable_dict = line_dict["timetable"]
+    return line

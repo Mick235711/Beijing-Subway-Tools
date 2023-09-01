@@ -68,3 +68,9 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     return display_dict[questionary.autocomplete(
         message, choices=[], completer=DeduplicateCompleter(completer),
         validate=lambda x: x in display_dict).ask()]
+
+def distance_str(distance: int) -> str:
+    """ Get proper distance string from a meter distance """
+    if distance < 1000:
+        return f"{distance}m"
+    return f"{distance / 1000:.2f}km"
