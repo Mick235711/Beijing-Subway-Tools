@@ -10,7 +10,7 @@ import pyjson5
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import distance_str
 from city.train_route import TrainRoute, parse_train_route
-DateGroup = str
+from city.date_group import DateGroup, parse_date_group
 
 class Line:
     """ Represents a subway line """
@@ -77,6 +77,9 @@ def parse_line(line_file: str) -> Line:
             line.train_routes[direction][route_name] = parse_train_route(
                 direction, line.directions[direction], route_name, route_value)
 
-    # TODO: date groups
+    # parse date groups
+    for group_name, group_value in line_dict["date_groups"].items():
+        line.date_groups[group_name] = parse_date_group(group_name, group_value)
+
     line.timetable_dict = line_dict["timetable"]
     return line
