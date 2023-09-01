@@ -9,7 +9,7 @@ import sys
 from typing import Any
 from datetime import time, timedelta
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import parse_time, add_min, get_time_str, get_time_repr
+from common.common import parse_time, add_min, get_time_str, get_time_repr, distribute_braces
 from city.date_group import DateGroup
 from city.train_route import TrainRoute
 
@@ -39,9 +39,10 @@ class Timetable:
             """ Get the key for sorting, considering next_day """
             return get_time_str(*self.sort_key())
 
-    def __init__(self, trains: dict[time, Train]) -> None:
+    def __init__(self, trains: dict[time, Train], base_route: TrainRoute) -> None:
         """ Constructor """
         self.trains = trains
+        self.base_route = base_route
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -49,6 +50,42 @@ class Timetable:
 
     def pretty_print(self) -> None:
         """ Print the entire timetable """
+        # First, organize into hour -> Trains and collect routes
+        hour_dict: dict[int, list[Timetable.Train]] = {}
+        routes: set[TrainRoute] = set()
+        for train in self.trains.values():
+            key = int(train.sort_key_str()[:2])
+            if key not in hour_dict:
+                hour_dict[key] = []
+            hour_dict[key].append(train)
+            if train.train_route != self.base_route:
+                routes.add(train.train_route)
+
+        # Assign braces to routes
+        brace_dict = distribute_braces(routes)
+        brace_dict_r = {v: k for k, v in brace_dict.items()}
+
+        # Print!
+        for hour, trains in hour_dict.items():
+            print(f"{hour % 24:>02}| ", end="")
+            first = True
+            for train in trains:
+                if first:
+                    first = False
+                else:
+                    print(" ", end="")
+                minute = f"{train.leaving_time.minute:>02}"
+                if train.train_route != self.base_route:
+                    brace = brace_dict_r[train.train_route]
+                    brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
+                    minute = brace_left + minute + brace_right
+                print(minute, end="")
+            print()
+
+        # Print the braces information
+        print()
+        for brace, route in brace_dict.items():
+            print(f"{brace} = {route!r}")
 
 def parse_delta(delta: list[int | list]) -> list[int]:
     """ Parse the delta field """
@@ -121,4 +158,4 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
                     trains[leaving_time].train_route = plan
                     first_index += skip_trains
 
-    return Timetable(trains)
+    return Timetable(trains, base_route)

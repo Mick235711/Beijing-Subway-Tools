@@ -22,6 +22,17 @@ class TrainRoute:
         """ Get a simple directional string representation """
         return f"[{self.direction}] {self.name}"
 
+    def __eq__(self, other: object) -> bool:
+        """ Determine equality """
+        if not isinstance(other, TrainRoute):
+            return False
+        return self.name == other.name and self.direction == other.direction and\
+            self.stations == other.stations
+
+    def __hash__(self) -> int:
+        """ Hashing protocol """
+        return hash((self.name, self.direction, tuple(self.stations)))
+
 def parse_train_route(direction: str, base: list[str],
                       name: str, spec: dict[str, Any]) -> TrainRoute:
     """ Parse the train_routes field """

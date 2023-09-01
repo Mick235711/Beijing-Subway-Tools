@@ -67,7 +67,7 @@
             "东行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "04:57", delta: [4, 3, 4, 5, 3, 4, 4, [5, [3]], 4, 3, 4, [6, [3]]]},
+                        {first_train: "04:57", delta: [4, 3, 4, 5, 3, 4, 4, [6, [3]], 4, 3, 4, [6, [3]]]},
                         {first_train: "06:13", delta: [2, 3, 3, 2, 3, 2, 3, 2, 2, 2, 3, 2, 3, 3, 3, 3, [32, [2]]]},
                         {first_train: "08:01", delta: [[3, [3, 2, 2, 2, 3]], 3, 2, 3, 3, 4, 3, 4]},
                         {first_train: "09:03", delta: [2, 3, 4, 2, 3, 3, [9, [4, 2]]]},
@@ -83,7 +83,8 @@
                         {plan: "四惠回库车", first_train: "19:14", skip_trains: 2, until: "19:56"},
                         {plan: "四惠回库车", first_train: "20:06", skip_trains: 1, until: "21:51"},
                         {plan: "四惠东回库车", first_train: "22:57", until: "23:33"},
-                        {plan: "果园小交路", first_train: "06:13", skip_trains: 3, until: "07:36"},
+                        {plan: "果园小交路", first_train: "06:13", skip_trains: 3, until: "06:33"},
+                        {plan: "果园小交路", first_train: "06:45", skip_trains: 3, until: "07:36"},
                         {plan: "果园小交路", trains: ["07:46"]},
                         {plan: "果园小交路", first_train: "16:58", skip_trains: 3, until: "17:36"},
                         {plan: "土桥回库车", trains: ["07:08", "07:18", "07:32", "07:40", "07:44"]},
@@ -92,6 +93,10 @@
                         {plan: "土桥回库车", first_train: "08:13", skip_trains: 1, count: 3},
                         {plan: "土桥回库车", first_train: "08:25", skip_trains: 1, count: 3},
                         {plan: "土桥回库车", first_train: "08:37", skip_trains: 1, count: 4},
+                        {plan: "土桥回库车", trains: ["16:33", "16:51", "17:00", "17:12", "17:19", "17:41", "17:47", "17:57"]},
+                        {plan: "土桥回库车", trains: ["18:04", "18:32"]},
+                        {plan: "土桥回库车", first_train: "18:13", skip_trains: 2, count: 3},   
+                        {plan: "土桥回库车", first_train: "18:41", skip_trains: 2, count: 3}
                     ]
                 }
             }

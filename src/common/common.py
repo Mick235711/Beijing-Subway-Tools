@@ -4,7 +4,7 @@
 """ Provide common functions used in the whole project """
 
 # Libraries
-from typing import Iterable
+from typing import Iterable, TypeVar
 from datetime import datetime, date, time, timedelta
 import questionary
 from prompt_toolkit.document import Document
@@ -102,3 +102,16 @@ def get_time_repr(time_obj: time, next_day: bool = False) -> str:
     """ Get representation from (time, next_day) """
     key = f"{time_obj.hour:>02}:{time_obj.minute:>02}"
     return key + (" (+1)" if next_day else "")
+
+possible_braces = ["()", "[]", "{}", "<>"]
+T = TypeVar("T")
+def distribute_braces(values: Iterable[T]) -> dict[str, T]:
+    """ Distribute brace to values """
+    res: dict[str, T] = {}
+    for i, value in enumerate(values):
+        brace = possible_braces[i % len(possible_braces)]
+        brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
+        multipler = (i // len(possible_braces)) + 1
+        new_brace = brace_left * multipler + brace_right * multipler
+        res[new_brace] = value
+    return res
