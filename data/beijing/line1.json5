@@ -2,6 +2,7 @@
 // 1-八通时刻表 新11版
 {
     name: "1号线",
+    aliases: ["Line 1"],
     stations: [
         {name: "古城"},
         {name: "八角游乐园", dist: 1921},
@@ -10,7 +11,7 @@
         {name: "五棵松", dist: 1810},
         {name: "万寿路", dist: 1778},
         {name: "公主坟", dist: 1313},
-        {name: "军事博物馆", dist: 1172},
+        {name: "军事博物馆", dist: 1172, alias: "Military Museum"},
         {name: "木樨地", dist: 1166},
         {name: "南礼士路", dist: 1291},
         {name: "复兴门", dist: 424},
@@ -26,7 +27,7 @@
         {name: "四惠", dist: 1673},
         {name: "四惠东", dist: 1715},
         {name: "高碑店", dist: 1375},
-        {name: "传媒大学", dist: 2002},
+        {name: "传媒大学", dist: 2002, alias: "Communication University of China"},
         {name: "双桥", dist: 1894},
         {name: "管庄", dist: 1912},
         {name: "八里桥", dist: 1763},
@@ -37,7 +38,7 @@
         {name: "临河里", dist: 1257},
         {name: "土桥", dist: 776},
         {name: "花庄", dist: 2238},
-        {name: "环球度假区", dist: 1863}
+        {name: "环球度假区", dist: 1863, alias: "Universal Resort"}
     ],
     train_routes: {
         "东行": {
