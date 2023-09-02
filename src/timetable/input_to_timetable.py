@@ -6,6 +6,7 @@
 # Libraries
 import os
 import sys
+import argparse
 from datetime import time
 from typing import Iterable, Any
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -229,6 +230,13 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
 
 def main() -> None:
     """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--level", type=int, default=0,
+                        help="Indentation level before each line")
+    parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
+                        help="Indentation level before each line")
+    args = parser.parse_args()
+    print(to_json_format(parse_input(), level=args.level, break_entries=args.break_entries))
 
 if __name__ == "__main__":
     main()
