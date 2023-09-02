@@ -23,10 +23,11 @@ def generate_next(timetable: Timetable,
                   station: str, direction: str, date_group: DateGroup) -> Timetable:
     """ Generate next day's timetable """
     # First ask for a delta
-    delta = int(questionary.text(
+    delta_str = questionary.text(
         "What is the running time (in minutes) to next station?",
-        default="0", validate=lambda x: x.isdigit() and int(x) >= 0
-    ).ask())
+        validate=lambda x: x == "" or (x.isdigit() and int(x) >= 0)
+    ).ask()
+    delta = int(0 if delta_str == "" else delta_str)
 
     # Add everying with delta
     new_trains: dict[time, Timetable.Train] = {}
@@ -44,12 +45,11 @@ def generate_next(timetable: Timetable,
         brace_dict = new_timetable.pretty_print()
         brace_dict[""] = new_timetable.base_route
         modification = questionary.text(
-            "Enter a modification (or ok): ",
-            default="ok", validate=lambda x: x.lower() == "ok" or
-            (x[:x.find("|")].strip().isdigit() and all(
-                y.strip().isdigit() for y in x[x.find("|") + 1:].strip().split()))
+            "Enter a modification (or ok):",
+            validate=lambda x: x.lower() == "ok" or x == "" or
+            x[:x.find("|")].strip().isdigit()
         ).ask()
-        if modification.lower() == "ok":
+        if modification.lower() == "ok" or modification == "":
             break
 
         # Try to perform this modification
@@ -93,9 +93,9 @@ def main() -> None:
     """ Main function """
     city = ask_for_city()
     line = ask_for_line(city)
-    station = ask_for_station_in_line(line)
-    direction = ask_for_direction(line)
-    date_group = ask_for_date_group(line)
+    station = ask_for_station_in_line(line, with_timetable=True)
+    direction = ask_for_direction(line, with_timetabled_station=station)
+    date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
     timetable = line.timetables()[station][direction][date_group.name]
     main_input(generate_next(timetable, station, direction, date_group))
 

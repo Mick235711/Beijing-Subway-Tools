@@ -83,11 +83,11 @@ def ask_for_line_in_station(lines: set[Line]) -> Line:
     answer = complete_pinyin("Please select a line:", meta_information, aliases)
     return lines_dict[answer]
 
-def ask_for_station_in_line(line: Line) -> str:
+def ask_for_station_in_line(line: Line, *, with_timetable: bool = False) -> str:
     """ Ask for a station in line """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
-    for station in line.stations:
+    for station in (line.timetables().keys() if with_timetable else line.stations):
         meta_information[station] = line.name
         if station in line.station_aliases:
             aliases[station] = line.station_aliases[station]
@@ -95,26 +95,48 @@ def ask_for_station_in_line(line: Line) -> str:
     # Ask
     return complete_pinyin("Please select a station:", meta_information, aliases)
 
-def ask_for_direction(line: Line) -> str:
+def ask_for_direction(line: Line, *, with_timetabled_station: str | None = None) -> str:
     """ Ask for a line direction """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
-    for name, stations in line.directions.items():
-        meta_information[name] = f"{stations[0]} -> {stations[-1]}"
-        if name in line.direction_aliases:
-            aliases[name] = line.direction_aliases[name]
+    if with_timetabled_station is None:
+        for name, stations in line.directions.items():
+            meta_information[name] = f"{stations[0]} -> {stations[-1]}"
+            if name in line.direction_aliases:
+                aliases[name] = line.direction_aliases[name]
+    else:
+        timetable_dict = line.timetables()[with_timetabled_station]
+        if len(timetable_dict) == 1:
+            return list(timetable_dict.keys())[0]
+        for name in timetable_dict.keys():
+            stations = line.directions[name]
+            meta_information[name] = f"{stations[0]} -> {stations[-1]}"
+            if name in line.direction_aliases:
+                aliases[name] = line.direction_aliases[name]
 
     # Ask
     return complete_pinyin("Please select a direction:", meta_information, aliases)
 
-def ask_for_date_group(line: Line) -> DateGroup:
+def ask_for_date_group(line: Line, *,
+                       with_timetabled_sd: tuple[str, str] | None = None) -> DateGroup:
     """ Ask for a date group """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
-    for name, group in line.date_groups.items():
-        meta_information[name] = group.group_str()
-        if len(group.aliases) > 0:
-            aliases[name] = group.aliases
+    if with_timetabled_sd is None:
+        for name, group in line.date_groups.items():
+            meta_information[name] = group.group_str()
+            if len(group.aliases) > 0:
+                aliases[name] = group.aliases
+    else:
+        station, direction = with_timetabled_sd
+        timetable_dict = line.timetables()[station][direction]
+        if len(timetable_dict) == 1:
+            return line.date_groups[list(timetable_dict.keys())[0]]
+        for name in timetable_dict.keys():
+            group = line.date_groups[name]
+            meta_information[name] = group.group_str()
+            if len(group.aliases) > 0:
+                aliases[name] = group.aliases
 
     # Ask
     answer = complete_pinyin("Please select a date group:", meta_information, aliases)
