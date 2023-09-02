@@ -16,6 +16,8 @@ class TrainRoute:
 
     def __repr__(self) -> str:
         """ Get string representation """
+        if len(self.stations) == 0:
+            return f"<{self.direction_str()}>"
         return f"<{self.direction_str()}: {self.stations[0]} - {self.stations[-1]}>"
 
     def direction_str(self) -> str:
