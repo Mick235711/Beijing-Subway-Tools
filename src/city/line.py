@@ -21,8 +21,9 @@ class Line:
         self.aliases = aliases or []
         self.stations: list[str] = []
         self.station_dists: list[int] = []
-        self.station_aliases: dict[str, str] = {}
+        self.station_aliases: dict[str, list[str]] = {}
         self.directions: dict[str, list[str]] = {}
+        self.direction_aliases: dict[str, list[str]] = {}
         self.train_routes: dict[str, dict[str, TrainRoute]] = {}
         self.date_groups: dict[str, DateGroup] = {}
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
@@ -71,8 +72,10 @@ def parse_line(line_file: str) -> Line:
             line.stations.append(station["name"])
             if i > 0:
                 line.station_dists.append(station["dist"])
-            if "alias" in station:
-                line.station_aliases[station["name"]] = station["alias"]
+            if "aliases" in station:
+                if station["name"] not in line.station_aliases:
+                    line.station_aliases[station["name"]] = []
+                line.station_aliases[station["name"]] += station["alias"]
     else:
         line.stations = line_dict["station_names"]
         line.station_dists = line_dict["station_dists"]
@@ -87,11 +90,14 @@ def parse_line(line_file: str) -> Line:
         else:
             line.directions[direction] = line.stations
 
+        if "aliases" in value:
+            line.direction_aliases[direction] = value["aliases"]
+
         # parse route
         if direction not in line.train_routes:
             line.train_routes[direction] = {}
         for route_name, route_value in value.items():
-            if route_name == "reversed":
+            if route_name in ["reversed", "aliases"]:
                 continue
             line.train_routes[direction][route_name] = parse_train_route(
                 direction, line.directions[direction], route_name, route_value)

@@ -238,5 +238,6 @@ def main() -> None:
     args = parser.parse_args()
     print(to_json_format(parse_input(), level=args.level, break_entries=args.break_entries))
 
+# Call main
 if __name__ == "__main__":
     main()

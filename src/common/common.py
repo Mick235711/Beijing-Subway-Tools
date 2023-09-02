@@ -45,7 +45,7 @@ def to_pinyin(text: str) -> str:
     return "".join(lazy_pinyin(text)).capitalize()
 
 def complete_pinyin(message: str, meta_information: dict[str, str],
-                    aliases: dict[str, list[str]]) -> str:
+                    aliases: dict[str, list[str]] | None = None) -> str:
     """ Prompt the user to enter a message, support pinyin completion """
     choices = list(meta_information.keys())
     display_dict = {}
@@ -58,7 +58,7 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
         if pinyin.lower() != choice.lower():
             display_dict[pinyin.lower()] = choice
             meta_dict[pinyin.lower()] = meta_information[choice]
-        if choice in aliases:
+        if aliases is not None and choice in aliases:
             for alias in aliases[choice]:
                 display_dict[alias.lower()] = choice
                 meta_dict[alias.lower()] = meta_information[choice]

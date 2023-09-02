@@ -11,7 +11,7 @@
         {name: "五棵松", dist: 1810},
         {name: "万寿路", dist: 1778},
         {name: "公主坟", dist: 1313},
-        {name: "军事博物馆", dist: 1172, alias: "Military Museum"},
+        {name: "军事博物馆", dist: 1172, aliases: ["Military Museum"]},
         {name: "木樨地", dist: 1166},
         {name: "南礼士路", dist: 1291},
         {name: "复兴门", dist: 424},
@@ -27,7 +27,7 @@
         {name: "四惠", dist: 1673},
         {name: "四惠东", dist: 1715},
         {name: "高碑店", dist: 1375},
-        {name: "传媒大学", dist: 2002, alias: "Communication University of China"},
+        {name: "传媒大学", dist: 2002, aliases: ["Communication University of China"]},
         {name: "双桥", dist: 1894},
         {name: "管庄", dist: 1912},
         {name: "八里桥", dist: 1763},
@@ -38,10 +38,11 @@
         {name: "临河里", dist: 1257},
         {name: "土桥", dist: 776},
         {name: "花庄", dist: 2238},
-        {name: "环球度假区", dist: 1863, alias: "Universal Resort"}
+        {name: "环球度假区", dist: 1863, aliases: ["Universal Resort"]}
     ],
     train_routes: {
         "东行": {
+            aliases: ["Eastbond"],
             "全程车": {},
             "四惠回库车": {ends_with: "四惠"},
             "四惠东回库车": {ends_with: "四惠东"},
@@ -49,6 +50,7 @@
             "土桥回库车": {ends_with: "土桥"}
         },
         "西行": {
+            aliases: ["Westbound"],
             reversed: true,
             "全程车": {reversed: true},
             "复兴门小交路": {starts_with: "复兴门"},
@@ -59,8 +61,8 @@
         }
     },
     date_groups: {
-        "工作日": {weekday: [1, 2, 3, 4, 5]},
-        "双休日": {weekday: [6, 7]}
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
     },
     timetable: {
         "古城": {

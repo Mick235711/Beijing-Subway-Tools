@@ -26,6 +26,7 @@ This specification discribes the key-values within `<line x>.json5`.
 |station_alias|No|object||A dictionary (station_name to alias) of station's English aliase. Ignored if `stations` is provided.|
 |train_routes|Yes|object||Data on all possible train routings. Must have 1 or 2 keys representing the general direction (i.e. eastbond, counterclockwise, etc.).|
 |train_routes.`<direction>`|Yes|object||Train routings in this direction. Keys should be the name of the routing (i.e. short turn, branch A, etc.).|
+|train_routes.`<direction>`.aliases|No|array|[]|Aliases (English) for the direction|
 |train_routes.`<direction>`.reversed|No|boolean|false|If true, these trains runs in the opposite direction to the direction specified with `stations` or `station_names`.|
 |train_routes.`<direction>`.`<routing_name>`|Yes|object||See ["Routing Specification Format"](#routing-specification-format) below.|
 |date_groups|Yes|object||Data on all possible date groups for train schedule (i.e. Weekday, Saturday, etc.). Keys should be the name of the group.|
@@ -50,6 +51,7 @@ A date group is couple of dates where trains are scheduled the same, such as Wee
 The date groups for a line is specified under `date_groups.<group_name>`.
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
+|aliases|No|array|[]|Aliases (English) for the group|
 |weekday|No|array|`[1, 2, 3, 4, 5, 6, 7]`|Specify the day of week this group includes.|
 |dates|No|array||Specify the dates (`["2022-02-02", ...]`) this group includes. If present, all other attributes are ignored.|
 |from|No|string<br>("yyyy-mm-dd")|Forever|The starting date of this group.|
