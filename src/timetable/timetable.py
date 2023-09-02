@@ -88,19 +88,15 @@ class Timetable:
             print(f"{brace} = {route!r}")
         return brace_dict
 
-def parse_delta(delta: list[int | list]) -> list[int]:
+def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
     """ Parse the delta field """
     res: list[int] = []
-    if len(delta) == 2 and isinstance(delta[1], list):
-        # recursive
-        assert isinstance(delta[0], int), delta
-        res = res + parse_delta(delta[1]) * delta[0]
-    else:
-        for elem in delta:
-            if isinstance(elem, int):
-                res.append(elem)
-            else:
-                res = res + parse_delta(elem)
+    for elem in delta:
+        if isinstance(elem, int):
+            res.append(elem)
+        else:
+            assert isinstance(elem[0], int) and isinstance(elem[1], list), elem
+            res = res + elem[0] * elem[1]
     return res
 
 def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,

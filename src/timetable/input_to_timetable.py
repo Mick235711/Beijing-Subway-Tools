@@ -79,20 +79,20 @@ def count_entries(entry: tuple[int, int] | list) -> int:
     """ Count the entry # of deltas """
     if isinstance(entry, list):
         assert isinstance(entry[1], list), entry
-        return 1 + sum(count_entries(x) for x in entry[1])
+        return 1 + len(entry[1])
     return 1
 
 def find_first_index(entry: tuple[int, int] | list) -> int:
     """ Count the entry # of deltas """
     if isinstance(entry, list):
         assert isinstance(entry[1], list), entry
-        return find_first_index(entry[1][0])
+        return entry[1][0][1]
     return entry[1]
 
 def increase_index(entry: list[tuple[int, int] | list]) -> list[tuple[int, int] | list]:
     """ Increase the index for the first element """
     if isinstance(entry[0], list):
-        entry[0][1] = increase_index(entry[0][1])
+        entry[0][1][0] = (entry[0][1][0][0], entry[0][1][0][1] + 1)
     else:
         entry[0] = (entry[0][0], entry[0][1] + 1)
     return entry
@@ -102,7 +102,7 @@ def compose_delta(entry: list[tuple[int, int] | list]) -> list[int | list[int | 
     res: list[int | list[int | list]] = []
     for single in entry:
         if isinstance(single, list):
-            res.append([single[0], compose_delta(single[1])])
+            res.append([single[0]] + [[x[0] for x in single[1]]])
         else:
             res.append(single[0])
     return res

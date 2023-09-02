@@ -19,8 +19,8 @@ from timetable.timetable import Timetable
 from timetable.input_to_timetable import parse_brace
 from timetable.input_to_timetable import main as main_input
 
-def generate_next(timetable: Timetable,
-                  station: str, direction: str, date_group: DateGroup) -> Timetable:
+def generate_next(timetable: Timetable, station: str, next_station: str,
+                  direction: str, date_group: DateGroup) -> Timetable:
     """ Generate next day's timetable """
     # First ask for a delta
     delta_str = questionary.text(
@@ -32,6 +32,9 @@ def generate_next(timetable: Timetable,
     # Add everying with delta
     new_trains: dict[time, Timetable.Train] = {}
     for train in timetable.trains.values():
+        # discard trains not through this station
+        if next_station not in train.train_route.stations:
+            continue
         new_time, next_day = add_min(train.leaving_time, delta, train.next_day)
         new_train = deepcopy(train)
         new_train.leaving_time = new_time
@@ -96,8 +99,14 @@ def main() -> None:
     station = ask_for_station_in_line(line, with_timetable=True)
     direction = ask_for_direction(line, with_timetabled_station=station)
     date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
+
+    index = line.directions[direction].index(station)
+    if index == len(line.directions[direction]) - 1:
+        print("End of the route.")
+        sys.exit(0)
     timetable = line.timetables()[station][direction][date_group.name]
-    main_input(generate_next(timetable, station, direction, date_group))
+    main_input(generate_next(
+        timetable, station, line.directions[direction][index + 1], direction, date_group))
 
 # Call main
 if __name__ == "__main__":
