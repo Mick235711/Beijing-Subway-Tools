@@ -82,6 +82,21 @@ def count_entries(entry: tuple[int, int] | list) -> int:
         return 1 + sum(count_entries(x) for x in entry[1])
     return 1
 
+def find_first_index(entry: tuple[int, int] | list) -> int:
+    """ Count the entry # of deltas """
+    if isinstance(entry, list):
+        assert isinstance(entry[1], list), entry
+        return find_first_index(entry[1][0])
+    return entry[1]
+
+def increase_index(entry: list[tuple[int, int] | list]) -> list[tuple[int, int] | list]:
+    """ Increase the index for the first element """
+    if isinstance(entry[0], list):
+        entry[0][1] = increase_index(entry[0][1])
+    else:
+        entry[0] = (entry[0][0], entry[0][1] + 1)
+    return entry
+
 def compose_delta(entry: list[tuple[int, int] | list]) -> list[int | list[int | list]]:
     """ Return the delta/index format to original delta format"""
     res: list[int | list[int | list]] = []
@@ -142,13 +157,34 @@ def divide_schedule(trains: list[Timetable.Train],
         # Get rid of last delta
         if i < len(entries) - 1:
             if isinstance(composed[-1], list):
-                assert isinstance(composed[-1][0], int), composed
-                composed[-1][0] -= 1
-                if composed[-1][0] == 1:
-                    composed[-1] = composed[-1][1]
+                assert isinstance(composed[-1][0], int) and\
+                    isinstance(composed[-1][1], list), composed
+                if len(composed[-1][1]) == 1:
+                    # single, just reduce
+                    composed[-1][0] -= 1
+                    if composed[-1][0] == 1:
+                        composed[-1] = composed[-1][1][0]
+                else:
+                    # try to "borrow" from next entry
+                    if not isinstance(entries[i + 1][0], list):
+                        entries[i + 1] = entries[i + 1][1:]
+                    elif len(entries[i + 1][0][1]) == 1:  # type: ignore
+                        entries[i + 1][0][0] -= 1  # type: ignore
+                        entries[i + 1][0][1] = increase_index(  # type: ignore
+                            entries[i + 1][0][1])  # type: ignore
+                        if entries[i + 1][0][0] == 1:
+                            entries[i + 1][0] = entries[i + 1][0][1][0]  # type: ignore
+                    else:
+                        # cannot borrow, just expand
+                        composed[-1][0] -= 1
+                        if composed[-1][0] == 1:
+                            composed = composed[:-1] + composed[-1][1]
+                        assert isinstance(composed[-1], list), composed
+                        assert isinstance(composed[-1][1], list), composed
+                        composed += composed[-1][1][:-1]
             else:
                 composed = composed[:-1]
-        yield trains[entry[0][1]].leaving_time, composed
+        yield trains[find_first_index(entry[0])].leaving_time, composed
 
 def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Iterable[
         tuple[TrainRoute, dict[str, str | int | list[str]]]]:
@@ -214,6 +250,7 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     trains = sorted(list(timetable.trains.values()), key=lambda x: x.sort_key_str())
     for first_train, delta in divide_schedule(trains, break_entries):
         res += f'{start}    {{first_train: "{get_time_str(first_train)}", delta: {delta}}},\n'
+    res = res[:-2] + '\n'  # remove trailing comma
 
     # filters part
     res += f"{start}],\n{start}filters: [\n"
@@ -227,6 +264,7 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
             else:
                 res += f', {key}: {value}'
         res += "},\n"
+    res = res[:-2] + '\n'  # remove trailing comma
     res += f"{start}]\n"
 
     return res

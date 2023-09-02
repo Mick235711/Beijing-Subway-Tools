@@ -100,6 +100,24 @@
                         {plan: "土桥回库车", first_train: "18:13", skip_trains: 2, count: 3},
                         {plan: "土桥回库车", first_train: "18:41", skip_trains: 2, count: 3}
                     ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:57", delta: [9, 7, 9, 9, 9, 6, 8, 7, 6, 8, 7, 5, 9, 7]},
+                        {first_train: "06:50", delta: [6, 8, 7, 7, 7, 6, 6, 4, 4, 4, 3, 5, [8, [3]]]},
+                        {first_train: "08:27", delta: [3, 3, 6, 3, 6, 6, 6, 6, 4, 8, [18, [6]], [29, [7]], [3, [3, 6, 6, 6]]]},
+                        {first_train: "15:35", delta: [6, 6, 2, 7, 6, 6, 6, 4, 8, [24, [6]], 7, 4]},
+                        {first_train: "19:08", delta: [7, [8, [5]], 6, 4, [6, [5]], 3, 6, 4, 4, 7, 3, 5, [2, [6, 6, 6, 6, 7]]]},
+                        {first_train: "22:16", delta: [[11, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "果园小交路", first_train: "07:49", skip_trains: 1, until: "08:21"},
+                        {plan: "果园小交路", trains: ["08:27", "08:33", "08:39", "14:32"]},
+                        {plan: "果园小交路", first_train: "14:53", count: 4},
+                        {plan: "果园小交路", first_train: "15:35", count: 3},
+                        {plan: "四惠回库车", first_train: "20:35", skip_trains: 2, count: 3},
+                        {plan: "四惠东回库车", first_train: "22:58", until: "23:33"}
+                    ]
                 }
             }
         }

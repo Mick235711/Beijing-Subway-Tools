@@ -77,6 +77,8 @@ For example: (Assume first time is 07:00)
 [2, 3, [4, [2]]] = [2, 3, 2, 2, 2, 2]
 [3, [2, 3, 4]] = [2, 3, 4, 2, 3, 4, 2, 3, 4]
 ```
+It is advisable to not handwrite the specifications. Instead, you can use `timetable/input_to_timetable.py` to generate specification from input,
+or use `timetable/timetable_from_prev.py` to generate next station's schedule from this station's.
 
 ## Schedule Filter Specification Format
 Filters is a way to associate train routing to schedule (i.e. specify that some trains ends at station A, etc.).
