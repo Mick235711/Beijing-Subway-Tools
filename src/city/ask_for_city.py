@@ -66,6 +66,23 @@ def ask_for_station(city: City) -> tuple[str, set[Line]]:
     station = complete_pinyin("Please select a station:", meta_information, aliases)
     return station, station_lines[station]
 
+def ask_for_line_in_station(lines: set[Line]) -> Line:
+    """ Ask for a line passing through a station """
+    if len(lines) == 1:
+        return list(lines)[0]
+
+    meta_information: dict[str, str] = {}
+    aliases: dict[str, list[str]] = {}
+    lines_dict: dict[str, Line] = {line.name: line for line in lines}
+    for name, line in lines_dict.items():
+        meta_information[name] = line.line_str()
+        if len(line.aliases) > 0:
+            aliases[name] = line.aliases
+
+    # Ask
+    answer = complete_pinyin("Please select a line:", meta_information, aliases)
+    return lines_dict[answer]
+
 def ask_for_station_in_line(line: Line) -> str:
     """ Ask for a station in line """
     meta_information: dict[str, str] = {}
