@@ -75,7 +75,7 @@ def parse_line(line_file: str) -> Line:
             if "aliases" in station:
                 if station["name"] not in line.station_aliases:
                     line.station_aliases[station["name"]] = []
-                line.station_aliases[station["name"]] += station["alias"]
+                line.station_aliases[station["name"]] += station["aliases"]
     else:
         line.stations = line_dict["station_names"]
         line.station_dists = line_dict["station_dists"]

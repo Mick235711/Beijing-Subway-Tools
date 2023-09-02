@@ -43,6 +43,9 @@ def parse_input() -> Timetable:
         next_day = hour < prev_max
         if hour > prev_max:
             prev_max = hour
+        if hour >= 24:
+            next_day = True
+            hour %= 24
         spec = [x.strip() for x in line[index + 1:].strip().split()]
         for time_str in spec:
             brace, minute = parse_brace(time_str)
@@ -228,7 +231,7 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
 
     return res
 
-def main() -> None:
+def main(timetable: Timetable | None = None) -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--level", type=int, default=0,
@@ -236,7 +239,8 @@ def main() -> None:
     parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
                         help="Indentation level before each line")
     args = parser.parse_args()
-    print(to_json_format(parse_input(), level=args.level, break_entries=args.break_entries))
+    print(to_json_format(timetable or parse_input(), level=args.level,
+                         break_entries=args.break_entries))
 
 # Call main
 if __name__ == "__main__":

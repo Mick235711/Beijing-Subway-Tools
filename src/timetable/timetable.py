@@ -48,7 +48,7 @@ class Timetable:
         """ Get string representation """
         return f"<{len(self.trains)} trains>"
 
-    def pretty_print(self) -> None:
+    def pretty_print(self) -> dict[str, TrainRoute]:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
         hour_dict: dict[int, list[Timetable.Train]] = {}
@@ -86,6 +86,7 @@ class Timetable:
         print()
         for brace, route in brace_dict.items():
             print(f"{brace} = {route!r}")
+        return brace_dict
 
 def parse_delta(delta: list[int | list]) -> list[int]:
     """ Parse the delta field """

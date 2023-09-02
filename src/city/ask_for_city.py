@@ -23,7 +23,7 @@ def ask_for_city() -> City:
             aliases[name] = city.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a city: ", meta_information, aliases)
+    answer = complete_pinyin("Please select a city:", meta_information, aliases)
     return cities[answer]
 
 def ask_for_line(city: City) -> Line:
@@ -37,7 +37,7 @@ def ask_for_line(city: City) -> Line:
             aliases[name] = line.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a line: ", meta_information, aliases)
+    answer = complete_pinyin("Please select a line:", meta_information, aliases)
     return lines[answer]
 
 def ask_for_station(city: City) -> tuple[str, set[Line]]:
@@ -63,7 +63,7 @@ def ask_for_station(city: City) -> tuple[str, set[Line]]:
         meta_information[station] = ", ".join(x.name for x in lines_set)
 
     # Ask
-    station = complete_pinyin("Please select a station: ", meta_information, aliases)
+    station = complete_pinyin("Please select a station:", meta_information, aliases)
     return station, station_lines[station]
 
 def ask_for_station_in_line(line: Line) -> str:
@@ -76,7 +76,7 @@ def ask_for_station_in_line(line: Line) -> str:
             aliases[station] = line.station_aliases[station]
 
     # Ask
-    return complete_pinyin("Please select a station: ", meta_information, aliases)
+    return complete_pinyin("Please select a station:", meta_information, aliases)
 
 def ask_for_direction(line: Line) -> str:
     """ Ask for a line direction """
@@ -88,7 +88,7 @@ def ask_for_direction(line: Line) -> str:
             aliases[name] = line.direction_aliases[name]
 
     # Ask
-    return complete_pinyin("Please select a direction: ", meta_information, aliases)
+    return complete_pinyin("Please select a direction:", meta_information, aliases)
 
 def ask_for_date_group(line: Line) -> DateGroup:
     """ Ask for a date group """
@@ -100,5 +100,5 @@ def ask_for_date_group(line: Line) -> DateGroup:
             aliases[name] = group.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a date group: ", meta_information, aliases)
+    answer = complete_pinyin("Please select a date group:", meta_information, aliases)
     return line.date_groups[answer]
