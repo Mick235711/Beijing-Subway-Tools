@@ -91,12 +91,15 @@ def add_min(time_obj: time, minutes: int, next_day: bool = False) -> tuple[time,
     new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
     return new_time, (new_time < time_obj or next_day)
 
+def diff_time(time1: time, time2: time, next_day1: bool = False, next_day2: bool = False) -> int:
+    """ Compute time1 - time2 """
+    min1 = time1.hour * 60 + time1.minute + (24 * 60 if next_day1 else 0)
+    min2 = time2.hour * 60 + time2.minute + (24 * 60 if next_day2 else 0)
+    return min1 - min2
+
 def get_time_str(time_obj: time, next_day: bool = False) -> str:
     """ Get str from (time, next_day) """
-    key = str(time_obj)
-    if next_day:
-        key = str(int(key[:2]) + 24) + key[2:]
-    return key
+    return f"{time_obj.hour + (24 if next_day else 0):>02}:{time_obj.minute:>02}" 
 
 def get_time_repr(time_obj: time, next_day: bool = False) -> str:
     """ Get representation from (time, next_day) """

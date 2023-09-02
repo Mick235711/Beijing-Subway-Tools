@@ -95,7 +95,7 @@
                         {plan: "土桥回库车", first_train: "08:37", skip_trains: 1, count: 4},
                         {plan: "土桥回库车", trains: ["16:33", "16:51", "17:00", "17:12", "17:19", "17:41", "17:47", "17:57"]},
                         {plan: "土桥回库车", trains: ["18:04", "18:32"]},
-                        {plan: "土桥回库车", first_train: "18:13", skip_trains: 2, count: 3},   
+                        {plan: "土桥回库车", first_train: "18:13", skip_trains: 2, count: 3},
                         {plan: "土桥回库车", first_train: "18:41", skip_trains: 2, count: 3}
                     ]
                 }

@@ -138,9 +138,11 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
         else:
             first_train, first_nd = parse_time(entry["first_train"])\
                 if "first_train" in entry else list(trains.values())[0].sort_key()
-            last_train, last_nd = parse_time(entry["until"])\
+            last_train, last_nd = parse_time(entry["until"], first_nd)\
                 if "until" in entry else list(trains.values())[-1].sort_key()
             assert first_train in trains and last_train in trains, (trains, first_train, last_train)
+            if not last_nd and get_time_str(first_train, first_nd) > get_time_str(last_train, last_nd):
+                last_nd = True
             assert get_time_str(first_train, first_nd) <= get_time_str(last_train, last_nd),\
                 (first_train, first_nd, last_train, last_nd)
             skip_trains = (entry["skip_trains"] + 1) if "skip_trains" in entry else 1
