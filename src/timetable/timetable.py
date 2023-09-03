@@ -6,10 +6,11 @@
 # Libraries
 import os
 import sys
-from typing import Any
-from datetime import time, timedelta
+from typing import Iterable, Any
+from datetime import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import parse_time, add_min, get_time_str, get_time_repr, distribute_braces
+from common.common import parse_time, add_min, get_time_str, get_time_repr,\
+    distribute_braces, combine_brace
 from city.date_group import DateGroup
 from city.train_route import TrainRoute
 
@@ -17,8 +18,8 @@ class Timetable:
     """ Represents time table for a line in a station in a day """
     class Train:
         """ Represents one train """
-        def __init__(self, station: str, date_group: DateGroup,
-                     leaving_time: time, train_route: TrainRoute, next_day: bool = False) -> None:
+        def __init__(self, station: str, date_group: DateGroup, leaving_time: time,
+                     train_route: TrainRoute | list[TrainRoute], next_day: bool = False) -> None:
             """ Constructor """
             self.station = station
             self.date_group = date_group
@@ -29,7 +30,46 @@ class Timetable:
         def __repr__(self) -> str:
             """ Get string representation """
             return f"<Leaving {self.station} at " + get_time_repr(
-                self.leaving_time, self.next_day) + f" ({self.train_route.direction_str()})>"
+                self.leaving_time, self.next_day) + f" ({self.route_str()})>"
+
+        def route_iter(self) -> Iterable[TrainRoute]:
+            """ Iterable of route """
+            return self.train_route if isinstance(self.train_route, list) else [self.train_route]
+
+        def route_str(self) -> str:
+            """ Get representation of the route of this train """
+            return " + ".join(x.direction_str() for x in self.route_iter())
+
+        def add_route(self, route: TrainRoute, base: TrainRoute | None = None) -> None:
+            """ Add/replace route """
+            if isinstance(self.train_route, TrainRoute):
+                if self.train_route == base:
+                    self.train_route = route
+                else:
+                    assert self.train_route.direction == route.direction, (self.train_route, route)
+                    self.train_route = [self.train_route, route]
+            else:
+                if len(self.train_route) > 0:
+                    assert self.train_route[-1].direction == route.direction,\
+                        (self.train_route, route)
+                self.train_route.append(route)
+
+        def route_stations(self) -> list[str]:
+            """ Return the stations """
+            if isinstance(self.train_route, TrainRoute):
+                return self.train_route.stations
+            stations: list[str] = []
+            for route in self.train_route:
+                if not stations:
+                    stations = route.stations
+                    continue
+                route_set = set(route.stations)
+                new_stations: list[str] = []
+                for station in stations:
+                    if station in route_set:
+                        new_stations.append(station)
+                stations = new_stations[:]
+            return stations
 
         def sort_key(self) -> tuple[time, bool]:
             """ Return the time """
@@ -58,12 +98,14 @@ class Timetable:
             if key not in hour_dict:
                 hour_dict[key] = []
             hour_dict[key].append(train)
-            if train.train_route != self.base_route:
-                routes.add(train.train_route)
+            for route in train.route_iter():
+                if route != self.base_route:
+                    routes.add(route)
 
         # Assign braces to routes
         brace_dict = distribute_braces(routes)
         brace_dict_r = {v: k for k, v in brace_dict.items()}
+        brace_dict_r[self.base_route] = ""
 
         # Print!
         for hour, trains in hour_dict.items():
@@ -75,10 +117,9 @@ class Timetable:
                 else:
                     print(" ", end="")
                 minute = f"{train.leaving_time.minute:>02}"
-                if train.train_route != self.base_route:
-                    brace = brace_dict_r[train.train_route]
-                    brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
-                    minute = brace_left + minute + brace_right
+                brace = combine_brace(brace_dict_r, train.train_route)
+                brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
+                minute = brace_left + minute + brace_right
                 print(minute, end="")
             print()
 
@@ -131,14 +172,15 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
             for entry_time in entry["trains"]:
                 leaving_time, next_day = parse_time(entry_time)
                 assert leaving_time in trains, (trains, leaving_time)
-                trains[leaving_time].train_route = plan
+                trains[leaving_time].add_route(plan, base_route)
         else:
             first_train, first_nd = parse_time(entry["first_train"])\
                 if "first_train" in entry else list(trains.values())[0].sort_key()
             last_train, last_nd = parse_time(entry["until"], first_nd)\
                 if "until" in entry else list(trains.values())[-1].sort_key()
             assert first_train in trains and last_train in trains, (trains, first_train, last_train)
-            if not last_nd and get_time_str(first_train, first_nd) > get_time_str(last_train, last_nd):
+            if not last_nd and get_time_str(
+                    first_train, first_nd) > get_time_str(last_train, last_nd):
                 last_nd = True
             assert get_time_str(first_train, first_nd) <= get_time_str(last_train, last_nd),\
                 (first_train, first_nd, last_train, last_nd)
@@ -150,11 +192,11 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
             if count != -1:
                 for i in range(count):
                     leaving_time = train_times[first_index + i * skip_trains]
-                    trains[leaving_time].train_route = plan
+                    trains[leaving_time].add_route(plan, base_route)
             else:
                 while first_index <= last_index:
                     leaving_time = train_times[first_index]
-                    trains[leaving_time].train_route = plan
+                    trains[leaving_time].add_route(plan, base_route)
                     first_index += skip_trains
 
     return Timetable(trains, base_route)

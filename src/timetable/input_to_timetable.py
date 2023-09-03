@@ -10,20 +10,10 @@ import argparse
 from datetime import time
 from typing import Iterable, Any
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import get_time_str, diff_time
+from common.common import get_time_str, diff_time, parse_brace
 from city.date_group import DateGroup
 from city.train_route import TrainRoute
 from timetable.timetable import Timetable
-
-def parse_brace(spec: str) -> tuple[str, int]:
-    """ Parse string like (2) """
-    L, R = 0, len(spec) - 1
-    while L < len(spec) and not spec[L].isdigit():
-        L += 1
-    while R >= 0 and not spec[R].isdigit():
-        R -= 1
-    assert L <= R, spec
-    return spec[:L] + spec[R + 1:], int(spec[L:R + 1])
 
 def parse_input() -> Timetable:
     """ Parse input into timetable object """
@@ -48,10 +38,11 @@ def parse_input() -> Timetable:
             hour %= 24
         spec = [x.strip() for x in line[index + 1:].strip().split()]
         for time_str in spec:
-            brace, minute = parse_brace(time_str)
-            if brace not in route_dict:
-                route_dict[brace] = []
-            route_dict[brace].append(len(trains))
+            braces, minute = parse_brace(time_str)
+            for brace in braces:
+                if brace not in route_dict:
+                    route_dict[brace] = []
+                route_dict[brace].append(len(trains))
             trains.append(Timetable.Train(
                 base_station, base_group, time(hour=hour, minute=minute), base_route, next_day))
 
@@ -63,7 +54,7 @@ def parse_input() -> Timetable:
         if brace == "":
             table.base_route = route
         for index in indexes:
-            trains[index].train_route = route
+            trains[index].add_route(route, base_route)
 
     return table
 
@@ -192,9 +183,10 @@ def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Ite
     # First, construct route dictionary
     route_dict: dict[TrainRoute, list[tuple[Timetable.Train, int]]] = {}
     for i, train in enumerate(trains):
-        if train.train_route not in route_dict:
-            route_dict[train.train_route] = []
-        route_dict[train.train_route].append((train, i))
+        for route in train.route_iter():
+            if route not in route_dict:
+                route_dict[route] = []
+            route_dict[route].append((train, i))
 
     # Try to collapse filters
     for route, route_trains in route_dict.items():
@@ -202,7 +194,7 @@ def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Ite
             continue
         current_trains: list[str] = []
         i = 0
-        while i < len(route_trains):
+        while i < len(route_trains) - 1:
             # Try a same-delta sequence start from i
             delta = route_trains[i + 1][1] - route_trains[i][1]
             end = i + 1
@@ -237,6 +229,8 @@ def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Ite
                     yield route, {"first_train": time_str, "skip_trains": delta - 1,
                                   "count": end - i + 1}
             i = end + 1
+        if i == len(route_trains) - 1:
+            current_trains.append(get_time_str(route_trains[i][0].leaving_time))
         if len(current_trains) > 0:
             yield route, {"trains": current_trains}
 

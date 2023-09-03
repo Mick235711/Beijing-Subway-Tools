@@ -99,7 +99,7 @@ def diff_time(time1: time, time2: time, next_day1: bool = False, next_day2: bool
 
 def get_time_str(time_obj: time, next_day: bool = False) -> str:
     """ Get str from (time, next_day) """
-    return f"{time_obj.hour + (24 if next_day else 0):>02}:{time_obj.minute:>02}" 
+    return f"{time_obj.hour + (24 if next_day else 0):>02}:{time_obj.minute:>02}"
 
 def get_time_repr(time_obj: time, next_day: bool = False) -> str:
     """ Get representation from (time, next_day) """
@@ -118,3 +118,55 @@ def distribute_braces(values: Iterable[T]) -> dict[str, T]:
         new_brace = brace_left * multipler + brace_right * multipler
         res[new_brace] = value
     return res
+
+def get_parts(brace: str) -> tuple[str, str]:
+    """ Return parts of brace """
+    return brace[:len(brace) // 2], brace[len(brace) // 2:]
+
+def parse_brace(spec: str) -> tuple[list[str], int]:
+    """ Parse string like (2) """
+    brace_left, brace_right = 0, len(spec) - 1
+    while brace_left < len(spec) and not spec[brace_left].isdigit():
+        brace_left += 1
+    while brace_right >= 0 and not spec[brace_right].isdigit():
+        brace_right -= 1
+    assert brace_left <= brace_right, spec
+    brace_str, brace_str_right = spec[:brace_left], spec[brace_right + 1:]
+    assert len(brace_str) == len(brace_str_right), spec
+    inside = int(spec[brace_left:brace_right + 1])
+
+    # decompose
+    if brace_str == "":
+        return [brace_str_right], inside
+    braces: list[str] = []
+    index = 0
+    while True:
+        last_index = index
+        index += 1
+        while index < len(brace_str) and brace_str[index] == brace_str[index - 1]:
+            index += 1
+        if brace_str[last_index:index] == "+":
+            continue
+        if last_index == 0:
+            braces.append(brace_str[:index] + brace_str_right[-index:])
+        else:
+            braces.append(brace_str[last_index:index] + brace_str_right[-index:-last_index])
+        if index == len(brace_str):
+            return braces, inside
+
+def combine_brace(brace_dict: dict[T, str], values: T | Iterable[T]) -> str:
+    """ Combine one or more braces """
+    if not isinstance(values, Iterable):
+        return brace_dict[values]
+
+    # Combine, add + if end = start
+    values_list = list(values)
+    cur_brace, cur_brace_right = get_parts(brace_dict[values_list[0]])
+    for i in range(1, len(values_list)):
+        brace, brace_right = get_parts(brace_dict[values_list[i]])
+        if cur_brace != "" and brace != "" and cur_brace[-1] == brace[0]:
+            cur_brace += "+"
+            cur_brace_right = "+" + cur_brace_right
+        cur_brace += brace
+        cur_brace_right = brace_right + cur_brace_right
+    return cur_brace + cur_brace_right

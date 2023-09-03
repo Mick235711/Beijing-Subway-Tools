@@ -10,13 +10,12 @@ from datetime import time
 from copy import deepcopy
 import questionary
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import add_min
+from common.common import add_min, parse_brace
 from city.date_group import DateGroup
 from city.train_route import TrainRoute
 from city.ask_for_city import ask_for_city, ask_for_line, ask_for_station_in_line,\
     ask_for_direction, ask_for_date_group
 from timetable.timetable import Timetable
-from timetable.input_to_timetable import parse_brace
 from timetable.input_to_timetable import main as main_input
 
 def generate_next(timetable: Timetable, station: str, next_station: str,
@@ -33,7 +32,7 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
     new_trains: dict[time, Timetable.Train] = {}
     for train in timetable.trains.values():
         # discard trains not through this station
-        if next_station not in train.train_route.stations:
+        if next_station not in train.route_stations():
             continue
         new_time, next_day = add_min(train.leaving_time, delta, train.next_day)
         new_train = deepcopy(train)
@@ -71,16 +70,20 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
             hour %= 24
         spec = [x.strip() for x in modification[index + 1:].strip().split()]
         for time_str in spec:
-            brace, minute = parse_brace(time_str)
-            if brace in brace_dict:
-                route = brace_dict[brace]
-            else:
-                new_brace = input(f"{brace} = ")
-                route = TrainRoute(new_brace, direction, [])
-                brace_dict[new_brace] = route
+            braces, minute = parse_brace(time_str)
+            routes: list[TrainRoute] = []
+            for brace in braces:
+                if brace in brace_dict:
+                    routes.append(brace_dict[brace])
+                else:
+                    new_brace = input(f"{brace} = ")
+                    route = TrainRoute(new_brace, direction, [])
+                    routes.append(route)
+                    brace_dict[brace] = route
             leaving_time = time(hour=hour, minute=minute)
             new_trains[leaving_time] = Timetable.Train(
-                station, date_group, leaving_time, route, next_day)
+                station, date_group, leaving_time,
+                routes[0] if len(routes) == 1 else routes, next_day)
 
         # Discard some previous trains
         for train in new_timetable.trains.values():
