@@ -108,10 +108,11 @@ def get_time_repr(time_obj: time, next_day: bool = False) -> str:
 
 possible_braces = ["()", "[]", "{}", "<>"]
 T = TypeVar("T")
-def distribute_braces(values: Iterable[T]) -> dict[str, T]:
+def distribute_braces(values: dict[T, int]) -> dict[str, T]:
     """ Distribute brace to values """
     res: dict[str, T] = {}
-    for i, value in enumerate(values):
+    values = dict(sorted(list(values.items()), key=lambda x: x[1], reverse=True))
+    for i, value in enumerate(values.keys()):
         brace = possible_braces[i % len(possible_braces)]
         brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
         multipler = (i // len(possible_braces)) + 1

@@ -92,7 +92,7 @@ class Timetable:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
         hour_dict: dict[int, list[Timetable.Train]] = {}
-        routes: set[TrainRoute] = set()
+        routes: dict[TrainRoute, int] = {}
         for train in self.trains.values():
             key = int(train.sort_key_str()[:2])
             if key not in hour_dict:
@@ -100,7 +100,9 @@ class Timetable:
             hour_dict[key].append(train)
             for route in train.route_iter():
                 if route != self.base_route:
-                    routes.add(route)
+                    if route not in routes:
+                        routes[route] = 0
+                    routes[route] += 1
 
         # Assign braces to routes
         brace_dict = distribute_braces(routes)
