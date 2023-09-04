@@ -89,7 +89,7 @@ def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
 def add_min(time_obj: time, minutes: int, next_day: bool = False) -> tuple[time, bool]:
     """ Add minutes """
     new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
-    return new_time, (new_time < time_obj or next_day)
+    return new_time, minutes > 0 and (new_time < time_obj or next_day)
 
 def diff_time(time1: time, time2: time, next_day1: bool = False, next_day2: bool = False) -> int:
     """ Compute time1 - time2 """
