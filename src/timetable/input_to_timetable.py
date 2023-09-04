@@ -169,10 +169,11 @@ def divide_schedule(trains: list[Timetable.Train],
                         # cannot borrow, just expand
                         composed[-1][0] -= 1
                         if composed[-1][0] == 1:
-                            composed = composed[:-1] + composed[-1][1]
-                        assert isinstance(composed[-1], list), composed
-                        assert isinstance(composed[-1][1], list), composed
-                        composed += composed[-1][1][:-1]
+                            composed = composed[:-1] + composed[-1][1] + composed[-1][1][:-1]
+                        else:
+                            assert isinstance(composed[-1], list), composed
+                            assert isinstance(composed[-1][1], list), composed
+                            composed += composed[-1][1][:-1]
             else:
                 composed = composed[:-1]
         yield trains[find_first_index(entry[0])].leaving_time, composed
