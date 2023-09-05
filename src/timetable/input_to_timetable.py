@@ -139,7 +139,8 @@ def divide_schedule(trains: list[Timetable.Train],
             entries.append(delta_collapsed[last_break:i + 1])
             last_break = i + 1
             current = 0
-    entries.append(delta_collapsed[last_break:])
+    if last_break < len(delta_collapsed):
+        entries.append(delta_collapsed[last_break:])
 
     # recompose into first/delta format
     for i, entry in enumerate(entries):
