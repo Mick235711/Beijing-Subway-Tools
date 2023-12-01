@@ -55,21 +55,8 @@ class Timetable:
                 self.train_route.append(route)
 
         def route_stations(self) -> list[str]:
-            """ Return the stations """
-            if isinstance(self.train_route, TrainRoute):
-                return self.train_route.stations
-            stations: list[str] = []
-            for route in self.train_route:
-                if not stations:
-                    stations = route.stations
-                    continue
-                route_set = set(route.stations)
-                new_stations: list[str] = []
-                for station in stations:
-                    if station in route_set:
-                        new_stations.append(station)
-                stations = new_stations[:]
-            return stations
+            """ Return the stations of this train """
+            return route_stations(self.train_route)
 
         def sort_key(self) -> tuple[time, bool]:
             """ Return the time """
@@ -130,6 +117,23 @@ class Timetable:
         for brace, route in brace_dict.items():
             print(f"{brace} = {route!r}")
         return brace_dict
+
+def route_stations(routes: TrainRoute | list[TrainRoute]) -> list[str]:
+    """ Return the stations of this route """
+    if isinstance(routes, TrainRoute):
+        return routes.stations
+    stations: list[str] = []
+    for route in routes:
+        if not stations:
+            stations = route.stations
+            continue
+        route_set = set(route.stations)
+        new_stations: list[str] = []
+        for station in stations:
+            if station in route_set:
+                new_stations.append(station)
+        stations = new_stations[:]
+    return stations
 
 def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
     """ Parse the delta field """
