@@ -44,6 +44,15 @@ def to_pinyin(text: str) -> str:
     """ Change Chinese characters into pinyin, capitalize first letter """
     return "".join(lazy_pinyin(text)).capitalize()
 
+def is_chinese(ch: str) -> bool:
+    """ Determine if the character is chinese """
+    assert len(ch) == 1, ch
+    return "\u4e00" <= ch <= "\u9fff"
+
+def chin_len(s: str) -> int:
+    """ Determine width wrt chinese characters """
+    return sum(2 if is_chinese(ch) else 1 for ch in s)
+
 def complete_pinyin(message: str, meta_information: dict[str, str],
                     aliases: dict[str, list[str]] | None = None) -> str:
     """ Prompt the user to enter a message, support pinyin completion """

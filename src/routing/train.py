@@ -8,7 +8,8 @@ import os
 import sys
 from datetime import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, get_time_repr, format_duration, distance_str
+from common.common import diff_time, get_time_repr, format_duration, distance_str,\
+    chin_len
 from city.train_route import TrainRoute, stations_dist, route_dist
 from timetable.timetable import Timetable, route_stations
 
@@ -58,7 +59,7 @@ class Train:
 
         # Real loop
         last_station: str | None = None
-        max_length = max(map(len, reprs))
+        max_length = max(map(chin_len, reprs))
         current_dist = 0
         for station, station_repr in zip(self.stations, reprs):
             arrival_time, next_day = self.arrival_time[station]
@@ -69,7 +70,8 @@ class Train:
                 print(f"({format_duration(duration)}, {distance_str(dist)})")
                 current_dist += dist
             start_duration = diff_time(arrival_time, start_time, next_day, start_day)
-            print(f"{station_repr:<{max_length}} (+{format_duration(start_duration)}, " +
+            print(f"{station_repr}" + " " * (max_length - chin_len(station_repr) + 1) +
+                  f"(+{format_duration(start_duration)}, " +
                   f"+{distance_str(current_dist)})")
             last_station = station
 
