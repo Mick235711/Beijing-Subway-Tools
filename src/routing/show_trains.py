@@ -6,6 +6,7 @@
 # Libraries
 import os
 import sys
+import argparse
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import complete_pinyin
 from city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
@@ -13,6 +14,10 @@ from routing.train import parse_trains
 
 def main() -> None:
     """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
+    args = parser.parse_args()
+
     city = ask_for_city()
     line = ask_for_line(city)
     direction = ask_for_direction(line)
@@ -23,7 +28,10 @@ def main() -> None:
     for i, train in enumerate(train_list):
         meta_information[f"#{i + 1}"] = train.line_repr(line.name)
     train_index = int(complete_pinyin("Please select a train:", meta_information)[1:])
-    train_list[train_index - 1].pretty_print(line.name, line.stations, line.station_dists)
+    train_list[train_index - 1].pretty_print(
+        line.name, line.stations, line.station_dists,
+        with_speed=args.with_speed
+    )
 
 # Call main
 if __name__ == "__main__":

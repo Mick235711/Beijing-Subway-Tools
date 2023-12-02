@@ -85,6 +85,14 @@ def distance_str(distance: int) -> str:
         return f"{distance}m"
     return f"{distance / 1000:.2f}km"
 
+def segment_speed(distance: int, duration: int) -> float:
+    """ Get segment speed with m and min -> km/h """
+    return (distance / 1000) / (duration / 60)
+
+def speed_str(speed: float) -> str:
+    """ Get proper string representation of speed """
+    return f"{speed:.2f}km/h"
+
 def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
     """ Parse time as hh:mm """
     if len(time_str) == 4:

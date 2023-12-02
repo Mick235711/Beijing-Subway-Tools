@@ -9,7 +9,7 @@ import sys
 from datetime import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import diff_time, get_time_repr, format_duration, distance_str,\
-    chin_len
+    chin_len, segment_speed, speed_str
 from city.train_route import TrainRoute, stations_dist, route_dist
 from timetable.timetable import Timetable, route_stations
 
@@ -41,7 +41,8 @@ class Train:
         """ One-line short representation """
         return f"{line} {self.direction} {repr(self)[1:-1]}"
 
-    def pretty_print(self, line: str, stations: list[str], station_dists: list[int]) -> None:
+    def pretty_print(self, line: str, stations: list[str], station_dists: list[int],
+                     *, with_speed: bool = False) -> None:
         """ Print the entire timetable for this train """
         print(self.line_repr(line), end="")
 
@@ -50,7 +51,10 @@ class Train:
         end_time, end_day = self.arrival_time[self.stations[-1]]
         duration = diff_time(end_time, start_time, end_day, start_day)
         total_dists = route_dist(stations, station_dists, self.stations)
-        print(f" ({format_duration(duration)}, {distance_str(total_dists)})\n")
+        print(f" ({format_duration(duration)}, {distance_str(total_dists)}", end="")
+        if with_speed:
+            print(f", {speed_str(segment_speed(total_dists, duration))}", end="")
+        print(")\n")
 
         # Pre-run
         reprs: list[str] = []
@@ -67,7 +71,10 @@ class Train:
                 last_time, last_next_day = self.arrival_time[last_station]
                 duration = diff_time(arrival_time, last_time, next_day, last_next_day)
                 dist = stations_dist(stations, station_dists, last_station, station)
-                print(f"({format_duration(duration)}, {distance_str(dist)})")
+                print(f"({format_duration(duration)}, {distance_str(dist)}", end="")
+                if with_speed:
+                    print(f", {speed_str(segment_speed(dist, duration))}", end="")
+                print(")")
                 current_dist += dist
             start_duration = diff_time(arrival_time, start_time, next_day, start_day)
             print(f"{station_repr}" + " " * (max_length - chin_len(station_repr) + 1) +
