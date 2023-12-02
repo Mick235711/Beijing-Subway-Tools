@@ -36,16 +36,20 @@ class Train:
                f" {self.stations[0]} {self.start_time()}" +\
                f" - {self.stations[-1]} {self.end_time()}>"
 
+    def line_repr(self, line: str) -> str:
+        """ One-line short representation """
+        return f"{line} {self.direction} {repr(self)[1:-1]}"
+
     def pretty_print(self, line: str, stations: list[str], station_dists: list[int]) -> None:
         """ Print the entire timetable for this train """
-        print(f"{line} {self.direction} {repr(self)[1:-1]}", end="")
+        print(self.line_repr(line), end="")
 
         # Compute dists
         start_time, start_day = self.arrival_time[self.stations[0]]
         end_time, end_day = self.arrival_time[self.stations[-1]]
         duration = diff_time(end_time, start_time, end_day, start_day)
         total_dists = route_dist(stations, station_dists, self.stations)
-        print(f" ({format_duration(duration)}, {distance_str(total_dists)})")
+        print(f" ({format_duration(duration)}, {distance_str(total_dists)})\n")
 
         # Pre-run
         reprs: list[str] = []
@@ -60,11 +64,11 @@ class Train:
             arrival_time, next_day = self.arrival_time[station]
             if last_station is not None:
                 last_time, last_next_day = self.arrival_time[last_station]
-                duration = diff_time(arrival_time, next_day, last_time, last_next_day)
+                duration = diff_time(arrival_time, last_time, next_day, last_next_day)
                 dist = stations_dist(stations, station_dists, last_station, station)
                 print(f"({format_duration(duration)}, {distance_str(dist)})")
                 current_dist += dist
-            start_duration = diff_time(arrival_time, next_day, start_time, start_day)
+            start_duration = diff_time(arrival_time, start_time, next_day, start_day)
             print(f"{station_repr:<{max_length}} (+{format_duration(start_duration)}, " +
                   f"+{distance_str(current_dist)})")
             last_station = station
@@ -102,7 +106,7 @@ def parse_trains_stations(train_dict: dict[str, Timetable], stations: list[str])
             else:
                 # Add to existing trains
                 assert len(trains[route_id]) == len(timetable_trains),\
-                    (station, trains, processed_dict)
+                    (station, routes_dict[route_id], len(trains[route_id]), len(timetable_trains))
                 for i in range(len(trains[route_id])):
                     trains[route_id][i].arrival_time[station] = (
                         timetable_trains[i].leaving_time,
@@ -130,9 +134,9 @@ def parse_trains(
 
     # relay to inner function
     result_dict: dict[str, dict[str, list[Train]]] = {}
-    for direction, direction_dict in temp_dict.items():
+    for direction, direction_dict2 in temp_dict.items():
         if direction not in result_dict:
             result_dict[direction] = {}
-        for date_group, station_dict in direction_dict.items():
-            result_dict[direction][date_group] = parse_trains_stations(station_dict, stations)
+        for date_group, station_dict2 in direction_dict2.items():
+            result_dict[direction][date_group] = parse_trains_stations(station_dict2, stations)
     return result_dict
