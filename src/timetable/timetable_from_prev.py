@@ -10,7 +10,7 @@ from datetime import time
 from copy import deepcopy
 import questionary
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import add_min, parse_brace
+from common.common import add_min, parse_brace, apply_slice
 from city.date_group import DateGroup
 from city.train_route import TrainRoute
 from city.ask_for_city import ask_for_city, ask_for_line, ask_for_station_in_line,\
@@ -72,12 +72,26 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
         other = modification[index + 1:].strip()
         if other.startswith("+") or other.startswith("-"):
             # parse uniformalized delta
+            if other.endswith("]"):
+                # have a slicer
+                lp_index = other.find("[")
+                other, slicer = other[:lp_index].strip(), other[lp_index:].strip()
+            else:
+                slicer = None
             delta = int(other)
+            to_add: list[Timetable.Train] = []
             for train in new_timetable.trains.values():
                 if train.leaving_time.hour == hour and train.next_day == next_day:
+                    to_add.append(train)
+            if slicer is not None:
+                to_add_slice = apply_slice(to_add, slicer)
+            for train in to_add:
+                if slicer is None or train in to_add_slice:
                     leaving_time, leaving_day = add_min(train.leaving_time, delta, next_day)
                     new_trains[leaving_time] = Timetable.Train(
                         station, date_group, leaving_time, train.train_route, leaving_day)
+                else:
+                    new_trains[train.leaving_time] = train
         else:
             spec = [x.strip() for x in other.split()]
             for time_str in spec:

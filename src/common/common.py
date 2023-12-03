@@ -202,3 +202,12 @@ def combine_brace(brace_dict: dict[T, str], values: T | Iterable[T]) -> str:
         cur_brace += brace
         cur_brace_right = brace_right + cur_brace_right
     return cur_brace + cur_brace_right
+
+def apply_slice(orig: list[T], slicer: str) -> list[T]:
+    """ Apply a slicer like [start:end:step] to orig """
+    assert slicer.startswith("[") and slicer.endswith("]"), slicer
+    eval_slicer = slice(*[
+        int(x.strip()) if x.strip() != "" else None
+        for x in slicer[1:-1].strip().split(':')
+    ])
+    return list(orig[eval_slicer])

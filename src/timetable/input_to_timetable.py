@@ -260,8 +260,10 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
             else:
                 res += f', {key}: {value}'
         res += "},\n"
-    res = res[:-2] + '\n'  # remove trailing comma
-    res += f"{start}]\n"
+    if res.endswith(",\n"):
+        res = res[:-2] + f"\n{start}]\n"  # remove trailing comma
+    else:
+        res = res[:-1] + "]\n"
 
     return res
 
