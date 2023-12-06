@@ -41,20 +41,24 @@ class Train:
         """ One-line short representation """
         return f"{line} {self.direction} {repr(self)[1:-1]}"
 
-    def pretty_print(self, line: str, stations: list[str], station_dists: list[int],
-                     *, with_speed: bool = False) -> None:
-        """ Print the entire timetable for this train """
-        print(self.line_repr(line), end="")
-
-        # Compute dists
+    def duration_repr(self, stations: list[str], station_dists: list[int],
+                      *, with_speed: bool = False) -> str:
+        """ One-line short duration string """
         start_time, start_day = self.arrival_time[self.stations[0]]
         end_time, end_day = self.arrival_time[self.stations[-1]]
         duration = diff_time(end_time, start_time, end_day, start_day)
         total_dists = route_dist(stations, station_dists, self.stations)
-        print(f" ({format_duration(duration)}, {distance_str(total_dists)}", end="")
+        base = f"{format_duration(duration)}, {distance_str(total_dists)}"
         if with_speed:
-            print(f", {speed_str(segment_speed(total_dists, duration))}", end="")
-        print(")\n")
+            base += f", {speed_str(segment_speed(total_dists, duration))}"
+        return base
+
+    def pretty_print(self, line: str, stations: list[str], station_dists: list[int],
+                     *, with_speed: bool = False) -> None:
+        """ Print the entire timetable for this train """
+        duration_repr = self.duration_repr(stations, station_dists, with_speed=with_speed)
+        print(f"{self.line_repr(line)} ({duration_repr})\n")
+        start_time, start_day = self.arrival_time[self.stations[0]]
 
         # Pre-run
         reprs: list[str] = []
@@ -127,13 +131,16 @@ def parse_trains_stations(train_dict: dict[str, Timetable], stations: list[str])
 
 def parse_trains(
     timetable_dict: dict[str, dict[str, dict[str, Timetable]]],
-    stations: list[str]
+    stations: list[str],
+    only_direction: set[str] | None = None
 ) -> dict[str, dict[str, list[Train]]]:
     """ Parse the trains from a timetable """
     # reverse such that station is the innermost layer
     temp_dict: dict[str, dict[str, dict[str, Timetable]]] = {}
     for station, station_dict in timetable_dict.items():
         for direction, direction_dict in station_dict.items():
+            if only_direction is not None and direction not in only_direction:
+                continue
             if direction not in temp_dict:
                 temp_dict[direction] = {}
             for date_group, timetable in direction_dict.items():
@@ -144,6 +151,8 @@ def parse_trains(
     # relay to inner function
     result_dict: dict[str, dict[str, list[Train]]] = {}
     for direction, direction_dict2 in temp_dict.items():
+        if only_direction is not None and direction not in only_direction:
+            continue
         if direction not in result_dict:
             result_dict[direction] = {}
         for date_group, station_dict2 in direction_dict2.items():

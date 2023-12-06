@@ -22,12 +22,15 @@ def main() -> None:
     line = ask_for_line(city)
     direction = ask_for_direction(line)
     date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line.timetables(), line.stations)
+    train_dict = parse_trains(line.timetables(), line.stations, set([direction]))
     train_list = train_dict[direction][date_group.name]
     meta_information: dict[str, str] = {}
     for i, train in enumerate(train_list):
-        meta_information[f"#{i + 1}"] = train.line_repr(line.name)
-    train_index = int(complete_pinyin("Please select a train:", meta_information)[1:])
+        meta_information[f"#{i + 1} {train.line_repr(line.name)}"] = train.duration_repr(
+            line.stations, line.station_dists, with_speed=args.with_speed
+        )
+    result = complete_pinyin("Please select a train:", meta_information)
+    train_index = int(result[1:result.find(" ")])
     train_list[train_index - 1].pretty_print(
         line.name, line.stations, line.station_dists,
         with_speed=args.with_speed
