@@ -42,6 +42,10 @@ class Line:
         """ Total distance of this line """
         return sum(self.station_dists)
 
+    def base_route(self, direction: str) -> TrainRoute:
+        """ Base route for this line """
+        return list(self.train_routes[direction].values())[0]
+
     def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
         """ Get timetables """
         if self.timetables_processed is not None:
@@ -53,7 +57,7 @@ class Line:
                 self.timetables_processed[station][direction] = {}
                 for date_group, elem3 in elem2.items():
                     self.timetables_processed[station][direction][date_group] = parse_timetable(
-                        station, list(self.train_routes[direction].values())[0],
+                        station, self.base_route(direction),
                         self.date_groups[date_group], self.train_routes[direction],
                         elem3["schedule"], elem3["filters"]
                     )

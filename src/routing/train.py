@@ -31,11 +31,25 @@ class Train:
         """ Train end time """
         return get_time_repr(*self.arrival_time[self.stations[-1]])
 
+    def stop_time(self, station: str) -> str:
+        """ Train stop time """
+        assert station in self.stations and station in self.arrival_time, station
+        return get_time_repr(*self.arrival_time[station])
+
+    def show_with(self, station: str) -> str:
+        """ String representation with stop time on station """
+        base = f"{station} {self.stop_time(station)}"
+        if self.stations[0] != station:
+            base = f"{self.stations[0]} {self.start_time()} -> " + base
+        if self.stations[-1] != station:
+            base += f" -> {self.stations[-1]} {self.end_time()}"
+        return base
+
     def __repr__(self) -> str:
         """ Get string representation """
         return "<" + "+".join(x.name for x in self.routes) +\
                f" {self.stations[0]} {self.start_time()}" +\
-               f" - {self.stations[-1]} {self.end_time()}>"
+               f" -> {self.stations[-1]} {self.end_time()}>"
 
     def line_repr(self, line: str) -> str:
         """ One-line short representation """
