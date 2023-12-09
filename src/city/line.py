@@ -24,6 +24,7 @@ class Line:
         self.station_aliases: dict[str, list[str]] = {}
         self.directions: dict[str, list[str]] = {}
         self.direction_aliases: dict[str, list[str]] = {}
+        self.direction_base_route: dict[str, TrainRoute] = {}
         self.train_routes: dict[str, dict[str, TrainRoute]] = {}
         self.date_groups: dict[str, DateGroup] = {}
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
@@ -42,10 +43,6 @@ class Line:
         """ Total distance of this line """
         return sum(self.station_dists)
 
-    def base_route(self, direction: str) -> TrainRoute:
-        """ Base route for this line """
-        return list(self.train_routes[direction].values())[0]
-
     def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
         """ Get timetables """
         if self.timetables_processed is not None:
@@ -57,7 +54,7 @@ class Line:
                 self.timetables_processed[station][direction] = {}
                 for date_group, elem3 in elem2.items():
                     self.timetables_processed[station][direction][date_group] = parse_timetable(
-                        station, self.base_route(direction),
+                        station, self.direction_base_route[direction],
                         self.date_groups[date_group], self.train_routes[direction],
                         elem3["schedule"], elem3["filters"]
                     )
@@ -103,8 +100,11 @@ def parse_line(line_file: str) -> Line:
         for route_name, route_value in value.items():
             if route_name in ["reversed", "aliases"]:
                 continue
-            line.train_routes[direction][route_name] = parse_train_route(
+            route = parse_train_route(
                 direction, line.directions[direction], route_name, route_value)
+            if len(route_value) == 0:
+                line.direction_base_route[direction] = route
+            line.train_routes[direction][route_name] = route
 
     # parse date groups
     for group_name, group_value in line_dict["date_groups"].items():

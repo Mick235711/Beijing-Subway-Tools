@@ -75,7 +75,8 @@ class Timetable:
         """ Get string representation """
         return f"<{len(self.trains)} trains>"
 
-    def pretty_print(self) -> dict[str, TrainRoute]:
+    def pretty_print(
+        self, *, with_time: dict[str, int | None] | None = None) -> dict[str, TrainRoute]:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
         hour_dict: dict[int, list[Timetable.Train]] = {}
@@ -105,6 +106,13 @@ class Timetable:
                     first = False
                 else:
                     print(" ", end="")
+                if with_time is not None:
+                    entry = with_time[get_time_str(train.leaving_time, train.next_day)]
+                    if entry is not None:
+                        print(entry, end="")
+                    else:
+                        first = True
+                    continue
                 minute = f"{train.leaving_time.minute:>02}"
                 brace = combine_brace(brace_dict_r, train.train_route)
                 brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
@@ -114,8 +122,9 @@ class Timetable:
 
         # Print the braces information
         print()
-        for brace, route in brace_dict.items():
-            print(f"{brace} = {route!r}")
+        if with_time is None:
+            for brace, route in brace_dict.items():
+                print(f"{brace} = {route!r}")
         return brace_dict
 
 def route_stations(routes: TrainRoute | list[TrainRoute]) -> list[str]:

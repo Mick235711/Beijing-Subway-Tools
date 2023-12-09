@@ -24,7 +24,7 @@ def main() -> None:
                 filtered_list = [train for train in train_list if station in train.arrival_time]
                 filtered_list = sorted(
                     filtered_list, key=lambda train: get_time_str(*train.arrival_time[station]))
-                base_route = line.base_route(direction)
+                base_route = line.direction_base_route[direction]
                 filtered_full = [train for train in filtered_list if train.routes == [base_route]]
                 first_train, first_full = filtered_list[0], filtered_full[0]
                 last_train, last_full = filtered_list[-1], filtered_full[-1]

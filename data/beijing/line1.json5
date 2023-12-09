@@ -56,7 +56,7 @@
         "西行": {
             aliases: ["Westbound"],
             reversed: true,
-            "全程车": {reversed: true},
+            "全程车": {},
             "公主坟小交路": {ends_with: "公主坟"},
             "复兴门始发空车": {starts_with: "复兴门"},
             "四惠出库车": {starts_with: "四惠"},

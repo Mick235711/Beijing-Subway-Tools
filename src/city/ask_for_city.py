@@ -12,7 +12,7 @@ from city.city import City, get_all_cities
 from city.line import Line
 from city.date_group import DateGroup
 
-def ask_for_city() -> City:
+def ask_for_city(*, message: str | None = None) -> City:
     """ Ask for a city """
     cities = get_all_cities()
     meta_information: dict[str, str] = {}
@@ -23,10 +23,13 @@ def ask_for_city() -> City:
             aliases[name] = city.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a city:", meta_information, aliases)
+    if message is not None:
+        answer = complete_pinyin(message, meta_information, aliases)
+    else:
+        answer = complete_pinyin("Please select a city:", meta_information, aliases)
     return cities[answer]
 
-def ask_for_line(city: City) -> Line:
+def ask_for_line(city: City, *, message: str | None = None) -> Line:
     """ Ask for a line in city """
     lines = city.lines()
     meta_information: dict[str, str] = {}
@@ -37,10 +40,16 @@ def ask_for_line(city: City) -> Line:
             aliases[name] = line.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a line:", meta_information, aliases)
+    if message is not None:
+        answer = complete_pinyin(message, meta_information, aliases)
+    else:
+        answer = complete_pinyin("Please select a line:", meta_information, aliases)
     return lines[answer]
 
-def ask_for_station(city: City) -> tuple[str, set[Line]]:
+def ask_for_station(
+    city: City, *,
+    exclude: set[str] | None = None, message: str | None = None
+) -> tuple[str, set[Line]]:
     """ Ask for a station in city """
     # First compute all the stations
     lines = city.lines()
@@ -48,10 +57,14 @@ def ask_for_station(city: City) -> tuple[str, set[Line]]:
     aliases: dict[str, list[str]] = {}
     for line in lines.values():
         for station in line.stations:
+            if exclude is not None and station in exclude:
+                continue
             if station not in station_lines:
                 station_lines[station] = set()
             station_lines[station].add(line)
         for station, station_aliases in line.station_aliases.items():
+            if exclude is not None and station in exclude:
+                continue
             if station not in aliases:
                 aliases[station] = []
             temp = set(aliases[station])
@@ -60,13 +73,25 @@ def ask_for_station(city: City) -> tuple[str, set[Line]]:
 
     meta_information: dict[str, str] = {}
     for station, lines_set in station_lines.items():
+        if exclude is not None and station in exclude:
+            continue
         meta_information[station] = ", ".join(x.name for x in lines_set)
 
     # Ask
-    station = complete_pinyin("Please select a station:", meta_information, aliases)
+    if message is not None:
+        station = complete_pinyin(message, meta_information, aliases)
+    else:
+        station = complete_pinyin("Please select a station:", meta_information, aliases)
     return station, station_lines[station]
 
-def ask_for_line_in_station(lines: set[Line]) -> Line:
+def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
+    """ Ask for two station in city """
+    result1 = ask_for_station(city, message="Please select a starting station:")
+    result2 = ask_for_station(
+        city, message="Please select an ending station:", exclude=set([result1[0]]))
+    return result1, result2
+
+def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> Line:
     """ Ask for a line passing through a station """
     if len(lines) == 1:
         return list(lines)[0]
@@ -80,22 +105,48 @@ def ask_for_line_in_station(lines: set[Line]) -> Line:
             aliases[name] = line.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a line:", meta_information, aliases)
+    if message is not None:
+        answer = complete_pinyin(message, meta_information, aliases)
+    else:
+        answer = complete_pinyin("Please select a line:", meta_information, aliases)
     return lines_dict[answer]
 
-def ask_for_station_in_line(line: Line, *, with_timetable: bool = False) -> str:
+def ask_for_station_in_line(
+    line: Line, *,
+    with_timetable: bool = False, exclude: set[str] | None = None,
+    message: str | None = None
+) -> str:
     """ Ask for a station in line """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     for station in (line.timetables().keys() if with_timetable else line.stations):
+        if exclude is not None and station in exclude:
+            continue
         meta_information[station] = line.name
         if station in line.station_aliases:
             aliases[station] = line.station_aliases[station]
 
     # Ask
+    if message is not None:
+        return complete_pinyin(message, meta_information, aliases)
     return complete_pinyin("Please select a station:", meta_information, aliases)
 
-def ask_for_direction(line: Line, *, with_timetabled_station: str | None = None) -> str:
+def ask_for_station_pair_in_line(
+    line: Line, *,
+    with_timetable: bool = False
+) -> tuple[str, str]:
+    """ Ask for two station in city """
+    result1 = ask_for_station_in_line(
+        line, message="Please select a starting station:", with_timetable=with_timetable)
+    result2 = ask_for_station_in_line(
+        line, message="Please select an ending station:",
+        exclude=set([result1]), with_timetable=with_timetable)
+    return result1, result2
+
+def ask_for_direction(
+    line: Line, *,
+    with_timetabled_station: str | None = None, message: str | None = None
+) -> str:
     """ Ask for a line direction """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
@@ -115,10 +166,14 @@ def ask_for_direction(line: Line, *, with_timetabled_station: str | None = None)
                 aliases[name] = line.direction_aliases[name]
 
     # Ask
+    if message is not None:
+        return complete_pinyin(message, meta_information, aliases)
     return complete_pinyin("Please select a direction:", meta_information, aliases)
 
-def ask_for_date_group(line: Line, *,
-                       with_timetabled_sd: tuple[str, str] | None = None) -> DateGroup:
+def ask_for_date_group(
+    line: Line, *,
+    with_timetabled_sd: tuple[str, str] | None = None, message: str | None = None
+) -> DateGroup:
     """ Ask for a date group """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
@@ -139,5 +194,8 @@ def ask_for_date_group(line: Line, *,
                 aliases[name] = group.aliases
 
     # Ask
-    answer = complete_pinyin("Please select a date group:", meta_information, aliases)
+    if message is not None:
+        answer = complete_pinyin(message, meta_information, aliases)
+    else:
+        answer = complete_pinyin("Please select a date group:", meta_information, aliases)
     return line.date_groups[answer]
