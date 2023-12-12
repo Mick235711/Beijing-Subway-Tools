@@ -1,0 +1,44 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 2号线时刻表 新4版
+{
+    name: "2号线",
+    aliases: ["Line 2"],
+    loop: true,
+    stations: [
+        {name: "西直门", dist: 1899},
+        {name: "车公庄", dist: 910},
+        {name: "阜成门", dist: 960},
+        {name: "复兴门", dist: 1833},
+        {name: "长椿街", dist: 1234},
+        {name: "宣武门", dist: 929},
+        {name: "和平门", dist: 851},
+        {name: "前门", dist: 1171},
+        {name: "崇文门", dist: 1634},
+        {name: "北京站", dist: 1023, aliases: ["Beijing Railway Station"]},
+        {name: "建国门", dist: 946},
+        {name: "朝阳门", dist: 1736},
+        {name: "东四十条", dist: 1027},
+        {name: "东直门", dist: 824},
+        {name: "雍和宫", dist: 2228, aliases: ["Lama Temple"]},
+        {name: "安定门", dist: 792},
+        {name: "鼓楼大街", dist: 1237},
+        {name: "积水潭", dist: 1766}
+    ],
+    train_routes: {
+        "外环": {
+            aliases: ["Counterclockwise"],
+            "环行": {},
+            "积水潭回库车": {loop: false}
+        },
+        "内环": {
+            aliases: ["Clockwise"],
+            reversed: true,
+            "环行": {},
+            "西直门回库车": {loop: false}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    }
+}

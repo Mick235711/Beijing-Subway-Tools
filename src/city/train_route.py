@@ -8,17 +8,20 @@ from typing import Any
 
 class TrainRoute:
     """ Represents a train route """
-    def __init__(self, name: str, direction: str, stations: list[str]) -> None:
+    def __init__(self, name: str, direction: str, stations: list[str], loop: bool = False) -> None:
         """ Constructor """
         self.name = name
         self.direction = direction
         self.stations = stations
+        self.loop = loop
 
     def __repr__(self) -> str:
         """ Get string representation """
         if len(self.stations) == 0:
-            return f"<{self.direction_str()}>"
-        return f"<{self.direction_str()}: {self.stations[0]} - {self.stations[-1]}>"
+            base = f"<{self.direction_str()}"
+        else:
+            base = f"<{self.direction_str()}: {self.stations[0]} - {self.stations[-1]}"
+        return base + (" (loop)>" if self.loop else ">")
 
     def direction_str(self) -> str:
         """ Get a simple directional string representation """
@@ -38,7 +41,8 @@ class TrainRoute:
 def parse_train_route(direction: str, base: list[str],
                       name: str, spec: dict[str, Any]) -> TrainRoute:
     """ Parse the train_routes field """
-    route = TrainRoute(name, direction, base)
+    loop = spec.get("loop", False)
+    route = TrainRoute(name, direction, base, loop)
     if "stations" in spec:
         route.stations = spec["stations"]
         return route

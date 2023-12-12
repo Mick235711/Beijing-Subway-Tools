@@ -29,6 +29,7 @@ class Line:
         self.date_groups: dict[str, DateGroup] = {}
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
         self.timetables_processed: dict[str, dict[str, dict[str, Timetable]]] | None = None
+        self.loop = False
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -37,7 +38,8 @@ class Line:
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
         return f"{self.stations[0]} - {self.stations[-1]}" +\
-            f", {len(self.stations)} stations, " + distance_str(self.total_distance())
+            f", {len(self.stations)} stations, " + distance_str(self.total_distance()) +\
+            (", loop" if self.loop else "")
 
     def total_distance(self) -> int:
         """ Total distance of this line """
@@ -109,6 +111,10 @@ def parse_line(line_file: str) -> Line:
     # parse date groups
     for group_name, group_value in line_dict["date_groups"].items():
         line.date_groups[group_name] = parse_date_group(group_name, group_value)
+
+    # parse loop
+    if "loop" in line_dict:
+        line.loop = line_dict["loop"]
 
     line.timetable_dict = line_dict["timetable"]
     return line
