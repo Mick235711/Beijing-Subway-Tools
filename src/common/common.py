@@ -137,6 +137,22 @@ def format_duration(duration: timedelta | int) -> str:
         ("" if minutes == 0 else f"{minutes}min")
     return "0min" if result == "" else result
 
+def show_direction(stations: list[str], loop: bool = False):
+    """ Format station direction, A -> B -> C """
+    # choose three intermediate stations
+    if len(stations) <= 5:
+        if loop:
+            # show all
+            return " -> ".join(stations + [stations[0]])
+        # only show first/last
+        return f"{stations[0]} -> {stations[-1]}"
+
+    # show two intermediate
+    int1, int2 = stations[len(stations) // 3], stations[len(stations) * 2 // 3]
+    if loop:
+        return f"{stations[0]} -> {int1} -> {int2} -> {stations[0]}"
+    return f"{stations[0]} -> {int1} -> {int2} -> {stations[-1]}"
+
 possible_braces = ["()", "[]", "{}", "<>"]
 T = TypeVar("T")
 def distribute_braces(values: dict[T, int]) -> dict[str, T]:

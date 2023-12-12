@@ -7,7 +7,7 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import complete_pinyin
+from common.common import complete_pinyin, show_direction
 from city.city import City, get_all_cities
 from city.line import Line
 from city.date_group import DateGroup
@@ -75,7 +75,7 @@ def ask_for_station(
     for station, lines_set in station_lines.items():
         if exclude is not None and station in exclude:
             continue
-        meta_information[station] = ", ".join(x.name for x in lines_set)
+        meta_information[station] = ", ".join(sorted(x.name for x in lines_set))
 
     # Ask
     if message is not None:
@@ -152,7 +152,7 @@ def ask_for_direction(
     aliases: dict[str, list[str]] = {}
     if with_timetabled_station is None:
         for name, stations in line.directions.items():
-            meta_information[name] = f"{stations[0]} -> {stations[-1]}"
+            meta_information[name] = show_direction(stations, line.loop)
             if name in line.direction_aliases:
                 aliases[name] = line.direction_aliases[name]
     else:
@@ -161,7 +161,7 @@ def ask_for_direction(
             return list(timetable_dict.keys())[0]
         for name in timetable_dict.keys():
             stations = line.directions[name]
-            meta_information[name] = f"{stations[0]} -> {stations[-1]}"
+            meta_information[name] = show_direction(stations, line.loop)
             if name in line.direction_aliases:
                 aliases[name] = line.direction_aliases[name]
 

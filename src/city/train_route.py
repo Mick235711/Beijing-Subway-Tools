@@ -5,6 +5,10 @@
 
 # Libraries
 from typing import Any
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from common.common import show_direction
 
 class TrainRoute:
     """ Represents a train route """
@@ -20,7 +24,7 @@ class TrainRoute:
         if len(self.stations) == 0:
             base = f"<{self.direction_str()}"
         else:
-            base = f"<{self.direction_str()}: {self.stations[0]} - {self.stations[-1]}"
+            base = f"<{self.direction_str()}: {show_direction(self.stations, self.loop)}"
         return base + (" (loop)>" if self.loop else ">")
 
     def direction_str(self) -> str:
