@@ -49,7 +49,7 @@ def parse_input() -> Timetable:
     # apply filters
     table = Timetable({train.leaving_time: train for train in trains}, base_route)
     for brace, indexes in route_dict.items():
-        name = input(f"{brace if len(brace) > 0 else 'Base'} = ")
+        name = input(f"{brace} = ") if len(brace) > 0 else "Base"
         route = TrainRoute(name, "Base Direction", [])
         if brace == "":
             table.base_route = route
