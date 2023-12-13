@@ -34,7 +34,7 @@ def ask_for_line(city: City, *, message: str | None = None) -> Line:
     lines = city.lines()
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
-    for name, line in lines.items():
+    for name, line in sorted(lines.items(), key=lambda x: x[0]):
         meta_information[name] = line.line_str()
         if len(line.aliases) > 0:
             aliases[name] = line.aliases
@@ -99,7 +99,7 @@ def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> 
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     lines_dict: dict[str, Line] = {line.name: line for line in lines}
-    for name, line in lines_dict.items():
+    for name, line in sorted(lines_dict.items(), key=lambda x: x[0]):
         meta_information[name] = line.line_str()
         if len(line.aliases) > 0:
             aliases[name] = line.aliases

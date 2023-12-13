@@ -63,8 +63,21 @@ def parse_train_route(direction: str, base: list[str],
         route.stations = temp
     return route
 
+def stations_dist_loop(stations: list[str], station_dists: list[int], start: str, end: str) -> int:
+    """ Compute distance between two stations in a loop """
+    assert len(station_dists) == len(stations), (stations, station_dists)
+    start_index = stations.index(start)
+    end_index = stations.index(end)
+    if start_index == end_index:
+        return 0
+    if start_index > end_index:
+        return sum(station_dists[start_index:] + station_dists[:end_index])
+    return sum(station_dists[start_index:end_index])
+
 def stations_dist(stations: list[str], station_dists: list[int], start: str, end: str) -> int:
     """ Compute distance between two stations """
+    if len(station_dists) == len(stations):
+        return stations_dist_loop(stations, station_dists, start, end)
     assert len(station_dists) + 1 == len(stations), (stations, station_dists)
     start_index = stations.index(start)
     end_index = stations.index(end)

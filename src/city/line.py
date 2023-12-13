@@ -69,6 +69,10 @@ def parse_line(line_file: str) -> Line:
         line_dict = pyjson5.decode_io(fp)
         line = Line(line_dict["name"], line_dict.get("aliases"))
 
+    # parse loop
+    if "loop" in line_dict:
+        line.loop = line_dict["loop"]
+
     # populate stations
     if "stations" in line_dict:
         for i, station in enumerate(line_dict["stations"]):
@@ -79,11 +83,16 @@ def parse_line(line_file: str) -> Line:
                 if station["name"] not in line.station_aliases:
                     line.station_aliases[station["name"]] = []
                 line.station_aliases[station["name"]] += station["aliases"]
+        if line.loop:
+            line.station_dists.append(line_dict["stations"][0]["dist"])
     else:
         line.stations = line_dict["station_names"]
         line.station_dists = line_dict["station_dists"]
         line.station_aliases = line_dict["station_aliases"]
-        assert max(0, len(line.stations) - 1) == len(line.station_dists), line_dict
+        if line.loop:
+            assert len(line.stations) == len(line.station_dists), line_dict
+        else:
+            assert max(0, len(line.stations) - 1) == len(line.station_dists), line_dict
         assert all(x in line.stations for x in line.station_aliases.keys()), line_dict
 
     # populate directions and routes
@@ -111,10 +120,6 @@ def parse_line(line_file: str) -> Line:
     # parse date groups
     for group_name, group_value in line_dict["date_groups"].items():
         line.date_groups[group_name] = parse_date_group(group_name, group_value)
-
-    # parse loop
-    if "loop" in line_dict:
-        line.loop = line_dict["loop"]
 
     line.timetable_dict = line_dict["timetable"]
     return line
