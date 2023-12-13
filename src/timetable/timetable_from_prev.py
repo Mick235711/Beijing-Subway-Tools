@@ -130,8 +130,11 @@ def main() -> None:
 
     index = line.directions[direction].index(station)
     if index == len(line.directions[direction]) - 1:
-        print("End of the route.")
-        sys.exit(0)
+        if line.loop:
+            index = -1
+        else:
+            print("End of the route.")
+            sys.exit(0)
     timetable = line.timetables()[station][direction][date_group.name]
     main_input(generate_next(
         timetable, station, line.directions[direction][index + 1], direction, date_group))
