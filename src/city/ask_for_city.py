@@ -15,6 +15,8 @@ from city.date_group import DateGroup
 def ask_for_city(*, message: str | None = None) -> City:
     """ Ask for a city """
     cities = get_all_cities()
+    if len(cities) == 1:
+        return list(cities.values())[0]
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     for name, city in cities.items():
@@ -32,6 +34,8 @@ def ask_for_city(*, message: str | None = None) -> City:
 def ask_for_line(city: City, *, message: str | None = None) -> Line:
     """ Ask for a line in city """
     lines = city.lines()
+    if len(lines) == 1:
+        return list(lines.values())[0]
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     for name, line in sorted(lines.items(), key=lambda x: x[0]):

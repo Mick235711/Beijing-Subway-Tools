@@ -112,7 +112,7 @@ def parse_line(line_file: str) -> Line:
             if route_name in ["reversed", "aliases"]:
                 continue
             route = parse_train_route(
-                direction, line.directions[direction], route_name, route_value)
+                direction, line.directions[direction], route_name, route_value, line.loop)
             if len(route_value) == 0:
                 line.direction_base_route[direction] = route
             line.train_routes[direction][route_name] = route

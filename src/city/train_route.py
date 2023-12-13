@@ -43,10 +43,11 @@ class TrainRoute:
         return hash((self.name, self.direction, tuple(self.stations)))
 
 def parse_train_route(direction: str, base: list[str],
-                      name: str, spec: dict[str, Any]) -> TrainRoute:
+                      name: str, spec: dict[str, Any],
+                      loop: bool = False) -> TrainRoute:
     """ Parse the train_routes field """
-    loop = spec.get("loop", False)
-    route = TrainRoute(name, direction, base, loop)
+    route_loop = spec.get("loop", loop)
+    route = TrainRoute(name, direction, base, route_loop)
     if "stations" in spec:
         route.stations = spec["stations"]
         return route
