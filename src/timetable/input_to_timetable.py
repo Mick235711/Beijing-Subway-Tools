@@ -93,7 +93,7 @@ def compose_delta(entry: list[tuple[int, int] | list]) -> list[int | list[int | 
     res: list[int | list[int | list]] = []
     for single in entry:
         if isinstance(single, list):
-            res.append([single[0]] + [[x[0] for x in single[1]]])
+            res.append([single[0], [x[0] for x in single[1]]])
         else:
             res.append(single[0])
     return res
@@ -144,6 +144,8 @@ def divide_schedule(trains: list[Timetable.Train],
 
     # recompose into first/delta format
     for i, entry in enumerate(entries):
+        if len(entry) == 0:
+            continue
         composed = compose_delta(entry)
 
         # Get rid of last delta
@@ -159,6 +161,8 @@ def divide_schedule(trains: list[Timetable.Train],
                 else:
                     # try to "borrow" from next entry
                     if not isinstance(entries[i + 1][0], list):
+                        if len(entries[i + 1]) == 1:
+                            composed += [entries[i + 1][0][0]]
                         entries[i + 1] = entries[i + 1][1:]
                     elif len(entries[i + 1][0][1]) == 1:  # type: ignore
                         entries[i + 1][0][0] -= 1  # type: ignore
