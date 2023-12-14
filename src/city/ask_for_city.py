@@ -15,7 +15,11 @@ from city.date_group import DateGroup
 def ask_for_city(*, message: str | None = None) -> City:
     """ Ask for a city """
     cities = get_all_cities()
-    if len(cities) == 1:
+    if len(cities) == 0:
+        print("No cities present!")
+        sys.exit(0)
+    elif len(cities) == 1:
+        print(f"City default: {list(cities.values())[0]}")
         return list(cities.values())[0]
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
@@ -40,6 +44,7 @@ def ask_for_line(city: City, *, message: str | None = None, only_loop: bool = Fa
         print("No lines present!")
         sys.exit(0)
     elif len(lines) == 1:
+        print(f"Line default: {list(lines.values())[0]}")
         return list(lines.values())[0]
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
@@ -102,7 +107,11 @@ def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, 
 
 def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> Line:
     """ Ask for a line passing through a station """
-    if len(lines) == 1:
+    if len(lines) == 0:
+        print("No lines present!")
+        sys.exit(0)
+    elif len(lines) == 1:
+        print(f"Line default: {list(lines)[0]}")
         return list(lines)[0]
 
     meta_information: dict[str, str] = {}
@@ -166,7 +175,11 @@ def ask_for_direction(
                 aliases[name] = line.direction_aliases[name]
     else:
         timetable_dict = line.timetables()[with_timetabled_station]
-        if len(timetable_dict) == 1:
+        if len(timetable_dict) == 0:
+            print("No directions present!")
+            sys.exit(0)
+        elif len(timetable_dict) == 1:
+            print(f"Direction default: {list(timetable_dict.keys())[0]}")
             return list(timetable_dict.keys())[0]
         for name in timetable_dict.keys():
             stations = line.directions[name]
