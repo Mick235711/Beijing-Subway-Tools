@@ -44,7 +44,9 @@ class Train:
         base = f"{station} {self.stop_time(station)}"
         if self.stations[0] != station:
             base = f"{self.stations[0]} {self.start_time()} -> " + base
-        if self.stations[-1] != station:
+        if self.loop_next is not None:
+            base += f" -> {self.loop_next.stations[0]} {self.loop_next.start_time()}"
+        elif self.stations[-1] != station:
             base += f" -> {self.stations[-1]} {self.end_time()}"
         return base
 
