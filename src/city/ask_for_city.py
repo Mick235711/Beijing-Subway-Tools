@@ -31,10 +31,15 @@ def ask_for_city(*, message: str | None = None) -> City:
         answer = complete_pinyin("Please select a city:", meta_information, aliases)
     return cities[answer]
 
-def ask_for_line(city: City, *, message: str | None = None) -> Line:
+def ask_for_line(city: City, *, message: str | None = None, only_loop: bool = False) -> Line:
     """ Ask for a line in city """
     lines = city.lines()
-    if len(lines) == 1:
+    if only_loop:
+        lines = {name: line for name, line in lines.items() if line.loop}
+    if len(lines) == 0:
+        print("No lines present!")
+        sys.exit(0)
+    elif len(lines) == 1:
         return list(lines.values())[0]
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}

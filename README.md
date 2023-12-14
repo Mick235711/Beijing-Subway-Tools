@@ -24,6 +24,8 @@ This specification discribes the key-values within `<line x>.json5`.
 |station_names|No|array||An array of station names. Ignored if `stations` is provided.|
 |station_dists|No|array||An array of distance between stations in meters (length one less than `station_names`). Ignored if `stations` is provided.|
 |station_alias|No|object||A dictionary (station_name to alias) of station's English aliase. Ignored if `stations` is provided.|
+|loop|No|boolean|false|Indicate if this line is a loop line|
+|loop_last_segment|No|int||Required if `loop` is true. Indicate the minutes required for last segment.|
 |train_routes|Yes|object||Data on all possible train routings. Must have 1 or 2 keys representing the general direction (i.e. eastbond, counterclockwise, etc.).|
 |train_routes.`<direction>`|Yes|object||Train routings in this direction. Keys should be the name of the routing (i.e. short turn, branch A, etc.).|
 |train_routes.`<direction>`.aliases|No|array|[]|Aliases (English) for the direction|

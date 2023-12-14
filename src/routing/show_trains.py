@@ -22,7 +22,7 @@ def main() -> None:
     line = ask_for_line(city)
     direction = ask_for_direction(line)
     date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line.timetables(), line.stations, set([direction]))
+    train_dict = parse_trains(line, set([direction]))
     train_list = train_dict[direction][date_group.name]
     meta_information: dict[str, str] = {}
     for i, train in enumerate(train_list):

@@ -29,7 +29,7 @@ def get_time_between(
         assert False, (line, start, end)
 
     # calculate time for each train
-    train_dict = parse_trains(line.timetables(), line.stations, set([direction]))
+    train_dict = parse_trains(line, set([direction]))
     train_list = train_dict[direction][date_group.name]
     time_dict: dict[str, int | None] = {}
     for train in train_list:

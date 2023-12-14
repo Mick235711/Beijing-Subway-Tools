@@ -88,10 +88,13 @@ def stations_dist(stations: list[str], station_dists: list[int], start: str, end
         start_index, end_index = end_index, start_index
     return sum(station_dists[start_index:end_index])
 
-def route_dist(stations: list[str], station_dists: list[int], route: list[str]) -> int:
+def route_dist(stations: list[str], station_dists: list[int], route: list[str],
+               loop: bool = False) -> int:
     """ Compute total distance for a route """
-    assert len(station_dists) + 1 == len(stations), (stations, station_dists)
+    assert 0 <= len(stations) - len(station_dists) <= 1, (stations, station_dists)
     res = 0
     for i in range(1, len(route)):
         res += stations_dist(stations, station_dists, route[i - 1], route[i])
+    if len(stations) == len(station_dists) and loop:
+        res += stations_dist(stations, station_dists, route[-1], stations[0])
     return res

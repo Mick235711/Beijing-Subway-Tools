@@ -16,7 +16,7 @@ def main() -> None:
     city = ask_for_city()
     station, lines = ask_for_station(city)
     for line in lines:
-        train_dict = parse_trains(line.timetables(), line.stations)
+        train_dict = parse_trains(line)
         print(f"\n{line.name}:")
         for direction, direction_dict in train_dict.items():
             for date_group, train_list in direction_dict.items():

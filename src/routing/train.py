@@ -8,8 +8,9 @@ import os
 import sys
 from datetime import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, get_time_repr, format_duration, distance_str,\
-    chin_len, segment_speed, speed_str
+from common.common import diff_time, get_time_repr, get_time_str, format_duration,\
+    distance_str, chin_len, segment_speed, speed_str, add_min
+from city.line import Line
 from city.train_route import TrainRoute, stations_dist, route_dist
 from timetable.timetable import Timetable, route_stations
 
@@ -22,6 +23,8 @@ class Train:
         self.direction = self.routes[0].direction
         self.stations = route_stations(self.routes)
         self.arrival_time = arrival_time
+        self.loop_prev: Train | None = None
+        self.loop_next: Train | None = None
 
     def start_time(self) -> str:
         """ Train start time """
@@ -47,6 +50,10 @@ class Train:
 
     def __repr__(self) -> str:
         """ Get string representation """
+        if self.loop_next is not None:
+            return "<" + "+".join(x.name for x in self.routes) +\
+                   f" {self.stations[0]} {self.start_time()}" +\
+                   f" -> {self.loop_next.stations[0]} {self.loop_next.start_time()} (loop)>"
         return "<" + "+".join(x.name for x in self.routes) +\
                f" {self.stations[0]} {self.start_time()}" +\
                f" -> {self.stations[-1]} {self.end_time()}>"
@@ -59,9 +66,13 @@ class Train:
                       *, with_speed: bool = False) -> str:
         """ One-line short duration string """
         start_time, start_day = self.arrival_time[self.stations[0]]
-        end_time, end_day = self.arrival_time[self.stations[-1]]
+        if self.loop_next is None:
+            end_time, end_day = self.arrival_time[self.stations[-1]]
+        else:
+            end_time, end_day = self.loop_next.arrival_time[self.loop_next.stations[0]]
         duration = diff_time(end_time, start_time, end_day, start_day)
-        total_dists = route_dist(stations, station_dists, self.stations)
+        total_dists = route_dist(
+            stations, station_dists, self.stations, self.loop_next is not None)
         base = f"{format_duration(duration)}, {distance_str(total_dists)}"
         if with_speed:
             base += f", {speed_str(segment_speed(total_dists, duration))}"
@@ -78,13 +89,25 @@ class Train:
         reprs: list[str] = []
         for station in self.stations:
             reprs.append(f"{station} {get_time_repr(*self.arrival_time[station])}")
+        if self.loop_next is not None:
+            reprs.append(
+                f"{stations[0]} {get_time_repr(*self.loop_next.arrival_time[stations[0]])}")
+
+        # Previous
+        if self.loop_prev is not None:
+            print(f"Previous: {repr(self.loop_prev)[1:-1]}")
 
         # Real loop
         last_station: str | None = None
         max_length = max(map(chin_len, reprs))
         current_dist = 0
-        for station, station_repr in zip(self.stations, reprs):
-            arrival_time, next_day = self.arrival_time[station]
+        for i, station_repr in enumerate(reprs):
+            if self.loop_next is None or i < len(reprs) - 1:
+                station = self.stations[i]
+                arrival_time, next_day = self.arrival_time[station]
+            else:
+                station = stations[0]
+                arrival_time, next_day = self.loop_next.arrival_time[station]
             if last_station is not None:
                 last_time, last_next_day = self.arrival_time[last_station]
                 duration = diff_time(arrival_time, last_time, next_day, last_next_day)
@@ -100,7 +123,42 @@ class Train:
                   f"+{distance_str(current_dist)})")
             last_station = station
 
-def parse_trains_stations(train_dict: dict[str, Timetable], stations: list[str]) -> list[Train]:
+        # Next
+        if self.loop_next is not None:
+            print(f"Next: {repr(self.loop_next)[1:-1]}")
+
+def assign_loop_next(
+    trains: dict[int, list[Train]], routes_dict: list[list[TrainRoute]],
+    stations: list[str], loop_last_segment: int = 0
+) -> dict[int, list[Train]]:
+    """ Assign loop_next field for a loop line """
+    trains_all = [t for tl in trains.values() for t in tl if stations[0] in t.arrival_time]
+    trains_sorted = sorted(trains_all, key=lambda x: get_time_str(*x.arrival_time[stations[0]]))
+    for route_id, train_list in trains.items():
+        route_list = routes_dict[route_id]
+        loop = all(route.loop for route in route_list)
+        if not loop:
+            continue
+        for train in train_list:
+            last_time_day = train.arrival_time[stations[-1]]
+            first_time, first_day = add_min(last_time_day[0], loop_last_segment, last_time_day[1])
+
+            # Assign to nearest existing trains
+            found_train: Train | None = None
+            for train2 in trains_sorted:
+                train2_leave, train2_day = train2.arrival_time[stations[0]]
+                if diff_time(train2_leave, first_time, train2_day, first_day) >= 0:
+                    found_train = train2
+                    break
+            assert found_train is not None, (train, trains_sorted)
+            train.loop_next = found_train
+            found_train.loop_prev = train
+    return trains
+
+def parse_trains_stations(
+    train_dict: dict[str, Timetable], stations: list[str],
+    loop_last_segment: int = 0
+) -> list[Train]:
     """ Parse the trains from several station's timetables """
     # organize into station -> route -> list of trains
     # also collect all the routes
@@ -139,18 +197,19 @@ def parse_trains_stations(train_dict: dict[str, Timetable], stations: list[str])
                         timetable_trains[i].leaving_time,
                         timetable_trains[i].next_day
                     )
+    trains = assign_loop_next(trains, routes_dict, stations, loop_last_segment)
 
     # Collect all route types
     return [train for train_list in trains.values() for train in train_list]
 
 def parse_trains(
-    timetable_dict: dict[str, dict[str, dict[str, Timetable]]],
-    stations: list[str],
+    line: Line,
     only_direction: set[str] | None = None
 ) -> dict[str, dict[str, list[Train]]]:
     """ Parse the trains from a timetable """
     # reverse such that station is the innermost layer
     temp_dict: dict[str, dict[str, dict[str, Timetable]]] = {}
+    timetable_dict = line.timetables()
     for station, station_dict in timetable_dict.items():
         for direction, direction_dict in station_dict.items():
             if only_direction is not None and direction not in only_direction:
@@ -170,5 +229,6 @@ def parse_trains(
         if direction not in result_dict:
             result_dict[direction] = {}
         for date_group, station_dict2 in direction_dict2.items():
-            result_dict[direction][date_group] = parse_trains_stations(station_dict2, stations)
+            result_dict[direction][date_group] = parse_trains_stations(
+                station_dict2, line.stations, line.loop_last_segment)
     return result_dict

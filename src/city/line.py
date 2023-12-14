@@ -30,6 +30,7 @@ class Line:
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
         self.timetables_processed: dict[str, dict[str, dict[str, Timetable]]] | None = None
         self.loop = False
+        self.loop_last_segment = 0
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -72,6 +73,8 @@ def parse_line(line_file: str) -> Line:
     # parse loop
     if "loop" in line_dict:
         line.loop = line_dict["loop"]
+        if line.loop:
+            line.loop_last_segment = line_dict["loop_last_segment"]
 
     # populate stations
     if "stations" in line_dict:
