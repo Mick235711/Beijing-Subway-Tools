@@ -49,7 +49,8 @@ def main() -> None:
     # Print the loop
     for i, train in enumerate(loop_dict[train_index - 1]):
         duration_repr = train.duration_repr(
-            line.stations, line.station_dists, with_speed=args.with_speed)
+            line.direction_base_route[direction].stations, line.station_dists,
+            with_speed=args.with_speed)
         print(f"Loop #{i + 1}: {train.line_repr(line.name)} ({duration_repr})")
 
 # Call main

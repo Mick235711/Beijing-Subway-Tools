@@ -232,5 +232,6 @@ def parse_trains(
             result_dict[direction] = {}
         for date_group, station_dict2 in direction_dict2.items():
             result_dict[direction][date_group] = parse_trains_stations(
-                station_dict2, line.stations, line.loop_last_segment)
+                station_dict2, line.direction_base_route[direction].stations,
+                line.loop_last_segment)
     return result_dict

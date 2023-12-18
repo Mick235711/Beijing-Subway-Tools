@@ -27,13 +27,14 @@ def main() -> None:
     meta_information: dict[str, str] = {}
     for i, train in enumerate(train_list):
         meta_information[f"#{i + 1} {train.line_repr(line.name)}"] = train.duration_repr(
-            line.stations, line.station_dists, with_speed=args.with_speed
+            line.direction_base_route[direction].stations,
+            line.station_dists, with_speed=args.with_speed
         )
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[1:result.find(" ")])
     train_list[train_index - 1].pretty_print(
-        line.name, line.stations, line.station_dists,
-        with_speed=args.with_speed
+        line.name, line.direction_base_route[direction].stations,
+        line.station_dists, with_speed=args.with_speed
     )
 
 # Call main
