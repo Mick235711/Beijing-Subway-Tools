@@ -9,7 +9,7 @@ For every city/metro group, it should have its own directory within the `data/` 
 ```
 data/<city>/
 - <line x>.json5: station definition and train schedule for the line
-- transfer.json5: transfer station metadata
+- metadata.json5: transfer station and other metadata
 - maps.json5: subway map metadata
 - maps/: directory for subway maps
 ```
@@ -104,8 +104,8 @@ For example, assuming the schedule is train every 2 minute from 07:00:
 {first_train: "08:06", count: 4} -> train leaving at 08:06, 08:08, 08:10, 08:12 follow the plan
 ```
 
-# Transfer Specification Format
-This specification discribes the key-values within `transfer.json5`.
+# Metadata Specification Format
+This specification discribes the key-values within `metadata.json5`.
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
 |city_name|Yes|string||Name of the city|
