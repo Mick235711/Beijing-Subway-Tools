@@ -14,6 +14,7 @@ from city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, 
 from city.line import Line
 from city.date_group import DateGroup
 from city.transfer import Transfer, parse_transfer
+from city.train_route import TrainRoute
 from routing.train import Train, parse_all_trains
 
 class BFSResult:
@@ -101,8 +102,8 @@ def find_next_train(
     cur_line: Line | None = None, cur_direction: str | None = None
 ) -> list[Train]:
     """ Find all possible next trains """
-    # Find one for each line/direction pair
-    result: dict[tuple[str, str], Train] = {}
+    # Find one for each line/direction/routes pair
+    result: dict[tuple[str, str, frozenset[TrainRoute]], Train] = {}
     for train in get_all_trains(lines, train_dict, station, cur_date):
         # calculate the least time for this line/direction
         if cur_line is not None:
@@ -119,7 +120,7 @@ def find_next_train(
             next_day, train.arrival_time[station][1]
         ) > 0:
             continue
-        key = (train.line.name, train.direction)
+        key = (train.line.name, train.direction, frozenset(train.routes))
         if key not in result:
             result[key] = train
     return list(result.values())
@@ -153,7 +154,14 @@ def bfs(
             arrival_items = list(next_train.arrival_time.items())
             arrival_keys = list(next_train.arrival_time.keys())
             arrival_index = arrival_keys.index(station)
-            for next_station, (next_time, next_day) in arrival_items[arrival_index + 1:]:
+            next_stations = arrival_items[arrival_index + 1:]
+            if next_train.loop_next is not None:
+                # also append the other half of loop
+                arrival_items_next = list(next_train.loop_next.arrival_time.items())
+                arrival_keys_next = list(next_train.loop_next.arrival_time.keys())
+                arrival_index_next = arrival_keys_next.index(station)
+                next_stations += arrival_items_next[:arrival_index_next]
+            for next_station, (next_time, next_day) in next_stations:
                 if next_station == start_station:
                     continue
                 if next_station not in results or diff_time(

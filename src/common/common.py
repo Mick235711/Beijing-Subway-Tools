@@ -112,7 +112,7 @@ def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
     if len(time_str) == 4:
         time_str = "0" + time_str
     assert len(time_str) == 5 and time_str[2] == ":" and (
-        time_str[:2] + time_str[3:]).isdigit(), time_str
+        time_str[:2] + time_str[3:]).isdigit(), f"{time_str} not in yy:mm!"
     if int(time_str[:2]) >= 24:
         return time(hour=(int(time_str[:2]) - 24), minute=int(time_str[3:])), True
     return time.fromisoformat(time_str), next_day
