@@ -4,6 +4,7 @@
 """ Do BFS search on a station/train tuple to find the minimal-time way of reaching stations """
 
 # Libraries
+from __future__ import annotations
 import os
 import sys
 from datetime import date, time
@@ -12,8 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import diff_time, format_duration, get_time_str, add_min, suffix_s
 from city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from city.line import Line
-from city.date_group import DateGroup
-from city.transfer import Transfer, parse_transfer
+from city.transfer import Transfer
 from city.train_route import TrainRoute
 from routing.train import Train, parse_all_trains
 
@@ -187,7 +187,7 @@ def main() -> None:
     start_time = ask_for_time()
 
     # For now, assume that any input after 3:30AM is this day
-    start_day = (start_time < time(3, 30))
+    start_day = start_time < time(3, 30)
     if start_day:
         print("Warning: assuming next day!")
     assert city.transfers is not None, city

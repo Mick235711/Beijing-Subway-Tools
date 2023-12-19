@@ -88,7 +88,7 @@ def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
         try:
             func(answer)
             return True
-        except Exception as e:
+        except (ValueError, AssertionError, IndexError) as e:
             return repr(e)
     kwargs["validate"] = validate_func
     return func(questionary.text(msg, *args, **kwargs).ask())
@@ -117,16 +117,36 @@ def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
         return time(hour=(int(time_str[:2]) - 24), minute=int(time_str[3:])), True
     return time.fromisoformat(time_str), next_day
 
+def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time | None, bool]:
+    """ Parse time as hh:mm with optional None """
+    if time_str is None:
+        return None, next_day
+    return parse_time(time_str, next_day)
+
 def add_min(time_obj: time, minutes: int, next_day: bool = False) -> tuple[time, bool]:
     """ Add minutes """
     new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
     return new_time, minutes > 0 and (new_time < time_obj or next_day)
 
+def to_minutes(cur_time: time, cur_day: bool = False) -> int:
+    """ Convert to minutes """
+    return cur_time.hour * 60 + cur_time.minute + (24 * 60 if cur_day else 0)
+
+def from_minutes(minutes: int) -> tuple[time, bool]:
+    """ Convert from minutes """
+    if minutes >= 24 * 60:
+        next_day = True
+        minutes -= 24 * 60
+    else:
+        next_day = False
+    assert 0 <= minutes < 24 * 60, minutes
+    hour = minutes // 60
+    frac = minutes % 60
+    return time(hour, frac), next_day
+
 def diff_time(time1: time, time2: time, next_day1: bool = False, next_day2: bool = False) -> int:
     """ Compute time1 - time2 """
-    min1 = time1.hour * 60 + time1.minute + (24 * 60 if next_day1 else 0)
-    min2 = time2.hour * 60 + time2.minute + (24 * 60 if next_day2 else 0)
-    return min1 - min2
+    return to_minutes(time1, next_day1) - to_minutes(time2, next_day2)
 
 def get_time_str(time_obj: time, next_day: bool = False) -> str:
     """ Get str from (time, next_day) """
