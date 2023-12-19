@@ -9,7 +9,7 @@ import sys
 from datetime import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import diff_time, get_time_repr, get_time_str, format_duration,\
-    distance_str, chin_len, segment_speed, speed_str, add_min
+    distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s
 from city.line import Line
 from city.train_route import TrainRoute, stations_dist, route_dist
 from timetable.timetable import Timetable, route_stations
@@ -82,8 +82,7 @@ class Train:
             self.line.direction_dists(self.direction),
             start_station, end_station
         )
-        return f"{end_index - start_index} station" + (
-            "" if end_index - start_index == 1 else "s") +\
+        return suffix_s("station", end_index - start_index) +\
             f", {format_duration(duration)}, {distance_str(total_dists)}"
 
     def two_station_str(self, start_station: str, end_station: str) -> str:

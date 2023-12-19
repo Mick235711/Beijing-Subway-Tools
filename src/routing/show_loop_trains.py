@@ -8,7 +8,7 @@ import os
 import sys
 import argparse
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import complete_pinyin
+from common.common import complete_pinyin, suffix_s
 from city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
 from routing.train import parse_trains
 
@@ -42,7 +42,7 @@ def main() -> None:
         first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time()}"
         last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time()}"
         meta_information[f"#{i + 1} {first_str} -> ... -> {last_str}"] =\
-            f"{len(train_loop)} loop" + ("" if len(train_loop) == 1 else "s")
+            suffix_s("loop", len(train_loop))
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[1:result.find(" ")])
 

@@ -240,3 +240,7 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
         for x in slicer[1:-1].strip().split(':')
     ])
     return list(orig[eval_slicer])
+
+def suffix_s(word: str, number: int | float, suffix: str = "s") -> str:
+    """ Conditionally add s suffix """
+    return f"{number} {word}" + ("" if number == 1 else suffix)

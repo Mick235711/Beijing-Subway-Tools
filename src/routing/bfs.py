@@ -9,7 +9,7 @@ import sys
 from datetime import date, time
 from math import ceil
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, format_duration, get_time_str, add_min
+from common.common import diff_time, format_duration, get_time_str, add_min, suffix_s
 from city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from city.line import Line
 from city.date_group import DateGroup
@@ -47,14 +47,14 @@ class BFSResult:
         path = self.shortest_path(results)
         total_time = diff_time(self.arrival_time, initial_time, self.arrival_day, initial_day)
         transfer_num = len(path) - 1
-        print(f"Total time: {format_duration(total_time)}, {transfer_num} transfer" + (
-            "" if transfer_num == 1 else "s") + ".\n")
+        print(f"Total time: {format_duration(total_time)}, " + suffix_s(
+            "transfer", transfer_num) + ".\n")
 
         first_time, first_day = path[0][1].arrival_time[path[0][0]]
         first_waiting = diff_time(first_time, initial_time, first_day, initial_day)
         assert first_waiting >= 0, (path[0], initial_time, initial_day)
         if first_waiting > 0:
-            print(f"Waiting time: {first_waiting} minute(s).")
+            print("Waiting time: " + suffix_s("minute", first_waiting))
 
         last_train: Train | None = None
         for i, (station, train) in enumerate(path):
@@ -70,8 +70,8 @@ class BFSResult:
                 )]
                 assert transfer_time < total_waiting, (last_train, station, train)
                 print(f"Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
-                      f"{transfer_time} minute(s).")
-                print(f"Waiting time: {total_waiting - transfer_time} minute(s).")
+                      suffix_s("minute", transfer_time))
+                print("Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
 
             # Display train information
             print(train.two_station_str(station, next_station))
