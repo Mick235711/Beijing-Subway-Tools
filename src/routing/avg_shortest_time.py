@@ -55,6 +55,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
+    parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -74,10 +75,12 @@ def main() -> None:
     # sort and display first/last
     result_list = [(avg_time, station) for station, avg_time in result_dict.items()]
     result_list = sorted(result_list)
-    print("Nearest 5 stations:")
-    print("\n".join(f"{station}: {avg_time}" for avg_time, station in result_list[:5]))
-    print("\nFarthest 5 stations:")
-    print("\n".join(f"{station}: {avg_time}" for avg_time, station in result_list[-5:]))
+    print(f"Nearest {args.limit_num} stations:")
+    print("\n".join(
+        f"{station}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
+    print(f"\nFarthest {args.limit_num} stations:")
+    print("\n".join(
+        f"{station}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
 
 # Call main
 if __name__ == "__main__":
