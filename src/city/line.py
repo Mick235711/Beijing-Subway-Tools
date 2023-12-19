@@ -36,6 +36,17 @@ class Line:
         """ Get string representation """
         return f"<{self.name}: {self.line_str()}>"
 
+    def direction_stations(self, direction: str) -> list[str]:
+        return self.direction_base_route[direction].stations
+
+    def direction_dists(self, direction: str) -> list[int]:
+        if self.direction_stations(direction) == self.stations:
+            return self.station_dists
+        base = list(reversed(self.station_dists))
+        if self.loop:
+            base = base[1:] + [base[0]]
+        return base
+
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
         return f"{self.stations[0]} - {self.stations[-1]}" +\

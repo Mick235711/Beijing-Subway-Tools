@@ -16,9 +16,10 @@ from timetable.timetable import Timetable, route_stations
 
 class Train:
     """ Represents a train """
-    def __init__(self, routes: list[TrainRoute],
+    def __init__(self, line: Line, routes: list[TrainRoute],
                  arrival_time: dict[str, tuple[time, bool]]) -> None:
         """ Constructor """
+        self.line = line
         self.routes = routes
         self.direction = self.routes[0].direction
         self.stations = route_stations(self.routes)
@@ -53,19 +54,18 @@ class Train:
     def __repr__(self) -> str:
         """ Get string representation """
         if self.loop_next is not None:
-            return "<" + "+".join(x.name for x in self.routes) +\
+            return f"<{self.line.name} " + "+".join(x.name for x in self.routes) +\
                    f" {self.stations[0]} {self.start_time()}" +\
                    f" -> {self.loop_next.stations[0]} {self.loop_next.start_time()} (loop)>"
-        return "<" + "+".join(x.name for x in self.routes) +\
+        return f"<{self.line.name} " + "+".join(x.name for x in self.routes) +\
                f" {self.stations[0]} {self.start_time()}" +\
                f" -> {self.stations[-1]} {self.end_time()}>"
 
-    def line_repr(self, line: str) -> str:
+    def line_repr(self) -> str:
         """ One-line short representation """
-        return f"{line} {self.direction} {repr(self)[1:-1]}"
+        return f"{self.line.name} {self.direction} {repr(self)[1:-1]}"
 
-    def duration_repr(self, stations: list[str], station_dists: list[int],
-                      *, with_speed: bool = False) -> str:
+    def duration_repr(self, *, with_speed: bool = False) -> str:
         """ One-line short duration string """
         start_time, start_day = self.arrival_time[self.stations[0]]
         if self.loop_next is None:
@@ -74,18 +74,22 @@ class Train:
             end_time, end_day = self.loop_next.arrival_time[self.loop_next.stations[0]]
         duration = diff_time(end_time, start_time, end_day, start_day)
         total_dists = route_dist(
-            stations, station_dists, self.stations, self.loop_next is not None)
+            self.line.direction_stations(self.direction),
+            self.line.direction_dists(self.direction),
+            self.stations, self.loop_next is not None
+        )
         base = f"{format_duration(duration)}, {distance_str(total_dists)}"
         if with_speed:
             base += f", {speed_str(segment_speed(total_dists, duration))}"
         return base
 
-    def pretty_print(self, line: str, stations: list[str], station_dists: list[int],
-                     *, with_speed: bool = False) -> None:
+    def pretty_print(self, *, with_speed: bool = False) -> None:
         """ Print the entire timetable for this train """
-        duration_repr = self.duration_repr(stations, station_dists, with_speed=with_speed)
-        print(f"{self.line_repr(line)} ({duration_repr})\n")
+        duration_repr = self.duration_repr(with_speed=with_speed)
+        print(f"{self.line_repr()} ({duration_repr})\n")
         start_time, start_day = self.arrival_time[self.stations[0]]
+        stations = self.line.direction_stations(self.direction)
+        station_dists = self.line.direction_dists(self.direction)
 
         # Pre-run
         reprs: list[str] = []
@@ -158,8 +162,7 @@ def assign_loop_next(
     return trains
 
 def parse_trains_stations(
-    train_dict: dict[str, Timetable], stations: list[str],
-    loop_last_segment: int = 0
+    line: Line, train_dict: dict[str, Timetable], stations: list[str]
 ) -> list[Train]:
     """ Parse the trains from several station's timetables """
     # organize into station -> route -> list of trains
@@ -187,7 +190,7 @@ def parse_trains_stations(
             if route_id not in trains:
                 # Calculate initial trains
                 trains[route_id] = [Train(
-                    routes_dict[route_id],
+                    line, routes_dict[route_id],
                     {station: (timetable_train.leaving_time, timetable_train.next_day)}
                 ) for timetable_train in timetable_trains]
             else:
@@ -199,7 +202,7 @@ def parse_trains_stations(
                         timetable_trains[i].leaving_time,
                         timetable_trains[i].next_day
                     )
-    trains = assign_loop_next(trains, routes_dict, stations, loop_last_segment)
+    trains = assign_loop_next(trains, routes_dict, stations, line.loop_last_segment)
 
     # Collect all route types
     return [train for train_list in trains.values() for train in train_list]
@@ -232,6 +235,5 @@ def parse_trains(
             result_dict[direction] = {}
         for date_group, station_dict2 in direction_dict2.items():
             result_dict[direction][date_group] = parse_trains_stations(
-                station_dict2, line.direction_base_route[direction].stations,
-                line.loop_last_segment)
+                line, station_dict2, line.direction_base_route[direction].stations)
     return result_dict

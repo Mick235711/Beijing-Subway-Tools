@@ -26,16 +26,12 @@ def main() -> None:
     train_list = train_dict[direction][date_group.name]
     meta_information: dict[str, str] = {}
     for i, train in enumerate(train_list):
-        meta_information[f"#{i + 1} {train.line_repr(line.name)}"] = train.duration_repr(
-            line.direction_base_route[direction].stations,
-            line.station_dists, with_speed=args.with_speed
+        meta_information[f"#{i + 1} {train.line_repr()}"] = train.duration_repr(
+            with_speed=args.with_speed
         )
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[1:result.find(" ")])
-    train_list[train_index - 1].pretty_print(
-        line.name, line.direction_base_route[direction].stations,
-        line.station_dists, with_speed=args.with_speed
-    )
+    train_list[train_index - 1].pretty_print(with_speed=args.with_speed)
 
 # Call main
 if __name__ == "__main__":
