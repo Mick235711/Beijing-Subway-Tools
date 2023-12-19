@@ -103,3 +103,20 @@ For example, assuming the schedule is train every 2 minute from 07:00:
 {first_train: "08:06", skip_trains: 3, count: 4} -> train leaving at 08:06, 08:14, 08:22, 08:30 follow the plan
 {first_train: "08:06", count: 4} -> train leaving at 08:06, 08:08, 08:10, 08:12 follow the plan
 ```
+
+# Transfer Specification Format
+This specification discribes the key-values within `transfer.json5`.
+|Key|Required|Type|Default|Value|
+|---|---|---|---|---|
+|city_name|Yes|string||Name of the city|
+|city_aliases|No|array|[]|Aliases (English) for the city|
+|transfers|No|object||A dictionary (station_name to array of sub-specifications) of station's transfer time data.|
+
+For each sub-specifications, its structure must be
+```json
+{from: "Line Name", [from_direction: "Direction",]
+ to: "Line Name", [to_direction: "Direction",]
+ minutes: <minutes needed for transfer>}
+```
+If no direction is provided for from or to, it is assumed that the same time is needed to reach both directions (i.e. island platform).
+If only time from Line A to Line B is provided, then the reverse direction is assumed to be the same time.
