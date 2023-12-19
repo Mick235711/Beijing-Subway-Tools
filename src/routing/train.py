@@ -51,19 +51,55 @@ class Train:
             base += f" -> {self.stations[-1]} {self.end_time()}"
         return base
 
+    def direction_repr(self) -> str:
+        """ Get string representation for routing """
+        return f"{self.line.name} {self.direction} " + "+".join(x.name for x in self.routes)
+
     def __repr__(self) -> str:
         """ Get string representation """
         if self.loop_next is not None:
-            return f"<{self.line.name} " + "+".join(x.name for x in self.routes) +\
-                   f" {self.stations[0]} {self.start_time()}" +\
+            return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" +\
                    f" -> {self.loop_next.stations[0]} {self.loop_next.start_time()} (loop)>"
-        return f"<{self.line.name} " + "+".join(x.name for x in self.routes) +\
-               f" {self.stations[0]} {self.start_time()}" +\
+        return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" +\
                f" -> {self.stations[-1]} {self.end_time()}>"
+
+    def two_station_duration_repr(self, start_station: str, end_station: str) -> str:
+        """ One-line short duration string for two stations """
+        arrival_keys = list(self.arrival_time.keys())
+        start_time, start_day = self.arrival_time[start_station]
+        start_index = arrival_keys.index(start_station)
+        if end_station not in arrival_keys or arrival_keys.index(end_station) < start_index:
+            assert self.loop_next is not None, (start_station, end_station, self)
+            end_time, end_day = self.loop_next.arrival_time[end_station]
+            end_index = len(arrival_keys) + list(
+                self.loop_next.arrival_time.keys()).index(end_station)
+        else:
+            end_time, end_day = self.arrival_time[end_station]
+            end_index = arrival_keys.index(end_station)
+        duration = diff_time(end_time, start_time, end_day, start_day)
+        total_dists = stations_dist(
+            self.line.direction_stations(self.direction),
+            self.line.direction_dists(self.direction),
+            start_station, end_station
+        )
+        return f"{end_index - start_index} station" + (
+            "" if end_index - start_index == 1 else "s") +\
+            f", {format_duration(duration)}, {distance_str(total_dists)}"
+
+    def two_station_str(self, start_station: str, end_station: str) -> str:
+        """ Get string representation for two stations """
+        arrival_keys = list(self.arrival_time.keys())
+        if arrival_keys.index(end_station) < arrival_keys.index(start_station):
+            assert self.loop_next is not None, self
+            center = f" -> {end_station} {self.loop_next.stop_time(end_station)}"
+        else:
+            center = f" -> {end_station} {self.stop_time(end_station)}"
+        return f"{self.direction_repr()} {start_station} {self.stop_time(start_station)}" +\
+            center + " ({self.two_station_duration_repr(start_station, end_station)})"
 
     def line_repr(self) -> str:
         """ One-line short representation """
-        return f"{self.line.name} {self.direction} {repr(self)[1:-1]}"
+        return repr(self)[1:-1]
 
     def duration_repr(self, *, with_speed: bool = False) -> str:
         """ One-line short duration string """
