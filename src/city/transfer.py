@@ -8,7 +8,6 @@ import os
 import sys
 import pyjson5
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from city.city import get_all_cities
 from city.line import Line
 
 class Transfer:
@@ -37,15 +36,11 @@ class Transfer:
                 if reverse not in self.transfer_time:
                     self.transfer_time[reverse] = minutes
 
-def parse_transfer(transfer_file: str) -> dict[str, Transfer]:
+def parse_transfer(lines: dict[str, Line], transfer_file: str) -> dict[str, Transfer]:
     """ Parse JSON5 file as transfer metadata """
     assert os.path.exists(transfer_file), transfer_file
     with open(transfer_file, "r") as fp:
         transfer_dict = pyjson5.decode_io(fp)
-
-    cities = get_all_cities()
-    city = cities[transfer_dict["city_name"]]
-    lines = city.lines()
 
     result: dict[str, Transfer] = {}
     for station, transfer_datas in transfer_dict["transfers"].items():

@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import pyjson5
 from city.line import Line, parse_line
+from city.transfer import Transfer, parse_transfer
 
 class City:
     """ Represents a city or a group of cities connected by metro """
@@ -18,6 +19,7 @@ class City:
         self.aliases = aliases or []
         self.line_files: list[str] = []
         self.lines_processed: dict[str, Line] | None = None
+        self.transfers: dict[str, Transfer] | None = None
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -50,6 +52,8 @@ def parse_city(city_root: str) -> City:
         if os.path.basename(line) == "transfer.json5":
             continue
         city.line_files.append(line)
+
+    city.transfers = parse_transfer(city.lines(), transfer)
     return city
 
 

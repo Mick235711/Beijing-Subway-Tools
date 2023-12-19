@@ -4,7 +4,8 @@
 """ Provide common functions used in the whole project """
 
 # Libraries
-from typing import Iterable, TypeVar
+from typing import TypeVar
+from collections.abc import Iterable, Callable
 from datetime import datetime, date, time, timedelta
 import questionary
 from prompt_toolkit.document import Document
@@ -78,6 +79,19 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     return display_dict[questionary.autocomplete(
         message, choices=[], completer=DeduplicateCompleter(completer),
         validate=lambda x: x in display_dict).ask()]
+
+T = TypeVar("T")
+def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
+    """ Ask a question with validator and post-processor """
+    def validate_func(answer: str) -> str | bool:
+        """ Validate function """
+        try:
+            func(answer)
+            return True
+        except Exception as e:
+            return repr(e)
+    kwargs["validate"] = validate_func
+    return func(questionary.text(msg, *args, **kwargs).ask())
 
 def distance_str(distance: int) -> str:
     """ Get proper distance string from a meter distance """
@@ -154,7 +168,6 @@ def show_direction(stations: list[str], loop: bool = False):
     return f"{stations[0]} -> {int1} -> {int2} -> {stations[-1]}"
 
 possible_braces = ["()", "[]", "{}", "<>"]
-T = TypeVar("T")
 def distribute_braces(values: dict[T, int]) -> dict[str, T]:
     """ Distribute brace to values """
     res: dict[str, T] = {}

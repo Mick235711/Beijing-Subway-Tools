@@ -44,6 +44,16 @@ class DateGroup:
             return f"<{self.name}: {self.group_str()}>"
         return f"<{self.name}: [{self.group_str()}]>"
 
+    def covers(self, cur_date: date) -> bool:
+        """ Determine if the given date is covered """
+        if self.dates:
+            return cur_date in self.dates
+        if self.start_date and cur_date < self.start_date:
+            return False
+        if self.end_date and cur_date > self.end_date:
+            return False
+        return cur_date.isoweekday() in self.weekday
+
 def parse_date_group(name: str, spec: dict[str, Any]) -> DateGroup:
     """ Parse the date_groups field """
     if "dates" in spec:

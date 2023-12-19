@@ -6,8 +6,9 @@
 # Libraries
 import os
 import sys
+from datetime import datetime, date, time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import complete_pinyin, show_direction
+from common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
 from city.city import City, get_all_cities
 from city.line import Line
 from city.date_group import DateGroup
@@ -221,3 +222,17 @@ def ask_for_date_group(
     else:
         answer = complete_pinyin("Please select a date group:", meta_information, aliases)
     return line.date_groups[answer]
+
+def ask_for_date() -> date:
+    """ Ask for a date """
+    return ask_question(
+        "Please enter the travel date (yyyy-mm-dd):", date.fromisoformat,
+        default=date.today().isoformat()
+    )
+
+def ask_for_time() -> time:
+    """ Ask for a time """
+    return ask_question(
+        "Please enter the travel time (hh:mm):", parse_time,
+        default=get_time_str(datetime.now().time())
+    )[0]

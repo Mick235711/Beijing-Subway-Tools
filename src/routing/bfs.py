@@ -6,14 +6,15 @@
 # Libraries
 import os
 import sys
-from datetime import time
+from datetime import date, time
 from math import ceil
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import diff_time, format_duration, get_time_str, add_min
+from city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from city.line import Line
 from city.date_group import DateGroup
-from city.transfer import Transfer
-from routing.train import Train
+from city.transfer import Transfer, parse_transfer
+from routing.train import Train, parse_all_trains
 
 class BFSResult:
     """ Contains the result of searching for each station """
@@ -32,8 +33,8 @@ class BFSResult:
         path: list[tuple[str, Train]] = []
         while prev_station in results:
             path = [(prev_station, prev_train)] + path
-            prev_station = results[prev_station].prev_station
             prev_train = results[prev_station].prev_train
+            prev_station = results[prev_station].prev_station
         return [(prev_station, prev_train)] + path
 
     def pretty_print(
@@ -67,7 +68,7 @@ class BFSResult:
                     train.line.name, train.direction
                 )]
                 assert transfer_time < total_waiting, (last_train, station, train)
-                print(f"Transfer at {station}: {last_train.line} -> {train.line}, " +
+                print(f"Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
                       f"{transfer_time} minute(s).")
                 print(f"Waiting time: {total_waiting - transfer_time} minute(s).")
 
@@ -76,30 +77,33 @@ class BFSResult:
             last_train = train
 
 def get_all_trains(
-    train_dict: dict[str, dict[str, list[Train]]], station: str,
-    date_group: DateGroup
+    lines: dict[str, Line],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], station: str,
+    cur_date: date
 ) -> list[Train]:
     """ Get all trains passing through a station, ordered by passing through time """
     all_passing: list[Train] = []
-    for direction_dict in train_dict.values():
-        if date_group.name not in direction_dict:
-            continue
-        for train in direction_dict[date_group.name]:
-            if station in train.arrival_time:
-                all_passing.append(train)
+    for line, line_dict in train_dict.items():
+        for direction_dict in line_dict.values():
+            for date_group, date_dict in direction_dict.items():
+                if not lines[line].date_groups[date_group].covers(cur_date):
+                    continue
+                for train in date_dict:
+                    if station in train.arrival_time:
+                        all_passing.append(train)
     return sorted(all_passing, key=lambda train: get_time_str(*train.arrival_time[station]))
 
 def find_next_train(
-    train_dict: dict[str, dict[str, list[Train]]],
+    lines: dict[str, Line],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer],
-    date_group: DateGroup,
-    station: str, cur_time: time, cur_day: bool = False,
+    cur_date: date, station: str, cur_time: time, cur_day: bool = False,
     cur_line: Line | None = None, cur_direction: str | None = None
 ) -> list[Train]:
     """ Find all possible next trains """
     # Find one for each line/direction pair
     result: dict[tuple[str, str], Train] = {}
-    for train in get_all_trains(train_dict, station, date_group):
+    for train in get_all_trains(lines, train_dict, station, cur_date):
         # calculate the least time for this line/direction
         if cur_line is not None:
             if train.line == cur_line:
@@ -121,10 +125,10 @@ def find_next_train(
     return list(result.values())
 
 def bfs(
-    train_dict: dict[str, dict[str, list[Train]]],
+    lines: dict[str, Line],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer],
-    date_group: DateGroup,
-    start_station: str, start_time: time, start_day: bool = False
+    start_date: date, start_station: str, start_time: time, start_day: bool = False
 ) -> dict[str, BFSResult]:
     """ Search for shortest path (by time) to every station """
     queue = [start_station]
@@ -143,8 +147,9 @@ def bfs(
 
         # Iterate through all possible next steps
         for next_train in find_next_train(
-                train_dict, transfer_dict, date_group, station, cur_time, cur_day,
-                prev_line, prev_direction):
+            lines, train_dict, transfer_dict, start_date, station,
+            cur_time, cur_day, prev_line, prev_direction
+        ):
             arrival_items = list(next_train.arrival_time.items())
             arrival_keys = list(next_train.arrival_time.keys())
             arrival_index = arrival_keys.index(station)
@@ -163,3 +168,33 @@ def bfs(
                         inqueue.add(next_station)
                         queue.append(next_station)
     return results
+
+def main() -> None:
+    """ Main function """
+    city = ask_for_city()
+    start, end = ask_for_station_pair(city)
+    lines = city.lines()
+    train_dict = parse_all_trains(list(lines.values()))
+    start_date = ask_for_date()
+    start_time = ask_for_time()
+
+    # For now, assume that any input after 3:30AM is this day
+    start_day = (start_time < time(3, 30))
+    if start_day:
+        print("Warning: assuming next day!")
+    assert city.transfers is not None, city
+    bfs_result = bfs(
+        lines, train_dict, city.transfers,
+        start_date, start[0], start_time, start_day
+    )
+    if end[0] not in bfs_result:
+        print("Unreachable!")
+        sys.exit(0)
+    result = bfs_result[end[0]]
+
+    # Print resulting route
+    result.pretty_print(start_time, start_day, bfs_result, city.transfers)
+
+# Call main
+if __name__ == "__main__":
+    main()

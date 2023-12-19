@@ -95,7 +95,7 @@ class Train:
         else:
             center = f" -> {end_station} {self.stop_time(end_station)}"
         return f"{self.direction_repr()} {start_station} {self.stop_time(start_station)}" +\
-            center + " ({self.two_station_duration_repr(start_station, end_station)})"
+            center + f" ({self.two_station_duration_repr(start_station, end_station)})"
 
     def line_repr(self) -> str:
         """ One-line short representation """
@@ -273,3 +273,12 @@ def parse_trains(
             result_dict[direction][date_group] = parse_trains_stations(
                 line, station_dict2, line.direction_base_route[direction].stations)
     return result_dict
+
+def parse_all_trains(
+    lines: list[Line],
+) -> dict[str, dict[str, dict[str, list[Train]]]]:
+    """ Parse all trains from timetables """
+    result: dict[str, dict[str, dict[str, list[Train]]]] = {}
+    for line in lines:
+        result[line.name] = parse_trains(line)
+    return result
