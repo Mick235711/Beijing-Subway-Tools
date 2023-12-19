@@ -7,8 +7,11 @@
 import os
 import sys
 from datetime import time
+from math import ceil
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, format_duration
+from common.common import diff_time, format_duration, get_time_str, add_min
+from city.line import Line
+from city.date_group import DateGroup
 from city.transfer import Transfer
 from routing.train import Train
 
@@ -72,10 +75,91 @@ class BFSResult:
             print(train.two_station_str(station, next_station))
             last_train = train
 
+def get_all_trains(
+    train_dict: dict[str, dict[str, list[Train]]], station: str,
+    date_group: DateGroup
+) -> list[Train]:
+    """ Get all trains passing through a station, ordered by passing through time """
+    all_passing: list[Train] = []
+    for direction_dict in train_dict.values():
+        if date_group.name not in direction_dict:
+            continue
+        for train in direction_dict[date_group.name]:
+            if station in train.arrival_time:
+                all_passing.append(train)
+    return sorted(all_passing, key=lambda train: get_time_str(*train.arrival_time[station]))
+
+def find_next_train(
+    train_dict: dict[str, dict[str, list[Train]]],
+    transfer_dict: dict[str, Transfer],
+    date_group: DateGroup,
+    station: str, cur_time: time, cur_day: bool = False,
+    cur_line: Line | None = None, cur_direction: str | None = None
+) -> list[Train]:
+    """ Find all possible next trains """
+    # Find one for each line/direction pair
+    result: dict[tuple[str, str], Train] = {}
+    for train in get_all_trains(train_dict, station, date_group):
+        # calculate the least time for this line/direction
+        if cur_line is not None:
+            if train.line == cur_line:
+                continue
+            assert cur_direction is not None, (cur_line, cur_direction)
+            transfer_time = transfer_dict[station].transfer_time[
+                (cur_line.name, cur_direction, train.line.name, train.direction)]
+            next_time, next_day = add_min(cur_time, ceil(transfer_time), cur_day)
+        else:
+            next_time, next_day = cur_time, cur_day
+        if diff_time(
+            next_time, train.arrival_time[station][0],
+            next_day, train.arrival_time[station][1]
+        ) > 0:
+            continue
+        key = (train.line.name, train.direction)
+        if key not in result:
+            result[key] = train
+    return list(result.values())
+
 def bfs(
     train_dict: dict[str, dict[str, list[Train]]],
     transfer_dict: dict[str, Transfer],
-    start_train: Train, start_station: str
+    date_group: DateGroup,
+    start_station: str, start_time: time, start_day: bool = False
 ) -> dict[str, BFSResult]:
     """ Search for shortest path (by time) to every station """
-    return {}
+    queue = [start_station]
+    results: dict[str, BFSResult] = {}
+    inqueue = set([start_station])
+    while len(queue) > 0:
+        station, queue = queue[0], queue[1:]
+        inqueue.remove(station)
+        if station == start_station:
+            cur_time, cur_day = start_time, start_day
+            prev_line, prev_direction = None, None
+        else:
+            cur_time, cur_day = results[station].arrival_time, results[station].arrival_day
+            prev_line = results[station].prev_train.line
+            prev_direction = results[station].prev_train.direction
+
+        # Iterate through all possible next steps
+        for next_train in find_next_train(
+                train_dict, transfer_dict, date_group, station, cur_time, cur_day,
+                prev_line, prev_direction):
+            arrival_items = list(next_train.arrival_time.items())
+            arrival_keys = list(next_train.arrival_time.keys())
+            arrival_index = arrival_keys.index(station)
+            for next_station, (next_time, next_day) in arrival_items[arrival_index + 1:]:
+                if next_station == start_station:
+                    continue
+                if next_station not in results or diff_time(
+                    next_time, results[next_station].arrival_time,
+                    next_day, results[next_station].arrival_day
+                ) < 0:
+                    results[next_station] = BFSResult(
+                        next_station, next_time, next_day,
+                        station, next_train
+                    )
+                    if next_station not in inqueue:
+                        inqueue.add(next_station)
+                        queue.append(next_station)
+    return results
