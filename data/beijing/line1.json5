@@ -2,7 +2,7 @@
 // 1号线-八通线时刻表 新11版
 {
     name: "1号线",
-    aliases: ["Line 1"],
+    aliases: ["Line 1", "Batong Line"],
     stations: [
         {name: "古城"},
         {name: "八角游乐园", dist: 1921},

@@ -1,0 +1,67 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 4号线-大兴线时刻表 第4版
+{
+    name: "4号线",
+    aliases: ["Line 4", "Daxing Line"],
+    stations: [
+        {name: "安河桥北"},
+        {name: "北宫门", dist: 1363},
+        {name: "西苑", dist: 1251},
+        {name: "圆明园", dist: 1672, aliases: ["Yuanmingyuan Park"]},
+        {name: "北京大学东门", dist: 1295, aliases: ["Peking University East Gate"]},
+        {name: "中关村", dist: 887},
+        {name: "海淀黄庄", dist: 900},
+        {name: "人民大学", dist: 1063, aliases: ["Renmin University"]},
+        {name: "魏公村", dist: 1051},
+        {name: "国家图书馆", dist: 1658, aliases: ["National Library"]},
+        {name: "动物园", dist: 1517, aliases: ["Beijing Zoo"]},
+        {name: "西直门", dist: 1441},
+        {name: "新街口", dist: 1025},
+        {name: "平安里", dist: 1100},
+        {name: "西四", dist: 1100},
+        {name: "灵境胡同", dist: 869},
+        {name: "西单", dist: 1011},
+        {name: "宣武门", dist: 815},
+        {name: "菜市口", dist: 1152},
+        {name: "陶然亭", dist: 1200},
+        {name: "北京南站", dist: 1643, aliases: ["Beijing South Railway Station"]},
+        {name: "马家堡", dist: 1480},
+        {name: "角门西", dist: 827},
+        {name: "公益西桥", dist: 989},
+        {name: "新宫", dist: 2798},
+        {name: "西红门", dist: 5102},
+        {name: "高米店北", dist: 1810},
+        {name: "高米店南", dist: 1128},
+        {name: "枣园", dist: 1096},
+        {name: "清源路", dist: 1200},
+        {name: "黄村西大街", dist: 1214},
+        {name: "黄村火车站", dist: 987, aliases: ["Huangcun Railway Station"]},
+        {name: "义和庄", dist: 2035},
+        {name: "生物医药基地", dist: 2918},
+        {name: "天宫院", dist: 1811}
+    ],
+    train_routes: {
+        "南行": {
+            aliases: ["Southbound"],
+            "全程车": {},
+            "中关村始发空车": {starts_with: "中关村"},
+            "公益西桥回库车": {ends_with: "公益西桥"},
+            "新宫小交路": {ends_with: "新宫"},
+            "黄村西大街小交路": {ends_with: "黄村西大街"}
+        },
+        "北行": {
+            aliases: ["Northbound"],
+            reversed: true,
+            "全程车": {},
+            "中关村小交路": {ends_with: "中关村"},
+            "公益西桥出库车": {starts_with: "公益西桥"},
+            "新宫始发空车": {starts_with: "新宫"},
+            "黄村西大街始发空车": {starts_with: "黄村西大街"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {}
+}
