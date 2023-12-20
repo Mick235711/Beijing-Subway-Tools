@@ -10,7 +10,7 @@ For every city/metro group, it should have its own directory within the `data/` 
 data/<city>/
 - <line x>.json5: station definition and train schedule for the line
 - metadata.json5: transfer station and other metadata
-- maps.json5: subway map metadata
+- maps_*.json5: subway map metadata
 - maps/: directory for subway maps
 ```
 
@@ -120,3 +120,15 @@ For each sub-specifications, its structure must be
 ```
 If no direction is provided for from or to, it is assumed that the same time is needed to reach both directions (i.e. island platform).
 If only time from Line A to Line B is provided, then the reverse direction is assumed to be the same time.
+
+# Map Specification Format
+This specification discribes the key-values within `map_*.json5`.
+|Key|Required|Type|Default|Value|
+|---|---|---|---|---|
+|name|Yes|string||Name of the map|
+|path|Yes|string||Path to the described map|
+|radius|Yes|int||Radius of the circle on a regular station|
+|transfer_radius|No|int|`radius`|Radius of the circle on a transfer station|
+|coordinates|Yes|object||Contains mapping from station to `{x: <x>, y: <y>[, r: <r>]}`|
+
+Note that the coordinate system starts at upper left corner as `(0, 0)`.

@@ -4,8 +4,8 @@
 """ A class for city/metro map """
 
 # Libraries
-from glob import glob
 import os
+from glob import glob
 from pathlib import Path
 import pyjson5
 from city.line import Line, parse_line
@@ -13,9 +13,11 @@ from city.transfer import Transfer, parse_transfer
 
 class City:
     """ Represents a city or a group of cities connected by metro """
-    def __init__(self, name: str, aliases: list[str] | None = None) -> None:
+    def __init__(self, name: str, root: str, aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
+        assert os.path.exists(root), root
+        self.root = root
         self.aliases = aliases or []
         self.line_files: list[str] = []
         self.lines_processed: dict[str, Line] | None = None
@@ -45,7 +47,7 @@ def parse_city(city_root: str) -> City:
 
     with open(transfer, "r") as fp:
         city_dict = pyjson5.decode_io(fp)
-        city = City(city_dict["city_name"], city_dict.get("city_aliases"))
+        city = City(city_dict["city_name"], city_root, city_dict.get("city_aliases"))
 
     # Insert lines
     for line in glob(os.path.join(city_root, "*.json5")):
@@ -59,7 +61,7 @@ def parse_city(city_root: str) -> City:
 
 def get_all_cities() -> dict[str, City]:
     """ Get all the cities present """
-    res = {}
+    res: dict[str, City] = {}
     for city_root in glob(os.path.join(Path(__file__).resolve().parents[2], "data", "*")):
         if os.path.exists(os.path.join(city_root, "metadata.json5")):
             city = parse_city(city_root)
