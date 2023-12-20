@@ -12,8 +12,10 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.completion import DeduplicateCompleter, Completer, Completion, CompleteEvent
 from pypinyin import lazy_pinyin
 
+
 class WordCompleter(Completer):
     """ Custom word completer """
+
     def __init__(
         self,
         words: list[str],
@@ -41,18 +43,22 @@ class WordCompleter(Completer):
                     display_meta=display_meta,
                 )
 
+
 def to_pinyin(text: str) -> str:
     """ Change Chinese characters into pinyin, capitalize first letter """
     return "".join(lazy_pinyin(text)).capitalize()
+
 
 def is_chinese(ch: str) -> bool:
     """ Determine if the character is chinese """
     assert len(ch) == 1, ch
     return "\u4e00" <= ch <= "\u9fff"
 
+
 def chin_len(s: str) -> int:
     """ Determine width wrt chinese characters """
     return sum(2 if is_chinese(ch) else 1 for ch in s)
+
 
 def complete_pinyin(message: str, meta_information: dict[str, str],
                     aliases: dict[str, list[str]] | None = None) -> str:
@@ -80,9 +86,13 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
         message, choices=[], completer=DeduplicateCompleter(completer),
         validate=lambda x: x in display_dict).ask()]
 
+
 T = TypeVar("T")
+
+
 def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
     """ Ask a question with validator and post-processor """
+
     def validate_func(answer: str) -> str | bool:
         """ Validate function """
         try:
@@ -90,8 +100,10 @@ def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
             return True
         except (ValueError, AssertionError, IndexError) as e:
             return repr(e)
+
     kwargs["validate"] = validate_func
     return func(questionary.text(msg, *args, **kwargs).ask())
+
 
 def distance_str(distance: int) -> str:
     """ Get proper distance string from a meter distance """
@@ -99,13 +111,16 @@ def distance_str(distance: int) -> str:
         return f"{distance}m"
     return f"{distance / 1000:.2f}km"
 
+
 def segment_speed(distance: int, duration: int) -> float:
     """ Get segment speed with m and min -> km/h """
     return (distance / 1000) / (duration / 60)
 
+
 def speed_str(speed: float) -> str:
     """ Get proper string representation of speed """
     return f"{speed:.2f}km/h"
+
 
 def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
     """ Parse time as hh:mm """
@@ -117,20 +132,24 @@ def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
         return time(hour=(int(time_str[:2]) - 24), minute=int(time_str[3:])), True
     return time.fromisoformat(time_str), next_day
 
+
 def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time | None, bool]:
     """ Parse time as hh:mm with optional None """
     if time_str is None:
         return None, next_day
     return parse_time(time_str, next_day)
 
+
 def add_min(time_obj: time, minutes: int, next_day: bool = False) -> tuple[time, bool]:
     """ Add minutes """
     new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
     return new_time, minutes > 0 and (new_time < time_obj or next_day)
 
+
 def to_minutes(cur_time: time, cur_day: bool = False) -> int:
     """ Convert to minutes """
     return cur_time.hour * 60 + cur_time.minute + (24 * 60 if cur_day else 0)
+
 
 def from_minutes(minutes: int) -> tuple[time, bool]:
     """ Convert from minutes """
@@ -144,32 +163,37 @@ def from_minutes(minutes: int) -> tuple[time, bool]:
     frac = minutes % 60
     return time(hour, frac), next_day
 
+
 def diff_time(time1: time, time2: time, next_day1: bool = False, next_day2: bool = False) -> int:
     """ Compute time1 - time2 """
     return to_minutes(time1, next_day1) - to_minutes(time2, next_day2)
 
+
 def get_time_str(time_obj: time, next_day: bool = False) -> str:
     """ Get str from (time, next_day) """
     return f"{time_obj.hour + (24 if next_day else 0):>02}:{time_obj.minute:>02}"
+
 
 def get_time_repr(time_obj: time, next_day: bool = False) -> str:
     """ Get representation from (time, next_day) """
     key = f"{time_obj.hour:>02}:{time_obj.minute:>02}"
     return key + (" (+1)" if next_day else "")
 
+
 def format_duration(duration: timedelta | int) -> str:
     """ Get string representation of duration """
     if isinstance(duration, int):
         return format_duration(timedelta(minutes=duration))
 
-    # we don't care about seconds or lower, just NdNhNmin
+    # we don't care about seconds or lower, just day-hour-minute
     days, seconds = duration.days, duration.seconds
     minutes, seconds = seconds // 60, seconds % 60
     hours, minutes = minutes // 60, minutes % 60
-    result = ("" if days == 0 else f"{days}d") +\
-        ("" if hours == 0 else f"{hours}h") +\
-        ("" if minutes == 0 else f"{minutes}min")
+    result = ("" if days == 0 else f"{days}d") + \
+             ("" if hours == 0 else f"{hours}h") + \
+             ("" if minutes == 0 else f"{minutes}min")
     return "0min" if result == "" else result
+
 
 def show_direction(stations: list[str], loop: bool = False):
     """ Format station direction, A -> B -> C """
@@ -187,7 +211,10 @@ def show_direction(stations: list[str], loop: bool = False):
         return f"{stations[0]} -> {int1} -> {int2} -> {stations[0]}"
     return f"{stations[0]} -> {int1} -> {int2} -> {stations[-1]}"
 
+
 possible_braces = ["()", "[]", "{}", "<>"]
+
+
 def distribute_braces(values: dict[T, int]) -> dict[str, T]:
     """ Distribute brace to values """
     res: dict[str, T] = {}
@@ -195,14 +222,16 @@ def distribute_braces(values: dict[T, int]) -> dict[str, T]:
     for i, value in enumerate(values.keys()):
         brace = possible_braces[i % len(possible_braces)]
         brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
-        multipler = (i // len(possible_braces)) + 1
-        new_brace = brace_left * multipler + brace_right * multipler
+        multiplier = (i // len(possible_braces)) + 1
+        new_brace = brace_left * multiplier + brace_right * multiplier
         res[new_brace] = value
     return res
+
 
 def get_parts(brace: str) -> tuple[str, str]:
     """ Return parts of brace """
     return brace[:len(brace) // 2], brace[len(brace) // 2:]
+
 
 def parse_brace(spec: str) -> tuple[list[str], int]:
     """ Parse string like (2) """
@@ -235,6 +264,7 @@ def parse_brace(spec: str) -> tuple[list[str], int]:
         if index == len(brace_str):
             return braces, inside
 
+
 def combine_brace(brace_dict: dict[T, str], values: T | Iterable[T]) -> str:
     """ Combine one or more braces """
     if not isinstance(values, Iterable):
@@ -252,6 +282,7 @@ def combine_brace(brace_dict: dict[T, str], values: T | Iterable[T]) -> str:
         cur_brace_right = brace_right + cur_brace_right
     return cur_brace + cur_brace_right
 
+
 def apply_slice(orig: list[T], slicer: str) -> list[T]:
     """ Apply a slicer like [start:end:step] to orig """
     assert slicer.startswith("[") and slicer.endswith("]"), slicer
@@ -260,6 +291,7 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
         for x in slicer[1:-1].strip().split(':')
     ])
     return list(orig[eval_slicer])
+
 
 def suffix_s(word: str, number: int | float, suffix: str = "s") -> str:
     """ Conditionally add s suffix """

@@ -5,10 +5,9 @@
 
 # Libraries
 import os
-import sys
 import pyjson5
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from city.line import Line
+from src.city.line import Line
+
 
 class Transfer:
     """ Represents the transfer metadata """
@@ -35,6 +34,7 @@ class Transfer:
                 reverse = (to_line.name, to_d, from_line.name, from_d)
                 if reverse not in self.transfer_time:
                     self.transfer_time[reverse] = minutes
+
 
 def parse_transfer(lines: dict[str, Line], transfer_file: str) -> dict[str, Transfer]:
     """ Parse JSON5 file as transfer metadata """

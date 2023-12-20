@@ -5,17 +5,16 @@
 
 # Libraries
 from __future__ import annotations
-import os
 import sys
 from datetime import date, time
 from math import ceil
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, format_duration, get_time_str, add_min, suffix_s
-from city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
-from city.line import Line
-from city.transfer import Transfer
-from city.train_route import TrainRoute
-from routing.train import Train, parse_all_trains
+from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s
+from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
+from src.city.line import Line
+from src.city.transfer import Transfer
+from src.city.train_route import TrainRoute
+from src.routing.train import Train, parse_all_trains
+
 
 class BFSResult:
     """ Contains the result of searching for each station """
@@ -77,6 +76,7 @@ class BFSResult:
             print(train.two_station_str(station, next_station))
             last_train = train
 
+
 def get_all_trains(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], station: str,
@@ -92,7 +92,8 @@ def get_all_trains(
                 for train in date_dict:
                     if station in train.arrival_time:
                         all_passing.append(train)
-    return sorted(all_passing, key=lambda train: get_time_str(*train.arrival_time[station]))
+    return sorted(all_passing, key=lambda t: get_time_str(*t.arrival_time[station]))
+
 
 def find_next_train(
     lines: dict[str, Line],
@@ -125,6 +126,7 @@ def find_next_train(
             result[key] = train
     return list(result.values())
 
+
 def bfs(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
@@ -134,10 +136,10 @@ def bfs(
     """ Search for shortest path (by time) to every station """
     queue = [start_station]
     results: dict[str, BFSResult] = {}
-    inqueue = set([start_station])
+    in_queue = {start_station}
     while len(queue) > 0:
         station, queue = queue[0], queue[1:]
-        inqueue.remove(station)
+        in_queue.remove(station)
         if station == start_station:
             cur_time, cur_day = start_time, start_day
             prev_line, prev_direction = None, None
@@ -172,10 +174,11 @@ def bfs(
                         next_station, next_time, next_day,
                         station, next_train
                     )
-                    if next_station not in inqueue:
-                        inqueue.add(next_station)
+                    if next_station not in in_queue:
+                        in_queue.add(next_station)
                         queue.append(next_station)
     return results
+
 
 def main() -> None:
     """ Main function """
@@ -202,6 +205,7 @@ def main() -> None:
 
     # Print resulting route
     result.pretty_print(start_time, start_day, bfs_result, city.transfers)
+
 
 # Call main
 if __name__ == "__main__":

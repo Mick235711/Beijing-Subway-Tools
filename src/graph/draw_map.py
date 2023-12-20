@@ -1,26 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Draw an argumented map """
+""" Draw an subway map """
 
 # Libraries
-import os
-import sys
 import argparse
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata  # type: ignore
 from PIL import Image, ImageDraw
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import parse_time_opt
-from city.ask_for_city import ask_for_city, ask_for_map, ask_for_station, ask_for_date
-from routing.train import parse_all_trains
-from routing.avg_shortest_time import calculate_shortest
-from graph.map import Map
+from src.common.common import parse_time_opt
+from src.city.ask_for_city import ask_for_city, ask_for_map, ask_for_station, ask_for_date
+from src.routing.train import parse_all_trains
+from src.routing.avg_shortest_time import calculate_shortest
+from src.graph.map import Map
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 200000000
+
 
 def find_font_size(
     draw: ImageDraw.ImageDraw, text: str, max_length: float, *args, **kwargs
@@ -34,6 +32,7 @@ def find_font_size(
         font_size -= 0.5
     assert False, (text, max_length)
 
+
 def draw_station(
     draw: ImageDraw.ImageDraw, station: str,
     map_obj: Map, text: str, *args, **kwargs
@@ -45,6 +44,7 @@ def draw_station(
     kwargs["font_size"] = font_size
     kwargs["anchor"] = "mm"
     draw.text((x + r, y + r), text, *args, **kwargs)
+
 
 def draw_all_station(
     draw: ImageDraw.ImageDraw,
@@ -58,6 +58,7 @@ def draw_all_station(
             draw, station, map_obj, str(round(shortest, 1)),
             fill=tuple(round(x * 255) for x in colormap(shortest / max_value))
         )
+
 
 def draw_contours(
     ax: mpl.axes.Axes,
@@ -94,6 +95,7 @@ def draw_contours(
         kwargs["levels"] = levels
     cs = ax.contour(X, Y, Z, **kwargs)
     ax.clabel(cs, inline=True, fontsize=32)
+
 
 def main() -> None:
     """ Main function """
@@ -149,6 +151,7 @@ def main() -> None:
     )
     print("Drawing contours done! Saving...")
     fig.savefig(args.output, dpi=args.dpi)
+
 
 # Call main
 if __name__ == "__main__":

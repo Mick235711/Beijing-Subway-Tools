@@ -5,10 +5,8 @@
 
 # Libraries
 from typing import Any
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import show_direction
+from src.common.common import show_direction
+
 
 class TrainRoute:
     """ Represents a train route """
@@ -42,6 +40,7 @@ class TrainRoute:
         """ Hashing protocol """
         return hash((self.name, self.direction, tuple(self.stations)))
 
+
 def parse_train_route(direction: str, base: list[str],
                       name: str, spec: dict[str, Any],
                       loop: bool = False) -> TrainRoute:
@@ -64,6 +63,7 @@ def parse_train_route(direction: str, base: list[str],
         route.stations = temp
     return route
 
+
 def stations_dist_loop(stations: list[str], station_dists: list[int], start: str, end: str) -> int:
     """ Compute distance between two stations in a loop """
     assert len(station_dists) == len(stations), (stations, station_dists)
@@ -74,6 +74,7 @@ def stations_dist_loop(stations: list[str], station_dists: list[int], start: str
     if start_index > end_index:
         return sum(station_dists[start_index:] + station_dists[:end_index])
     return sum(station_dists[start_index:end_index])
+
 
 def stations_dist(stations: list[str], station_dists: list[int], start: str, end: str) -> int:
     """ Compute distance between two stations """
@@ -87,6 +88,7 @@ def stations_dist(stations: list[str], station_dists: list[int], start: str, end
     if start_index > end_index:
         start_index, end_index = end_index, start_index
     return sum(station_dists[start_index:end_index])
+
 
 def route_dist(stations: list[str], station_dists: list[int], route: list[str],
                loop: bool = False) -> int:

@@ -4,17 +4,15 @@
 """ Average shortest time of reaching a station """
 
 # Libraries
-import os
-import sys
 import argparse
 from datetime import date, time
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt
-from city.ask_for_city import ask_for_city, ask_for_station, ask_for_date
-from city.line import Line
-from city.transfer import Transfer
-from routing.train import Train, parse_all_trains
-from routing.bfs import bfs, get_all_trains
+from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt
+from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date
+from src.city.line import Line
+from src.city.transfer import Transfer
+from src.routing.train import Train, parse_all_trains
+from src.routing.bfs import bfs, get_all_trains
+
 
 def calculate_shortest(
     lines: dict[str, Line],
@@ -50,6 +48,7 @@ def calculate_shortest(
             ))
     return {station: sum(times) / len(times) for station, times in results.items()}
 
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -81,6 +80,7 @@ def main() -> None:
     print(f"\nFarthest {args.limit_num} stations:")
     print("\n".join(
         f"{station}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
+
 
 # Call main
 if __name__ == "__main__":

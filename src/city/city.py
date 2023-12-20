@@ -8,8 +8,11 @@ import os
 from glob import glob
 from pathlib import Path
 import pyjson5
-from city.line import Line, parse_line
-from city.transfer import Transfer, parse_transfer
+from src.city.line import Line, parse_line
+from src.city.transfer import Transfer, parse_transfer
+
+METADATA_FILE = "metadata.json5"
+
 
 class City:
     """ Represents a city or a group of cities connected by metro """
@@ -42,7 +45,7 @@ class City:
 
 def parse_city(city_root: str) -> City:
     """ Parse JSON5 files in a city directory """
-    transfer = os.path.join(city_root, "metadata.json5")
+    transfer = os.path.join(city_root, METADATA_FILE)
     assert os.path.exists(transfer), city_root
 
     with open(transfer, "r") as fp:
@@ -51,7 +54,7 @@ def parse_city(city_root: str) -> City:
 
     # Insert lines
     for line in glob(os.path.join(city_root, "*.json5")):
-        if os.path.basename(line) == "metadata.json5":
+        if os.path.basename(line) == METADATA_FILE:
             continue
         if os.path.basename(line).startswith("map"):
             continue

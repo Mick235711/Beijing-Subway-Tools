@@ -4,13 +4,11 @@
 """ Print loop trains obtained from any city's timetable """
 
 # Libraries
-import os
-import sys
 import argparse
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import complete_pinyin, suffix_s
-from city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
-from routing.train import parse_trains
+from src.common.common import complete_pinyin, suffix_s
+from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.routing.train import parse_trains
+
 
 def main() -> None:
     """ Main function """
@@ -22,7 +20,7 @@ def main() -> None:
     line = ask_for_line(city, only_loop=True)
     direction = ask_for_direction(line)
     date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line, set([direction]))
+    train_dict = parse_trains(line, {direction})
     train_list = train_dict[direction][date_group.name]
 
     # Reorganize into looping chains
@@ -50,6 +48,7 @@ def main() -> None:
     for i, train in enumerate(loop_dict[train_index - 1]):
         duration_repr = train.duration_repr(with_speed=args.with_speed)
         print(f"Loop #{i + 1}: {train.line_repr()} ({duration_repr})")
+
 
 # Call main
 if __name__ == "__main__":

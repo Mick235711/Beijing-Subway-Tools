@@ -4,15 +4,13 @@
 """ A class for a train """
 
 # Libraries
-import os
-import sys
 from datetime import time
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import diff_time, get_time_repr, get_time_str, format_duration,\
+from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
     distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s
-from city.line import Line
-from city.train_route import TrainRoute, stations_dist, route_dist
-from timetable.timetable import Timetable, route_stations
+from src.city.line import Line
+from src.city.train_route import TrainRoute, stations_dist, route_dist
+from src.timetable.timetable import Timetable, route_stations
+
 
 class Train:
     """ Represents a train """
@@ -168,6 +166,7 @@ class Train:
         if self.loop_next is not None:
             print(f"Next: {repr(self.loop_next)[1:-1]}")
 
+
 def assign_loop_next(
     trains: dict[int, list[Train]], routes_dict: list[list[TrainRoute]],
     stations: list[str], loop_last_segment: int = 0
@@ -195,6 +194,7 @@ def assign_loop_next(
             train.loop_next = found_train
             found_train.loop_prev = train
     return trains
+
 
 def parse_trains_stations(
     line: Line, train_dict: dict[str, Timetable], stations: list[str]
@@ -230,7 +230,7 @@ def parse_trains_stations(
                 ) for timetable_train in timetable_trains]
             else:
                 # Add to existing trains
-                assert len(trains[route_id]) == len(timetable_trains),\
+                assert len(trains[route_id]) == len(timetable_trains), \
                     (station, routes_dict[route_id], len(trains[route_id]), len(timetable_trains))
                 for i in range(len(trains[route_id])):
                     trains[route_id][i].arrival_time[station] = (
@@ -241,6 +241,7 @@ def parse_trains_stations(
 
     # Collect all route types
     return [train for train_list in trains.values() for train in train_list]
+
 
 def parse_trains(
     line: Line,
@@ -272,6 +273,7 @@ def parse_trains(
             result_dict[direction][date_group] = parse_trains_stations(
                 line, station_dict2, line.direction_base_route[direction].stations)
     return result_dict
+
 
 def parse_all_trains(
     lines: list[Line],

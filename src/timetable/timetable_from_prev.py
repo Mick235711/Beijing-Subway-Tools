@@ -4,19 +4,18 @@
 """ Generate timetable from previous day's data """
 
 # Libraries
-import os
 import sys
 from datetime import time
 from copy import deepcopy
 import questionary
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import add_min, parse_brace, apply_slice
-from city.date_group import DateGroup
-from city.train_route import TrainRoute
-from city.ask_for_city import ask_for_city, ask_for_line, ask_for_station_in_line,\
+from src.common.common import add_min, parse_brace, apply_slice
+from src.city.date_group import DateGroup
+from src.city.train_route import TrainRoute
+from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_station_in_line, \
     ask_for_direction, ask_for_date_group
-from timetable.timetable import Timetable
-from timetable.input_to_timetable import main as main_input
+from src.timetable.timetable import Timetable
+from src.timetable.input_to_timetable import main as main_input
+
 
 def generate_next(timetable: Timetable, station: str, next_station: str,
                   direction: str, date_group: DateGroup) -> Timetable:
@@ -28,7 +27,7 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
     ).ask()
     delta = int(0 if delta_str == "" else delta_str)
 
-    # Add everying with delta
+    # Add everything with delta
     new_trains: dict[time, Timetable.Train] = {}
     for train in timetable.trains.values():
         # discard trains not through this station
@@ -71,7 +70,7 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
 
         other = modification[index + 1:].strip()
         if other.startswith("+") or other.startswith("-"):
-            # parse uniformalized delta
+            # parse uni-formalized delta
             if other.endswith("]"):
                 # have a slicer
                 lp_index = other.find("[")
@@ -120,6 +119,7 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
 
     return new_timetable
 
+
 def main() -> None:
     """ Main function """
     city = ask_for_city()
@@ -138,6 +138,7 @@ def main() -> None:
     timetable = line.timetables()[station][direction][date_group.name]
     main_input(generate_next(
         timetable, station, line.directions[direction][index + 1], direction, date_group))
+
 
 # Call main
 if __name__ == "__main__":

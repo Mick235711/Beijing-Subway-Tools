@@ -4,13 +4,11 @@
 """ Print trains obtained from any city's timetable """
 
 # Libraries
-import os
-import sys
 import argparse
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import complete_pinyin
-from city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
-from routing.train import parse_trains
+from src.common.common import complete_pinyin
+from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.routing.train import parse_trains
+
 
 def main() -> None:
     """ Main function """
@@ -22,7 +20,7 @@ def main() -> None:
     line = ask_for_line(city)
     direction = ask_for_direction(line)
     date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line, set([direction]))
+    train_dict = parse_trains(line, {direction})
     train_list = train_dict[direction][date_group.name]
     meta_information: dict[str, str] = {}
     for i, train in enumerate(train_list):
@@ -32,6 +30,7 @@ def main() -> None:
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[1:result.find(" ")])
     train_list[train_index - 1].pretty_print(with_speed=args.with_speed)
+
 
 # Call main
 if __name__ == "__main__":

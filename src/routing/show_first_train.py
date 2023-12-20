@@ -4,12 +4,10 @@
 """ Print first and last train information for a station """
 
 # Libraries
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import get_time_str
-from city.ask_for_city import ask_for_city, ask_for_station
-from routing.train import parse_trains
+from src.common.common import get_time_str
+from src.city.ask_for_city import ask_for_city, ask_for_station
+from src.routing.train import parse_trains
+
 
 def main() -> None:
     """ Main function """
@@ -38,6 +36,7 @@ def main() -> None:
                           f"({last_full.show_with(station)})")
                 print(f"       Last Train: {last_train.stop_time(station)} " +
                       f"({last_train.show_with(station)})")
+
 
 # Call main
 if __name__ == "__main__":

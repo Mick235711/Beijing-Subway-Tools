@@ -5,12 +5,11 @@
 
 # Libraries
 import os
-import sys
 from glob import glob
 import pyjson5
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from city.city import City
-from city.line import Line
+from src.city.city import City
+from src.city.line import Line
+
 
 class Map:
     """ A class for storing a map """
@@ -31,6 +30,7 @@ class Map:
         """ Get string representation """
         return f"<{self.name}: {self.path}>"
 
+
 def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
     """ Parse a single map JSON5 file """
     assert os.path.exists(map_file), map_file
@@ -49,6 +49,7 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
     map_obj.font_size = map_dict.get("font_size")
     map_obj.transfer_font_size = map_dict.get("transfer_font_size")
     return map_obj
+
 
 def get_all_maps(city: City) -> dict[str, Map]:
     """ Get all the maps present """

@@ -5,13 +5,12 @@
 
 # Libraries
 import os
-import sys
 import pyjson5
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import distance_str
-from city.train_route import TrainRoute, parse_train_route
-from city.date_group import DateGroup, parse_date_group
-from timetable.timetable import Timetable, parse_timetable
+from src.common.common import distance_str
+from src.city.train_route import TrainRoute, parse_train_route
+from src.city.date_group import DateGroup, parse_date_group
+from src.timetable.timetable import Timetable, parse_timetable
+
 
 class Line:
     """ Represents a subway line """
@@ -73,6 +72,7 @@ class Line:
                         elem3["schedule"], elem3["filters"]
                     )
         return self.timetables_processed
+
 
 def parse_line(line_file: str) -> Line:
     """ Parse JSON5 file as a line """

@@ -4,16 +4,15 @@
 """ Parse input timetable data into object """
 
 # Libraries
-import os
 import sys
 import argparse
 from datetime import time
 from typing import Iterable, Any
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import get_time_str, diff_time, parse_brace
-from city.date_group import DateGroup
-from city.train_route import TrainRoute
-from timetable.timetable import Timetable
+from src.common.common import get_time_str, diff_time, parse_brace
+from src.city.date_group import DateGroup
+from src.city.train_route import TrainRoute
+from src.timetable.timetable import Timetable
+
 
 def parse_input() -> Timetable:
     """ Parse input into timetable object """
@@ -58,6 +57,7 @@ def parse_input() -> Timetable:
 
     return table
 
+
 def count_repetitive(values: list[Any], first: int = 1) -> int:
     """ Count the occurrence of values[:first] """
     count = 1
@@ -66,12 +66,14 @@ def count_repetitive(values: list[Any], first: int = 1) -> int:
         count += 1
     return count
 
+
 def count_entries(entry: tuple[int, int] | list) -> int:
     """ Count the entry # of deltas """
     if isinstance(entry, list):
         assert isinstance(entry[1], list), entry
         return 1 + len(entry[1])
     return 1
+
 
 def find_first_index(entry: tuple[int, int] | list) -> int:
     """ Count the entry # of deltas """
@@ -80,6 +82,7 @@ def find_first_index(entry: tuple[int, int] | list) -> int:
         return entry[1][0][1]
     return entry[1]
 
+
 def increase_index(entry: list[tuple[int, int] | list]) -> list[tuple[int, int] | list]:
     """ Increase the index for the first element """
     if isinstance(entry[0], list):
@@ -87,6 +90,7 @@ def increase_index(entry: list[tuple[int, int] | list]) -> list[tuple[int, int] 
     else:
         entry[0] = (entry[0][0], entry[0][1] + 1)
     return entry
+
 
 def compose_delta(entry: list[tuple[int, int] | list]) -> list[int | list[int | list]]:
     """ Return the delta/index format to original delta format"""
@@ -97,6 +101,7 @@ def compose_delta(entry: list[tuple[int, int] | list]) -> list[int | list[int | 
         else:
             res.append(single[0])
     return res
+
 
 def divide_schedule(trains: list[Timetable.Train],
                     break_entries: int = 15) -> Iterable[tuple[time, list[int | list]]]:
@@ -183,6 +188,7 @@ def divide_schedule(trains: list[Timetable.Train],
                 composed = composed[:-1]
         yield trains[find_first_index(entry[0])].leaving_time, composed
 
+
 def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Iterable[
         tuple[TrainRoute, dict[str, str | int | list[str]]]]:
     """ Divide train list into filters """
@@ -240,6 +246,7 @@ def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Ite
         if len(current_trains) > 0:
             yield route, {"trains": current_trains}
 
+
 def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int = 15) -> str:
     """ Output in schedule/filters format """
     start = " " * (level * 4)
@@ -271,6 +278,7 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
 
     return res
 
+
 def main(timetable: Timetable | None = None) -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -281,6 +289,7 @@ def main(timetable: Timetable | None = None) -> None:
     args = parser.parse_args()
     print(to_json_format(timetable or parse_input(), level=args.level,
                          break_entries=args.break_entries))
+
 
 # Call main
 if __name__ == "__main__":

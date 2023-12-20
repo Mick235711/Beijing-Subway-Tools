@@ -4,15 +4,14 @@
 """ Ask for cities, lines and stations """
 
 # Libraries
-import os
 import sys
 from datetime import datetime, date, time
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
-from city.city import City, get_all_cities
-from city.line import Line
-from city.date_group import DateGroup
-from graph.map import Map, get_all_maps
+from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
+from src.city.city import City, get_all_cities
+from src.city.line import Line
+from src.city.date_group import DateGroup
+from src.graph.map import Map, get_all_maps
+
 
 def ask_for_city(*, message: str | None = None) -> City:
     """ Ask for a city """
@@ -36,6 +35,7 @@ def ask_for_city(*, message: str | None = None) -> City:
     else:
         answer = complete_pinyin("Please select a city:", meta_information, aliases)
     return cities[answer]
+
 
 def ask_for_line(city: City, *, message: str | None = None, only_loop: bool = False) -> Line:
     """ Ask for a line in city """
@@ -61,6 +61,7 @@ def ask_for_line(city: City, *, message: str | None = None, only_loop: bool = Fa
     else:
         answer = complete_pinyin("Please select a line:", meta_information, aliases)
     return lines[answer]
+
 
 def ask_for_station(
     city: City, *,
@@ -100,12 +101,14 @@ def ask_for_station(
         station = complete_pinyin("Please select a station:", meta_information, aliases)
     return station, station_lines[station]
 
+
 def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
     """ Ask for two station in city """
     result1 = ask_for_station(city, message="Please select a starting station:")
     result2 = ask_for_station(
-        city, message="Please select an ending station:", exclude=set([result1[0]]))
+        city, message="Please select an ending station:", exclude={result1[0]})
     return result1, result2
+
 
 def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> Line:
     """ Ask for a line passing through a station """
@@ -131,6 +134,7 @@ def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> 
         answer = complete_pinyin("Please select a line:", meta_information, aliases)
     return lines_dict[answer]
 
+
 def ask_for_station_in_line(
     line: Line, *,
     with_timetable: bool = False, exclude: set[str] | None = None,
@@ -151,6 +155,7 @@ def ask_for_station_in_line(
         return complete_pinyin(message, meta_information, aliases)
     return complete_pinyin("Please select a station:", meta_information, aliases)
 
+
 def ask_for_station_pair_in_line(
     line: Line, *,
     with_timetable: bool = False
@@ -160,8 +165,9 @@ def ask_for_station_pair_in_line(
         line, message="Please select a starting station:", with_timetable=with_timetable)
     result2 = ask_for_station_in_line(
         line, message="Please select an ending station:",
-        exclude=set([result1]), with_timetable=with_timetable)
+        exclude={result1}, with_timetable=with_timetable)
     return result1, result2
+
 
 def ask_for_direction(
     line: Line, *,
@@ -194,6 +200,7 @@ def ask_for_direction(
         return complete_pinyin(message, meta_information, aliases)
     return complete_pinyin("Please select a direction:", meta_information, aliases)
 
+
 def ask_for_date_group(
     line: Line, *,
     with_timetabled_sd: tuple[str, str] | None = None, message: str | None = None
@@ -224,6 +231,7 @@ def ask_for_date_group(
         answer = complete_pinyin("Please select a date group:", meta_information, aliases)
     return line.date_groups[answer]
 
+
 def ask_for_date() -> date:
     """ Ask for a date """
     return ask_question(
@@ -231,12 +239,14 @@ def ask_for_date() -> date:
         default=date.today().isoformat()
     )
 
+
 def ask_for_time() -> time:
     """ Ask for a time """
     return ask_question(
         "Please enter the travel time (hh:mm):", parse_time,
         default=get_time_str(datetime.now().time())
     )[0]
+
 
 def ask_for_map(city: City, *, message: str | None = None) -> Map:
     """ Ask for a map """

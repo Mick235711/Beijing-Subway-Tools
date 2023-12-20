@@ -7,8 +7,9 @@
 from datetime import date
 from typing import Any
 
+
 class DateGroup:
-    """ Represents a group of days where train are scheduled the same """
+    """ Represents a group of days when train are scheduled the same """
     def __init__(self, name: str, aliases: list[str] | None = None, *,
                  weekday: set[int] | None = None,
                  start_date: str | None = None, end_date: str | None = None,
@@ -18,7 +19,7 @@ class DateGroup:
         self.aliases = aliases or []
         self.dates = dates
         if self.dates is None:
-            self.weekday = weekday or set([1, 2, 3, 4, 5, 6, 7])
+            self.weekday = weekday or {1, 2, 3, 4, 5, 6, 7}
             assert all(1 <= x <= 7 for x in self.weekday), self.weekday
             self.start_date = date.fromisoformat(start_date) if start_date else None
             self.end_date = date.fromisoformat(end_date) if end_date else None
@@ -53,6 +54,7 @@ class DateGroup:
         if self.end_date and cur_date > self.end_date:
             return False
         return cur_date.isoweekday() in self.weekday
+
 
 def parse_date_group(name: str, spec: dict[str, Any]) -> DateGroup:
     """ Parse the date_groups field """

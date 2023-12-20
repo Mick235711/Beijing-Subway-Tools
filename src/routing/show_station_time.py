@@ -4,15 +4,13 @@
 """ Print timetable of time between stations """
 
 # Libraries
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import get_time_str, diff_time
-from city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,\
+from src.common.common import get_time_str, diff_time
+from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,\
     ask_for_station_pair_in_line, ask_for_date_group
-from city.date_group import DateGroup
-from city.line import Line
-from routing.train import parse_trains
+from src.city.date_group import DateGroup
+from src.city.line import Line
+from src.routing.train import parse_trains
+
 
 def get_time_between(
     line: Line, date_group: DateGroup, start: str, end: str,
@@ -59,6 +57,7 @@ def get_time_between(
         time_dict[time_str] = diff_time(end_time, start_time, end_day, start_day)
     return direction, time_dict
 
+
 def main() -> None:
     """ Main function """
     city = ask_for_city()
@@ -72,6 +71,7 @@ def main() -> None:
     direction, time_dict = get_time_between(
         line, date_group, start, end, with_direction=with_direction)
     line.timetables()[start][direction][date_group.name].pretty_print(with_time=time_dict)
+
 
 # Call main
 if __name__ == "__main__":

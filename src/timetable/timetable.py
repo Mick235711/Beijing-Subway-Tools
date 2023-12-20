@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" A class for time table of a day """
+""" A class for timetable of a day """
 
 # Libraries
-import os
-import sys
 from typing import Iterable, Any
 from datetime import time
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.common import parse_time, add_min, get_time_str, get_time_repr,\
+from src.common.common import parse_time, add_min, get_time_str, get_time_repr, \
     distribute_braces, combine_brace
-from city.date_group import DateGroup
-from city.train_route import TrainRoute
+from src.city.date_group import DateGroup
+from src.city.train_route import TrainRoute
+
 
 class Timetable:
-    """ Represents time table for a line in a station in a day """
+    """ Represents timetable for a line in a station in a day """
     class Train:
         """ Represents one train """
         def __init__(self, station: str, date_group: DateGroup, leaving_time: time,
@@ -50,7 +48,7 @@ class Timetable:
                     self.train_route = [self.train_route, route]
             else:
                 if len(self.train_route) > 0:
-                    assert self.train_route[-1].direction == route.direction,\
+                    assert self.train_route[-1].direction == route.direction, \
                         (self.train_route, route)
                 self.train_route.append(route)
 
@@ -127,6 +125,7 @@ class Timetable:
                 print(f"{brace} = {route!r}")
         return brace_dict
 
+
 def route_stations(routes: TrainRoute | list[TrainRoute]) -> list[str]:
     """ Return the stations of this route """
     if isinstance(routes, TrainRoute):
@@ -144,6 +143,7 @@ def route_stations(routes: TrainRoute | list[TrainRoute]) -> list[str]:
         stations = new_stations[:]
     return stations
 
+
 def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
     """ Parse the delta field """
     res: list[int] = []
@@ -152,8 +152,9 @@ def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
             res.append(elem)
         else:
             assert isinstance(elem[0], int) and isinstance(elem[1], list), elem
-            res = res + elem[0] * elem[1]
+            res += elem[0] * elem[1]
     return res
+
 
 def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
                     route_dict: dict[str, TrainRoute],
@@ -197,7 +198,7 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
             if not last_nd and get_time_str(
                     first_train, first_nd) > get_time_str(last_train, last_nd):
                 last_nd = True
-            assert get_time_str(first_train, first_nd) <= get_time_str(last_train, last_nd),\
+            assert get_time_str(first_train, first_nd) <= get_time_str(last_train, last_nd), \
                 (first_train, first_nd, last_train, last_nd)
             skip_trains = (entry["skip_trains"] + 1) if "skip_trains" in entry else 1
             count = entry.get("count", -1)
