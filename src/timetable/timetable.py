@@ -4,18 +4,21 @@
 """ A class for timetable of a day """
 
 # Libraries
-from typing import Iterable, Any
 from datetime import time
-from src.common.common import parse_time, add_min, get_time_str, get_time_repr, \
-    distribute_braces, combine_brace
+from typing import Iterable, Any
+
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
+from src.common.common import parse_time, add_min, get_time_str, get_time_repr, \
+    distribute_braces, combine_brace
 
 
 class Timetable:
-    """ Represents timetable for a line in a station in a day """
+    """ Represents a timetable for a line in a station in a day """
+
     class Train:
         """ Represents one train """
+
         def __init__(self, station: str, date_group: DateGroup, leaving_time: time,
                      train_route: TrainRoute | list[TrainRoute], next_day: bool = False) -> None:
             """ Constructor """
@@ -35,7 +38,7 @@ class Timetable:
             return self.train_route if isinstance(self.train_route, list) else [self.train_route]
 
         def route_str(self) -> str:
-            """ Get representation of the route of this train """
+            """ Get a representation of the route of this train """
             return " + ".join(x.direction_str() for x in self.route_iter())
 
         def add_route(self, route: TrainRoute, base: TrainRoute | None = None) -> None:
@@ -74,7 +77,8 @@ class Timetable:
         return f"<{len(self.trains)} trains>"
 
     def pretty_print(
-        self, *, with_time: dict[str, int | None] | None = None) -> dict[str, TrainRoute]:
+        self, *, with_time: dict[str, int | None] | None = None
+    ) -> dict[str, TrainRoute]:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
         hour_dict: dict[int, list[Timetable.Train]] = {}
@@ -118,7 +122,7 @@ class Timetable:
                 print(minute, end="")
             print()
 
-        # Print the braces information
+        # Print the braces' information
         print()
         if with_time is None:
             for brace, route in brace_dict.items():
@@ -190,13 +194,14 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
                 assert leaving_time in trains, (trains, leaving_time)
                 trains[leaving_time].add_route(plan, base_route)
         else:
-            first_train, first_nd = parse_time(entry["first_train"])\
+            first_train, first_nd = parse_time(entry["first_train"]) \
                 if "first_train" in entry else list(trains.values())[0].sort_key()
-            last_train, last_nd = parse_time(entry["until"], first_nd)\
+            last_train, last_nd = parse_time(entry["until"], first_nd) \
                 if "until" in entry else list(trains.values())[-1].sort_key()
             assert first_train in trains and last_train in trains, (trains, first_train, last_train)
             if not last_nd and get_time_str(
-                    first_train, first_nd) > get_time_str(last_train, last_nd):
+                first_train, first_nd
+            ) > get_time_str(last_train, last_nd):
                 last_nd = True
             assert get_time_str(first_train, first_nd) <= get_time_str(last_train, last_nd), \
                 (first_train, first_nd, last_train, last_nd)

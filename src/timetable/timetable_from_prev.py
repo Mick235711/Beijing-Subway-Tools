@@ -5,16 +5,18 @@
 
 # Libraries
 import sys
-from datetime import time
 from copy import deepcopy
+from datetime import time
+
 import questionary
-from src.common.common import add_min, parse_brace, apply_slice
-from src.city.date_group import DateGroup
-from src.city.train_route import TrainRoute
+
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_station_in_line, \
     ask_for_direction, ask_for_date_group
-from src.timetable.timetable import Timetable
+from src.city.date_group import DateGroup
+from src.city.train_route import TrainRoute
+from src.common.common import add_min, parse_brace, apply_slice
 from src.timetable.input_to_timetable import main as main_input
+from src.timetable.timetable import Timetable
 
 
 def generate_next(timetable: Timetable, station: str, next_station: str,
@@ -47,8 +49,8 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
         brace_dict[""] = new_timetable.base_route
         modification = questionary.text(
             "Enter a modification (or ok):",
-            validate=lambda x: x.lower() == "ok" or x == "" or
-            x[:x.find("|")].strip().isdigit()
+            validate=lambda x:
+            x.lower() == "ok" or x == "" or x[:x.find("|")].strip().isdigit()
         ).ask()
         if modification.lower() == "ok" or modification == "":
             break

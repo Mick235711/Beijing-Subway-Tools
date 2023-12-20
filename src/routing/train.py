@@ -5,15 +5,17 @@
 
 # Libraries
 from datetime import time
-from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
-    distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s
+
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
+from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
+    distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s
 from src.timetable.timetable import Timetable, route_stations
 
 
 class Train:
     """ Represents a train """
+
     def __init__(self, line: Line, routes: list[TrainRoute],
                  arrival_time: dict[str, tuple[time, bool]]) -> None:
         """ Constructor """
@@ -56,10 +58,10 @@ class Train:
     def __repr__(self) -> str:
         """ Get string representation """
         if self.loop_next is not None:
-            return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" +\
-                   f" -> {self.loop_next.stations[0]} {self.loop_next.start_time()} (loop)>"
-        return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" +\
-               f" -> {self.stations[-1]} {self.end_time()}>"
+            return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" + \
+                f" -> {self.loop_next.stations[0]} {self.loop_next.start_time()} (loop)>"
+        return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" + \
+            f" -> {self.stations[-1]} {self.end_time()}>"
 
     def two_station_duration_repr(self, start_station: str, end_station: str) -> str:
         """ One-line short duration string for two stations """
@@ -80,7 +82,7 @@ class Train:
             self.line.direction_dists(self.direction),
             start_station, end_station
         )
-        return suffix_s("station", end_index - start_index) +\
+        return suffix_s("station", end_index - start_index) + \
             f", {format_duration(duration)}, {distance_str(total_dists)}"
 
     def two_station_str(self, start_station: str, end_station: str) -> str:
@@ -91,7 +93,7 @@ class Train:
             center = f" -> {end_station} {self.loop_next.stop_time(end_station)}"
         else:
             center = f" -> {end_station} {self.stop_time(end_station)}"
-        return f"{self.direction_repr()} {start_station} {self.stop_time(start_station)}" +\
+        return f"{self.direction_repr()} {start_station} {self.stop_time(start_station)}" + \
             center + f" ({self.two_station_duration_repr(start_station, end_station)})"
 
     def line_repr(self) -> str:
@@ -199,9 +201,9 @@ def assign_loop_next(
 def parse_trains_stations(
     line: Line, train_dict: dict[str, Timetable], stations: list[str]
 ) -> list[Train]:
-    """ Parse the trains from several station's timetables """
+    """ Parse the trains from several stations' timetables """
     # organize into station -> route -> list of trains
-    # also collect all the routes
+    # also collects all the routes
     routes_dict: list[list[TrainRoute]] = []
     processed_dict: dict[str, dict[int, list[Timetable.Train]]] = {
         station: {} for station in train_dict.keys()

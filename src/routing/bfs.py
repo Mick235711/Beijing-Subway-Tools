@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Do BFS search on a station/train tuple to find the minimal-time way of reaching stations """
+""" Implement BFS search on a station/train tuple to find the minimal-time way of reaching stations """
 
 # Libraries
 from __future__ import annotations
+
 import sys
 from datetime import date, time
 from math import ceil
-from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s
+
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from src.city.line import Line
-from src.city.transfer import Transfer
 from src.city.train_route import TrainRoute
+from src.city.transfer import Transfer
+from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s
 from src.routing.train import Train, parse_all_trains
 
 
 class BFSResult:
     """ Contains the result of searching for each station """
+
     def __init__(self,
                  station: str, arrival_time: time, arrival_day: bool,
                  prev_station: str, prev_train: Train) -> None:
@@ -133,7 +136,7 @@ def bfs(
     transfer_dict: dict[str, Transfer],
     start_date: date, start_station: str, start_time: time, start_day: bool = False
 ) -> dict[str, BFSResult]:
-    """ Search for shortest path (by time) to every station """
+    """ Search for the shortest path (by time) to every station """
     queue = [start_station]
     results: dict[str, BFSResult] = {}
     in_queue = {start_station}
@@ -158,7 +161,7 @@ def bfs(
             arrival_index = arrival_keys.index(station)
             next_stations = arrival_items[arrival_index + 1:]
             if next_train.loop_next is not None:
-                # also append the other half of loop
+                # also append the other half of the loop
                 arrival_items_next = list(next_train.loop_next.arrival_time.items())
                 arrival_keys_next = list(next_train.loop_next.arrival_time.keys())
                 arrival_index_next = arrival_keys_next.index(station)
@@ -203,7 +206,7 @@ def main() -> None:
         sys.exit(0)
     result = bfs_result[end[0]]
 
-    # Print resulting route
+    # Print the resulting route
     result.pretty_print(start_time, start_day, bfs_result, city.transfers)
 
 

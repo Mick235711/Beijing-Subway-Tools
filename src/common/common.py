@@ -4,12 +4,13 @@
 """ Provide common functions used in the whole project """
 
 # Libraries
-from typing import TypeVar
 from collections.abc import Iterable, Callable
 from datetime import datetime, date, time, timedelta
+from typing import TypeVar
+
 import questionary
-from prompt_toolkit.document import Document
 from prompt_toolkit.completion import DeduplicateCompleter, Completer, Completion, CompleteEvent
+from prompt_toolkit.document import Document
 from pypinyin import lazy_pinyin
 
 
@@ -45,7 +46,7 @@ class WordCompleter(Completer):
 
 
 def to_pinyin(text: str) -> str:
-    """ Change Chinese characters into pinyin, capitalize first letter """
+    """ Change Chinese characters into pinyin, capitalize the first letter """
     return "".join(lazy_pinyin(text)).capitalize()
 
 
@@ -205,7 +206,7 @@ def show_direction(stations: list[str], loop: bool = False):
         # only show first/last
         return f"{stations[0]} -> {stations[-1]}"
 
-    # show two intermediate
+    # show two intermediates
     int1, int2 = stations[len(stations) // 3], stations[len(stations) * 2 // 3]
     if loop:
         return f"{stations[0]} -> {int1} -> {int2} -> {stations[0]}"

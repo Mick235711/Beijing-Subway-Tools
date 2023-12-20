@@ -5,16 +5,16 @@
 
 # Libraries
 import argparse
-import numpy as np
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from scipy.interpolate import griddata  # type: ignore
+import numpy as np
 from PIL import Image, ImageDraw
-from src.common.common import parse_time_opt
-from src.city.ask_for_city import ask_for_city, ask_for_map, ask_for_station, ask_for_date
-from src.routing.train import parse_all_trains
-from src.routing.avg_shortest_time import calculate_shortest
+from scipy.interpolate import griddata  # type: ignore
+
+from src.city.ask_for_city import ask_for_map
 from src.graph.map import Map
+from src.routing.avg_shortest_time import shortest_in_city
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 200000000
@@ -82,7 +82,7 @@ def draw_contours(
     # interpolate the data to a regular field
     X = np.linspace(0, img_size[0], 1000)
     Y = np.linspace(0, img_size[1], 1000)
-    Z = griddata((x, y), z, (X[None, :], Y[:, None]), method="linear")
+    Z = griddata((x, y), z, (X[None, :], Y[:, None]))
 
     # adjust level
     max_value = max(list(avg_shortest.values()))
@@ -115,24 +115,12 @@ def main() -> None:
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
-    city = ask_for_city()
+    city, start, result_dict = shortest_in_city(args.limit_start, args.limit_end)
     map_obj = ask_for_map(city)
-    start = ask_for_station(city)
-    lines = city.lines()
-    train_dict = parse_all_trains(list(lines.values()))
-    start_date = ask_for_date()
-    assert city.transfers is not None, city
-    ls_time, ls_day = parse_time_opt(args.limit_start)
-    le_time, le_day = parse_time_opt(args.limit_end)
-    result_dict = calculate_shortest(
-        lines, train_dict, city.transfers, start_date, start[0],
-        limit_start=ls_time, limit_start_day=ls_day,
-        limit_end=le_time, limit_end_day=le_day
-    )
 
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)
-    result_dict[start[0]] = 0
+    result_dict[start] = 0
     colormap = mpl.colormaps[args.color_map]
     draw_all_station(draw, colormap, map_obj, result_dict)
     print("Drawing stations done!")

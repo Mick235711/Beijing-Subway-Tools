@@ -6,12 +6,14 @@
 # Libraries
 import argparse
 from datetime import date, time
-from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt
+
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date
+from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
-from src.routing.train import Train, parse_all_trains
+from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt
 from src.routing.bfs import bfs, get_all_trains
+from src.routing.train import Train, parse_all_trains
 
 
 def calculate_shortest(
@@ -22,7 +24,7 @@ def calculate_shortest(
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False
 ) -> dict[str, float]:
-    """ Calculate average shortest time to each station """
+    """ Calculate the average shortest time to each station """
     # Loop through first train to last train
     all_trains = get_all_trains(lines, train_dict, start_station, start_date)
     start_time, start_day = all_trains[0].arrival_time[start_station]
@@ -49,6 +51,26 @@ def calculate_shortest(
     return {station: sum(times) / len(times) for station, times in results.items()}
 
 
+def shortest_in_city(
+    limit_start: str | None = None,
+    limit_end: str | None = None
+) -> tuple[City, str, dict[str, float]]:
+    """ Find the shortest path in the city """
+    city = ask_for_city()
+    start = ask_for_station(city)
+    lines = city.lines()
+    train_dict = parse_all_trains(list(lines.values()))
+    start_date = ask_for_date()
+    assert city.transfers is not None, city
+    ls_time, ls_day = parse_time_opt(limit_start)
+    le_time, le_day = parse_time_opt(limit_end)
+    return city, start[0], calculate_shortest(
+        lines, train_dict, city.transfers, start_date, start[0],
+        limit_start=ls_time, limit_start_day=ls_day,
+        limit_end=le_time, limit_end_day=le_day
+    )
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -57,19 +79,7 @@ def main() -> None:
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     args = parser.parse_args()
 
-    city = ask_for_city()
-    start = ask_for_station(city)
-    lines = city.lines()
-    train_dict = parse_all_trains(list(lines.values()))
-    start_date = ask_for_date()
-    assert city.transfers is not None, city
-    ls_time, ls_day = parse_time_opt(args.limit_start)
-    le_time, le_day = parse_time_opt(args.limit_end)
-    result_dict = calculate_shortest(
-        lines, train_dict, city.transfers, start_date, start[0],
-        limit_start=ls_time, limit_start_day=ls_day,
-        limit_end=le_time, limit_end_day=le_day
-    )
+    _, _, result_dict = shortest_in_city(args.limit_start, args.limit_end)
 
     # sort and display first/last
     result_list = [(avg_time, station) for station, avg_time in result_dict.items()]

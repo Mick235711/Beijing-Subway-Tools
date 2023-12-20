@@ -4,8 +4,8 @@
 """ Print first and last train information for a station """
 
 # Libraries
-from src.common.common import get_time_str
 from src.city.ask_for_city import ask_for_city, ask_for_station
+from src.common.common import get_time_str
 from src.routing.train import parse_trains
 
 

@@ -4,11 +4,11 @@
 """ Print timetable of time between stations """
 
 # Libraries
-from src.common.common import get_time_str, diff_time
-from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,\
+from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, \
     ask_for_station_pair_in_line, ask_for_date_group
 from src.city.date_group import DateGroup
 from src.city.line import Line
+from src.common.common import get_time_str, diff_time
 from src.routing.train import parse_trains
 
 
@@ -24,7 +24,7 @@ def get_time_between(
         for direction, direction_stations in line.directions.items():
             start_index = direction_stations.index(start)
             end_index = direction_stations.index(end)
-            if start_index >= 0 and end_index >= 0 and start_index < end_index:
+            if 0 <= start_index < end_index and end_index >= 0:
                 break
         else:
             assert False, (line, start, end)
@@ -32,7 +32,7 @@ def get_time_between(
         direction = with_direction
 
     # calculate time for each train
-    train_dict = parse_trains(line, set([direction]))
+    train_dict = parse_trains(line, {direction})
     train_list = train_dict[direction][date_group.name]
     time_dict: dict[str, int | None] = {}
     for train in train_list:

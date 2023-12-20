@@ -9,7 +9,8 @@ from typing import Any
 
 
 class DateGroup:
-    """ Represents a group of days when train are scheduled the same """
+    """ Represents a group of days when trains are scheduled the same """
+
     def __init__(self, name: str, aliases: list[str] | None = None, *,
                  weekday: set[int] | None = None,
                  start_date: str | None = None, end_date: str | None = None,
@@ -31,11 +32,11 @@ class DateGroup:
                             "Thursday", "Friday", "Saturday", "Sunday"]
             rep = "Every " + ", ".join([weekday_dict[x] for x in self.weekday])
             if self.start_date:
-                rep = rep + f" starts at {self.start_date}"
+                rep += f" starts at {self.start_date}"
                 if self.end_date:
-                    rep = rep + " and "
+                    rep += " and "
             if self.end_date:
-                rep = rep + f" ends at {self.end_date}"
+                rep += f" ends at {self.end_date}"
             return rep
         return ", ".join([str(x) for x in self.dates])
 

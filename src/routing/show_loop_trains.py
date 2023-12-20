@@ -5,8 +5,9 @@
 
 # Libraries
 import argparse
-from src.common.common import complete_pinyin, suffix_s
+
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.common.common import complete_pinyin, suffix_s
 from src.routing.train import parse_trains
 
 
@@ -39,7 +40,7 @@ def main() -> None:
     for i, train_loop in enumerate(loop_dict):
         first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time()}"
         last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time()}"
-        meta_information[f"#{i + 1} {first_str} -> ... -> {last_str}"] =\
+        meta_information[f"#{i + 1} {first_str} -> ... -> {last_str}"] = \
             suffix_s("loop", len(train_loop))
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[1:result.find(" ")])

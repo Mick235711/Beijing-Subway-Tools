@@ -4,18 +4,19 @@
 """ Parse input timetable data into object """
 
 # Libraries
-import sys
 import argparse
+import sys
 from datetime import time
 from typing import Iterable, Any
-from src.common.common import get_time_str, diff_time, parse_brace
+
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
+from src.common.common import get_time_str, diff_time, parse_brace
 from src.timetable.timetable import Timetable
 
 
 def parse_input() -> Timetable:
-    """ Parse input into timetable object """
+    """ Parse input into a timetable object """
     # provide base date group and base train route
     base_group = DateGroup("Base Group")
     base_route = TrainRoute("Base Route", "Base Direction", [])
@@ -61,7 +62,7 @@ def parse_input() -> Timetable:
 def count_repetitive(values: list[Any], first: int = 1) -> int:
     """ Count the occurrence of values[:first] """
     count = 1
-    while (count + 1) * first <= len(values) and\
+    while (count + 1) * first <= len(values) and \
             values[:first] == values[count * first:(count + 1) * first]:
         count += 1
     return count
@@ -123,7 +124,7 @@ def divide_schedule(trains: list[Timetable.Train],
             # try a repetitive in [i, i + j)
             count = count_repetitive([x[0] for x in delta[i:]], j)
             if count >= 2 and count + j >= 6:
-                # found repeat pattern
+                # found a repeat pattern
                 found = True
                 delta_collapsed.append([count, delta[i:i + j]])
                 i += count * j
@@ -156,15 +157,15 @@ def divide_schedule(trains: list[Timetable.Train],
         # Get rid of last delta
         if i < len(entries) - 1:
             if isinstance(composed[-1], list):
-                assert isinstance(composed[-1][0], int) and\
-                    isinstance(composed[-1][1], list), composed
+                assert isinstance(composed[-1][0], int) and \
+                       isinstance(composed[-1][1], list), composed
                 if len(composed[-1][1]) == 1:
-                    # single, just reduce
+                    # single, reduce
                     composed[-1][0] -= 1
                     if composed[-1][0] == 1:
                         composed[-1] = composed[-1][1][0]
                 else:
-                    # try to "borrow" from next entry
+                    # try to "borrow" from the next entry
                     if not isinstance(entries[i + 1][0], list):
                         if len(entries[i + 1]) == 1:
                             composed += [entries[i + 1][0][0]]
@@ -176,7 +177,7 @@ def divide_schedule(trains: list[Timetable.Train],
                         if entries[i + 1][0][0] == 1:
                             entries[i + 1][0] = entries[i + 1][0][1][0]  # type: ignore
                     else:
-                        # cannot borrow, just expand
+                        # cannot borrow, expand
                         composed[-1][0] -= 1
                         if composed[-1][0] == 1:
                             composed = composed[:-1] + composed[-1][1] + composed[-1][1][:-1]
@@ -189,9 +190,10 @@ def divide_schedule(trains: list[Timetable.Train],
         yield trains[find_first_index(entry[0])].leaving_time, composed
 
 
-def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Iterable[
-        tuple[TrainRoute, dict[str, str | int | list[str]]]]:
-    """ Divide train list into filters """
+def divide_filters(
+    trains: list[Timetable.Train], base_route: TrainRoute
+) -> Iterable[tuple[TrainRoute, dict[str, str | int | list[str]]]]:
+    """ Divide a train list into filters """
     # First, construct route dictionary
     route_dict: dict[TrainRoute, list[tuple[Timetable.Train, int]]] = {}
     for i, train in enumerate(trains):
@@ -210,7 +212,7 @@ def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Ite
             # Try a same-delta sequence start from i
             delta = route_trains[i + 1][1] - route_trains[i][1]
             end = i + 1
-            while end + 1 < len(route_trains) and\
+            while end + 1 < len(route_trains) and \
                     route_trains[end + 1][1] - route_trains[end][1] == delta:
                 end += 1
             time_str = get_time_str(route_trains[i][0].leaving_time)
@@ -221,7 +223,7 @@ def divide_filters(trains: list[Timetable.Train], base_route: TrainRoute) -> Ite
                 continue
 
             # Found a sequence, collapse it
-            # First cash in the current trains
+            # First cashes in the current trains
             if len(current_trains) > 0:
                 yield route, {"trains": current_trains}
                 current_trains = []

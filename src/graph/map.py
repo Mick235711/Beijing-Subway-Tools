@@ -6,13 +6,16 @@
 # Libraries
 import os
 from glob import glob
+
 import pyjson5
+
 from src.city.city import City
 from src.city.line import Line
 
 
 class Map:
     """ A class for storing a map """
+
     def __init__(
         self, name: str, path: str, radius: int, transfer_radius: int,
         coordinates: dict[str, tuple[int, int, int]]
@@ -34,7 +37,7 @@ class Map:
 def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
     """ Parse a single map JSON5 file """
     assert os.path.exists(map_file), map_file
-    with open(map_file, "r") as fp:
+    with open(map_file) as fp:
         map_dict = pyjson5.decode_io(fp)
 
     path = os.path.join(os.path.dirname(map_file), map_dict["path"])

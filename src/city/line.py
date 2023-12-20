@@ -5,15 +5,18 @@
 
 # Libraries
 import os
+
 import pyjson5
-from src.common.common import distance_str
-from src.city.train_route import TrainRoute, parse_train_route
+
 from src.city.date_group import DateGroup, parse_date_group
+from src.city.train_route import TrainRoute, parse_train_route
+from src.common.common import distance_str
 from src.timetable.timetable import Timetable, parse_timetable
 
 
 class Line:
     """ Represents a subway line """
+
     def __init__(self, name: str, aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
@@ -36,9 +39,11 @@ class Line:
         return f"<{self.name}: {self.line_str()}>"
 
     def direction_stations(self, direction: str) -> list[str]:
+        """ Returns the base route's station for this direction """
         return self.direction_base_route[direction].stations
 
     def direction_dists(self, direction: str) -> list[int]:
+        """ Return the distance of this direction """
         if self.direction_stations(direction) == self.stations:
             return self.station_dists
         base = list(reversed(self.station_dists))
@@ -48,8 +53,8 @@ class Line:
 
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
-        return f"{self.stations[0]} - {self.stations[-1]}" +\
-            f", {len(self.stations)} stations, " + distance_str(self.total_distance()) +\
+        return f"{self.stations[0]} - {self.stations[-1]}" + \
+            f", {len(self.stations)} stations, " + distance_str(self.total_distance()) + \
             (", loop" if self.loop else "")
 
     def total_distance(self) -> int:
@@ -77,7 +82,7 @@ class Line:
 def parse_line(line_file: str) -> Line:
     """ Parse JSON5 file as a line """
     assert os.path.exists(line_file), line_file
-    with open(line_file, "r") as fp:
+    with open(line_file) as fp:
         line_dict = pyjson5.decode_io(fp)
         line = Line(line_dict["name"], line_dict.get("aliases"))
 

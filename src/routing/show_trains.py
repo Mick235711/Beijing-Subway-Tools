@@ -5,8 +5,9 @@
 
 # Libraries
 import argparse
-from src.common.common import complete_pinyin
+
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.common.common import complete_pinyin
 from src.routing.train import parse_trains
 
 

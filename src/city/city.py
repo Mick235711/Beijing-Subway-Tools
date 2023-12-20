@@ -7,7 +7,9 @@
 import os
 from glob import glob
 from pathlib import Path
+
 import pyjson5
+
 from src.city.line import Line, parse_line
 from src.city.transfer import Transfer, parse_transfer
 
@@ -16,6 +18,7 @@ METADATA_FILE = "metadata.json5"
 
 class City:
     """ Represents a city or a group of cities connected by metro """
+
     def __init__(self, name: str, root: str, aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
@@ -48,7 +51,7 @@ def parse_city(city_root: str) -> City:
     transfer = os.path.join(city_root, METADATA_FILE)
     assert os.path.exists(transfer), city_root
 
-    with open(transfer, "r") as fp:
+    with open(transfer) as fp:
         city_dict = pyjson5.decode_io(fp)
         city = City(city_dict["city_name"], city_root, city_dict.get("city_aliases"))
 

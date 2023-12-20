@@ -5,12 +5,15 @@
 
 # Libraries
 import os
+
 import pyjson5
+
 from src.city.line import Line
 
 
 class Transfer:
     """ Represents the transfer metadata """
+
     def __init__(self, station: str) -> None:
         """ Constructor """
         self.station = station
@@ -39,7 +42,7 @@ class Transfer:
 def parse_transfer(lines: dict[str, Line], transfer_file: str) -> dict[str, Transfer]:
     """ Parse JSON5 file as transfer metadata """
     assert os.path.exists(transfer_file), transfer_file
-    with open(transfer_file, "r") as fp:
+    with open(transfer_file) as fp:
         transfer_dict = pyjson5.decode_io(fp)
 
     result: dict[str, Transfer] = {}

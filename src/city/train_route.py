@@ -5,11 +5,13 @@
 
 # Libraries
 from typing import Any
+
 from src.common.common import show_direction
 
 
 class TrainRoute:
     """ Represents a train route """
+
     def __init__(self, name: str, direction: str, stations: list[str], loop: bool = False) -> None:
         """ Constructor """
         self.name = name
@@ -33,7 +35,7 @@ class TrainRoute:
         """ Determine equality """
         if not isinstance(other, TrainRoute):
             return False
-        return self.name == other.name and self.direction == other.direction and\
+        return self.name == other.name and self.direction == other.direction and \
             self.stations == other.stations
 
     def __hash__(self) -> int:

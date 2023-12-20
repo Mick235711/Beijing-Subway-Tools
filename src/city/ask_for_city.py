@@ -6,10 +6,11 @@
 # Libraries
 import sys
 from datetime import datetime, date, time
-from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
+
 from src.city.city import City, get_all_cities
-from src.city.line import Line
 from src.city.date_group import DateGroup
+from src.city.line import Line
+from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
 from src.graph.map import Map, get_all_maps
 
 
@@ -38,36 +39,18 @@ def ask_for_city(*, message: str | None = None) -> City:
 
 
 def ask_for_line(city: City, *, message: str | None = None, only_loop: bool = False) -> Line:
-    """ Ask for a line in city """
+    """ Ask for a line in the city """
     lines = city.lines()
     if only_loop:
         lines = {name: line for name, line in lines.items() if line.loop}
-    if len(lines) == 0:
-        print("No lines present!")
-        sys.exit(0)
-    elif len(lines) == 1:
-        print(f"Line default: {list(lines.values())[0]}")
-        return list(lines.values())[0]
-    meta_information: dict[str, str] = {}
-    aliases: dict[str, list[str]] = {}
-    for name, line in sorted(lines.items(), key=lambda x: x[0]):
-        meta_information[name] = line.line_str()
-        if len(line.aliases) > 0:
-            aliases[name] = line.aliases
-
-    # Ask
-    if message is not None:
-        answer = complete_pinyin(message, meta_information, aliases)
-    else:
-        answer = complete_pinyin("Please select a line:", meta_information, aliases)
-    return lines[answer]
+    return ask_for_line_in_station(set(lines.values()), message=message)
 
 
 def ask_for_station(
     city: City, *,
     exclude: set[str] | None = None, message: str | None = None
 ) -> tuple[str, set[Line]]:
-    """ Ask for a station in city """
+    """ Ask for a station in the city """
     # First compute all the stations
     lines = city.lines()
     station_lines: dict[str, set[Line]] = {}
@@ -103,7 +86,7 @@ def ask_for_station(
 
 
 def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
-    """ Ask for two station in city """
+    """ Ask for two stations in the city """
     result1 = ask_for_station(city, message="Please select a starting station:")
     result2 = ask_for_station(
         city, message="Please select an ending station:", exclude={result1[0]})
@@ -160,7 +143,7 @@ def ask_for_station_pair_in_line(
     line: Line, *,
     with_timetable: bool = False
 ) -> tuple[str, str]:
-    """ Ask for two station in city """
+    """ Ask for two stations in the city """
     result1 = ask_for_station_in_line(
         line, message="Please select a starting station:", with_timetable=with_timetable)
     result2 = ask_for_station_in_line(
