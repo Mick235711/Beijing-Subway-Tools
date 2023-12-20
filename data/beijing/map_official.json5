@@ -1,8 +1,8 @@
 {
     name: "Official Map",
-    path: "maps/official.jpg",
-    radius: 68,
-    transfer_radius: 114,
+    path: "maps/official.png",
+    radius: 34,
+    transfer_radius: 57,
     coordinates: {
         // Line 1
         "古城": {x: 2577, y: 8157},

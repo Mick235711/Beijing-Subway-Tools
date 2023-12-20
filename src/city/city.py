@@ -53,6 +53,8 @@ def parse_city(city_root: str) -> City:
     for line in glob(os.path.join(city_root, "*.json5")):
         if os.path.basename(line) == "metadata.json5":
             continue
+        if os.path.basename(line).startswith("map"):
+            continue
         city.line_files.append(line)
 
     city.transfers = parse_transfer(city.lines(), transfer)

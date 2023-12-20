@@ -12,6 +12,7 @@ from common.common import complete_pinyin, show_direction, ask_question, parse_t
 from city.city import City, get_all_cities
 from city.line import Line
 from city.date_group import DateGroup
+from graph.map import Map, get_all_maps
 
 def ask_for_city(*, message: str | None = None) -> City:
     """ Ask for a city """
@@ -236,3 +237,23 @@ def ask_for_time() -> time:
         "Please enter the travel time (hh:mm):", parse_time,
         default=get_time_str(datetime.now().time())
     )[0]
+
+def ask_for_map(city: City, *, message: str | None = None) -> Map:
+    """ Ask for a map """
+    maps = get_all_maps(city)
+    if len(maps) == 0:
+        print("No maps present!")
+        sys.exit(0)
+    elif len(maps) == 1:
+        print(f"Map default: {list(maps.values())[0]}")
+        return list(maps.values())[0]
+    meta_information: dict[str, str] = {}
+    for name, map_obj in maps.items():
+        meta_information[name] = map_obj.path
+
+    # Ask
+    if message is not None:
+        answer = complete_pinyin(message, meta_information)
+    else:
+        answer = complete_pinyin("Please select a map:", meta_information)
+    return maps[answer]

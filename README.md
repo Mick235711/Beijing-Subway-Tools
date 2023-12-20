@@ -128,7 +128,10 @@ This specification discribes the key-values within `map_*.json5`.
 |name|Yes|string||Name of the map|
 |path|Yes|string||Path to the described map|
 |radius|Yes|int||Radius of the circle on a regular station|
+|font_size|No|int||Font size for regular stations. Will be automatically determined if not provided|
 |transfer_radius|No|int|`radius`|Radius of the circle on a transfer station|
+|transfer_font_size|No|int||Font size for transfer stations. Will be automatically determined if not provided|
 |coordinates|Yes|object||Contains mapping from station to `{x: <x>, y: <y>[, r: <r>]}`|
 
-Note that the coordinate system starts at upper left corner as `(0, 0)`.
+Note that the coordinate system starts at upper left corner as `(0, 0)`. Also notice that the x-y coordinates is not
+the circle center, but the upper-left corner of bounding box too.
