@@ -9,13 +9,15 @@ import sys
 from datetime import time
 from typing import Iterable, Any
 
+from src.city.ask_for_city import ask_for_timetable
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
 from src.common.common import get_time_str, diff_time, parse_brace
+from src.routing.train import filter_route
 from src.timetable.timetable import Timetable
 
 
-def parse_input() -> Timetable:
+def parse_input(tolerate: bool = False) -> Timetable:
     """ Parse input into a timetable object """
     # provide base date group and base train route
     base_group = DateGroup("Base Group")
@@ -25,11 +27,21 @@ def parse_input() -> Timetable:
     # construct trains
     trains: list[Timetable.Train] = []
     prev_max = 0
+    prev_hour: int | None = None
     route_dict: dict[str, list[int]] = {}
     for line in sys.stdin:
+        line = line.strip()
         index = line.find("|")
-        assert index != -1, line
+        if index == -1:
+            assert tolerate, line
+            index = line.find(" ")
         hour = int(line[:index].strip())
+        if prev_hour is not None and hour != (prev_hour + 1) % 24:
+            assert tolerate, line
+            print(f"Warning: Assuming hour {(prev_hour + 1) % 24} for line {line}")
+            hour = (prev_hour + 1) % 24
+            index = -1
+        prev_hour = hour
         next_day = hour < prev_max
         if hour > prev_max:
             prev_max = hour
@@ -256,7 +268,7 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     # schedule part
     # try to take a break every few entries
     res = f"{start}schedule: [\n"
-    trains = sorted(list(timetable.trains.values()), key=lambda x: x.sort_key_str())
+    trains = timetable.trains_sorted()
     for first_train, delta in divide_schedule(trains, break_entries):
         res += f'{start}    {{first_train: "{get_time_str(first_train)}", delta: {delta}}},\n'
     res = res[:-2] + '\n'  # remove trailing comma
@@ -281,6 +293,64 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     return res
 
 
+def validate_timetable(prev: Timetable, current: Timetable, tolerate: bool = False) -> None:
+    """ Validate two timetables. Throw if not valid. """
+    # Basically, we validate if each route has the same number,
+    # and the assigned delta variance is < 5 minutes
+    if tolerate:
+        # assign the corresponding route to every train in current
+        # first let's sort everything by time
+        prev_sorted = prev.trains_sorted()
+        cur_sorted = current.trains_sorted()
+        assert len(prev_sorted) == len(cur_sorted), (prev, current)
+
+        for prev_train, cur_train in zip(prev_sorted, cur_sorted):
+            assert list(cur_train.route_iter()) == [current.base_route], (prev_train, cur_train)
+            cur_train.train_route = prev_train.train_route
+        current.base_route = prev.base_route
+
+    routes_dict, processed_dict = filter_route(prev)
+
+    # Calculate initial trains
+    trains: dict[int, list[tuple[list[TrainRoute], tuple[time, bool]]]] = {}
+    for route_id, timetable_trains_temp in processed_dict.items():
+        timetable_trains = sorted(timetable_trains_temp, key=lambda x: x.sort_key_str())
+        trains[route_id] = [(
+            routes_dict[route_id],
+            (timetable_train.leaving_time, timetable_train.next_day)
+        ) for timetable_train in timetable_trains]
+
+    # Construct a mapping from current -> prev
+    routes_dict_cur, processed_dict_pre = filter_route(current)
+    routes_dict_name = [[route.name for route in route_list] for route_list in routes_dict]
+    processed_dict_post: dict[int, list[Timetable.Train]] = {}
+    for route_id, train_list in processed_dict_pre.items():
+        current_route = routes_dict_cur[route_id]
+        if current_route == [current.base_route]:
+            processed_dict_post[routes_dict.index([prev.base_route])] = train_list
+            continue
+
+        processed_dict_post[routes_dict_name.index(
+            [route.name for route in current_route]
+        )] = train_list
+
+    # Validate trains
+    initial_diff: int | None = None
+    for route_id, timetable_trains_temp in processed_dict_post.items():
+        timetable_trains = sorted(timetable_trains_temp, key=lambda x: x.sort_key_str())
+        assert len(trains[route_id]) == len(timetable_trains), \
+            (routes_dict[route_id], len(trains[route_id]), len(timetable_trains))
+        for i, (route_list, (prev_time, prev_day)) in enumerate(trains[route_id]):
+            new_time = timetable_trains[i].leaving_time
+            new_day = timetable_trains[i].next_day
+            diff = diff_time(new_time, prev_time, new_day, prev_day)
+            if initial_diff is None:
+                initial_diff = diff
+            elif abs(diff - initial_diff) >= 5:
+                print(f"Warning: {get_time_str(new_time, new_day)} differs from " +
+                      get_time_str(prev_time, prev_day))
+
+
 def main(timetable: Timetable | None = None) -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -288,9 +358,15 @@ def main(timetable: Timetable | None = None) -> None:
                         help="Indentation level before each line")
     parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
                         help="Indentation level before each line")
+    parser.add_argument("-v", "--validate", action="store_true",
+                        help="Validate the result")
     args = parser.parse_args()
-    print(to_json_format(timetable or parse_input(), level=args.level,
-                         break_entries=args.break_entries))
+
+    if timetable is None:
+        timetable = parse_input(args.validate)
+
+    validate_timetable(ask_for_timetable(), timetable, args.validate)
+    print(to_json_format(timetable, level=args.level, break_entries=args.break_entries))
 
 
 # Call main

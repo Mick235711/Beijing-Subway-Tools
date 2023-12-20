@@ -42,7 +42,7 @@
     ],
     train_routes: {
         "东行": {
-            aliases: ["Eastbond"],
+            aliases: ["Eastbound"],
             "全程车": {},
             "公主坟始发空车": {starts_with: "公主坟"},
             "复兴门始发空车": {starts_with: "复兴门"},

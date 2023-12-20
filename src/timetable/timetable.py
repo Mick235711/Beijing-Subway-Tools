@@ -76,6 +76,10 @@ class Timetable:
         """ Get string representation """
         return f"<{len(self.trains)} trains>"
 
+    def trains_sorted(self) -> list[Train]:
+        """ All trains sorted by time """
+        return sorted(list(self.trains.values()), key=lambda x: x.sort_key_str())
+
     def pretty_print(
         self, *, with_time: dict[str, int | None] | None = None
     ) -> dict[str, TrainRoute]:

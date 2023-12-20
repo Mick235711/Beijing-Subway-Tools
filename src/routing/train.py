@@ -198,6 +198,25 @@ def assign_loop_next(
     return trains
 
 
+def filter_route(
+    timetable: Timetable,
+    routes_dict: list[list[TrainRoute]] | None = None
+) -> tuple[list[list[TrainRoute]], dict[int, list[Timetable.Train]]]:
+    """ Calculate route_id -> routes mapping from a timetable"""
+    if routes_dict is None:
+        routes_dict = []
+    processed_dict: dict[int, list[Timetable.Train]] = {}
+    for train in timetable.trains.values():
+        routes = list(train.route_iter())
+        if routes not in routes_dict:
+            routes_dict.append(routes)
+        route_id = routes_dict.index(routes)
+        if route_id not in processed_dict:
+            processed_dict[route_id] = []
+        processed_dict[route_id].append(train)
+    return routes_dict, processed_dict
+
+
 def parse_trains_stations(
     line: Line, train_dict: dict[str, Timetable], stations: list[str]
 ) -> list[Train]:
@@ -209,14 +228,7 @@ def parse_trains_stations(
         station: {} for station in train_dict.keys()
     }
     for station, timetable in train_dict.items():
-        for train in timetable.trains.values():
-            routes = list(train.route_iter())
-            if routes not in routes_dict:
-                routes_dict.append(routes)
-            route_id = routes_dict.index(routes)
-            if route_id not in processed_dict[station]:
-                processed_dict[station][route_id] = []
-            processed_dict[station][route_id].append(train)
+        routes_dict, processed_dict[station] = filter_route(timetable, routes_dict)
 
     # Construct trains
     trains: dict[int, list[Train]] = {}

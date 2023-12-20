@@ -12,6 +12,7 @@ from src.city.date_group import DateGroup
 from src.city.line import Line
 from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
 from src.graph.map import Map, get_all_maps
+from src.timetable.timetable import Timetable
 
 
 def ask_for_city(*, message: str | None = None) -> City:
@@ -213,6 +214,16 @@ def ask_for_date_group(
     else:
         answer = complete_pinyin("Please select a date group:", meta_information, aliases)
     return line.date_groups[answer]
+
+
+def ask_for_timetable() -> Timetable:
+    """ Ask for a specific station's timetable """
+    city = ask_for_city()
+    line = ask_for_line(city)
+    station = ask_for_station_in_line(line, with_timetable=True)
+    direction = ask_for_direction(line, with_timetabled_station=station)
+    date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
+    return line.timetables()[station][direction][date_group.name]
 
 
 def ask_for_date() -> date:

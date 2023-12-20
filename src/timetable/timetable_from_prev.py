@@ -19,17 +19,8 @@ from src.timetable.input_to_timetable import main as main_input
 from src.timetable.timetable import Timetable
 
 
-def generate_next(timetable: Timetable, station: str, next_station: str,
-                  direction: str, date_group: DateGroup) -> Timetable:
-    """ Generate next day's timetable """
-    # First ask for a delta
-    delta_str = questionary.text(
-        "What is the running time (in minutes) to next station?",
-        validate=lambda x: x == "" or (x.isdigit() and int(x) >= 0)
-    ).ask()
-    delta = int(0 if delta_str == "" else delta_str)
-
-    # Add everything with delta
+def add_delta(timetable: Timetable, next_station: str, delta: int) -> Timetable:
+    """ Add everything within timetable with delta minutes """
     new_trains: dict[time, Timetable.Train] = {}
     for train in timetable.trains.values():
         # discard trains not through this station
@@ -40,9 +31,21 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
         new_train.leaving_time = new_time
         new_train.next_day = next_day
         new_trains[new_time] = new_train
+    return Timetable(new_trains, timetable.base_route)
+
+
+def generate_next(timetable: Timetable, station: str, next_station: str,
+                  direction: str, date_group: DateGroup) -> Timetable:
+    """ Generate next day's timetable """
+    # First ask for a delta
+    delta_str = questionary.text(
+        "What is the running time (in minutes) to next station?",
+        validate=lambda x: x == "" or (x.isdigit() and int(x) >= 0)
+    ).ask()
+    delta = int(0 if delta_str == "" else delta_str)
 
     # Ask for modifications
-    new_timetable = Timetable(new_trains, timetable.base_route)
+    new_timetable = add_delta(timetable, next_station, delta)
     while True:
         print("Current Timetable:")
         brace_dict = new_timetable.pretty_print()

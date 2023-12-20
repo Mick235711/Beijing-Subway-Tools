@@ -4,18 +4,12 @@
 """ Print timetable from any city """
 
 # Libraries
-from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_line_in_station, \
-    ask_for_direction, ask_for_date_group
+from src.city.ask_for_city import ask_for_timetable
 
 
 def main() -> None:
     """ Main function """
-    city = ask_for_city()
-    station, lines = ask_for_station(city)
-    line = ask_for_line_in_station(lines)
-    direction = ask_for_direction(line)
-    date_group = ask_for_date_group(line)
-    line.timetables()[station][direction][date_group.name].pretty_print()
+    ask_for_timetable().pretty_print()
 
 
 # Call main
