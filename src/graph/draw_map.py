@@ -7,7 +7,10 @@
 import os
 import sys
 import argparse
+import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+from scipy.interpolate import griddata  # type: ignore
 from PIL import Image, ImageDraw
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.common import parse_time_opt
@@ -49,13 +52,48 @@ def draw_all_station(
     map_obj: Map, avg_shortest: dict[str, float]
 ) -> None:
     """ Draw on all stations """
-    value_list = list(avg_shortest.values())
-    max_value = max(value_list)
+    max_value = max(list(avg_shortest.values()))
     for station, shortest in avg_shortest.items():
         draw_station(
             draw, station, map_obj, str(round(shortest, 1)),
             fill=tuple(round(x * 255) for x in colormap(shortest / max_value))
         )
+
+def draw_contours(
+    ax: mpl.axes.Axes,
+    img_size: tuple[int, int],
+    colormap: mpl.colors.Colormap,
+    map_obj: Map, avg_shortest: dict[str, float],
+    *, levels: int | list[int] | None = None,
+    **kwargs
+) -> None:
+    """ Draw contours on the whole map """
+    # Construct x, y, z
+    x: list[float] = []
+    y: list[float] = []
+    z: list[float] = []
+    for station, shortest in avg_shortest.items():
+        station_x, station_y, station_r = map_obj.coordinates[station]
+        x.append(station_x + station_r)
+        y.append(station_y + station_r)
+        z.append(shortest)
+
+    # interpolate the data to a regular field
+    X = np.linspace(0, img_size[0], 1000)
+    Y = np.linspace(0, img_size[1], 1000)
+    Z = griddata((x, y), z, (X[None, :], Y[:, None]), method="linear")
+
+    # adjust level
+    max_value = max(list(avg_shortest.values()))
+    if isinstance(levels, list):
+        levels = [x for x in levels if 0 <= x <= max_value]
+
+    kwargs["cmap"] = colormap
+    kwargs["origin"] = "upper"
+    if levels is not None:
+        kwargs["levels"] = levels
+    cs = ax.contour(X, Y, Z, **kwargs)
+    ax.clabel(cs, inline=True, fontsize=32)
 
 def main() -> None:
     """ Main function """
@@ -64,7 +102,16 @@ def main() -> None:
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
     parser.add_argument("-c", "--color-map", help="Override default colormap", default="viridis_r")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
+    parser.add_argument("-l", "--levels", help="Override default levels")
+    parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
+    parser.add_argument(
+        "-w", "--line-width", type=int, help="Override contour line width", default=10)
     args = parser.parse_args()
+
+    if args.levels is None:
+        levels = [10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240]
+    else:
+        levels = [int(x.strip()) for x in args.levels.split(",")]
 
     city = ask_for_city()
     map_obj = ask_for_map(city)
@@ -84,9 +131,24 @@ def main() -> None:
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)
     result_dict[start[0]] = 0
-    draw_all_station(draw, mpl.colormaps[args.color_map], map_obj, result_dict)
+    colormap = mpl.colormaps[args.color_map]
+    draw_all_station(draw, colormap, map_obj, result_dict)
     print("Drawing stations done!")
-    img.save(args.output, dpi=(1000, 1000), compress=1)
+
+    # Draw contours
+    fig = plt.figure(
+        figsize=(img.size[0] / args.dpi, img.size[1] / args.dpi), frameon=False)
+    ax = plt.Axes(fig, (0., 0., 1., 1.))
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(img, aspect="equal")
+    draw_contours(
+        ax, img.size, colormap, map_obj, result_dict,
+        levels=levels,
+        linewidths=args.line_width, linestyles="solid"
+    )
+    print("Drawing contours done! Saving...")
+    fig.savefig(args.output, dpi=args.dpi)
 
 # Call main
 if __name__ == "__main__":

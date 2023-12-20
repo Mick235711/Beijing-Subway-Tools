@@ -4,6 +4,8 @@ Tools and data from subway systems around the world (currently only doing Beijin
 # Running requirements
 Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`
 
+(For `draw_map.py`, also requires `numpy`, `matplotlib` and `scipy`)
+
 # Structure for a City
 For every city/metro group, it should have its own directory within the `data/` folder. Under which are several [JSON5](https://json5.org/) files documenting the schedules and other data.
 ```
@@ -113,7 +115,7 @@ This specification discribes the key-values within `metadata.json5`.
 |transfers|No|object||A dictionary (station_name to array of sub-specifications) of station's transfer time data.|
 
 For each sub-specifications, its structure must be
-```json
+```json5
 {from: "Line Name", [from_direction: "Direction",]
  to: "Line Name", [to_direction: "Direction",]
  minutes: <minutes needed for transfer>}
