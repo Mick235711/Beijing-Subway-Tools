@@ -18,6 +18,7 @@ data/<city>/
 
 # Line Specification Format
 This specification discribes the key-values within `<line x>.json5`.
+
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
 |name|Yes|string||Name of the line|
@@ -87,6 +88,7 @@ or use `timetable/timetable_from_prev.py` to generate next station's schedule fr
 ## Schedule Filter Specification Format
 Filters is a way to associate train routing to schedule (i.e. specify that some trains ends at station A, etc.).
 They are specified in the `timetable.<station>.<direction>.<group_name>.filters` array. Each entries contains an object with the following properties:
+
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
 |plan|Yes|string||Train routing name|
@@ -108,6 +110,7 @@ For example, assuming the schedule is train every 2 minute from 07:00:
 
 # Metadata Specification Format
 This specification discribes the key-values within `metadata.json5`.
+
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
 |city_name|Yes|string||Name of the city|
@@ -125,6 +128,7 @@ If only time from Line A to Line B is provided, then the reverse direction is as
 
 # Map Specification Format
 This specification discribes the key-values within `map_*.json5`.
+
 |Key|Required|Type|Default|Value|
 |---|---|---|---|---|
 |name|Yes|string||Name of the map|
