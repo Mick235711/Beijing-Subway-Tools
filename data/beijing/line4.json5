@@ -46,6 +46,7 @@
             "全程车": {},
             "中关村始发空车": {starts_with: "中关村"},
             "公益西桥回库车": {ends_with: "公益西桥"},
+            "公益西桥出库车": {starts_with: "公益西桥"},
             "新宫小交路": {ends_with: "新宫"},
             "黄村西大街小交路": {ends_with: "黄村西大街"}
         },
@@ -54,6 +55,7 @@
             reversed: true,
             "全程车": {},
             "中关村小交路": {ends_with: "中关村"},
+            "公益西桥回库车": {ends_with: "公益西桥"},
             "公益西桥出库车": {starts_with: "公益西桥"},
             "新宫始发空车": {starts_with: "新宫"},
             "黄村西大街始发空车": {starts_with: "黄村西大街"}
@@ -63,5 +65,1405 @@
         "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
         "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
     },
-    timetable: {}
+    timetable: {
+        "安河桥北": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:58", delta: [12, 13, 6, 6, 6, 4, 5, 5, 3, 8, 2, 8, 2, 5]},
+                        {first_train: "06:26", delta: [5, 2, 6, 1, 6, 5, 1, 5, 4, 4, 3, 1, 4, 4]},
+                        {first_train: "07:20", delta: [3, 3, 3, 2, 3, 3, 6, 3, 3, 6, 2, [14, [4]], 5]},
+                        {first_train: "09:02", delta: [3, 4, 1, 3, 3, 1, 4, [14, [2]], 3, 2, 3, 2, 5]},
+                        {first_train: "10:09", delta: [5, 5, [43, [6]], [13, [5, 1]], 3, 3, 2, 3, 3, 3, [14, [3, 2]]]},
+                        {first_train: "17:24", delta: [[37, [2]], [11, [3, 2]], 3, 5, 2, 3, 2, 3, 5, 2, [15, [3]]]},
+                        {first_train: "20:46", delta: [[21, [4]], 6, 6, 13, 5, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:29", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:06", "06:16", "06:18"]},
+                        {plan: "新宫小交路", first_train: "07:20", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", trains: ["09:02", "09:09"]},
+                        {plan: "新宫小交路", first_train: "14:43", skip_trains: 1, until: "15:55"},
+                        {plan: "新宫小交路", first_train: "16:03", skip_trains: 2, until: "18:32"},
+                        {plan: "新宫小交路", trains: ["18:36"]},
+                        {plan: "新宫小交路", first_train: "18:41", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:26", skip_trains: 3, count: 5},
+                        {plan: "公益西桥回库车", first_train: "09:13", skip_trains: 1, until: "09:57"},
+                        {plan: "公益西桥回库车", first_train: "18:46", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:21", skip_trains: 3, until: "20:19"},
+                        {plan: "公益西桥回库车", first_train: "20:25", skip_trains: 1, until: "22:02"},
+                        {plan: "公益西桥回库车", trains: ["22:40", "22:48"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:58", delta: [11, 8, 8, 6, 6, 6, 2, 10, 3, 9, 4, 6, 1, 7]},
+                        {first_train: "06:26", delta: [7, 4, 3, 5, 2, 5, 5, 4, 1, 5, 5, 5, [28, [4]], [4, [3, 3, 6]]]},
+                        {first_train: "10:00", delta: [[5, [6, 3, 6]], 6, 4, 4, [43, [5]], 4, 1, 5, 5, [7, [4, 1, 5, 3, 2]]]},
+                        {first_train: "17:08", delta: [[54, [3]], [18, [5]], 6, 5, [9, [6]], 10, 2, 11]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "16:59", skip_trains: 2, until: "18:20"},
+                        {plan: "公益西桥回库车", first_train: "18:26", skip_trains: 1, until: "19:44"},
+                        {plan: "公益西桥回库车", trains: ["22:37", "22:48"]}
+                    ]
+                }
+            }
+        },
+        "北宫门": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:59", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:30", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [6, [3]], 2, [20, [4]]]},
+                        {first_train: "09:03", delta: [[5, [3, 2]], [14, [2]], 3, 3, 5, 5, 5, 5, [43, [6]], 5, [25, [3]]]},
+                        {first_train: "16:03", delta: [[15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4]},
+                        {first_train: "22:17", delta: [4, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:31", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:08", "06:18", "06:22"]},
+                        {plan: "新宫小交路", first_train: "07:24", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", trains: ["09:06", "09:11"]},
+                        {plan: "新宫小交路", first_train: "14:48", skip_trains: 1, until: "16:00"},
+                        {plan: "新宫小交路", first_train: "16:08", skip_trains: 2, until: "18:34"},
+                        {plan: "新宫小交路", trains: ["18:38"]},
+                        {plan: "新宫小交路", first_train: "18:43", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:28", skip_trains: 3, count: 5},
+                        {plan: "公益西桥回库车", first_train: "09:16", skip_trains: 1, until: "09:59"},
+                        {plan: "公益西桥回库车", first_train: "18:48", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:23", skip_trains: 3, until: "20:22"},
+                        {plan: "公益西桥回库车", first_train: "20:28", skip_trains: 1, until: "22:07"},
+                        {plan: "公益西桥回库车", trains: ["22:43", "22:49"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:59", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:28", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:01", skip_trains: 2, until: "18:22"},
+                        {plan: "公益西桥回库车", first_train: "18:28", skip_trains: 1, until: "19:46"},
+                        {plan: "公益西桥回库车", trains: ["22:43", "22:49"]}
+                    ]
+                }
+            }
+        },
+        "西苑": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:01", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:32", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [7, [3]], [21, [4]], 3, [4, [3, 2]]]},
+                        {first_train: "09:30", delta: [[13, [2]], 3, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "17:22", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 4, 7]},
+                        {first_train: "22:39", delta: [6, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:33", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:10", "06:20", "06:24"]},
+                        {plan: "新宫小交路", first_train: "07:26", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", trains: ["09:08", "09:13"]},
+                        {plan: "新宫小交路", first_train: "14:50", skip_trains: 1, until: "16:02"},
+                        {plan: "新宫小交路", first_train: "16:10", skip_trains: 2, until: "18:36"},
+                        {plan: "新宫小交路", trains: ["18:40"]},
+                        {plan: "新宫小交路", first_train: "18:45", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:30", skip_trains: 3, count: 5},
+                        {plan: "公益西桥回库车", first_train: "09:18", skip_trains: 1, until: "10:01"},
+                        {plan: "公益西桥回库车", first_train: "18:50", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:25", skip_trains: 3, until: "20:24"},
+                        {plan: "公益西桥回库车", first_train: "20:30", skip_trains: 1, until: "22:09"},
+                        {plan: "公益西桥回库车", trains: ["22:45", "22:51"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:01", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:30", delta: [[6, [6]], 7, 6, 7, 6, 7, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:03", skip_trains: 2, until: "18:24"},
+                        {plan: "公益西桥回库车", first_train: "18:30", skip_trains: 1, until: "19:48"},
+                        {plan: "公益西桥回库车", trains: ["22:45", "22:51"]}
+                    ]
+                }
+            }
+        },
+        "圆明园": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:04", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:35", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [6, [3]], 2, [20, [4]]]},
+                        {first_train: "09:08", delta: [[5, [3, 2]], [14, [2]], 3, 2, 5, 5, 5, 5, [44, [6]], [25, [3]]]},
+                        {first_train: "16:08", delta: [[15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4]},
+                        {first_train: "22:22", delta: [4, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:36", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:13", "06:23", "06:27"]},
+                        {plan: "新宫小交路", first_train: "07:29", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", trains: ["09:11", "09:16"]},
+                        {plan: "新宫小交路", first_train: "14:53", skip_trains: 1, until: "16:05"},
+                        {plan: "新宫小交路", first_train: "16:13", skip_trains: 2, until: "18:39"},
+                        {plan: "新宫小交路", trains: ["18:43"]},
+                        {plan: "新宫小交路", first_train: "18:48", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:33", skip_trains: 3, count: 5},
+                        {plan: "公益西桥回库车", first_train: "09:21", skip_trains: 1, until: "10:04"},
+                        {plan: "公益西桥回库车", first_train: "18:53", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:28", skip_trains: 3, until: "20:27"},
+                        {plan: "公益西桥回库车", first_train: "20:33", skip_trains: 1, until: "22:12"},
+                        {plan: "公益西桥回库车", trains: ["22:48", "22:54"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:04", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:33", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:06", skip_trains: 2, until: "18:27"},
+                        {plan: "公益西桥回库车", first_train: "18:33", skip_trains: 1, until: "19:51"},
+                        {plan: "公益西桥回库车", trains: ["22:48", "22:54"]}
+                    ]
+                }
+            }
+        },
+        "北京大学东门": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:07", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 4, 6, 4, 4, 3]},
+                        {first_train: "06:37", delta: [3, 4, 4, 4, 4, 5, 3, 4, 3, 4, 3, 4, [8, [3]], [19, [4]]]},
+                        {first_train: "09:06", delta: [5, [4, [2, 3]], [14, [2]], 3, 2, 2, 3, 5, 5, 5, 5, [42, [6]]]},
+                        {first_train: "14:47", delta: [5, [26, [3]], [15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [18, [4]]]},
+                        {first_train: "22:09", delta: [5, 4, 6, 5, 7, 8, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:39", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:15", "06:25", "06:29"]},
+                        {plan: "新宫小交路", first_train: "07:31", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", trains: ["09:13", "09:18"]},
+                        {plan: "新宫小交路", first_train: "14:55", skip_trains: 1, until: "16:07"},
+                        {plan: "新宫小交路", first_train: "16:15", skip_trains: 2, until: "18:41"},
+                        {plan: "新宫小交路", trains: ["18:45"]},
+                        {plan: "新宫小交路", first_train: "18:50", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:35", skip_trains: 3, count: 5},
+                        {plan: "公益西桥回库车", first_train: "09:23", skip_trains: 1, until: "10:06"},
+                        {plan: "公益西桥回库车", first_train: "18:55", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:30", skip_trains: 3, until: "20:29"},
+                        {plan: "公益西桥回库车", first_train: "20:35", skip_trains: 1, until: "22:14"},
+                        {plan: "公益西桥回库车", trains: ["22:50", "22:57"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:07", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:36", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:09", skip_trains: 2, until: "18:30"},
+                        {plan: "公益西桥回库车", first_train: "18:36", skip_trains: 1, until: "19:54"},
+                        {plan: "公益西桥回库车", trains: ["22:50", "22:57"]}
+                    ]
+                }
+            }
+        },
+        "中关村": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:08", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:39", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [7, [3]], [21, [1, 3]]]},
+                        {first_train: "09:15", delta: [[4, [3, 2]], [14, [2]], 3, 2, 3, 5, 5, 5, 5, [43, [6]]]},
+                        {first_train: "14:54", delta: [[26, [3]], [15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [19, [4]]]},
+                        {first_train: "22:16", delta: [4, 6, 4, 7, 9, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:40", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:17", "06:27", "06:31"]},
+                        {plan: "新宫小交路", first_train: "07:33", skip_trains: 1, until: "08:13"},
+                        {plan: "新宫小交路", first_train: "08:21", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:41", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:01"]},
+                        {plan: "新宫小交路", first_train: "09:09", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "14:57", skip_trains: 1, until: "16:09"},
+                        {plan: "新宫小交路", first_train: "16:17", skip_trains: 2, until: "18:43"},
+                        {plan: "新宫小交路", trains: ["18:47"]},
+                        {plan: "新宫小交路", first_train: "18:52", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:37", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "07:49", skip_trains: 1, until: "09:09"},
+                        {plan: "公益西桥回库车", trains: ["08:17"]},
+                        {plan: "公益西桥回库车", first_train: "08:37", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:05"]},
+                        {plan: "公益西桥回库车", first_train: "09:25", skip_trains: 1, until: "10:08"},
+                        {plan: "公益西桥回库车", first_train: "18:57", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:32", skip_trains: 3, until: "20:31"},
+                        {plan: "公益西桥回库车", first_train: "20:37", skip_trains: 1, until: "22:16"},
+                        {plan: "公益西桥回库车", trains: ["22:52", "22:58"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:08", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:37", delta: [[6, [6]], 7, 6, 7, 6, 7, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:10", skip_trains: 2, until: "18:31"},
+                        {plan: "公益西桥回库车", first_train: "18:37", skip_trains: 1, until: "19:55"},
+                        {plan: "公益西桥回库车", trains: ["22:52", "22:58"]}
+                    ]
+                }
+            }
+        },
+        "海淀黄庄": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:10", delta: [14, 13, 6, 6, 6, 6, 3, 5, 6, 4, 6, 4, 4, 3]},
+                        {first_train: "06:41", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [7, [3]], [42, [2]], [5, [3, 2]]]},
+                        {first_train: "09:41", delta: [[13, [2]], 3, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "17:31", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 4, 7]},
+                        {first_train: "22:47", delta: [7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:43", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:19", "06:29", "06:33"]},
+                        {plan: "新宫小交路", first_train: "07:35", skip_trains: 1, until: "08:16"},
+                        {plan: "新宫小交路", first_train: "08:24", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:44", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:04"]},
+                        {plan: "新宫小交路", first_train: "09:12", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "14:59", skip_trains: 1, until: "16:11"},
+                        {plan: "新宫小交路", first_train: "16:19", skip_trains: 2, until: "18:45"},
+                        {plan: "新宫小交路", trains: ["18:49"]},
+                        {plan: "新宫小交路", first_train: "18:54", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:39", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "07:52", skip_trains: 1, until: "09:12"},
+                        {plan: "公益西桥回库车", trains: ["08:20"]},
+                        {plan: "公益西桥回库车", first_train: "08:40", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:08"]},
+                        {plan: "公益西桥回库车", first_train: "09:27", skip_trains: 1, until: "10:10"},
+                        {plan: "公益西桥回库车", first_train: "18:59", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:34", skip_trains: 3, until: "20:33"},
+                        {plan: "公益西桥回库车", first_train: "20:39", skip_trains: 1, until: "22:18"},
+                        {plan: "公益西桥回库车", trains: ["22:54", "23:00"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:10", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:39", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:12", skip_trains: 2, until: "18:33"},
+                        {plan: "公益西桥回库车", first_train: "18:39", skip_trains: 1, until: "19:57"},
+                        {plan: "公益西桥回库车", trains: ["22:54", "23:00"]}
+                    ]
+                }
+            }
+        },
+        "人民大学": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:13", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:43", delta: [3, 5, 4, 4, [5, [4, 3]], [6, [3]], [41, [2]], [5, [3, 2]], [13, [2]]]},
+                        {first_train: "10:07", delta: [3, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "17:33", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 5, 7]},
+                        {first_train: "22:50", delta: [6, 7]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:45", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:22", "06:32", "06:36"]},
+                        {plan: "新宫小交路", first_train: "07:37", skip_trains: 1, until: "08:18"},
+                        {plan: "新宫小交路", first_train: "08:26", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:46", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:06"]},
+                        {plan: "新宫小交路", first_train: "09:14", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:01", skip_trains: 1, until: "16:13"},
+                        {plan: "新宫小交路", first_train: "16:21", skip_trains: 2, until: "18:47"},
+                        {plan: "新宫小交路", trains: ["18:51"]},
+                        {plan: "新宫小交路", first_train: "18:56", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:41", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "07:54", skip_trains: 1, until: "09:14"},
+                        {plan: "公益西桥回库车", trains: ["08:22"]},
+                        {plan: "公益西桥回库车", first_train: "08:42", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:10"]},
+                        {plan: "公益西桥回库车", first_train: "09:29", skip_trains: 1, until: "10:12"},
+                        {plan: "公益西桥回库车", first_train: "19:01", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:36", skip_trains: 3, until: "20:35"},
+                        {plan: "公益西桥回库车", first_train: "20:41", skip_trains: 1, until: "22:20"},
+                        {plan: "公益西桥回库车", trains: ["22:56", "23:03"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:13", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:42", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:15", skip_trains: 2, until: "18:36"},
+                        {plan: "公益西桥回库车", first_train: "18:42", skip_trains: 1, until: "20:00"},
+                        {plan: "公益西桥回库车", trains: ["22:56", "23:03"]}
+                    ]
+                }
+            }
+        },
+        "魏公村": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:14", delta: [14, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:45", delta: [3, 5, 4, 4, [5, [4, 3]], [6, [3]], [41, [2]], [5, [3, 2]], [13, [2]]]},
+                        {first_train: "10:09", delta: [3, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "17:35", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 4, 8]},
+                        {first_train: "22:52", delta: [6, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:47", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:24", "06:34", "06:38"]},
+                        {plan: "新宫小交路", first_train: "07:39", skip_trains: 1, until: "08:20"},
+                        {plan: "新宫小交路", first_train: "08:28", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:48", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:08"]},
+                        {plan: "新宫小交路", first_train: "09:16", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:03", skip_trains: 1, until: "16:15"},
+                        {plan: "新宫小交路", first_train: "16:23", skip_trains: 2, until: "18:49"},
+                        {plan: "新宫小交路", trains: ["18:53"]},
+                        {plan: "新宫小交路", first_train: "18:58", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:43", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "07:56", skip_trains: 1, until: "09:16"},
+                        {plan: "公益西桥回库车", trains: ["08:24"]},
+                        {plan: "公益西桥回库车", first_train: "08:44", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:12"]},
+                        {plan: "公益西桥回库车", first_train: "09:31", skip_trains: 1, until: "10:14"},
+                        {plan: "公益西桥回库车", first_train: "19:03", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:38", skip_trains: 3, until: "20:37"},
+                        {plan: "公益西桥回库车", first_train: "20:43", skip_trains: 1, until: "22:22"},
+                        {plan: "公益西桥回库车", trains: ["22:58", "23:04"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:14", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:43", delta: [[6, [6]], 7, 7, 6, 7, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:16", skip_trains: 2, until: "18:37"},
+                        {plan: "公益西桥回库车", first_train: "18:43", skip_trains: 1, until: "20:01"},
+                        {plan: "公益西桥回库车", trains: ["22:58", "23:04"]}
+                    ]
+                }
+            }
+        },
+        "国家图书馆": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3, [6, [4]]]},
+                        {first_train: "07:11", delta: [[4, [3, 4]], [5, [3]], [41, [2]], [6, [3, 2]], [14, [2]], 3, 2]},
+                        {first_train: "10:24", delta: [5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [40, [2]], [9, [3, 2]]]},
+                        {first_train: "19:46", delta: [[26, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:49", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:26", "06:36", "06:40"]},
+                        {plan: "新宫小交路", first_train: "07:42", skip_trains: 1, until: "08:22"},
+                        {plan: "新宫小交路", first_train: "08:30", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:50", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:10"]},
+                        {plan: "新宫小交路", first_train: "09:19", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:05", skip_trains: 1, until: "16:17"},
+                        {plan: "新宫小交路", first_train: "16:25", skip_trains: 2, until: "18:52"},
+                        {plan: "新宫小交路", trains: ["18:56"]},
+                        {plan: "新宫小交路", first_train: "19:01", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:46", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "07:58", skip_trains: 1, until: "09:19"},
+                        {plan: "公益西桥回库车", trains: ["08:26"]},
+                        {plan: "公益西桥回库车", first_train: "08:46", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:14"]},
+                        {plan: "公益西桥回库车", first_train: "09:34", skip_trains: 1, until: "10:17"},
+                        {plan: "公益西桥回库车", first_train: "19:06", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:41", skip_trains: 3, until: "20:40"},
+                        {plan: "公益西桥回库车", first_train: "20:46", skip_trains: 1, until: "22:24"},
+                        {plan: "公益西桥回库车", trains: ["23:01", "23:07"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:46", delta: [[7, [6]], 7, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:19", skip_trains: 2, until: "18:40"},
+                        {plan: "公益西桥回库车", first_train: "18:46", skip_trains: 1, until: "20:04"},
+                        {plan: "公益西桥回库车", trains: ["23:01", "23:07"]}
+                    ]
+                }
+            }
+        },
+        "动物园": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:20", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3, [6, [4]]]},
+                        {first_train: "07:14", delta: [[4, [3, 4]], [5, [3]], [42, [2]], [5, [3, 2]], [13, [2]], 3, 2]},
+                        {first_train: "10:19", delta: [3, 5, 5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [39, [2]]]},
+                        {first_train: "19:01", delta: [[9, [3, 2]], [27, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:52", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:29", "06:39", "06:43"]},
+                        {plan: "新宫小交路", first_train: "07:45", skip_trains: 1, until: "08:25"},
+                        {plan: "新宫小交路", first_train: "08:33", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:53", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:13"]},
+                        {plan: "新宫小交路", first_train: "09:21", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:08", skip_trains: 1, until: "16:20"},
+                        {plan: "新宫小交路", first_train: "16:28", skip_trains: 2, until: "18:55"},
+                        {plan: "新宫小交路", trains: ["18:59"]},
+                        {plan: "新宫小交路", first_train: "19:04", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:49", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:01", skip_trains: 1, until: "09:21"},
+                        {plan: "公益西桥回库车", trains: ["08:29"]},
+                        {plan: "公益西桥回库车", first_train: "08:49", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:17"]},
+                        {plan: "公益西桥回库车", first_train: "09:36", skip_trains: 1, until: "10:19"},
+                        {plan: "公益西桥回库车", first_train: "19:09", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:44", skip_trains: 3, until: "20:43"},
+                        {plan: "公益西桥回库车", first_train: "20:49", skip_trains: 1, until: "22:27"},
+                        {plan: "公益西桥回库车", trains: ["23:04", "23:10"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:20", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:49", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:22", skip_trains: 2, until: "18:43"},
+                        {plan: "公益西桥回库车", first_train: "18:49", skip_trains: 1, until: "20:07"},
+                        {plan: "公益西桥回库车", trains: ["23:03", "23:10"]}
+                    ]
+                }
+            }
+        },
+        "西直门": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:22", delta: [14, 13, 6, 6, 6, 6, 3, 5, 6, 4, 6, 4, 4, 3]},
+                        {first_train: "06:53", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [7, [3]], [19, [2]], 1]},
+                        {first_train: "08:44", delta: [[21, [2]], [5, [3, 2]], [14, [2]], 3, 2, 5, 5, 5, 5, [43, [6]]]},
+                        {first_train: "15:08", delta: [[26, [3]], [15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [19, [4]]]},
+                        {first_train: "22:30", delta: [4, 6, 4, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:55", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:31", "06:41", "06:45"]},
+                        {plan: "新宫小交路", first_train: "07:47", skip_trains: 1, until: "08:28"},
+                        {plan: "新宫小交路", first_train: "08:36", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:56", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:16"]},
+                        {plan: "新宫小交路", first_train: "09:24", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:11", skip_trains: 1, until: "16:23"},
+                        {plan: "新宫小交路", first_train: "16:31", skip_trains: 2, until: "18:57"},
+                        {plan: "新宫小交路", trains: ["19:01"]},
+                        {plan: "新宫小交路", first_train: "19:06", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:51", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:04", skip_trains: 1, until: "09:24"},
+                        {plan: "公益西桥回库车", trains: ["08:32"]},
+                        {plan: "公益西桥回库车", first_train: "08:52", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:20"]},
+                        {plan: "公益西桥回库车", first_train: "09:39", skip_trains: 1, until: "10:22"},
+                        {plan: "公益西桥回库车", first_train: "19:11", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:46", skip_trains: 3, until: "20:45"},
+                        {plan: "公益西桥回库车", first_train: "20:51", skip_trains: 1, until: "22:30"},
+                        {plan: "公益西桥回库车", trains: ["23:06", "23:12"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:22", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:51", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:24", skip_trains: 2, until: "18:45"},
+                        {plan: "公益西桥回库车", first_train: "18:51", skip_trains: 1, until: "20:09"},
+                        {plan: "公益西桥回库车", trains: ["23:06", "23:12"]}
+                    ]
+                }
+            }
+        },
+        "新街口": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:24", delta: [14, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:55", delta: [3, 5, 4, 4, [5, [4, 3]], [6, [3]], [41, [2]], [5, [3, 2]], [13, [2]]]},
+                        {first_train: "10:19", delta: [3, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "17:45", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 4, 8]},
+                        {first_train: "23:02", delta: [6, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:57", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:34", "06:44", "06:48"]},
+                        {plan: "新宫小交路", first_train: "07:49", skip_trains: 1, until: "08:30"},
+                        {plan: "新宫小交路", first_train: "08:38", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:58", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:18"]},
+                        {plan: "新宫小交路", first_train: "09:26", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:13", skip_trains: 1, until: "16:25"},
+                        {plan: "新宫小交路", first_train: "16:33", skip_trains: 2, until: "18:59"},
+                        {plan: "新宫小交路", trains: ["19:03"]},
+                        {plan: "新宫小交路", first_train: "19:08", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:53", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:06", skip_trains: 1, until: "09:26"},
+                        {plan: "公益西桥回库车", trains: ["08:34"]},
+                        {plan: "公益西桥回库车", first_train: "08:54", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:22"]},
+                        {plan: "公益西桥回库车", first_train: "09:41", skip_trains: 1, until: "10:24"},
+                        {plan: "公益西桥回库车", first_train: "19:13", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:48", skip_trains: 3, until: "20:47"},
+                        {plan: "公益西桥回库车", first_train: "20:53", skip_trains: 1, until: "22:32"},
+                        {plan: "公益西桥回库车", trains: ["23:08", "23:14"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:24", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:53", delta: [[6, [6]], 7, 6, 7, 7, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:26", skip_trains: 2, until: "18:47"},
+                        {plan: "公益西桥回库车", first_train: "18:53", skip_trains: 1, until: "20:11"},
+                        {plan: "公益西桥回库车", trains: ["23:08", "23:14"]}
+                    ]
+                }
+            }
+        },
+        "平安里": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:27", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "06:57", delta: [3, 5, 4, 4, [5, [4, 3]], [6, [3]], [41, [2]], [5, [3, 2]], [13, [2]]]},
+                        {first_train: "10:21", delta: [3, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "17:47", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 5, 7]},
+                        {first_train: "23:04", delta: [6, 7]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "05:59", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:36", "06:46", "06:50"]},
+                        {plan: "新宫小交路", first_train: "07:51", skip_trains: 1, until: "08:32"},
+                        {plan: "新宫小交路", first_train: "08:40", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:00", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:20"]},
+                        {plan: "新宫小交路", first_train: "09:28", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:15", skip_trains: 1, until: "16:27"},
+                        {plan: "新宫小交路", first_train: "16:35", skip_trains: 2, until: "19:01"},
+                        {plan: "新宫小交路", trains: ["19:05"]},
+                        {plan: "新宫小交路", first_train: "19:10", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:55", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:08", skip_trains: 1, until: "09:28"},
+                        {plan: "公益西桥回库车", trains: ["08:36"]},
+                        {plan: "公益西桥回库车", first_train: "08:56", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:24"]},
+                        {plan: "公益西桥回库车", first_train: "09:43", skip_trains: 1, until: "10:26"},
+                        {plan: "公益西桥回库车", first_train: "19:15", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:50", skip_trains: 3, until: "20:49"},
+                        {plan: "公益西桥回库车", first_train: "20:55", skip_trains: 1, until: "22:34"},
+                        {plan: "公益西桥回库车", trains: ["23:10", "23:17"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:27", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:56", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:29", skip_trains: 2, until: "18:50"},
+                        {plan: "公益西桥回库车", first_train: "18:56", skip_trains: 1, until: "20:14"},
+                        {plan: "公益西桥回库车", trains: ["23:10", "23:17"]}
+                    ]
+                }
+            }
+        },
+        "西四": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3, [6, [4]]]},
+                        {first_train: "07:23", delta: [[4, [3, 4]], [5, [3]], [42, [2]], [5, [3, 2]], [13, [2]], 3, 2]},
+                        {first_train: "10:28", delta: [3, 5, 5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [39, [2]]]},
+                        {first_train: "19:10", delta: [[9, [3, 2]], [27, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:01", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:38", "06:48", "06:52"]},
+                        {plan: "新宫小交路", first_train: "07:54", skip_trains: 1, until: "08:34"},
+                        {plan: "新宫小交路", first_train: "08:42", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:02", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:22"]},
+                        {plan: "新宫小交路", first_train: "09:30", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:17", skip_trains: 1, until: "16:29"},
+                        {plan: "新宫小交路", first_train: "16:37", skip_trains: 2, until: "19:04"},
+                        {plan: "新宫小交路", trains: ["19:08"]},
+                        {plan: "新宫小交路", first_train: "19:13", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:58", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:10", skip_trains: 1, until: "09:30"},
+                        {plan: "公益西桥回库车", trains: ["08:38"]},
+                        {plan: "公益西桥回库车", first_train: "08:58", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:26"]},
+                        {plan: "公益西桥回库车", first_train: "09:45", skip_trains: 1, until: "10:28"},
+                        {plan: "公益西桥回库车", first_train: "19:18", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:53", skip_trains: 3, until: "20:52"},
+                        {plan: "公益西桥回库车", first_train: "20:58", skip_trains: 1, until: "22:36"},
+                        {plan: "公益西桥回库车", trains: ["23:13", "23:19"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "21:58", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:31", skip_trains: 2, until: "18:52"},
+                        {plan: "公益西桥回库车", first_train: "18:58", skip_trains: 1, until: "20:16"},
+                        {plan: "公益西桥回库车", trains: ["23:12", "23:19"]}
+                    ]
+                }
+            }
+        },
+        "灵境胡同": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "07:01", delta: [3, 5, 4, 4, 4, [4, [4, 3]], [7, [3]], [41, [2]], [5, [3, 2]]]},
+                        {first_train: "09:59", delta: [[12, [2]], 3, 2, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [25, [3]]]},
+                        {first_train: "16:34", delta: [[15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4]},
+                        {first_train: "22:48", delta: [5, 7, 8, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:03", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:40", "06:50", "06:54"]},
+                        {plan: "新宫小交路", first_train: "07:55", skip_trains: 1, until: "08:36"},
+                        {plan: "新宫小交路", first_train: "08:44", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:04", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:24"]},
+                        {plan: "新宫小交路", first_train: "09:32", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:19", skip_trains: 1, until: "16:31"},
+                        {plan: "新宫小交路", first_train: "16:39", skip_trains: 2, until: "19:05"},
+                        {plan: "新宫小交路", trains: ["19:09"]},
+                        {plan: "新宫小交路", first_train: "19:14", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "19:59", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:12", skip_trains: 1, until: "09:32"},
+                        {plan: "公益西桥回库车", trains: ["08:40"]},
+                        {plan: "公益西桥回库车", first_train: "09:00", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:28"]},
+                        {plan: "公益西桥回库车", first_train: "09:47", skip_trains: 1, until: "10:30"},
+                        {plan: "公益西桥回库车", first_train: "19:19", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:54", skip_trains: 3, until: "20:53"},
+                        {plan: "公益西桥回库车", first_train: "20:59", skip_trains: 1, until: "22:38"},
+                        {plan: "公益西桥回库车", trains: ["23:14", "23:21"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:00", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:33", skip_trains: 2, until: "18:54"},
+                        {plan: "公益西桥回库车", first_train: "19:00", skip_trains: 1, until: "20:18"},
+                        {plan: "公益西桥回库车", trains: ["23:14", "23:21"]}
+                    ]
+                }
+            }
+        },
+        "西单": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:33", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "07:03", delta: [3, 5, 4, 4, 4, [4, [4, 3]], [7, [3]], [41, [2]], [5, [3, 2]]]},
+                        {first_train: "10:01", delta: [[12, [2]], 3, 2, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [25, [3]]]},
+                        {first_train: "16:36", delta: [[15, [2, 3]], [40, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4]},
+                        {first_train: "22:50", delta: [5, 7, 8, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:05", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:42", "06:52", "06:56"]},
+                        {plan: "新宫小交路", first_train: "07:57", skip_trains: 1, until: "08:38"},
+                        {plan: "新宫小交路", first_train: "08:46", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:06", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:26"]},
+                        {plan: "新宫小交路", first_train: "09:34", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:21", skip_trains: 1, until: "16:33"},
+                        {plan: "新宫小交路", first_train: "16:41", skip_trains: 2, until: "19:07"},
+                        {plan: "新宫小交路", trains: ["19:11"]},
+                        {plan: "新宫小交路", first_train: "19:16", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:01", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:14", skip_trains: 1, until: "09:34"},
+                        {plan: "公益西桥回库车", trains: ["08:42"]},
+                        {plan: "公益西桥回库车", first_train: "09:02", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:30"]},
+                        {plan: "公益西桥回库车", first_train: "09:49", skip_trains: 1, until: "10:32"},
+                        {plan: "公益西桥回库车", first_train: "19:21", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:56", skip_trains: 3, until: "20:55"},
+                        {plan: "公益西桥回库车", first_train: "21:01", skip_trains: 1, until: "22:40"},
+                        {plan: "公益西桥回库车", trains: ["23:16", "23:23"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:33", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:02", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:35", skip_trains: 2, until: "18:56"},
+                        {plan: "公益西桥回库车", first_train: "19:02", skip_trains: 1, until: "20:20"},
+                        {plan: "公益西桥回库车", trains: ["23:16", "23:23"]}
+                    ]
+                }
+            }
+        },
+        "宣武门": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:35", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3, [6, [4]]]},
+                        {first_train: "07:29", delta: [[4, [3, 4]], [5, [3]], [41, [2]], 3, 2, [4, [2, 3]], [14, [2]]]},
+                        {first_train: "10:30", delta: [2, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]]]},
+                        {first_train: "17:58", delta: [[39, [2]], [9, [3, 2]], [27, [3]], [20, [4]], 5, 5, 5, 7, 8]},
+                        {first_train: "23:19", delta: [6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:07", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:44", "06:54", "06:58"]},
+                        {plan: "新宫小交路", first_train: "08:00", skip_trains: 1, until: "08:40"},
+                        {plan: "新宫小交路", first_train: "08:48", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:08", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:28"]},
+                        {plan: "新宫小交路", first_train: "09:37", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:23", skip_trains: 1, until: "16:35"},
+                        {plan: "新宫小交路", first_train: "16:43", skip_trains: 2, until: "19:10"},
+                        {plan: "新宫小交路", trains: ["19:14"]},
+                        {plan: "新宫小交路", first_train: "19:19", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:04", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:16", skip_trains: 1, until: "09:37"},
+                        {plan: "公益西桥回库车", trains: ["08:44"]},
+                        {plan: "公益西桥回库车", first_train: "09:04", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:32"]},
+                        {plan: "公益西桥回库车", first_train: "09:51", skip_trains: 1, until: "10:34"},
+                        {plan: "公益西桥回库车", first_train: "19:24", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "19:59", skip_trains: 3, until: "20:58"},
+                        {plan: "公益西桥回库车", first_train: "21:04", skip_trains: 1, until: "22:42"},
+                        {plan: "公益西桥回库车", trains: ["23:19", "23:25"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:35", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:04", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:37", skip_trains: 2, until: "18:58"},
+                        {plan: "公益西桥回库车", first_train: "19:04", skip_trains: 1, until: "20:22"},
+                        {plan: "公益西桥回库车", trains: ["23:18", "23:25"]}
+                    ]
+                }
+            }
+        },
+        "菜市口": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:37", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "07:08", delta: [3, [5, [4]], [4, [3, 4]], [5, [3]], [41, [2]], [6, [3, 2]], [13, [2]]]},
+                        {first_train: "10:34", delta: [3, 2, 5, 5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [39, [2]]]},
+                        {first_train: "19:18", delta: [[9, [3, 2]], [27, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:09", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:46", "06:56", "07:00"]},
+                        {plan: "新宫小交路", first_train: "08:02", skip_trains: 1, until: "08:42"},
+                        {plan: "新宫小交路", first_train: "08:50", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:10", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:30"]},
+                        {plan: "新宫小交路", first_train: "09:39", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:25", skip_trains: 1, until: "16:37"},
+                        {plan: "新宫小交路", first_train: "16:45", skip_trains: 2, until: "19:12"},
+                        {plan: "新宫小交路", trains: ["19:16"]},
+                        {plan: "新宫小交路", first_train: "19:21", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:06", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:18", skip_trains: 1, until: "09:39"},
+                        {plan: "公益西桥回库车", trains: ["08:46"]},
+                        {plan: "公益西桥回库车", first_train: "09:06", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:34"]},
+                        {plan: "公益西桥回库车", first_train: "09:54", skip_trains: 1, until: "10:37"},
+                        {plan: "公益西桥回库车", first_train: "19:26", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "20:01", skip_trains: 3, until: "21:00"},
+                        {plan: "公益西桥回库车", first_train: "21:06", skip_trains: 1, until: "22:44"},
+                        {plan: "公益西桥回库车", trains: ["23:21", "23:27"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:37", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:06", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:39", skip_trains: 2, until: "19:00"},
+                        {plan: "公益西桥回库车", first_train: "19:06", skip_trains: 1, until: "20:24"},
+                        {plan: "公益西桥回库车", trains: ["23:21", "23:27"]}
+                    ]
+                }
+            }
+        },
+        "陶然亭": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:39", delta: [14, 13, 6, 6, 6, 6, 3, 5, 6, 4, 6, 4, 4, 3]},
+                        {first_train: "07:10", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [7, [3]], [41, [2]], [5, [3, 2]]]},
+                        {first_train: "10:08", delta: [[13, [2]], 3, 2, 3, 5, 5, 5, 5, [43, [6]], 5, [26, [3]], [15, [2, 3]]]},
+                        {first_train: "18:00", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 4, 7]},
+                        {first_train: "23:16", delta: [7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:12", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:48", "06:58", "07:02"]},
+                        {plan: "新宫小交路", first_train: "08:04", skip_trains: 1, until: "08:45"},
+                        {plan: "新宫小交路", first_train: "08:53", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:13", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:33"]},
+                        {plan: "新宫小交路", first_train: "09:41", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:28", skip_trains: 1, until: "16:40"},
+                        {plan: "新宫小交路", first_train: "16:48", skip_trains: 2, until: "19:14"},
+                        {plan: "新宫小交路", trains: ["19:18"]},
+                        {plan: "新宫小交路", first_train: "19:23", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:08", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:21", skip_trains: 1, until: "09:41"},
+                        {plan: "公益西桥回库车", trains: ["08:49"]},
+                        {plan: "公益西桥回库车", first_train: "09:09", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:37"]},
+                        {plan: "公益西桥回库车", first_train: "09:56", skip_trains: 1, until: "10:39"},
+                        {plan: "公益西桥回库车", first_train: "19:28", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "20:03", skip_trains: 3, until: "21:02"},
+                        {plan: "公益西桥回库车", first_train: "21:08", skip_trains: 1, until: "22:47"},
+                        {plan: "公益西桥回库车", trains: ["23:23", "23:29"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:39", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:08", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:41", skip_trains: 2, until: "19:02"},
+                        {plan: "公益西桥回库车", first_train: "19:08", skip_trains: 1, until: "20:26"},
+                        {plan: "公益西桥回库车", trains: ["23:23", "23:29"]}
+                    ]
+                }
+            }
+        },
+        "北京南站": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:42", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3]},
+                        {first_train: "07:13", delta: [3, [6, [4]], 3, 4, 3, 4, 3, 4, [7, [3]], [42, [2]], [5, [3, 2]]]},
+                        {first_train: "10:13", delta: [[13, [2]], 3, 2, 5, 5, 5, 5, [44, [6]], [26, [3]], [15, [2, 3]]]},
+                        {first_train: "18:03", delta: [[39, [2]], [10, [3, 2]], [26, [3]], [19, [4]], 5, 4, 6, 4, 7]},
+                        {first_train: "23:19", delta: [7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:14", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:51", "07:01", "07:05"]},
+                        {plan: "新宫小交路", first_train: "08:07", skip_trains: 1, until: "08:48"},
+                        {plan: "新宫小交路", first_train: "08:56", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:16", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:36"]},
+                        {plan: "新宫小交路", first_train: "09:44", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:31", skip_trains: 1, until: "16:43"},
+                        {plan: "新宫小交路", first_train: "16:51", skip_trains: 2, until: "19:17"},
+                        {plan: "新宫小交路", trains: ["19:21"]},
+                        {plan: "新宫小交路", first_train: "19:26", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:11", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:24", skip_trains: 1, until: "09:44"},
+                        {plan: "公益西桥回库车", trains: ["08:52"]},
+                        {plan: "公益西桥回库车", first_train: "09:12", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:40"]},
+                        {plan: "公益西桥回库车", first_train: "09:59", skip_trains: 1, until: "10:42"},
+                        {plan: "公益西桥回库车", first_train: "19:31", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "20:06", skip_trains: 3, until: "21:05"},
+                        {plan: "公益西桥回库车", first_train: "21:11", skip_trains: 1, until: "22:50"},
+                        {plan: "公益西桥回库车", trains: ["23:26", "23:32"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:42", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:11", delta: [[6, [6]], 7, 6, 7, 6, 6, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:44", skip_trains: 2, until: "19:05"},
+                        {plan: "公益西桥回库车", first_train: "19:11", skip_trains: 1, until: "20:29"},
+                        {plan: "公益西桥回库车", trains: ["23:26", "23:32"]}
+                    ]
+                }
+            }
+        },
+        "马家堡": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:45", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3, [6, [4]]]},
+                        {first_train: "07:39", delta: [[4, [3, 4]], [5, [3]], [41, [2]], [6, [3, 2]], [14, [2]], 3, 2]},
+                        {first_train: "10:52", delta: [5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [40, [2]], [9, [3, 2]]]},
+                        {first_train: "20:14", delta: [[26, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:17", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:54", "07:04", "07:08"]},
+                        {plan: "新宫小交路", first_train: "08:10", skip_trains: 1, until: "08:50"},
+                        {plan: "新宫小交路", first_train: "08:58", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:18", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:38"]},
+                        {plan: "新宫小交路", first_train: "09:47", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:33", skip_trains: 1, until: "16:45"},
+                        {plan: "新宫小交路", first_train: "16:53", skip_trains: 2, until: "19:20"},
+                        {plan: "新宫小交路", trains: ["19:24"]},
+                        {plan: "新宫小交路", first_train: "19:29", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:14", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:26", skip_trains: 1, until: "09:47"},
+                        {plan: "公益西桥回库车", trains: ["08:54"]},
+                        {plan: "公益西桥回库车", first_train: "09:14", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:42"]},
+                        {plan: "公益西桥回库车", first_train: "10:02", skip_trains: 1, until: "10:45"},
+                        {plan: "公益西桥回库车", first_train: "19:34", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "20:09", skip_trains: 3, until: "21:08"},
+                        {plan: "公益西桥回库车", first_train: "21:14", skip_trains: 1, until: "22:52"},
+                        {plan: "公益西桥回库车", trains: ["23:29", "23:35"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:45", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:14", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:47", skip_trains: 2, until: "19:08"},
+                        {plan: "公益西桥回库车", first_train: "19:14", skip_trains: 1, until: "20:32"},
+                        {plan: "公益西桥回库车", trains: ["23:28", "23:35"]}
+                    ]
+                }
+            }
+        },
+        "角门西": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [13, 13, 6, 6, 6, 6, 3, 5, 6, 5, 5, 5, 4, 3, [6, [4]]]},
+                        {first_train: "07:41", delta: [[4, [3, 4]], [5, [3]], [42, [2]], [5, [3, 2]], [13, [2]], 3, 2]},
+                        {first_train: "10:46", delta: [3, 5, 5, 5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [39, [2]]]},
+                        {first_train: "19:28", delta: [[9, [3, 2]], [27, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:19", skip_trains: 1, count: 4},
+                        {plan: "黄村西大街小交路", trains: ["06:56", "07:06", "07:10"]},
+                        {plan: "新宫小交路", first_train: "08:12", skip_trains: 1, until: "08:52"},
+                        {plan: "新宫小交路", first_train: "09:00", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:20", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:40"]},
+                        {plan: "新宫小交路", first_train: "09:48", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:35", skip_trains: 1, until: "16:47"},
+                        {plan: "新宫小交路", first_train: "16:55", skip_trains: 2, until: "19:22"},
+                        {plan: "新宫小交路", trains: ["19:26"]},
+                        {plan: "新宫小交路", first_train: "19:31", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:16", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:28", skip_trains: 1, until: "09:48"},
+                        {plan: "公益西桥回库车", trains: ["08:56"]},
+                        {plan: "公益西桥回库车", first_train: "09:16", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:44"]},
+                        {plan: "公益西桥回库车", first_train: "10:03", skip_trains: 1, until: "10:46"},
+                        {plan: "公益西桥回库车", first_train: "19:36", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "20:11", skip_trains: 3, until: "21:10"},
+                        {plan: "公益西桥回库车", first_train: "21:16", skip_trains: 1, until: "22:54"},
+                        {plan: "公益西桥回库车", trains: ["23:31", "23:37"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:16", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:49", skip_trains: 2, until: "19:10"},
+                        {plan: "公益西桥回库车", first_train: "19:16", skip_trains: 1, until: "20:34"},
+                        {plan: "公益西桥回库车", trains: ["23:30", "23:37"]}
+                    ]
+                }
+            }
+        },
+        "公益西桥": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:49", delta: [13, 13, 6, 6, 6, 6, [3, [3, 3, 2]], 2, 3, 2, 2]},
+                        {first_train: "07:15", delta: [2, 2, 4, [8, [2]], [5, [4, 3]], 3, 3, 3, 3, [41, [2]]]},
+                        {first_train: "09:51", delta: [2, 3, 2, 3, 2, 2, 3, 2, 3, 3, [16, [2]], 3, 5]},
+                        {first_train: "11:01", delta: [5, 5, [43, [6]], 5, [27, [3]], [15, [2, 3]], [40, [2]], [9, [3, 2]]]},
+                        {first_train: "20:18", delta: [[26, [3]], [20, [4]], 5, 5, 5, 7, 8, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:21", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["06:45", "06:50", "06:53", "06:58", "07:01", "07:05"]},
+                        {plan: "黄村西大街小交路", first_train: "07:08", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:25", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "06:45", skip_trains: 1, until: "07:10"},
+                        {plan: "公益西桥出库车", trains: ["07:17"]},
+                        {plan: "公益西桥出库车", first_train: "07:25", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:14", skip_trains: 1, until: "08:54"},
+                        {plan: "新宫小交路", first_train: "09:02", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:22", skip_trains: 3, count: 3},
+                        {plan: "新宫小交路", trains: ["09:42"]},
+                        {plan: "新宫小交路", first_train: "09:51", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:37", skip_trains: 1, until: "16:49"},
+                        {plan: "新宫小交路", first_train: "16:57", skip_trains: 2, until: "19:24"},
+                        {plan: "新宫小交路", trains: ["19:28"]},
+                        {plan: "新宫小交路", first_train: "19:33", skip_trains: 3, count: 4},
+                        {plan: "新宫小交路", first_train: "20:18", skip_trains: 3, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:30", skip_trains: 1, until: "09:51"},
+                        {plan: "公益西桥回库车", trains: ["08:58"]},
+                        {plan: "公益西桥回库车", first_train: "09:18", skip_trains: 3, count: 3},
+                        {plan: "公益西桥回库车", trains: ["09:46"]},
+                        {plan: "公益西桥回库车", first_train: "10:05", skip_trains: 1, until: "10:48"},
+                        {plan: "公益西桥回库车", first_train: "19:38", skip_trains: 3, count: 4},
+                        {plan: "公益西桥回库车", first_train: "20:13", skip_trains: 3, until: "21:12"},
+                        {plan: "公益西桥回库车", first_train: "21:18", skip_trains: 1, until: "22:56"},
+                        {plan: "公益西桥回库车", trains: ["23:33", "23:39"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:49", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [89, [3]], 4, [18, [5]]]},
+                        {first_train: "22:18", delta: [[7, [6]], 7, 6, 7, 6, 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥回库车", first_train: "17:51", skip_trains: 2, until: "19:12"},
+                        {plan: "公益西桥回库车", first_train: "19:18", skip_trains: 1, until: "20:36"},
+                        {plan: "公益西桥回库车", trains: ["23:32", "23:39"]}
+                    ]
+                }
+            }
+        },
+        "新宫": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:53", delta: [13, 13, 6, 6, 6, 6, [3, [3, 3, 2]], 2, 3, 2, 2]},
+                        {first_train: "07:19", delta: [2, 2, 4, [8, [2]], [5, [4, 3]], 3, 3, 3, 3, [15, [2]]]},
+                        {first_train: "09:04", delta: [[8, [2]], [3, [4, 2, 2]], 2, 2, 4, 3, 2, 3, 2, 3]},
+                        {first_train: "10:07", delta: [5, 5, [7, [4]], [6, [5]], [43, [6]], 5, [27, [3]], [15, [2, 3]], [39, [2]]]},
+                        {first_train: "19:34", delta: [[4, [3, 2, 5]], 5, [5, [3, 3, 6]], 6, 6, 6, 7, [8, [8]]]},
+                        {first_train: "22:56", delta: [9, 5, 5, 7, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:25", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["06:49", "06:54", "06:57", "07:02", "07:05", "07:09"]},
+                        {plan: "黄村西大街小交路", first_train: "07:12", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:29", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "06:49", skip_trains: 1, until: "07:14"},
+                        {plan: "公益西桥出库车", trains: ["07:21"]},
+                        {plan: "公益西桥出库车", first_train: "07:29", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "08:18", skip_trains: 1, until: "08:58"},
+                        {plan: "新宫小交路", first_train: "09:06", skip_trains: 1, count: 4},
+                        {plan: "新宫小交路", first_train: "09:26", skip_trains: 2, count: 3},
+                        {plan: "新宫小交路", trains: ["09:46"]},
+                        {plan: "新宫小交路", first_train: "09:55", skip_trains: 1, count: 3},
+                        {plan: "新宫小交路", first_train: "15:41", skip_trains: 1, until: "16:53"},
+                        {plan: "新宫小交路", first_train: "17:01", skip_trains: 2, until: "19:28"},
+                        {plan: "新宫小交路", trains: ["19:32"]},
+                        {plan: "新宫小交路", first_train: "19:37", skip_trains: 2, count: 4},
+                        {plan: "新宫小交路", first_train: "20:22", skip_trains: 2, count: 5},
+                        {plan: "中关村始发空车", first_train: "08:34", skip_trains: 1, until: "08:58"},
+                        {plan: "中关村始发空车", first_train: "09:06", skip_trains: 1, count: 4},
+                        {plan: "中关村始发空车", first_train: "09:26", skip_trains: 2, count: 3},
+                        {plan: "中关村始发空车", trains: ["09:46", "09:55"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:53", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [32, [3]], [9, [6, 3]]]},
+                        {first_train: "19:19", delta: [[14, [6]], 4, [19, [5]], [7, [6]], 7, 6, 7, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "西红门": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:58", delta: [13, 13, 6, 6, 6, 6, [2, [3, 3, 2, 3]], 2, 3, 2]},
+                        {first_train: "07:19", delta: [2, 3, 2, 3, 3, [8, [2]], 4, [4, [4, 3]], 6, 6, 6, [20, [4]]]},
+                        {first_train: "10:02", delta: [6, 5, 5, 5, [7, [4]], [6, [5]], [43, [6]], 5, [13, [6]], [5, [3, 4, 3, 5]]]},
+                        {first_train: "18:20", delta: [[25, [3]], [11, [5]], [12, [6]], 7, [9, [8]], 9, 6, 5, 6, 9]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:30", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["06:54", "06:59", "07:02", "07:07", "07:10", "07:15"]},
+                        {plan: "黄村西大街小交路", first_train: "07:17", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:34", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "06:54", skip_trains: 1, until: "07:19"},
+                        {plan: "公益西桥出库车", trains: ["07:26"]},
+                        {plan: "公益西桥出库车", first_train: "07:34", skip_trains: 1, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:58", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [4, 5]]]},
+                        {first_train: "19:30", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 6, 7]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "高米店北": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [13, 13, 6, 6, 6, 6, [3, [3, 3, 2]], 2, 3, 2, 2]},
+                        {first_train: "07:27", delta: [2, 2, 4, [8, [2]], [4, [4, 3]], 4, 6, 6, 5, [20, [4]], [5, [5]]]},
+                        {first_train: "10:30", delta: [[7, [4]], [5, [5]], [43, [6]], 5, [13, [6]], [5, [4, 4, 4, 3]]]},
+                        {first_train: "18:23", delta: [[25, [3]], 4, [9, [5]], [13, [6]], 7, [9, [8]], 9, 5, 6, 6, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:33", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["06:57", "07:02", "07:05", "07:10", "07:13", "07:17"]},
+                        {plan: "黄村西大街小交路", first_train: "07:20", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:37", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "06:57", skip_trains: 1, until: "07:22"},
+                        {plan: "公益西桥出库车", trains: ["07:29"]},
+                        {plan: "公益西桥出库车", first_train: "07:37", skip_trains: 1, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [4, 5]]]},
+                        {first_train: "19:33", delta: [[13, [6]], 4, [19, [5]], [7, [6]], 7, 6, 7, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "高米店南": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [13, 13, 6, 6, 6, 6, [2, [3, 3, 2, 3]], 2, 3, 2]},
+                        {first_train: "07:24", delta: [2, 3, 2, 3, 3, [8, [2]], 4, [4, [4, 3]], 6, 6, 6, [20, [4]]]},
+                        {first_train: "10:07", delta: [6, 5, 5, 5, [7, [4]], [6, [5]], [43, [6]], 5, [13, [6]], [5, [3, 4, 4, 4]]]},
+                        {first_train: "18:25", delta: [[25, [3]], [11, [5]], [12, [6]], 7, [9, [8]], 9, 6, 5, 6, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:35", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["06:59", "07:04", "07:07", "07:12", "07:15", "07:20"]},
+                        {plan: "黄村西大街小交路", first_train: "07:22", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:39", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "06:59", skip_trains: 1, until: "07:24"},
+                        {plan: "公益西桥出库车", trains: ["07:31"]},
+                        {plan: "公益西桥出库车", first_train: "07:39", skip_trains: 1, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [5, 4]]]},
+                        {first_train: "19:35", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 6, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "枣园": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [13, 13, 6, 6, 6, 6, [2, [3, 3, 2, 3]], 2, 3, 2]},
+                        {first_train: "07:26", delta: [2, 3, 2, 3, 3, [8, [2]], 4, [4, [4, 3]], 6, 6, 6, [20, [4]]]},
+                        {first_train: "10:09", delta: [6, 5, 5, 5, [7, [4]], [6, [5]], [43, [6]], 5, [13, [6]], [5, [3, 4, 4, 4]]]},
+                        {first_train: "18:27", delta: [[25, [3]], [11, [5]], [12, [6]], 7, [9, [8]], 9, 6, 5, 6, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:37", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["07:01", "07:06", "07:09", "07:14", "07:17", "07:22"]},
+                        {plan: "黄村西大街小交路", first_train: "07:24", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:41", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "07:01", skip_trains: 1, until: "07:26"},
+                        {plan: "公益西桥出库车", trains: ["07:33"]},
+                        {plan: "公益西桥出库车", first_train: "07:41", skip_trains: 1, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [5, 4]]]},
+                        {first_train: "19:37", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 6, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "清源路": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:07", delta: [14, 13, 6, 6, 6, 6, 3, 2, 3, 2, 4, 2, 2, 3]},
+                        {first_train: "07:22", delta: [2, 2, 2, 2, 3, 2, 3, 3, [8, [2]], 4, [4, [4, 3]]]},
+                        {first_train: "08:35", delta: [6, 6, [21, [4]], 6, 5, 5, 5, [7, [4]], [6, [5]], [43, [6]]]},
+                        {first_train: "15:53", delta: [[13, [6]], [5, [4, 3, 4, 4]], [26, [3]], [11, [5]], [12, [6]], 7, [8, [8]]]},
+                        {first_train: "23:10", delta: [9, 6, 5, 7, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:40", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["07:03", "07:08", "07:12", "07:16", "07:19", "07:24"]},
+                        {plan: "黄村西大街小交路", first_train: "07:26", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:43", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "07:03", skip_trains: 1, until: "07:28"},
+                        {plan: "公益西桥出库车", trains: ["07:35"]},
+                        {plan: "公益西桥出库车", first_train: "07:43", skip_trains: 1, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:07", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [5, 4]]]},
+                        {first_train: "19:39", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 7, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "黄村西大街": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:10", delta: [13, 13, 6, 6, 6, 6, 3, 2, 3, 2, 4, 2, 2, 3]},
+                        {first_train: "07:24", delta: [2, 2, 2, 2, 4, 2, 2, 3, 2, 3, [6, [2]], [4, [4, 3]]]},
+                        {first_train: "08:31", delta: [6, 6, 6, [20, [4]], [5, [5]], [7, [4]], [6, [5]], [43, [6]]]},
+                        {first_train: "15:55", delta: [[13, [6]], [5, [4, 3, 4, 4]], [26, [3]], [11, [5]], [12, [6]], 7, [8, [8]]]},
+                        {first_train: "23:12", delta: [9, 6, 5, 7, 8]}
+                    ],
+                    filters: [
+                        {plan: "黄村西大街小交路", first_train: "06:42", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", trains: ["07:05", "07:10", "07:14", "07:18", "07:21", "07:26"]},
+                        {plan: "黄村西大街小交路", first_train: "07:28", skip_trains: 1, count: 3},
+                        {plan: "黄村西大街小交路", first_train: "07:45", skip_trains: 1, count: 4},
+                        {plan: "公益西桥出库车", first_train: "07:05", skip_trains: 1, until: "07:30"},
+                        {plan: "公益西桥出库车", trains: ["07:38"]},
+                        {plan: "公益西桥出库车", first_train: "07:45", skip_trains: 1, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:10", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [4, 5]]]},
+                        {first_train: "19:42", delta: [[13, [6]], 4, [19, [5]], [7, [6]], 7, 6, 7, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "黄村火车站": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:12", delta: [13, 13, 12, 12, 8, 8, 8, 6, 6, 4, 3, 5, 4, 4]},
+                        {first_train: "08:02", delta: [[4, [4, 3]], 3, 6, 6, 6, [20, [4]], [5, [5]], [7, [4]], [5, [5]]]},
+                        {first_train: "11:34", delta: [[43, [6]], 5, [13, [6]], [5, [4, 3, 4, 4]], [26, [3]], [11, [5]], [11, [6]]]},
+                        {first_train: "21:55", delta: [7, [9, [8]], 9, 6, 5, 7, 8]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥出库车", trains: ["07:18", "07:32"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:12", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [4, 5]]]},
+                        {first_train: "19:44", delta: [[13, [6]], 4, [19, [5]], [7, [6]], 7, 6, 7, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "义和庄": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:15", delta: [13, 13, 12, 12, 8, 8, 8, 6, 6, [7, [4]], [4, [3, 4]]]},
+                        {first_train: "08:43", delta: [6, 5, [20, [4]], [5, [5]], [7, [4]], [6, [5]], [43, [6]], 5, [12, [6]]]},
+                        {first_train: "17:18", delta: [[5, [4, 4, 3, 4]], 3, 4, [24, [3]], 4, [9, [5]], [13, [6]]]},
+                        {first_train: "22:06", delta: [[9, [8]], 9, 5, 6, 6, 8]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥出库车", trains: ["07:21", "07:35"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:15", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [4, 5]]]},
+                        {first_train: "19:47", delta: [[13, [6]], 4, [19, [5]], [7, [6]], 7, 6, 7, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "生物医药基地": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:18", delta: [13, 13, 12, 12, 8, 9, 7, 7, 5, 5, 3, [6, [4]], 3]},
+                        {first_train: "08:23", delta: [3, 4, 3, 4, 3, 6, 6, 6, [21, [4]], [5, [5]], [7, [4]]]},
+                        {first_train: "11:21", delta: [5, 5, 5, 5, [43, [6]], 5, [13, [6]], [5, [3, 4, 4, 4]], [25, [3]]]},
+                        {first_train: "19:55", delta: [[11, [5]], [12, [6]], 7, [9, [8]], 9, 6, 5, 6, 8]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥出库车", trains: ["07:25", "07:39"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:18", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [5, 4]]]},
+                        {first_train: "19:50", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 6, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "天宫院": {
+            "南行": {
+                // 以+3min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:21", delta: [13, 13, 12, 12, 8, 9, 7, 7, 5, 5, 3, [6, [4]], 3]},
+                        {first_train: "08:26", delta: [3, 4, 3, 4, 3, 6, 6, 6, [21, [4]], [5, [5]], [7, [4]]]},
+                        {first_train: "11:24", delta: [5, 5, 5, 5, [43, [6]], 5, [13, [6]], [5, [3, 4, 4, 4]], [25, [3]]]},
+                        {first_train: "19:58", delta: [[11, [5]], [12, [6]], 7, [9, [8]], 9, 6, 5, 6, 8]}
+                    ],
+                    filters: [
+                        {plan: "公益西桥出库车", trains: ["07:28", "07:42"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:21", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [5, 4]]]},
+                        {first_train: "19:53", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 6, 6]}
+                    ],
+                    filters: []
+                }
+            }
+        }
+    }
 }
