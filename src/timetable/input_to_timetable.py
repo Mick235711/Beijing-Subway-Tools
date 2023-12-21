@@ -42,7 +42,6 @@ def parse_input(tolerate: bool = False) -> Timetable:
             hour = (prev_hour + 1) % 24
             index = -1
         prev_hour = hour
-        hour %= 24
         next_day = hour < prev_max
         if hour > prev_max:
             prev_max = hour

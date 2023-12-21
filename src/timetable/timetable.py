@@ -86,10 +86,10 @@ class Timetable:
     ) -> dict[str, TrainRoute]:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
-        hour_dict: dict[int, list[Timetable.Train]] = {}
+        hour_dict: dict[tuple[int, bool], list[Timetable.Train]] = {}
         routes: dict[TrainRoute, int] = {}
-        for train in self.trains.values():
-            key = int(train.sort_key_str()[:2])
+        for train in self.trains_sorted():
+            key = (int(train.sort_key_str()[:2]), train.next_day)
             if key not in hour_dict:
                 hour_dict[key] = []
             hour_dict[key].append(train)
@@ -105,7 +105,8 @@ class Timetable:
         brace_dict_r[self.base_route] = ""
 
         # Print!
-        for hour, trains in hour_dict.items():
+        hour_dict = dict(sorted(list(hour_dict.items()), key=lambda x: x[0][0] + (24 if x[0][1] else 0)))
+        for (hour, hour_next_day), trains in hour_dict.items():
             print(f"{hour % 24:>02}| ", end="")
             first = True
             for train in trains:
