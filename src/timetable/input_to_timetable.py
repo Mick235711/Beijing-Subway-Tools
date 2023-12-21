@@ -36,12 +36,13 @@ def parse_input(tolerate: bool = False) -> Timetable:
             assert tolerate, line
             index = line.find(" ")
         hour = int(line[:index].strip())
-        if prev_hour is not None and hour != (prev_hour + 1) % 24:
+        if prev_hour is not None and hour != (prev_hour + 1) % 24 and hour != prev_hour + 1:
             assert tolerate, line
             print(f"Warning: Assuming hour {(prev_hour + 1) % 24} for line {line}")
             hour = (prev_hour + 1) % 24
             index = -1
         prev_hour = hour
+        hour %= 24
         next_day = hour < prev_max
         if hour > prev_max:
             prev_max = hour
