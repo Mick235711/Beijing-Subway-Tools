@@ -81,7 +81,8 @@ class Timetable:
         return sorted(list(self.trains.values()), key=lambda x: x.sort_key_str())
 
     def pretty_print(
-        self, *, with_time: dict[str, int | None] | None = None
+        self, *, with_time: dict[str, int | None] | None = None,
+        show_empty: bool = False
     ) -> dict[str, TrainRoute]:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
@@ -122,7 +123,8 @@ class Timetable:
                 minute = f"{train.leaving_time.minute:>02}"
                 brace = combine_brace(brace_dict_r, train.train_route)
                 brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
-                minute = brace_left + minute + brace_right
+                if not show_empty:
+                    minute = brace_left + minute + brace_right
                 print(minute, end="")
             print()
 

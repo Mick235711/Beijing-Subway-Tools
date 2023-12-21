@@ -4,6 +4,7 @@
 """ Generate timetable from previous day's data """
 
 # Libraries
+import argparse
 import sys
 from copy import deepcopy
 from datetime import time
@@ -34,8 +35,11 @@ def add_delta(timetable: Timetable, next_station: str, delta: int) -> Timetable:
     return Timetable(new_trains, timetable.base_route)
 
 
-def generate_next(timetable: Timetable, station: str, next_station: str,
-                  direction: str, date_group: DateGroup) -> Timetable:
+def generate_next(
+    timetable: Timetable, station: str, next_station: str,
+    direction: str, date_group: DateGroup,
+    *, show_empty: bool = False
+) -> Timetable:
     """ Generate next day's timetable """
     # First ask for a delta
     delta_str = questionary.text(
@@ -48,7 +52,7 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
     new_timetable = add_delta(timetable, next_station, delta)
     while True:
         print("Current Timetable:")
-        brace_dict = new_timetable.pretty_print()
+        brace_dict = new_timetable.pretty_print(show_empty=show_empty)
         brace_dict[""] = new_timetable.base_route
         modification = questionary.text(
             "Enter a modification (or ok):",
@@ -127,6 +131,15 @@ def generate_next(timetable: Timetable, station: str, next_station: str,
 
 def main() -> None:
     """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--level", type=int, default=0,
+                        help="Indentation level before each line")
+    parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
+                        help="Entry break")
+    parser.add_argument("-e", "--empty", action="store_true",
+                        help="Store empty timetable")
+    args = parser.parse_args()
+
     city = ask_for_city()
     line = ask_for_line(city)
     station = ask_for_station_in_line(line, with_timetable=True)
@@ -142,7 +155,9 @@ def main() -> None:
             sys.exit(0)
     timetable = line.timetables()[station][direction][date_group.name]
     main_input(generate_next(
-        timetable, station, line.directions[direction][index + 1], direction, date_group))
+        timetable, station, line.directions[direction][index + 1], direction, date_group,
+        show_empty=args.empty
+    ), args)
 
 
 # Call main

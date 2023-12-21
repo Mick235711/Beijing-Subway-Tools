@@ -351,18 +351,19 @@ def validate_timetable(prev: Timetable, current: Timetable, tolerate: bool = Fal
                       get_time_str(prev_time, prev_day))
 
 
-def main(timetable: Timetable | None = None) -> None:
+def main(timetable: Timetable | None = None, args: argparse.Namespace | None = None) -> None:
     """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--level", type=int, default=0,
-                        help="Indentation level before each line")
-    parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
-                        help="Indentation level before each line")
-    parser.add_argument("-v", "--validate", action="store_true",
-                        help="Validate the result")
-    parser.add_argument("-e", "--empty", action="store_true",
-                        help="Store empty timetable")
-    args = parser.parse_args()
+    if args is None:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-l", "--level", type=int, default=0,
+                            help="Indentation level before each line")
+        parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
+                            help="Entry break")
+        parser.add_argument("-v", "--validate", action="store_true",
+                            help="Validate the result")
+        parser.add_argument("-e", "--empty", action="store_true",
+                            help="Store empty timetable")
+        args = parser.parse_args()
 
     if timetable is None:
         timetable = parse_input(args.validate)
