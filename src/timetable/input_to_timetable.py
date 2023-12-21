@@ -360,12 +360,15 @@ def main(timetable: Timetable | None = None) -> None:
                         help="Indentation level before each line")
     parser.add_argument("-v", "--validate", action="store_true",
                         help="Validate the result")
+    parser.add_argument("-e", "--empty", action="store_true",
+                        help="Store empty timetable")
     args = parser.parse_args()
 
     if timetable is None:
         timetable = parse_input(args.validate)
 
-    validate_timetable(ask_for_timetable(), timetable, args.validate)
+    if args.validate:
+        validate_timetable(ask_for_timetable(), timetable, args.empty)
     print(to_json_format(timetable, level=args.level, break_entries=args.break_entries))
 
 

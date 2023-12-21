@@ -200,7 +200,11 @@ def ask_for_date_group(
     else:
         station, direction = with_timetabled_sd
         timetable_dict = line.timetables()[station][direction]
-        if len(timetable_dict) == 1:
+        if len(timetable_dict) == 0:
+            print("No date group present!")
+            sys.exit(0)
+        elif len(timetable_dict) == 1:
+            print(f"Date group default: {list(timetable_dict.keys())[0]}")
             return line.date_groups[list(timetable_dict.keys())[0]]
         for name in timetable_dict.keys():
             group = line.date_groups[name]
