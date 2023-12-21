@@ -66,6 +66,7 @@ def draw_contours(
     colormap: mpl.colors.Colormap,
     map_obj: Map, avg_shortest: dict[str, float],
     *, levels: int | list[int] | None = None,
+    label_num: int = 1,
     **kwargs
 ) -> None:
     """ Draw contours on the whole map """
@@ -94,7 +95,8 @@ def draw_contours(
     if levels is not None:
         kwargs["levels"] = levels
     cs = ax.contour(X, Y, Z, **kwargs)
-    ax.clabel(cs, inline=True, fontsize=32)
+    for _ in range(label_num):
+        ax.clabel(cs, inline=True, fontsize=32)
 
 
 def main() -> None:
@@ -105,6 +107,8 @@ def main() -> None:
     parser.add_argument("-c", "--color-map", help="Override default colormap", default="viridis_r")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
     parser.add_argument("-l", "--levels", help="Override default levels")
+    parser.add_argument(
+        "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=10)
@@ -134,7 +138,7 @@ def main() -> None:
     ax.imshow(img, aspect="equal")
     draw_contours(
         ax, img.size, colormap, map_obj, result_dict,
-        levels=levels,
+        levels=levels, label_num=args.label_num,
         linewidths=args.line_width, linestyles="solid"
     )
     print("Drawing contours done! Saving...")
