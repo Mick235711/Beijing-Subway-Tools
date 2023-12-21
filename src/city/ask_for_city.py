@@ -220,14 +220,14 @@ def ask_for_date_group(
     return line.date_groups[answer]
 
 
-def ask_for_timetable() -> Timetable:
+def ask_for_timetable() -> tuple[str, Timetable]:
     """ Ask for a specific station's timetable """
     city = ask_for_city()
     line = ask_for_line(city)
     station = ask_for_station_in_line(line, with_timetable=True)
     direction = ask_for_direction(line, with_timetabled_station=station)
     date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
-    return line.timetables()[station][direction][date_group.name]
+    return station, line.timetables()[station][direction][date_group.name]
 
 
 def ask_for_date() -> date:

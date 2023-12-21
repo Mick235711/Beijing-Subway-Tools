@@ -9,7 +9,8 @@ from src.city.ask_for_city import ask_for_timetable
 
 def main() -> None:
     """ Main function """
-    ask_for_timetable().pretty_print()
+    _, timetable = ask_for_timetable()
+    timetable.pretty_print()
 
 
 # Call main

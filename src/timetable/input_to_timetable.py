@@ -293,10 +293,21 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     return res
 
 
-def validate_timetable(prev: Timetable, current: Timetable, tolerate: bool = False) -> None:
+def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, tolerate: bool = False) -> None:
     """ Validate two timetables. Throw if not valid. """
     # Basically, we validate if each route has the same number,
     # and the assigned delta variance is < 5 minutes
+    # First calculate the next station
+    prev_list = prev.base_route.stations
+    cur_station = prev_list[prev_list.index(prev_station) + 1]
+
+    # Remove everything without cur_station
+    new_prev: dict[time, Timetable.Train] = {}
+    for prev_time, prev_train in prev.trains.items():
+        if cur_station in prev_train.route_stations():
+            new_prev[prev_time] = prev_train
+    prev.trains = new_prev
+
     if tolerate:
         # assign the corresponding route to every train in current
         # first let's sort everything by time
@@ -364,13 +375,18 @@ def main(timetable: Timetable | None = None, args: argparse.Namespace | None = N
         parser.add_argument("-e", "--empty", action="store_true",
                             help="Store empty timetable")
         args = parser.parse_args()
+    level = vars(args).get("level", False)
+    break_entries = vars(args).get("break_entries", False)
+    validate = vars(args).get("validate", False)
+    empty = vars(args).get("empty", False)
 
     if timetable is None:
-        timetable = parse_input(args.validate)
+        timetable = parse_input(validate)
 
-    if args.validate:
-        validate_timetable(ask_for_timetable(), timetable, args.empty)
-    print(to_json_format(timetable, level=args.level, break_entries=args.break_entries))
+    if validate:
+        station, prev_timetable = ask_for_timetable()
+        validate_timetable(prev_timetable, station, timetable, empty)
+    print(to_json_format(timetable, level=level, break_entries=break_entries))
 
 
 # Call main
