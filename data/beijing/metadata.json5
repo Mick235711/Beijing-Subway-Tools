@@ -9,6 +9,18 @@
         "建国门": [
             {from: "1号线", to: "2号线", minutes: 2.5},
             {from: "2号线", to: "1号线", minutes: 0.5}
+        ],
+        "西单": [
+            {from: "1号线", to: "4号线", minutes: 3.5},
+            {from: "4号线", to: "1号线", minutes: 4.5}
+        ],
+        "西直门": [
+            {from: "2号线", to: "4号线", minutes: 0.5},
+            {from: "4号线", to: "2号线", minutes: 2.5}
+        ],
+        "宣武门": [
+            {from: "2号线", to: "4号线", minutes: 1.5},
+            {from: "4号线", to: "2号线", minutes: 2.5}
         ]
     }
 }
