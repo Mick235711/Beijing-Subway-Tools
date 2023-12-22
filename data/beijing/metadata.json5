@@ -21,6 +21,17 @@
         "宣武门": [
             {from: "2号线", to: "4号线", minutes: 1.5},
             {from: "4号线", to: "2号线", minutes: 2.5}
+        ],
+        "东单": [
+            {from: "1号线", to: "5号线", minutes: 4}
+        ],
+        "雍和宫": [
+            {from: "2号线", to: "5号线", minutes: 1.5},
+            {from: "5号线", to: "2号线", minutes: 2.5}
+        ],
+        "崇文门": [
+            {from: "2号线", to: "5号线", minutes: 3},
+            {from: "5号线", to: "2号线", minutes: 3.5}
         ]
     }
 }
