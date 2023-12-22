@@ -109,13 +109,23 @@ def main() -> None:
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
     parser.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
+    parser.add_argument("-t", "--to-station", help="Only show average time to specified station(s)")
     args = parser.parse_args()
+
+    stations: set[str] | None = None
+    if args.to_station is not None:
+        if "," in args.to_station:
+            stations = set(x.strip() for x in args.to_station.split(","))
+        else:
+            stations = {args.to_station.strip()}
 
     city, _, result_dict = shortest_in_city(args.limit_start, args.limit_end)
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:
         for i, (station, (avg_time, max_info, min_info, path_coverage)) in enumerate(result_dict.items()):
-            if args.limit_num <= i < len(result_dict) - args.limit_num:
+            if stations is not None and station not in stations:
+                continue
+            if stations is None and args.limit_num <= i < len(result_dict) - args.limit_num:
                 if i == args.limit_num:
                     print("...")
                 continue
@@ -138,6 +148,12 @@ def main() -> None:
 
     # sort and display first/last
     result_list = [(avg_time, station) for station, (avg_time, _, _, _) in result_dict.items()]
+    if stations is not None:
+        for avg_time, station in result_list:
+            if station not in stations:
+                continue
+            print(f"{station}: {avg_time}")
+        return
     print(f"Nearest {args.limit_num} stations:")
     print("\n".join(
         f"{station}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
