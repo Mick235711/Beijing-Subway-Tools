@@ -100,22 +100,32 @@ class Train:
         """ One-line short representation """
         return repr(self)[1:-1]
 
-    def duration_repr(self, *, with_speed: bool = False) -> str:
-        """ One-line short duration string """
+    def duration(self) -> int:
+        """ Total duration """
         start_time, start_day = self.arrival_time[self.stations[0]]
         if self.loop_next is None:
             end_time, end_day = self.arrival_time[self.stations[-1]]
         else:
             end_time, end_day = self.loop_next.arrival_time[self.loop_next.stations[0]]
-        duration = diff_time(end_time, start_time, end_day, start_day)
-        total_dists = route_dist(
+        return diff_time(end_time, start_time, end_day, start_day)
+
+    def distance(self) -> int:
+        """ Total distance covered """
+        return route_dist(
             self.line.direction_stations(self.direction),
             self.line.direction_dists(self.direction),
             self.stations, self.loop_next is not None
         )
-        base = f"{format_duration(duration)}, {distance_str(total_dists)}"
+
+    def speed(self) -> float:
+        """ Speed of the entire train """
+        return segment_speed(self.distance(), self.duration())
+
+    def duration_repr(self, *, with_speed: bool = False) -> str:
+        """ One-line short duration string """
+        base = f"{format_duration(self.duration())}, {distance_str(self.distance())}"
         if with_speed:
-            base += f", {speed_str(segment_speed(total_dists, duration))}"
+            base += f", {speed_str(self.speed())}"
         return base
 
     def pretty_print(self, *, with_speed: bool = False) -> None:

@@ -45,6 +45,14 @@ class City:
             self.lines_processed[line.name] = line
         return self.lines_processed
 
+    def all_date_groups(self) -> set[str]:
+        """ Get all possible date groups """
+        all_groups: set[str] = set()
+        for line in self.lines().values():
+            for date_group in line.date_groups.values():
+                all_groups.add(date_group.name)
+        return all_groups
+
 
 def parse_city(city_root: str) -> City:
     """ Parse JSON5 files in a city directory """
