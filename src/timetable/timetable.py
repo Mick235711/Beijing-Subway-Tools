@@ -172,6 +172,7 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
                     schedule: list[dict[str, Any]], filters: list[dict[str, Any]]) -> Timetable:
     """ Parse the schedule and filter fields """
     trains: dict[time, Timetable.Train] = {}
+    last_leaving_time: time | None = None
     for entry in schedule:
         if "trains" in entry:
             # simple format
@@ -184,6 +185,9 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
         else:
             # delta format
             leaving_time, next_day = parse_time(entry["first_train"])
+            if last_leaving_time is not None and last_leaving_time > leaving_time:
+                next_day = True
+            last_leaving_time = leaving_time
             trains[leaving_time] = Timetable.Train(
                 station, date_group, leaving_time, base_route, next_day)
             for delta in parse_delta(entry["delta"]):
