@@ -63,27 +63,46 @@ class Train:
         return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" + \
             f" -> {self.stations[-1]} {self.end_time()}>"
 
-    def two_station_duration_repr(self, start_station: str, end_station: str) -> str:
-        """ One-line short duration string for two stations """
+    def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, tuple[time, bool]]:
+        """ Display the arrival_time dict start from start_station, considering loop """
+        if start_station is None:
+            return self.arrival_time
+        assert start_station in self.arrival_time, (self, start_station)
         arrival_keys = list(self.arrival_time.keys())
-        start_time, start_day = self.arrival_time[start_station]
-        start_index = arrival_keys.index(start_station)
-        if end_station not in arrival_keys or arrival_keys.index(end_station) < start_index:
-            assert self.loop_next is not None, (start_station, end_station, self)
-            end_time, end_day = self.loop_next.arrival_time[end_station]
-            end_index = len(arrival_keys) + list(
-                self.loop_next.arrival_time.keys()).index(end_station)
-        else:
-            end_time, end_day = self.arrival_time[end_station]
-            end_index = arrival_keys.index(end_station)
-        duration = diff_time(end_time, start_time, end_day, start_day)
-        total_dists = stations_dist(
+        arrival_index = arrival_keys.index(start_station)
+        cur_list = list(self.arrival_time.items())[arrival_index:]
+        if self.loop_next is not None:
+            next_list = list(self.loop_next.arrival_time.items())
+            if start_station in self.loop_next.arrival_time:
+                next_index = list(self.loop_next.arrival_time.keys()).index(start_station)
+                next_list = next_list[:next_index]
+            cur_list += next_list
+        return dict(cur_list)
+
+    def arrival_time_two_station(self, start_station: str, end_station: str) -> dict[str, tuple[time, bool]]:
+        """ Display arrival_time dict between two stations """
+        virtual = self.arrival_time_virtual(start_station)
+        return dict(list(virtual.items())[:list(virtual.keys()).index(end_station)])
+
+    def two_station_dist(self, start_station: str, end_station: str) -> int:
+        """ Distance between two stations """
+        return stations_dist(
             self.line.direction_stations(self.direction),
             self.line.direction_dists(self.direction),
             start_station, end_station
         )
+
+    def two_station_duration_repr(self, start_station: str, end_station: str) -> str:
+        """ One-line short duration string for two stations """
+        virtual = self.arrival_time_virtual(start_station)
+        arrival_keys = list(virtual.keys())
+        start_time, start_day = virtual[start_station]
+        start_index = arrival_keys.index(start_station)
+        end_time, end_day = virtual[end_station]
+        end_index = arrival_keys.index(end_station)
+        duration = diff_time(end_time, start_time, end_day, start_day)
         return suffix_s("station", end_index - start_index) + \
-            f", {format_duration(duration)}, {distance_str(total_dists)}"
+            f", {format_duration(duration)}, {distance_str(self.two_station_dist(start_station, end_station))}"
 
     def two_station_str(self, start_station: str, end_station: str) -> str:
         """ Get string representation for two stations """
@@ -95,6 +114,10 @@ class Train:
             center = f" -> {end_station} {self.stop_time(end_station)}"
         return f"{self.direction_repr()} {start_station} {self.stop_time(start_station)}" + \
             center + f" ({self.two_station_duration_repr(start_station, end_station)})"
+
+    def two_station_interval(self, start_station: str, end_station: str) -> list[str]:
+        """ Get all intermediate stations between two stations (left-closed, right-open) """
+        return list(self.arrival_time_two_station(start_station, end_station).keys())
 
     def line_repr(self) -> str:
         """ One-line short representation """

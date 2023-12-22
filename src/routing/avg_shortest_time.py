@@ -13,11 +13,10 @@ from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str
-from src.routing.bfs import bfs, get_all_trains, Path, BFSResult
+from src.routing.bfs import bfs, get_all_trains, AbstractPath, Path, BFSResult
 from src.routing.train import Train, parse_all_trains
 
 
-AbstractPath = list[tuple[str, Line, str]]
 PathInfo = tuple[int, Path, BFSResult]
 
 
