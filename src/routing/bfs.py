@@ -97,10 +97,11 @@ class BFSResult:
                     last_train.line.name, last_train.direction,
                     train.line.name, train.direction
                 )]
-                assert transfer_time < total_waiting, (last_train, station, train)
+                assert transfer_time <= total_waiting, (last_train, station, train)
                 print(f"{indent_str}Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
                       suffix_s("minute", transfer_time))
-                print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
+                if total_waiting > transfer_time:
+                    print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
 
             # Display train information
             print(indent_str + train.two_station_str(station, next_station))
