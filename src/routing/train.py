@@ -88,7 +88,7 @@ class Train:
     def two_station_str(self, start_station: str, end_station: str) -> str:
         """ Get string representation for two stations """
         arrival_keys = list(self.arrival_time.keys())
-        if arrival_keys.index(end_station) < arrival_keys.index(start_station):
+        if end_station not in arrival_keys or arrival_keys.index(end_station) < arrival_keys.index(start_station):
             assert self.loop_next is not None, self
             center = f" -> {end_station} {self.loop_next.stop_time(end_station)}"
         else:

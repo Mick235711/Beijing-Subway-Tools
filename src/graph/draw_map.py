@@ -119,7 +119,8 @@ def main() -> None:
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
-    city, start, result_dict = shortest_in_city(args.limit_start, args.limit_end)
+    city, start, result_dict_temp = shortest_in_city(args.limit_start, args.limit_end)
+    result_dict = {station: x[0] for station, x in result_dict_temp.items()}
     map_obj = ask_for_map(city)
 
     img = Image.open(map_obj.path)

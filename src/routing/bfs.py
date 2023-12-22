@@ -18,45 +18,60 @@ from src.common.common import diff_time, format_duration, get_time_str, add_min,
 from src.routing.train import Train, parse_all_trains
 
 
+Path = list[tuple[str, Train]]
+
+
 class BFSResult:
     """ Contains the result of searching for each station """
 
-    def __init__(self,
-                 station: str, arrival_time: time, arrival_day: bool,
+    def __init__(self, station: str,
+                 initial_time: time, initial_day: bool,
+                 arrival_time: time, arrival_day: bool,
                  prev_station: str, prev_train: Train) -> None:
         """ Constructor """
         self.station = station
+        self.initial_time, self.initial_day = initial_time, initial_day
         self.arrival_time, self.arrival_day = arrival_time, arrival_day
         self.prev_station, self.prev_train = prev_station, prev_train
 
-    def shortest_path(self, results: dict[str, BFSResult]) -> list[tuple[str, Train]]:
+    def shortest_path(self, results: dict[str, BFSResult]) -> Path:
         """ Return the shortest path """
         prev_station = self.prev_station
         prev_train = self.prev_train
-        path: list[tuple[str, Train]] = []
+        path: Path = []
         while prev_station in results:
             path = [(prev_station, prev_train)] + path
             prev_train = results[prev_station].prev_train
             prev_station = results[prev_station].prev_station
         return [(prev_station, prev_train)] + path
 
-    def pretty_print(
-        self, initial_time: time, initial_day: bool,
-        results: dict[str, BFSResult], transfer_dict: dict[str, Transfer]
-    ) -> None:
-        """ Print the shortest path to this station """
-        # Print total time, station, etc.
-        path = self.shortest_path(results)
-        total_time = diff_time(self.arrival_time, initial_time, self.arrival_day, initial_day)
+    def total_duration(self) -> int:
+        """ Get total duration """
+        return diff_time(self.arrival_time, self.initial_time, self.arrival_day, self.initial_day)
+
+    def total_duration_str(self, path: Path) -> str:
+        """ Return string representation of the total transfer, etc. """
         transfer_num = len(path) - 1
-        print(f"Total time: {format_duration(total_time)}, " + suffix_s(
-            "transfer", transfer_num) + ".\n")
+        return f"Total time: {format_duration(self.total_duration())}, " + suffix_s(
+            "transfer", transfer_num) + "."
+
+    def pretty_print(self, results: dict[str, BFSResult], transfer_dict: dict[str, Transfer], indent: int = 0) -> None:
+        """ Print the shortest path to this station """
+        path = self.shortest_path(results)
+        self.pretty_print_path(path, transfer_dict, indent)
+
+    def pretty_print_path(self, path: Path, transfer_dict: dict[str, Transfer], indent: int = 0) -> None:
+        """ Print the shortest path """
+        indent_str = "    " * indent
+
+        # Print total time, station, etc.
+        print(indent_str + self.total_duration_str(path) + "\n")
 
         first_time, first_day = path[0][1].arrival_time[path[0][0]]
-        first_waiting = diff_time(first_time, initial_time, first_day, initial_day)
-        assert first_waiting >= 0, (path[0], initial_time, initial_day)
+        first_waiting = diff_time(first_time, self.initial_time, first_day, self.initial_day)
+        assert first_waiting >= 0, (path[0], self.initial_time, self.initial_day)
         if first_waiting > 0:
-            print("Waiting time: " + suffix_s("minute", first_waiting))
+            print(indent_str + "Waiting time: " + suffix_s("minute", first_waiting))
 
         last_train: Train | None = None
         for i, (station, train) in enumerate(path):
@@ -71,12 +86,12 @@ class BFSResult:
                     train.line.name, train.direction
                 )]
                 assert transfer_time < total_waiting, (last_train, station, train)
-                print(f"Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
+                print(f"{indent_str}Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
                       suffix_s("minute", transfer_time))
-                print("Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
+                print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
 
             # Display train information
-            print(train.two_station_str(station, next_station))
+            print(indent_str + train.two_station_str(station, next_station))
             last_train = train
 
 
@@ -174,7 +189,9 @@ def bfs(
                     next_day, results[next_station].arrival_day
                 ) < 0:
                     results[next_station] = BFSResult(
-                        next_station, next_time, next_day,
+                        next_station,
+                        start_time, start_day,
+                        next_time, next_day,
                         station, next_train
                     )
                     if next_station not in in_queue:
@@ -207,7 +224,7 @@ def main() -> None:
     result = bfs_result[end[0]]
 
     # Print the resulting route
-    result.pretty_print(start_time, start_day, bfs_result, city.transfers)
+    result.pretty_print(bfs_result, city.transfers)
 
 
 # Call main

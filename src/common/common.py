@@ -4,7 +4,8 @@
 """ Provide common functions used in the whole project """
 
 # Libraries
-from collections.abc import Iterable, Callable
+from collections import Counter
+from collections.abc import Iterable, Callable, Sequence
 from datetime import datetime, date, time, timedelta
 from typing import TypeVar
 
@@ -297,3 +298,18 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
 def suffix_s(word: str, number: int | float, suffix: str = "s") -> str:
     """ Conditionally add s suffix """
     return f"{number} {word}" + ("" if number == 1 else suffix)
+
+
+def percentage_str(data: float) -> str:
+    """ Format as 100% """
+    return f"{data * 100:.2f}%"
+
+
+def percentage_coverage(data: Sequence[Iterable[T]]) -> list[tuple[float, list[T]]]:
+    """ Calculate percentage coverage for each item """
+    assert len(data) > 0, data
+    if isinstance(data[0], list):
+        counter = Counter(tuple(x) for x in data)
+        return [(occur / len(data), list(x)) for x, occur in counter.most_common()]
+    counter2 = Counter(data)
+    return [(occur / len(data), list(x)) for x, occur in counter2.most_common()]
