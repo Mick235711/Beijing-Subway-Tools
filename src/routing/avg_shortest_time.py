@@ -72,19 +72,23 @@ def calculate_shortest(
 
 def shortest_in_city(
     limit_start: str | None = None,
-    limit_end: str | None = None
+    limit_end: str | None = None,
+    city_station: tuple[City, str, date] | None = None
 ) -> tuple[City, str, dict[str, tuple[float, PathInfo, PathInfo, list[tuple[float, AbstractPath]]]]]:
     """ Find the shortest path in the city """
-    city = ask_for_city()
-    start = ask_for_station(city)
+    if city_station is None:
+        city = ask_for_city()
+        start, _ = ask_for_station(city)
+        start_date = ask_for_date()
+    else:
+        city, start, start_date = city_station
     lines = city.lines()
     train_dict = parse_all_trains(list(lines.values()))
-    start_date = ask_for_date()
     assert city.transfers is not None, city
     ls_time, ls_day = parse_time_opt(limit_start)
     le_time, le_day = parse_time_opt(limit_end)
-    return city, start[0], calculate_shortest(
-        lines, train_dict, city.transfers, start_date, start[0],
+    return city, start, calculate_shortest(
+        lines, train_dict, city.transfers, start_date, start,
         limit_start=ls_time, limit_start_day=ls_day,
         limit_end=le_time, limit_end_day=le_day
     )
