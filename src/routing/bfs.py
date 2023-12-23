@@ -65,7 +65,7 @@ class BFSResult:
         transfer_num = len(path) - 1
         return (f"Total time: {format_duration(self.total_duration())}, " +
                 f"total distance: {distance_str(self.total_distance(path))}, " +
-                f"{len(expand_path(path, self.station))} stations, " +
+                suffix_s("station", len(expand_path(path, self.station))) + ", " +
                 suffix_s("transfer", transfer_num) + ".")
 
     def pretty_print(self, results: dict[str, BFSResult], transfer_dict: dict[str, Transfer], indent: int = 0) -> None:

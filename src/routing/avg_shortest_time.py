@@ -12,7 +12,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
-    percentage_coverage, percentage_str
+    percentage_coverage, percentage_str, suffix_s
 from src.routing.bfs import bfs, get_all_trains, AbstractPath, Path, BFSResult
 from src.routing.train import Train, parse_all_trains
 
@@ -109,7 +109,7 @@ def main() -> None:
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
     parser.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
-    parser.add_argument("-t", "--to-station", help="Only show average time to specified station(s)")
+    parser.add_argument("-t", "--to-station", help="Only show average time to specified stations")
     args = parser.parse_args()
 
     stations: set[str] | None = None
@@ -130,7 +130,8 @@ def main() -> None:
                     print("...")
                 continue
 
-            print(f"#{i + 1}: {station}, {avg_time} minute(s) (min {min_info[0]} - max {max_info[0]})")
+            print(f"#{i + 1}: {station}, " + suffix_s("minute", avg_time) +
+                  f" (min {min_info[0]} - max {max_info[0]})")
             print("Percentage of each path:")
             for percent, path in path_coverage:
                 print("    " + percentage_str(percent) + " " + path_shorthand(station, path))
@@ -154,10 +155,10 @@ def main() -> None:
                 continue
             print(f"{station}: {avg_time}")
         return
-    print(f"Nearest {args.limit_num} stations:")
+    print("Nearest " + suffix_s("station", args.limit_num) + ":")
     print("\n".join(
         f"{station}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
-    print(f"\nFarthest {args.limit_num} stations:")
+    print("\nFarthest " + suffix_s("station", args.limit_num) + ":")
     print("\n".join(
         f"{station}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
 
