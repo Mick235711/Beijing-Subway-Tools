@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import sys
 from datetime import date, time
+from functools import cmp_to_key
 from math import ceil
 
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
@@ -64,6 +65,7 @@ class BFSResult:
         transfer_num = len(path) - 1
         return (f"Total time: {format_duration(self.total_duration())}, " +
                 f"total distance: {distance_str(self.total_distance(path))}, " +
+                f"{len(expand_path(path, self.station))} stations, " +
                 suffix_s("transfer", transfer_num) + ".")
 
     def pretty_print(self, results: dict[str, BFSResult], transfer_dict: dict[str, Transfer], indent: int = 0) -> None:
@@ -161,6 +163,43 @@ def find_next_train(
     return list(result.values())
 
 
+def superior_path(
+    results: dict[str, BFSResult] | None,
+    result1: BFSResult, result2: BFSResult,
+    *, path1: Path | None = None, path2: Path | None = None
+) -> bool:
+    """ Determine if path1 is better than path2 """
+    # Sort criteria: time -> transfer # -> stops
+    time_diff = result1.total_duration() - result2.total_duration()
+    if path1 is None:
+        assert results is not None
+        path1 = result1.shortest_path(results)
+    if path2 is None:
+        assert results is not None
+        path2 = result2.shortest_path(results)
+    transfer_diff = len(path1) - len(path2)
+    expand1 = expand_path(path1, result1.station)
+    expand2 = expand_path(path2, result2.station)
+    station_diff = len(expand1) - len(expand2)
+    distance_diff = result1.total_distance(path1) - result2.total_distance(path2)
+    return time_diff < 0 or (time_diff == 0 and transfer_diff < 0) or (
+        time_diff == 0 and transfer_diff == 0 and station_diff < 0
+    ) or (time_diff == 0 and transfer_diff == 0 and station_diff == 0 and distance_diff < 0)
+
+
+def path_comparator(
+    lhs: tuple[BFSResult, Path], rhs: tuple[BFSResult, Path]
+) -> int:
+    """ Comparator for two paths """
+    result1, path1 = lhs
+    result2, path2 = rhs
+    if superior_path(None, result1, result2, path1=path1, path2=path2):
+        return -1
+    elif equivalent_path(path1, path2):
+        return 0
+    return 1
+
+
 def bfs(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
@@ -208,21 +247,23 @@ def bfs(
                 arrival_keys_next = list(next_train.loop_next.arrival_time.keys())
                 arrival_index_next = arrival_keys_next.index(station)
                 next_stations += arrival_items_next[:arrival_index_next]
+
             for next_station, (next_time, next_day) in next_stations:
                 if exclude_stations is not None and next_station in exclude_stations:
                     break
                 if next_station == start_station:
                     break
-                if next_station not in results or diff_time(
-                    next_time, results[next_station].arrival_time,
-                    next_day, results[next_station].arrival_day
-                ) < 0:
-                    results[next_station] = BFSResult(
-                        next_station,
-                        start_time, start_day,
-                        next_time, next_day,
-                        station, next_train
-                    )
+
+                next_result = BFSResult(
+                    next_station,
+                    start_time, start_day,
+                    next_time, next_day,
+                    station, next_train
+                )
+                if next_station not in results or superior_path(
+                    results, next_result, results[next_station]
+                ):
+                    results[next_station] = next_result
                     if next_station not in in_queue:
                         in_queue.add(next_station)
                         queue.append(next_station)
@@ -339,7 +380,7 @@ def k_shortest_path(
                     found = True
 
                     # Store only the lowest duration one
-                    if cur_result.total_duration() > new_candidate[0].total_duration():
+                    if superior_path(bfs_result, new_candidate[0], cur_result, path1=new_candidate[1]):
                         candidate[i] = new_candidate
                     break
             if not found:
@@ -348,10 +389,7 @@ def k_shortest_path(
         # Select the shortest candidate and add to the result
         if len(candidate) == 0:
             return result
-        candidate_list = sorted(
-            candidate,
-            key=lambda x: x[0].total_duration()
-        )
+        candidate_list = sorted(candidate, key=cmp_to_key(path_comparator))
         result.append(candidate_list[0])
         print(f"Found {len(result)}-th shortest path!")
         candidate = candidate_list[1:]
