@@ -31,6 +31,8 @@ def parse_input(tolerate: bool = False) -> Timetable:
     route_dict: dict[str, list[int]] = {}
     for line in sys.stdin:
         line = line.strip()
+        if line == "":
+            continue
         index = line.find("|")
         if index == -1:
             assert tolerate, line
