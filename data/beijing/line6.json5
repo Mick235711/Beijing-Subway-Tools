@@ -1,0 +1,72 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 6号线时刻表 新8版
+{
+    name: "6号线",
+    aliases: ["Line 6"],
+    stations: [
+        {name: "金安桥"},
+        {name: "苹果园", dist: 1438},
+        {name: "杨庄", dist: 839},
+        {name: "西黄村", dist: 1792},
+        {name: "廖公庄", dist: 1794},
+        {name: "田村", dist: 2276},
+        {name: "海淀五路居", dist: 2140},
+        {name: "慈寿寺", dist: 1509},
+        {name: "花园桥", dist: 1431},
+        {name: "白石桥南", dist: 1167},
+        {name: "二里沟", dist: 777},
+        {name: "车公庄西", dist: 888},
+        {name: "车公庄", dist: 887},
+        {name: "平安里", dist: 1444},
+        {name: "北海北", dist: 1322},
+        {name: "南锣鼓巷", dist: 1349},
+        {name: "东四", dist: 1937},
+        {name: "朝阳门", dist: 1400},
+        {name: "东大桥", dist: 1669},
+        {name: "呼家楼", dist: 846},
+        {name: "金台路", dist: 1450},
+        {name: "十里堡", dist: 2037},
+        {name: "青年路", dist: 1283},
+        {name: "褡裢坡", dist: 3999},
+        {name: "黄渠", dist: 1239},
+        {name: "常营", dist: 1854},
+        {name: "草房", dist: 1407},
+        {name: "物资学院路", dist: 2115},
+        {name: "通州北关", dist: 2557},
+        {name: "北运河西", dist: 3011},
+        {name: "北运河东", dist: 1600},
+        {name: "郝家府", dist: 929},
+        {name: "东夏园", dist: 1347},
+        {name: "潞城", dist: 1194}
+    ],
+    train_routes: {
+        "东行": {
+            aliases: ["Eastbound"],
+            "全程车": {},
+            "海淀五路居出库车": {starts_with: "海淀五路居"},
+            "车公庄西始发空车": {starts_with: "车公庄西"},
+            "朝阳门始发空车": {starts_with: "朝阳门"},
+            "出城快车": {skip: ["褡裢坡", "黄渠", "常营", "草房", "物资学院路", "通州北关", "北运河西", "北运河东"]},
+            "通州北关小交路": {ends_with: "通州北关"},
+            "草房回库车": {ends_with: "草房"}
+        },
+        "西行": {
+            aliases: ["Westbound"],
+            reversed: true,
+            "全程车": {},
+            "海淀五路居回库车": {starts_with: "海淀五路居"},
+            "车公庄西小交路": {starts_with: "车公庄西"},
+            "朝阳门小交路": {starts_with: "朝阳门"},
+            "进城快车1": {skip: ["褡裢坡", "黄渠", "常营", "草房", "物资学院路", "通州北关", "北运河西", "北运河东"]},
+            "进城快车2": {skip: ["黄渠", "常营", "北运河东", "郝家府", "东夏园"]},
+            "通州北关始发空车": {ends_with: "通州北关"},
+            "草房出库车": {ends_with: "草房"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
