@@ -314,13 +314,20 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
         # assign the corresponding route to every train in current
         # first let's sort everything by time
         prev_sorted = prev.trains_sorted()
-        cur_sorted = current.trains_sorted()
-        assert len(prev_sorted) == len(cur_sorted), (prev, current)
+        new_table = Timetable({
+            cur_time: cur_train for cur_time, cur_train in current.trains.items()
+            if list(cur_train.route_iter()) == [current.base_route]
+        }, current.base_route)
+        cur_sorted = new_table.trains_sorted()
+        assert len(prev_sorted) == len(cur_sorted), (prev, current, new_table)
 
         for prev_train, cur_train in zip(prev_sorted, cur_sorted):
-            assert list(cur_train.route_iter()) == [current.base_route], (prev_train, cur_train)
+            assert list(cur_train.route_iter()) == [new_table.base_route], (prev_train, cur_train)
             cur_train.train_route = prev_train.train_route
+        new_table.base_route = prev.base_route
         current.base_route = prev.base_route
+    else:
+        new_table = current
 
     routes_dict, processed_dict = filter_route(prev)
 
@@ -334,12 +341,12 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
         ) for timetable_train in timetable_trains]
 
     # Construct a mapping from current -> prev
-    routes_dict_cur, processed_dict_pre = filter_route(current)
+    routes_dict_cur, processed_dict_pre = filter_route(new_table)
     routes_dict_name = [[route.name for route in route_list] for route_list in routes_dict]
     processed_dict_post: dict[int, list[Timetable.Train]] = {}
     for route_id, train_list in processed_dict_pre.items():
         current_route = routes_dict_cur[route_id]
-        if current_route == [current.base_route]:
+        if current_route == [new_table.base_route]:
             processed_dict_post[routes_dict.index([prev.base_route])] = train_list
             continue
 
