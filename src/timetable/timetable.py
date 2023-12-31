@@ -155,6 +155,17 @@ def route_stations(routes: TrainRoute | list[TrainRoute]) -> list[str]:
     return stations
 
 
+def route_skip_stations(routes: TrainRoute | list[TrainRoute]) -> set[str]:
+    """ Return the skipped stations of this route """
+    if isinstance(routes, TrainRoute):
+        return routes.skip_stations
+    stations = route_stations(routes)
+    skipped: set[str] = set()
+    for route in routes:
+        skipped.update(route.skip_stations)
+    return set(skip for skip in skipped if skip in stations)
+
+
 def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
     """ Parse the delta field """
     res: list[int] = []

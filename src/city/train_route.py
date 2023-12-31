@@ -6,7 +6,7 @@
 # Libraries
 from typing import Any
 
-from src.common.common import show_direction
+from src.common.common import show_direction, suffix_s
 
 
 class TrainRoute:
@@ -17,6 +17,7 @@ class TrainRoute:
         self.name = name
         self.direction = direction
         self.stations = stations
+        self.skip_stations: set[str] = set()
         self.loop = loop
 
     def __repr__(self) -> str:
@@ -25,6 +26,8 @@ class TrainRoute:
             base = f"<{self.direction_str()}"
         else:
             base = f"<{self.direction_str()}: {show_direction(self.stations, self.loop)}"
+            if len(self.skip_stations) > 0:
+                base += " (skip " + suffix_s("station", len(self.skip_stations)) + ")"
         return base + (" (loop)>" if self.loop else ">")
 
     def direction_str(self) -> str:
@@ -36,11 +39,11 @@ class TrainRoute:
         if not isinstance(other, TrainRoute):
             return False
         return self.name == other.name and self.direction == other.direction and \
-            self.stations == other.stations
+            self.stations == other.stations and self.skip_stations == other.skip_stations
 
     def __hash__(self) -> int:
         """ Hashing protocol """
-        return hash((self.name, self.direction, tuple(self.stations)))
+        return hash((self.name, self.direction, tuple(self.stations), tuple(self.skip_stations)))
 
 
 def parse_train_route(direction: str, base: list[str],
@@ -58,11 +61,8 @@ def parse_train_route(direction: str, base: list[str],
     if "ends_with" in spec:
         route.stations = route.stations[:route.stations.index(spec["ends_with"]) + 1]
     if "skip" in spec:
-        temp: list[str] = []
-        for station in route.stations:
-            if station not in spec["skip"]:
-                temp.append(station)
-        route.stations = temp
+        route.skip_stations = set(spec["skip"])
+        assert all(ss in route.stations for ss in route.skip_stations), spec
     return route
 
 

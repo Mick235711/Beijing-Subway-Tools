@@ -124,7 +124,7 @@ def get_all_trains(
                 if not lines[line].date_groups[date_group].covers(cur_date):
                     continue
                 for train in date_dict:
-                    if station in train.arrival_time:
+                    if station in train.arrival_time and station not in train.skip_stations:
                         all_passing.append(train)
     return sorted(all_passing, key=lambda t: get_time_str(*t.arrival_time[station]))
 

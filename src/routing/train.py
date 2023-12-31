@@ -10,7 +10,7 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
 from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
     distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s
-from src.timetable.timetable import Timetable, route_stations
+from src.timetable.timetable import Timetable, route_stations, route_skip_stations
 
 
 class Train:
@@ -23,6 +23,7 @@ class Train:
         self.routes = routes
         self.direction = self.routes[0].direction
         self.stations = route_stations(self.routes)
+        self.skip_stations = route_skip_stations(self.routes)
         self.arrival_time = arrival_time
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
@@ -182,6 +183,11 @@ class Train:
             else:
                 station = stations[0]
                 arrival_time, next_day = self.loop_next.arrival_time[station]
+            print(f"{station_repr}" + " " * (max_length - chin_len(station_repr)), end=" ")
+            if station in self.skip_stations:
+                print("(passing)")
+                continue
+
             if last_station is not None:
                 last_time, last_next_day = self.arrival_time[last_station]
                 duration = diff_time(arrival_time, last_time, next_day, last_next_day)
@@ -192,8 +198,7 @@ class Train:
                 print(")")
                 current_dist += dist
             start_duration = diff_time(arrival_time, start_time, next_day, start_day)
-            print(f"{station_repr}" + " " * (max_length - chin_len(station_repr) + 1) +
-                  f"(+{format_duration(start_duration)}, " +
+            print(f"(+{format_duration(start_duration)}, " +
                   f"+{distance_str(current_dist)})")
             last_station = station
 
