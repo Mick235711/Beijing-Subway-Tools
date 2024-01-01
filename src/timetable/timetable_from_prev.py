@@ -20,12 +20,12 @@ from src.timetable.input_to_timetable import main as main_input
 from src.timetable.timetable import Timetable
 
 
-def add_delta(timetable: Timetable, next_station: str, delta: int) -> Timetable:
+def add_delta(timetable: Timetable, next_station: str, delta: int, *, remove_train: bool = True) -> Timetable:
     """ Add everything within timetable with delta minutes """
     new_trains: dict[time, Timetable.Train] = {}
     for train in timetable.trains.values():
         # discard trains not through this station
-        if next_station not in train.route_stations():
+        if remove_train and next_station not in train.route_stations():
             continue
         new_time, next_day = add_min(train.leaving_time, delta, train.next_day)
         new_train = deepcopy(train)
@@ -38,7 +38,7 @@ def add_delta(timetable: Timetable, next_station: str, delta: int) -> Timetable:
 def generate_next(
     timetable: Timetable, station: str, next_station: str,
     direction: str, date_group: DateGroup,
-    *, show_empty: bool = False
+    *, show_empty: bool = False, remove_train: bool = True
 ) -> Timetable:
     """ Generate next day's timetable """
     # First ask for a delta
@@ -49,7 +49,7 @@ def generate_next(
     delta = int(0 if delta_str == "" else delta_str)
 
     # Ask for modifications
-    new_timetable = add_delta(timetable, next_station, delta)
+    new_timetable = add_delta(timetable, next_station, delta, remove_train=remove_train)
     while True:
         print("Current Timetable:")
         brace_dict = new_timetable.pretty_print(show_empty=show_empty)
@@ -138,6 +138,8 @@ def main() -> None:
                         help="Entry break")
     parser.add_argument("-e", "--empty", action="store_true",
                         help="Store empty timetable")
+    parser.add_argument("-d", "--do-not-remove", action="store_true",
+                        help="Don't remove soon-to-be-end trains")
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -156,7 +158,7 @@ def main() -> None:
     timetable = line.timetables()[station][direction][date_group.name]
     main_input(generate_next(
         timetable, station, line.directions[direction][index + 1], direction, date_group,
-        show_empty=args.empty
+        show_empty=args.empty, remove_train=(not args.do_not_remove)
     ), args)
 
 
