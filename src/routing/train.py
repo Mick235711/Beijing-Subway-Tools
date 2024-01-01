@@ -183,12 +183,8 @@ class Train:
             else:
                 station = stations[0]
                 arrival_time, next_day = self.loop_next.arrival_time[station]
-            print(f"{station_repr}" + " " * (max_length - chin_len(station_repr)), end=" ")
-            if station in self.skip_stations:
-                print("(passing)")
-                continue
 
-            if last_station is not None:
+            if station not in self.skip_stations and last_station is not None:
                 last_time, last_next_day = self.arrival_time[last_station]
                 duration = diff_time(arrival_time, last_time, next_day, last_next_day)
                 dist = stations_dist(stations, station_dists, last_station, station)
@@ -197,6 +193,12 @@ class Train:
                     print(f", {speed_str(segment_speed(dist, duration))}", end="")
                 print(")")
                 current_dist += dist
+
+            print(f"{station_repr}" + " " * (max_length - chin_len(station_repr)), end=" ")
+            if station in self.skip_stations:
+                print("(passing)")
+                continue
+
             start_duration = diff_time(arrival_time, start_time, next_day, start_day)
             print(f"(+{format_duration(start_duration)}, " +
                   f"+{distance_str(current_dist)})")
