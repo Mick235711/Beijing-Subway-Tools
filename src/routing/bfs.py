@@ -246,9 +246,17 @@ def bfs(
                 arrival_items_next = list(next_train.loop_next.arrival_time.items())
                 arrival_keys_next = list(next_train.loop_next.arrival_time.keys())
                 arrival_index_next = arrival_keys_next.index(station)
-                next_stations += arrival_items_next[:arrival_index_next]
+                item_next = arrival_items_next[:arrival_index_next]
+                next_stations += item_next
+            else:
+                item_next = []
 
             for next_station, (next_time, next_day) in next_stations:
+                if next_station in next_train.skip_stations:
+                    continue
+                if next_train.loop_next is not None and next_station in item_next and \
+                        next_station in next_train.loop_next.skip_stations:
+                    continue
                 if exclude_stations is not None and next_station in exclude_stations:
                     break
                 if next_station == start_station:
