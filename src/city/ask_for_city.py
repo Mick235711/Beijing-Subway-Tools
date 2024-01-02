@@ -136,8 +136,8 @@ def ask_for_station_in_line(
 
     # Ask
     if message is not None:
-        return complete_pinyin(message, meta_information, aliases)
-    return complete_pinyin("Please select a station:", meta_information, aliases)
+        return complete_pinyin(message, meta_information, aliases, sort=False)
+    return complete_pinyin("Please select a station:", meta_information, aliases, sort=False)
 
 
 def ask_for_station_pair_in_line(

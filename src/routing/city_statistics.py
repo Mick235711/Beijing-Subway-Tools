@@ -22,6 +22,8 @@ def count_trains(trains: Iterable[Train]) -> dict[str, dict[str, list[Train]]]:
         if train.direction not in result_dict[train.line.name]:
             result_dict[train.line.name][train.direction] = []
         result_dict[train.line.name][train.direction].append(train)
+    for name, direction_dict in result_dict.items():
+        result_dict[name] = dict(sorted(direction_dict.items(), key=lambda x: x[0]))
     return dict(sorted(result_dict.items(), key=lambda x: x[0]))
 
 
@@ -37,6 +39,8 @@ def get_all_trains(
                     continue
                 for train in date_dict:
                     for station in train.stations:
+                        if station in train.skip_stations:
+                            continue
                         if station not in all_trains:
                             all_trains[station] = []
                         all_trains[station].append((date_group, train))
@@ -99,8 +103,8 @@ def first_train_station(
     processed_dict = sorted(processed_dict, key=lambda x: get_time_str(*x[1].arrival_time[x[0]]))
     display_first(
         processed_dict,
-        lambda data: f"{data[0]}: {data[1].stop_time(data[0])} @ {data[2]} " +
-                     f"({data[1].show_with(data[0])})",
+        lambda data: f"{data[0]}: {data[1].stop_time(data[0])} @ {data[2]} {data[1].direction_repr()}" +
+                     f" ({data[1].show_with(data[0])})",
         limit_num=limit_num
     )
 

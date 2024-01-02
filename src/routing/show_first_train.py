@@ -19,7 +19,8 @@ def main() -> None:
         for direction, direction_dict in train_dict.items():
             for date_group, train_list in direction_dict.items():
                 print(f"    {direction} - {date_group}:")
-                filtered_list = [train for train in train_list if station in train.arrival_time]
+                filtered_list = [train for train in train_list if station in train.arrival_time
+                                 and station not in train.skip_stations]
                 filtered_list = sorted(
                     filtered_list, key=lambda train: get_time_str(*train.arrival_time[station]))
                 base_route = line.direction_base_route[direction]
