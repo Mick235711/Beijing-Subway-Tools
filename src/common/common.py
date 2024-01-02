@@ -116,6 +116,9 @@ def distance_str(distance: int) -> str:
 
 def segment_speed(distance: int, duration: int) -> float:
     """ Get segment speed with m and min -> km/h """
+    assert distance > 0 and duration >= 0, (distance, duration)
+    if duration == 0:
+        duration = 1
     return (distance / 1000) / (duration / 60)
 
 
@@ -194,7 +197,7 @@ def format_duration(duration: timedelta | int) -> str:
     result = ("" if days == 0 else f"{days}d") + \
              ("" if hours == 0 else f"{hours}h") + \
              ("" if minutes == 0 else f"{minutes}min")
-    return "0min" if result == "" else result
+    return "<1min" if result == "" else result
 
 
 def show_direction(stations: list[str], loop: bool = False):
