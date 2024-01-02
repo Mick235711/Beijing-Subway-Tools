@@ -32,6 +32,22 @@
         "崇文门": [
             {from: "2号线", to: "5号线", minutes: 3},
             {from: "5号线", to: "2号线", minutes: 3.5}
+        ],
+        "车公庄": [
+            {from: "2号线", to: "6号线", minutes: 2.5},
+            {from: "6号线", to: "2号线", minutes: 3}
+        ],
+        "朝阳门": [
+            {from: "2号线", to: "6号线", minutes: 2.5},
+            {from: "6号线", to: "2号线", minutes: 3.5}
+        ],
+        "平安里": [
+            {from: "4号线", to: "6号线", minutes: 4},
+            {from: "6号线", to: "4号线", minutes: 3.5}
+        ],
+        "东四": [
+            {from: "5号线", to: "6号线", minutes: 4},
+            {from: "6号线", to: "5号线", minutes: 4.5}
         ]
     }
 }
