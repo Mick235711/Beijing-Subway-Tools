@@ -199,9 +199,12 @@ class Train:
                 print("(passing)")
                 continue
 
-            start_duration = diff_time(arrival_time, start_time, next_day, start_day)
-            print(f"(+{format_duration(start_duration)}, " +
-                  f"+{distance_str(current_dist)})")
+            if i > 0:
+                start_duration = diff_time(arrival_time, start_time, next_day, start_day)
+                print(f"(+{format_duration(start_duration)}, " +
+                      f"+{distance_str(current_dist)})")
+            else:
+                print()
             last_station = station
 
         # Next
