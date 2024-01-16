@@ -28,7 +28,7 @@ def hour_trains(all_trains: dict[str, list[tuple[str, Train]]]) -> None:
 
 def main() -> None:
     """ Main function """
-    all_trains, _ = parse_args()
+    all_trains, _ = parse_args(include_limit=False)
     hour_trains(all_trains)
 
 

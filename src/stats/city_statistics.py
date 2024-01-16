@@ -95,11 +95,13 @@ def max_train_station(
 
 
 def parse_args(
-    more_args: Callable[[argparse.ArgumentParser], Any] | None = None
+    more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
+    include_limit: bool = True
 ) -> tuple[dict[str, list[tuple[str, Train]]], argparse.Namespace]:
     """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
+    if include_limit:
+        parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
     if more_args is not None:
         more_args(parser)
