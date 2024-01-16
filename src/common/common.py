@@ -81,7 +81,7 @@ def chin_len(s: str) -> int:
 
 def complete_pinyin(message: str, meta_information: dict[str, str],
                     aliases: dict[str, list[str]] | None = None, *,
-                    sort: bool = True) -> str:
+                    sort: bool = True, allow_empty: bool = False) -> str:
     """ Prompt the user to enter a message, support pinyin completion """
     choices = list(meta_information.keys())
     display_dict = {}
@@ -104,9 +104,13 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     if sort:
         words = sorted(words)
     completer = WordCompleter(words=words, display_dict=display_dict, meta_dict=meta_dict)
-    return display_dict[questionary.autocomplete(
+    answer = questionary.autocomplete(
         message, choices=[], completer=DeduplicateCompleter(completer),
-        validate=lambda x: x in display_dict).ask()]
+        validate=lambda x: (x == "" and allow_empty) or x in display_dict).ask()
+    if answer == "":
+        assert allow_empty
+        return answer
+    return display_dict[answer]
 
 
 T = TypeVar("T")

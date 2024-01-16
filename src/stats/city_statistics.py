@@ -6,9 +6,11 @@
 # Libraries
 import argparse
 from collections.abc import Iterable, Callable, Collection
+from datetime import date
 from typing import TypeVar
 
-from src.city.ask_for_city import ask_for_city
+from src.city.ask_for_city import ask_for_city, ask_for_date
+from src.city.line import Line
 from src.common.common import get_time_str, speed_str
 from src.routing.train import parse_all_trains, Train
 
@@ -28,14 +30,15 @@ def count_trains(trains: Iterable[Train]) -> dict[str, dict[str, list[Train]]]:
 
 
 def get_all_trains(
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]], *, limit_date_group: str | None = None
+    lines: dict[str, Line],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], *, limit_date: date | None = None
 ) -> dict[str, list[tuple[str, Train]]]:
     """ Organize into station -> trains """
     all_trains: dict[str, list[tuple[str, Train]]] = {}
     for line, line_dict in train_dict.items():
         for direction_dict in line_dict.values():
             for date_group, date_dict in direction_dict.items():
-                if limit_date_group is not None and date_group != limit_date_group:
+                if limit_date is not None and not lines[line].date_groups[date_group].covers(limit_date):
                     continue
                 for train in date_dict:
                     for station in train.stations:
@@ -160,27 +163,24 @@ def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
+    parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
     args = parser.parse_args()
 
     city = ask_for_city()
     lines = city.lines()
     train_dict = parse_all_trains(list(lines.values()))
-    all_trains = get_all_trains(train_dict)
 
-    print("All Dates:")
+    if args.all:
+        print("All Dates:")
+        all_trains = get_all_trains(lines, train_dict)
+    else:
+        travel_date = ask_for_date()
+        all_trains = get_all_trains(lines, train_dict, limit_date=travel_date)
     max_train_station(all_trains, limit_num=args.limit_num)
     first_train_station(all_trains, limit_num=args.limit_num)
     hour_trains(all_trains)
     highest_speed_train(all_trains, limit_num=args.limit_num)
     highest_speed_train(all_trains, limit_num=args.limit_num, full_only=True)
-    for date_group in city.all_date_groups():
-        print(f"\n{date_group}:")
-        all_trains = get_all_trains(train_dict, limit_date_group=date_group)
-        max_train_station(all_trains, limit_num=args.limit_num)
-        first_train_station(all_trains, limit_num=args.limit_num)
-        hour_trains(all_trains)
-        highest_speed_train(all_trains, limit_num=args.limit_num)
-        highest_speed_train(all_trains, limit_num=args.limit_num, full_only=True)
 
 
 # Call main
