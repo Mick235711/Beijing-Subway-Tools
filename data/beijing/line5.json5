@@ -3,6 +3,9 @@
 {
     name: "5号线",
     aliases: ["Line 5"],
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 80,
     stations: [
         {name: "天通苑北"},
         {name: "天通苑", dist: 941},

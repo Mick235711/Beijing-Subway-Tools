@@ -3,6 +3,9 @@
 {
     name: "2号线",
     aliases: ["Line 2"],
+    carriage_num: 6,
+    carriage_type: "B-",
+    design_speed: 80,
     loop: true,
     loop_last_segment: 3,
     stations: [

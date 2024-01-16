@@ -3,6 +3,9 @@
 {
     name: "1号线",
     aliases: ["Line 1", "Batong Line"],
+    carriage_num: 6,
+    carriage_type: "B-",
+    design_speed: 80,
     stations: [
         {name: "古城"},
         {name: "八角游乐园", dist: 1921},

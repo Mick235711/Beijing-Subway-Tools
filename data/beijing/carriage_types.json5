@@ -1,0 +1,44 @@
+{
+    // 标准A型
+    "A": {
+        name: "A型车",
+        aliases: ["Type A"],
+        capacity: 310
+    },
+    // 标准B型
+    "B": {
+        name: "B型车",
+        aliases: ["Type B"],
+        capacity: 240  // 注：北京4B为980，8B为1976，略有低估
+    },
+    // 准B
+    "B-": {
+        name: "准B型车",
+        aliases: ["Non-standard Type B"],
+        capacity: 235
+    },
+    // 标准LB型车（CAE）
+    "L": {
+        name: "L型车",
+        aliases: ["Type LB"],
+        capacity: 218
+    },
+    // 市域D型车（DAE）
+    "D": {
+        name: "市域D型车",
+        aliases: ["Suburban Type D"],
+        capacity: 219  // 注：DAE 7+1D为1538，略有低估
+    },
+    // 中低速磁浮
+    "M": {
+        name: "磁悬浮",
+        aliases: ["Maglev"],
+        capacity: 172
+    },
+    // 有轨电车
+    "LRT": {
+        name: "有轨电车",
+        aliases: ["Light Rail"],
+        capacity: 60  // 注：亦庄T1线5LRT为380，略有低估
+    }
+}

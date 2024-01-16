@@ -3,6 +3,9 @@
 {
     name: "4号线",
     aliases: ["Line 4", "Daxing Line"],
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 80,
     stations: [
         {name: "安河桥北"},
         {name: "北宫门", dist: 1363},
