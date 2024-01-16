@@ -12,12 +12,14 @@ from src.common.common import show_direction, suffix_s
 class TrainRoute:
     """ Represents a train route """
 
-    def __init__(self, name: str, direction: str, stations: list[str], loop: bool = False) -> None:
+    def __init__(self, name: str, direction: str, stations: list[str],
+                 carriage_num: int = 0, loop: bool = False) -> None:
         """ Constructor """
         self.name = name
         self.direction = direction
         self.stations = stations
         self.skip_stations: set[str] = set()
+        self.carriage_num = carriage_num
         self.loop = loop
 
     def __repr__(self) -> str:
@@ -39,19 +41,21 @@ class TrainRoute:
         if not isinstance(other, TrainRoute):
             return False
         return self.name == other.name and self.direction == other.direction and \
-            self.stations == other.stations and self.skip_stations == other.skip_stations
+            self.stations == other.stations and self.skip_stations == other.skip_stations and \
+            self.carriage_num == other.carriage_num
 
     def __hash__(self) -> int:
         """ Hashing protocol """
-        return hash((self.name, self.direction, tuple(self.stations), tuple(self.skip_stations)))
+        return hash((self.name, self.direction, tuple(self.stations), tuple(self.skip_stations), self.carriage_num))
 
 
 def parse_train_route(direction: str, base: list[str],
                       name: str, spec: dict[str, Any],
+                      carriage_num: int,
                       loop: bool = False) -> TrainRoute:
     """ Parse the train_routes field """
     route_loop = spec.get("loop", loop)
-    route = TrainRoute(name, direction, base, route_loop)
+    route = TrainRoute(name, direction, base, spec.get("carriage_num", carriage_num), route_loop)
     if "stations" in spec:
         route.stations = spec["stations"]
         return route

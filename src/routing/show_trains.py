@@ -25,11 +25,11 @@ def main() -> None:
     train_list = train_dict[direction][date_group.name]
     meta_information: dict[str, str] = {}
     for i, train in enumerate(train_list):
-        meta_information[f"#{i + 1} {train.line_repr()}"] = train.duration_repr(
+        meta_information[f"{i + 1:>{len(str(len(train_list)))}}# {train.line_repr()}"] = train.duration_repr(
             with_speed=args.with_speed
         )
     result = complete_pinyin("Please select a train:", meta_information)
-    train_index = int(result[1:result.find(" ")])
+    train_index = int(result[:result.find("#")].strip())
     train_list[train_index - 1].pretty_print(with_speed=args.with_speed)
 
 

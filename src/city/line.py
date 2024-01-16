@@ -8,6 +8,7 @@ import os
 
 import pyjson5
 
+from src.city.carriage import Carriage
 from src.city.date_group import DateGroup, parse_date_group
 from src.city.train_route import TrainRoute, parse_train_route
 from src.common.common import distance_str
@@ -17,10 +18,14 @@ from src.timetable.timetable import Timetable, parse_timetable
 class Line:
     """ Represents a subway line """
 
-    def __init__(self, name: str, aliases: list[str] | None = None) -> None:
+    def __init__(self, name: str, carriage_num: int, carriage_type: Carriage, design_speed: int,
+                 aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
         self.aliases = aliases or []
+        self.carriage_num = carriage_num
+        self.carriage_type = carriage_type
+        self.design_speed = design_speed
         self.stations: list[str] = []
         self.station_dists: list[int] = []
         self.station_aliases: dict[str, list[str]] = {}
@@ -51,9 +56,21 @@ class Line:
             base = base[1:] + [base[0]]
         return base
 
+    def train_capacity(self) -> int:
+        """ Capacity for this line """
+        return self.carriage_type.train_capacity(self.carriage_num)
+
+    def train_code(self) -> str:
+        """ Code name for this line """
+        return self.carriage_type.train_code(self.carriage_num)
+
+    def train_formal_name(self) -> str:
+        """ Formal name for a train """
+        return self.carriage_type.train_formal_name(self.carriage_num)
+
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
-        return f"{self.stations[0]} - {self.stations[-1]}" + \
+        return f"[{self.train_code()}] {self.stations[0]} - {self.stations[-1]}" + \
             f", {len(self.stations)} stations, " + distance_str(self.total_distance()) + \
             (", loop" if self.loop else "")
 
@@ -79,12 +96,14 @@ class Line:
         return self.timetables_processed
 
 
-def parse_line(line_file: str) -> Line:
+def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
     """ Parse JSON5 file as a line """
     assert os.path.exists(line_file), line_file
     with open(line_file) as fp:
         line_dict = pyjson5.decode_io(fp)
-        line = Line(line_dict["name"], line_dict.get("aliases"))
+        carriage = carriage_dict[line_dict["carriage_type"]]
+        line = Line(line_dict["name"], line_dict["carriage_num"], carriage,
+                    line_dict["design_speed"], line_dict.get("aliases"))
 
     # parse loop
     if "loop" in line_dict:
@@ -131,7 +150,7 @@ def parse_line(line_file: str) -> Line:
             if route_name in ["reversed", "aliases"]:
                 continue
             route = parse_train_route(
-                direction, line.directions[direction], route_name, route_value, line.loop)
+                direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop)
             if len(route_value) == 0:
                 line.direction_base_route[direction] = route
             line.train_routes[direction][route_name] = route

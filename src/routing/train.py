@@ -20,6 +20,7 @@ class Train:
                  arrival_time: dict[str, tuple[time, bool]]) -> None:
         """ Constructor """
         self.line = line
+        self.carriage_num = min(x.carriage_num for x in routes)
         self.routes = routes
         self.direction = self.routes[0].direction
         self.stations = route_stations(self.routes)
@@ -54,7 +55,8 @@ class Train:
 
     def direction_repr(self) -> str:
         """ Get string representation for routing """
-        return f"{self.line.name} {self.direction} " + "+".join(x.name for x in self.routes)
+        return (f"{self.line.name} {self.direction} " + "+".join(x.name for x in self.routes) +
+                f" [{self.line.carriage_type.train_code(self.carriage_num)}]")
 
     def __repr__(self) -> str:
         """ Get string representation """

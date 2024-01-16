@@ -62,9 +62,17 @@ PINYIN_DICT = {
 def to_pinyin(text: str) -> list[str]:
     """ Change Chinese characters into pinyin (return all possible pinyin), capitalize the first letter """
     result = pinyin(text, heteronym=True, style=Style.NORMAL)
-    for i, single_char in enumerate(text):
-        if single_char in PINYIN_DICT:
-            result[i].append(PINYIN_DICT[single_char])
+    i, j = 0, 0
+    while i < len(result):
+        entry = result[i]
+        if not is_chinese(text[j]):
+            assert len(entry) == 1, (entry, result, text)
+            assert text[j:].startswith(entry[0]), (entry, result, text)
+            j += len(entry[0])
+            continue
+        if text[j] in PINYIN_DICT:
+            result[i].append(PINYIN_DICT[text[j]])
+        i += 1
     return ["".join(entry).capitalize() for entry in itertools.product(*result)]
 
 
@@ -106,11 +114,11 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     completer = WordCompleter(words=words, display_dict=display_dict, meta_dict=meta_dict)
     answer = questionary.autocomplete(
         message, choices=[], completer=DeduplicateCompleter(completer),
-        validate=lambda x: (x == "" and allow_empty) or x in display_dict).ask()
+        validate=lambda x: (x == "" and allow_empty) or x.lower() in display_dict).ask()
     if answer == "":
         assert allow_empty
         return answer
-    return display_dict[answer]
+    return display_dict[answer.lower()]
 
 
 T = TypeVar("T")
