@@ -4,6 +4,7 @@
 """ Provide common functions used in the whole project """
 
 # Libraries
+import itertools
 from collections import Counter
 from collections.abc import Iterable, Callable, Sequence
 from datetime import datetime, date, time, timedelta
@@ -12,7 +13,7 @@ from typing import TypeVar
 import questionary
 from prompt_toolkit.completion import DeduplicateCompleter, Completer, Completion, CompleteEvent
 from prompt_toolkit.document import Document
-from pypinyin import lazy_pinyin
+from pypinyin import pinyin, Style
 
 
 class WordCompleter(Completer):
@@ -46,9 +47,26 @@ class WordCompleter(Completer):
                 )
 
 
-def to_pinyin(text: str) -> str:
-    """ Change Chinese characters into pinyin, capitalize the first letter """
-    return "".join(lazy_pinyin(text)).capitalize()
+# dict for some better-to-translated characters
+PINYIN_DICT = {
+    "东": "East",
+    "西": "West",
+    "南": "South",
+    "北": "North",
+    "桥": "Bridge",
+    "街": "Street",
+    "路": "Road",
+    "站": "Station"
+}
+
+
+def to_pinyin(text: str) -> list[str]:
+    """ Change Chinese characters into pinyin (return all possible pinyin), capitalize the first letter """
+    result = pinyin(text, heteronym=True, style=Style.NORMAL)
+    for i, single_char in enumerate(text):
+        if single_char in PINYIN_DICT:
+            result[i].append(PINYIN_DICT[single_char])
+    return ["".join(entry).capitalize() for entry in itertools.product(*result)]
 
 
 def is_chinese(ch: str) -> bool:
@@ -73,10 +91,10 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
         # Pinyin, original and alias
         display_dict[choice.lower()] = choice
         meta_dict[choice.lower()] = meta_information[choice]
-        pinyin = to_pinyin(choice.lower())
-        if pinyin.lower() != choice.lower():
-            display_dict[pinyin.lower()] = choice
-            meta_dict[pinyin.lower()] = meta_information[choice]
+        for pinyin_entry in to_pinyin(choice.lower()):
+            if pinyin_entry.lower() != choice.lower():
+                display_dict[pinyin_entry.lower()] = choice
+                meta_dict[pinyin_entry.lower()] = meta_information[choice]
         if aliases is not None and choice in aliases:
             for alias in aliases[choice]:
                 display_dict[alias.lower()] = choice
