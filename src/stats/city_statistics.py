@@ -7,11 +7,10 @@
 import argparse
 from collections.abc import Iterable, Callable, Collection
 from datetime import date
-from typing import TypeVar
+from typing import TypeVar, Any
 
 from src.city.ask_for_city import ask_for_city, ask_for_date
 from src.city.line import Line
-from src.common.common import get_time_str, speed_str
 from src.routing.train import parse_all_trains, Train
 
 
@@ -95,75 +94,15 @@ def max_train_station(
     )
 
 
-def first_train_station(
-    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5
-) -> None:
-    """ Print first/last N trains of the whole city """
-    print("\nFirst/Last Trains:")
-    processed_dict: list[tuple[str, Train, str]] = [
-        (station, train, date_group) for station, trains in all_trains.items() for date_group, train in trains
-    ]
-    processed_dict = sorted(processed_dict, key=lambda x: get_time_str(*x[1].arrival_time[x[0]]))
-    display_first(
-        processed_dict,
-        lambda data: f"{data[0]}: {data[1].stop_time(data[0])} @ {data[2]} {data[1].direction_repr()}" +
-                     f" ({data[1].show_with(data[0])})",
-        limit_num=limit_num
-    )
-
-
-def hour_trains(all_trains: dict[str, list[tuple[str, Train]]]) -> None:
-    """ Print train number per hour """
-    print("\nTrain Count by Hour:")
-    hour_dict: dict[int, set[Train]] = {}
-    for date_group, train in set(t for x in all_trains.values() for t in x):
-        for arrival_time, arrival_day in train.arrival_time.values():
-            hour = arrival_time.hour + (24 if arrival_day else 0)
-            if hour not in hour_dict:
-                hour_dict[hour] = set()
-            hour_dict[hour].add(train)
-    display_first(
-        sorted(hour_dict.items(), key=lambda x: x[0]),
-        lambda data: f"{data[0]:02}:00 - {data[0]:02}:59: {len(data[1])} trains " +
-                     f"({divide_by_line(data[1])})",
-        show_cardinal=False
-    )
-
-
-def highest_speed_train(
-    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5, full_only: bool = False
-) -> None:
-    """ Print fastest/slowest N trains of the whole city """
-    print("\nFastest/Slowest " + ("Full " if full_only else "") + "Trains:")
-    train_set = set(t for x in all_trains.values() for t in x)
-    if full_only:
-        train_set = set(filter(
-            lambda x: x[1].stations == x[1].line.direction_base_route[x[1].direction].stations,
-            train_set
-        ))
-
-    # Remove tied trains
-    train_set_processed: dict[tuple[str, str, str, int], tuple[str, Train, int]] = {}
-    for date_group, train in train_set:
-        key = (train.line.name, train.direction, date_group, train.duration())
-        if key not in train_set_processed:
-            train_set_processed[key] = (date_group, train, 1)
-        else:
-            train_set_processed[key] = (date_group, train, train_set_processed[key][2] + 1)
-
-    display_first(
-        sorted(train_set_processed.values(), key=lambda x: x[1].speed(), reverse=True),
-        lambda data: f"{speed_str(data[1].speed())}: {data[0]} {data[1].line_repr()} " +
-                     f"({data[1].duration_repr()})" + (f" ({data[2]} tied)" if data[2] > 1 else ""),
-        limit_num=limit_num
-    )
-
-
-def main() -> None:
-    """ Main function """
+def parse_args(
+    more_args: Callable[[argparse.ArgumentParser], Any] | None = None
+) -> tuple[dict[str, list[tuple[str, Train]]], argparse.Namespace]:
+    """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
+    if more_args is not None:
+        more_args(parser)
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -176,11 +115,13 @@ def main() -> None:
     else:
         travel_date = ask_for_date()
         all_trains = get_all_trains(lines, train_dict, limit_date=travel_date)
+    return all_trains, args
+
+
+def main() -> None:
+    """ Main function """
+    all_trains, args = parse_args()
     max_train_station(all_trains, limit_num=args.limit_num)
-    first_train_station(all_trains, limit_num=args.limit_num)
-    hour_trains(all_trains)
-    highest_speed_train(all_trains, limit_num=args.limit_num)
-    highest_speed_train(all_trains, limit_num=args.limit_num, full_only=True)
 
 
 # Call main
