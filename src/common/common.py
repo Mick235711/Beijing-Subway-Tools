@@ -5,10 +5,9 @@
 
 # Libraries
 import itertools
-from collections import Counter
 from collections.abc import Iterable, Callable, Sequence
 from datetime import datetime, date, time, timedelta
-from typing import TypeVar
+from typing import TypeVar, Any
 
 import questionary
 from prompt_toolkit.completion import DeduplicateCompleter, Completer, Completion, CompleteEvent
@@ -111,6 +110,7 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
 
 
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
@@ -319,7 +319,7 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
     return list(orig[eval_slicer])
 
 
-def suffix_s(word: str, number: int | float, suffix: str = "s") -> str:
+def suffix_s(word: str, number: Any, suffix: str = "s") -> str:
     """ Conditionally add s suffix """
     return f"{number} {word}" + ("" if number == 1 else suffix)
 
@@ -329,11 +329,13 @@ def percentage_str(data: float) -> str:
     return f"{data * 100:.2f}%"
 
 
-def percentage_coverage(data: Sequence[Iterable[T]]) -> list[tuple[float, list[T]]]:
+def percentage_coverage(data: Sequence[tuple[Iterable[T], U]]) -> list[tuple[float, list[T], list[U]]]:
     """ Calculate percentage coverage for each item """
     assert len(data) > 0, data
-    if isinstance(data[0], list):
-        counter = Counter(tuple(x) for x in data)
-        return [(occur / len(data), list(x)) for x, occur in counter.most_common()]
-    counter2 = Counter(data)
-    return [(occur / len(data), list(x)) for x, occur in counter2.most_common()]
+    count_dict: dict[tuple[T, ...], list[U]] = {}
+    for key, value in data:
+        if tuple(key) not in count_dict:
+            count_dict[tuple(key)] = []
+        count_dict[tuple(key)].append(value)
+    result = [(len(entries) / len(data), list(key), entries) for key, entries in count_dict.items()]
+    return sorted(result, key=lambda x: x[0], reverse=True)

@@ -27,7 +27,8 @@ def calculate_shortest(
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False
-) -> dict[str, tuple[float, PathInfo, PathInfo, list[tuple[float, AbstractPath]]]]:
+) -> dict[str, tuple[float, PathInfo, PathInfo,
+          list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station """
     # Loop through first train to last train
     all_trains = get_all_trains(lines, train_dict, start_station, start_date)
@@ -53,18 +54,18 @@ def calculate_shortest(
                 single_result.arrival_day, cur_day
             ), single_result.shortest_path(bfs_result), single_result))
 
-    result_dict: dict[str, tuple[float, PathInfo, PathInfo, list[tuple[float, AbstractPath]]]] = {}
+    result_dict: dict[str, tuple[float, PathInfo, PathInfo,
+                      list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
-        paths = [x[1] for x in times_paths]
+        coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([(list(
+            (station, train.line, train.direction) for station, train in path[1]
+        ), path) for path in times_paths])
         result_dict[station] = (
             sum(times) / len(times),
             max(times_paths, key=lambda x: x[0]),
             min(times_paths, key=lambda x: x[0]),
-            percentage_coverage(list([
-                (station, train.line, train.direction)
-                for station, train in path
-            ] for path in paths))
+            coverage
         )
     return result_dict
 
@@ -73,7 +74,8 @@ def shortest_in_city(
     limit_start: str | None = None,
     limit_end: str | None = None,
     city_station: tuple[City, str, date] | None = None
-) -> tuple[City, str, dict[str, tuple[float, PathInfo, PathInfo, list[tuple[float, AbstractPath]]]]]:
+) -> tuple[City, str, dict[str, tuple[float, PathInfo, PathInfo,
+           list[tuple[float, AbstractPath, list[PathInfo]]]]]]:
     """ Find the shortest path in the city """
     if city_station is None:
         city = ask_for_city()
@@ -130,11 +132,12 @@ def main() -> None:
                     print("...")
                 continue
 
-            print(f"#{i + 1}: {station}, " + suffix_s("minute", avg_time) +
+            print(f"#{i + 1}: {station}, " + suffix_s("minute", f"{avg_time:.2f}") +
                   f" (min {min_info[0]} - max {max_info[0]})")
             print("Percentage of each path:")
-            for percent, path in path_coverage:
-                print("    " + percentage_str(percent) + " " + path_shorthand(station, path))
+            for percent, path, examples in path_coverage:
+                print("    " + percentage_str(percent) + " " + path_shorthand(station, path), end="")
+                print(f" [Example: {examples[0][2].time_str()}]")
 
             if args.show_path:
                 print("\nMaximum time path:")

@@ -16,7 +16,7 @@ from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_da
 from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer
-from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str
+from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str, get_time_repr
 from src.routing.train import Train, parse_all_trains
 
 
@@ -60,10 +60,17 @@ class BFSResult:
             res += train.two_station_dist(station, next_station)
         return res
 
-    def total_duration_str(self, path: Path) -> str:
+    def time_str(self) -> str:
+        """ Return string representation of start/end time """
+        return f"{get_time_repr(self.initial_time, self.initial_day)} -> " +\
+               f"{get_time_repr(self.arrival_time, self.arrival_day)}"
+
+    def total_duration_str(self, path: Path, indent: int = 0) -> str:
         """ Return string representation of the total transfer, etc. """
+        indent_str = "    " * indent
         transfer_num = len(path) - 1
-        return (f"Total time: {format_duration(self.total_duration())}, " +
+        return (f"{indent_str}{self.time_str()}\n" +
+                f"{indent_str}Total time: {format_duration(self.total_duration())}, " +
                 f"total distance: {distance_str(self.total_distance(path))}, " +
                 suffix_s("station", len(expand_path(path, self.station))) + ", " +
                 suffix_s("transfer", transfer_num) + ".")
@@ -78,7 +85,7 @@ class BFSResult:
         indent_str = "    " * indent
 
         # Print total time, station, etc.
-        print(indent_str + self.total_duration_str(path) + "\n")
+        print(self.total_duration_str(path, indent) + "\n")
 
         first_time, first_day = path[0][1].arrival_time[path[0][0]]
         first_waiting = diff_time(first_time, self.initial_time, first_day, self.initial_day)
