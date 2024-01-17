@@ -5,7 +5,7 @@ Mainly focus on electronically recording the timetables of subway lines, to faci
 of equ-distance graphs.
 
 # Running Requirements
-Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`
+Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate`
 
 (For map-related tasks, also requires `numpy`, `matplotlib` and `scipy`)
 

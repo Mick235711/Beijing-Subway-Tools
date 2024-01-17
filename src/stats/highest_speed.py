@@ -4,6 +4,11 @@
 """ Print train with the highest speed """
 
 # Libraries
+import argparse
+
+from tabulate import tabulate
+
+from src.city.line import Line
 from src.common.common import speed_str
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, parse_args
@@ -38,13 +43,73 @@ def highest_speed_train(
     )
 
 
+sort_columns = ["Line", "Interval", "Distance", "Station", "Design Spd", "Avg Dist",
+                "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"]
+sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
+sort_columns_unit = ["", "", "km", "", "km/h", "km",
+                     "", "km/h", "km/h", "km/h"]
+
+
+def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], *,
+                  full_only: bool = False, sort_by: str | None = None, reverse: bool = False,
+                  table_format: str = "pretty") -> None:
+    """ Obtain data on lines """
+    # Organize into lines
+    line_dict: dict[str, tuple[Line, set[Train]]] = {}
+    for train_list in all_trains.values():
+        for date_group, train in train_list:
+            if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
+                continue
+            if train.line.name not in line_dict:
+                line_dict[train.line.name] = (train.line, set())
+            line_dict[train.line.name][1].add(train)
+
+    # Obtain data for each line
+    data: list[tuple] = []
+    for line_name, (line, train_set) in line_dict.items():
+        avg_speed = sum(x.speed() for x in train_set) / len(train_set)
+        min_speed = min(x.speed() for x in train_set)
+        max_speed = max(x.speed() for x in train_set)
+
+        # Populate
+        total_distance = line.total_distance()
+        total_stations = len(line.stations) - (0 if line.loop else 1)
+        data.append((
+            line_name, f"{line.stations[0]} - {line.stations[-1]}",
+            total_distance / 1000, len(line.stations), line.design_speed,
+            total_distance / (total_stations * 1000),
+            len(train_set), avg_speed, min_speed, max_speed
+        ))
+
+    sort_index = 0 if sort_by is None else sort_columns_key.index(sort_by)
+    data = sorted(data, key=lambda x: x[sort_index], reverse=reverse)
+    header = [(column if unit == "" else f"{column}\n({unit})")
+              for column, unit in zip(sort_columns, sort_columns_unit)]
+    print(tabulate(
+        [(f"{e:>.2f}" if isinstance(e, float) else e for e in entry) for entry in data],
+        headers=header, tablefmt=table_format
+    ))
+
+
 def main() -> None:
     """ Main function """
-    all_trains, args = parse_args(
-        lambda parser: parser.add_argument("-f", "--full-only", action="store_true",
-                                           help="Only include train that runs the full journey")
-    )
-    highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only)
+    def append_arg(parser: argparse.ArgumentParser) -> None:
+        """ Append more arguments """
+        parser.add_argument("-f", "--full-only", action="store_true",
+                            help="Only include train that runs the full journey")
+        parser.add_argument("-l", "--per-line", action="store_true",
+                            help="Show per-line speed aggregates")
+        parser.add_argument("-s", "--sort-by", help="Sort by this column",
+                            choices=sort_columns_key, default=sort_columns_key[0])
+        parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
+        parser.add_argument("-t", "--table-format", help="Table format", default="pretty")
+
+    all_trains, args = parse_args(append_arg)
+    if args.per_line:
+        get_line_data(all_trains, full_only=args.full_only, sort_by=args.sort_by,
+                      reverse=args.reverse, table_format=args.table_format)
+    else:
+        highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only)
 
 
 # Call main
