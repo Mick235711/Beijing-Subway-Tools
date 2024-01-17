@@ -27,12 +27,13 @@ AbstractPath = list[tuple[str, Line, str]]
 class BFSResult:
     """ Contains the result of searching for each station """
 
-    def __init__(self, station: str,
+    def __init__(self, station: str, start_date: date,
                  initial_time: time, initial_day: bool,
                  arrival_time: time, arrival_day: bool,
                  prev_station: str, prev_train: Train) -> None:
         """ Constructor """
         self.station = station
+        self.start_date = start_date
         self.initial_time, self.initial_day = initial_time, initial_day
         self.arrival_time, self.arrival_day = arrival_time, arrival_day
         self.prev_station, self.prev_train = prev_station, prev_train
@@ -102,13 +103,14 @@ class BFSResult:
                 # Display transfer information
                 last_time, last_day = last_train.arrival_time_virtual(last_station)[station]
                 total_waiting = diff_time(start_time, last_time, start_day, last_day)
-                transfer_time = transfer_dict[station].transfer_time[(
-                    last_train.line.name, last_train.direction,
-                    train.line.name, train.direction
-                )]
+                transfer_time, special = transfer_dict[station].get_transfer_time(
+                    last_train.line, last_train.direction,
+                    train.line, train.direction,
+                    self.start_date, last_time, last_day
+                )
                 assert transfer_time <= total_waiting, (last_train, station, train)
                 print(f"{indent_str}Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
-                      suffix_s("minute", transfer_time))
+                      suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
                 if total_waiting > transfer_time:
                     print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
 
@@ -152,8 +154,10 @@ def find_next_train(
         # calculate the least time for this line/direction
         if cur_line is not None and cur_line != train.line:
             assert cur_direction is not None, (cur_line, cur_direction)
-            transfer_time = transfer_dict[station].transfer_time[
-                (cur_line.name, cur_direction, train.line.name, train.direction)]
+            transfer_time, _ = transfer_dict[station].get_transfer_time(
+                cur_line, cur_direction, train.line, train.direction,
+                cur_date, cur_time, cur_day
+            )
             next_time, next_day = add_min(cur_time, ceil(transfer_time), cur_day)
         else:
             next_time, next_day = cur_time, cur_day
@@ -270,7 +274,7 @@ def bfs(
                     break
 
                 next_result = BFSResult(
-                    next_station,
+                    next_station, start_date,
                     start_time, start_day,
                     next_time, next_day,
                     station, next_train

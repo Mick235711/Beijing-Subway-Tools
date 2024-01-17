@@ -26,7 +26,8 @@ def calculate_shortest(
     transfer_dict: dict[str, Transfer],
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
-    limit_end: time | None = None, limit_end_day: bool = False
+    limit_end: time | None = None, limit_end_day: bool = False,
+    verbose_per_minute: int = 60,
 ) -> dict[str, tuple[float, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station """
@@ -42,7 +43,7 @@ def calculate_shortest(
         min(to_minutes(end_time, end_day), limit_end_num) + 1
     ):
         cur_time, cur_day = from_minutes(minute)
-        if cur_time.minute == 0:
+        if cur_time.minute % verbose_per_minute == 0:
             print(f"Calculating {start_station} from " + get_time_str(cur_time, cur_day))
         bfs_result = bfs(lines, train_dict, transfer_dict,
                          start_date, start_station, cur_time, cur_day)
@@ -73,7 +74,8 @@ def calculate_shortest(
 def shortest_in_city(
     limit_start: str | None = None,
     limit_end: str | None = None,
-    city_station: tuple[City, str, date] | None = None
+    city_station: tuple[City, str, date] | None = None, *,
+    verbose_per_minute: int = 60
 ) -> tuple[City, str, dict[str, tuple[float, PathInfo, PathInfo,
            list[tuple[float, AbstractPath, list[PathInfo]]]]]]:
     """ Find the shortest path in the city """
@@ -91,7 +93,8 @@ def shortest_in_city(
     return city, start, calculate_shortest(
         lines, train_dict, city.transfers, start_date, start,
         limit_start=ls_time, limit_start_day=ls_day,
-        limit_end=le_time, limit_end_day=le_day
+        limit_end=le_time, limit_end_day=le_day,
+        verbose_per_minute=verbose_per_minute
     )
 
 
@@ -112,6 +115,8 @@ def main() -> None:
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
     parser.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
     parser.add_argument("-t", "--to-station", help="Only show average time to specified stations")
+    parser.add_argument("-m", "--verbose-per-minute", type=int,
+                        help="Show message per N minutes", default=60)
     args = parser.parse_args()
 
     stations: set[str] | None = None
@@ -121,7 +126,8 @@ def main() -> None:
         else:
             stations = {args.to_station.strip()}
 
-    city, _, result_dict = shortest_in_city(args.limit_start, args.limit_end)
+    city, _, result_dict = shortest_in_city(
+        args.limit_start, args.limit_end, verbose_per_minute=args.verbose_per_minute)
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:
         for i, (station, (avg_time, max_info, min_info, path_coverage)) in enumerate(result_dict.items()):

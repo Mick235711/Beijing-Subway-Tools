@@ -4,8 +4,10 @@
 """ A class for a group of days """
 
 # Libraries
-from datetime import date
+from datetime import date, time
 from typing import Any
+
+from src.common.common import get_time_repr, diff_time, TimeSpec, parse_time
 
 
 class DateGroup:
@@ -57,6 +59,36 @@ class DateGroup:
         return cur_date.isoweekday() in self.weekday
 
 
+class TimeInterval:
+    """ Represents many time intervals """
+
+    def __init__(self) -> None:
+        """ Constructor """
+        self.time_intervals: list[tuple[DateGroup | None, TimeSpec | None, TimeSpec | None]] = []
+
+    def __repr__(self) -> str:
+        """ Get string representation """
+        return "<" + ", ".join(
+            ("" if date_group is None else f"{date_group.name} ") +
+            ("" if start is None else get_time_repr(*start)) +
+            "-" +
+            ("" if end is None else get_time_repr(*end))
+            for date_group, start, end in self.time_intervals
+        ) + ">"
+
+    def covers(self, cur_date: date, cur_time: time, cur_day: bool = False) -> bool:
+        """ Determine if the given date and time is within this interval """
+        for date_group, start, end in self.time_intervals:
+            if date_group is not None and not date_group.covers(cur_date):
+                continue
+            if start is not None and diff_time(cur_time, start[0], cur_day, start[1]) < 0:
+                continue
+            if end is not None and diff_time(cur_time, end[0], cur_day, end[1]) > 0:
+                continue
+            return True
+        return False
+
+
 def parse_date_group(name: str, spec: dict[str, Any]) -> DateGroup:
     """ Parse the date_groups field """
     if "dates" in spec:
@@ -64,3 +96,14 @@ def parse_date_group(name: str, spec: dict[str, Any]) -> DateGroup:
     weekday = set(spec["weekday"])
     return DateGroup(name, spec.get("aliases"), weekday=weekday,
                      start_date=spec.get("from"), end_date=spec.get("until"))
+
+
+def parse_time_interval(date_groups: dict[str, DateGroup], spec: list[dict[str, Any]]) -> TimeInterval:
+    """ Parse the apply_time field """
+    result = TimeInterval()
+    for entry in spec:
+        date_group = date_groups[entry["date_group"]] if "date_group" in entry else None
+        start = parse_time(entry["start"]) if "start" in entry else None
+        end = parse_time(entry["end"]) if "end" in entry else None
+        result.time_intervals.append((date_group, start, end))
+    return result

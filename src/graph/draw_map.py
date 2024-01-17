@@ -34,6 +34,8 @@ def map_args() -> argparse.Namespace:
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=10)
+    parser.add_argument(
+        "-m", "--verbose-per-minute", type=int, help="Show message per N minutes", default=60)
     return parser.parse_args()
 
 
@@ -141,7 +143,8 @@ def main() -> None:
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
-    city, start, result_dict_temp = shortest_in_city(args.limit_start, args.limit_end)
+    city, start, result_dict_temp = shortest_in_city(
+        args.limit_start, args.limit_end, verbose_per_minute=args.verbose_per_minute)
     result_dict = {station: x[0] for station, x in result_dict_temp.items()}
     map_obj = ask_for_map(city)
 

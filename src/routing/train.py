@@ -4,12 +4,10 @@
 """ A class for a train """
 
 # Libraries
-from datetime import time
-
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
 from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
-    distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s
+    distance_str, chin_len, segment_speed, speed_str, add_min, suffix_s, TimeSpec
 from src.timetable.timetable import Timetable, route_stations, route_skip_stations
 
 
@@ -17,7 +15,7 @@ class Train:
     """ Represents a train """
 
     def __init__(self, line: Line, routes: list[TrainRoute],
-                 arrival_time: dict[str, tuple[time, bool]]) -> None:
+                 arrival_time: dict[str, TimeSpec]) -> None:
         """ Constructor """
         self.line = line
         self.carriage_num = min(x.carriage_num for x in routes)
@@ -66,7 +64,7 @@ class Train:
         return f"<{self.direction_repr()} {self.stations[0]} {self.start_time()}" + \
             f" -> {self.stations[-1]} {self.end_time()}>"
 
-    def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, tuple[time, bool]]:
+    def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """
         if start_station is None:
             return self.arrival_time
@@ -82,7 +80,7 @@ class Train:
             cur_list += next_list
         return dict(cur_list)
 
-    def arrival_time_two_station(self, start_station: str, end_station: str) -> dict[str, tuple[time, bool]]:
+    def arrival_time_two_station(self, start_station: str, end_station: str) -> dict[str, TimeSpec]:
         """ Display arrival_time dict between two stations """
         virtual = self.arrival_time_virtual(start_station)
         return dict(list(virtual.items())[:list(virtual.keys()).index(end_station)])

@@ -4,11 +4,21 @@
     transfers: {
         "复兴门": [
             {from: "1号线", to: "2号线", minutes: 3.5},
-            {from: "2号线", to: "1号线", minutes: 0.5}
+            {from: "2号线", to: "1号线", minutes: 0.5},
+            // 节点早晚可逆行
+            {
+                from: "1号线", to: "2号线", minutes: 1,
+                apply_time: [{end: "06:30"}, {start: "20:30"}]
+            }
         ],
         "建国门": [
             {from: "1号线", to: "2号线", minutes: 2.5},
-            {from: "2号线", to: "1号线", minutes: 0.5}
+            {from: "2号线", to: "1号线", minutes: 0.5},
+            // 节点非高峰可逆行
+            {
+                from: "1号线", to: "2号线", minutes: 1,
+                apply_time: [{end: "07:00"}, {start: "09:30", end: "16:30"}, {start: "19:00"}]
+            }
         ],
         "西单": [
             {from: "1号线", to: "4号线", minutes: 3.5},

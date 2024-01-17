@@ -128,10 +128,15 @@ For each sub-specifications, its structure must be
 ```json5
 {from: "Line Name", [from_direction: "Direction",]
  to: "Line Name", [to_direction: "Direction",]
- minutes: <minutes needed for transfer>}
+ minutes: <minutes needed for transfer>,
+ [apply_time: [{[date_group: "Group", ]start: "HH:MM", end: "HH:MM"} * N]]}
 ```
 If no direction is provided for from or to, it is assumed that the same time is needed to reach both directions (i.e. island platform).
 If only time from Line A to Line B is provided, then the reverse direction is assumed to be the same time.
+
+`apply_time` field can be present when this time only applies under specific time (such as a shortcut that can only be taken under non-peak times).
+All three fields are optional, `start` and `end` defaults to the first/last train of the day, and if `date_group` is not present
+all dates are applicable.
 
 # Carriage Specification Format
 This specification describes the key-values within `carriage_types.json5`.

@@ -12,7 +12,7 @@ from typing import Iterable, Any
 from src.city.ask_for_city import ask_for_timetable
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
-from src.common.common import get_time_str, diff_time, parse_brace
+from src.common.common import get_time_str, diff_time, parse_brace, TimeSpec
 from src.routing.train import filter_route
 from src.timetable.timetable import Timetable
 
@@ -332,7 +332,7 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
     routes_dict, processed_dict = filter_route(prev)
 
     # Calculate initial trains
-    trains: dict[int, list[tuple[list[TrainRoute], tuple[time, bool]]]] = {}
+    trains: dict[int, list[tuple[list[TrainRoute], TimeSpec]]] = {}
     for route_id, timetable_trains_temp in processed_dict.items():
         timetable_trains = sorted(timetable_trains_temp, key=lambda x: x.sort_key_str())
         trains[route_id] = [(

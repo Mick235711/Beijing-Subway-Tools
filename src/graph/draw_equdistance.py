@@ -52,10 +52,12 @@ def main() -> None:
     (station1, _), (station2, _) = ask_for_station_pair(city)
     start_date = ask_for_date()
     _, _, result_dict_temp1 = shortest_in_city(
-        args.limit_start, args.limit_end, (city, station1, start_date))
+        args.limit_start, args.limit_end, (city, station1, start_date),
+        verbose_per_minute=args.verbose_per_minute)
     result_dict1 = {station: x[0] for station, x in result_dict_temp1.items()}
     _, _, result_dict_temp2 = shortest_in_city(
-        args.limit_start, args.limit_end, (city, station2, start_date))
+        args.limit_start, args.limit_end, (city, station2, start_date),
+        verbose_per_minute=args.verbose_per_minute)
     result_dict2 = {station: x[0] for station, x in result_dict_temp2.items()}
     result_dict = {
         station: result_dict1[station] - result_dict2[station]

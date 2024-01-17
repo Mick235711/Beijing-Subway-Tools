@@ -15,6 +15,25 @@ from prompt_toolkit.document import Document
 from pypinyin import pinyin, Style
 
 
+# Constants
+TimeSpec = tuple[time, bool]
+T = TypeVar("T")
+U = TypeVar("U")
+possible_braces = ["()", "[]", "{}", "<>"]
+
+# dict for some better-to-translated characters
+PINYIN_DICT = {
+    "东": "East",
+    "西": "West",
+    "南": "South",
+    "北": "North",
+    "桥": "Bridge",
+    "街": "Street",
+    "路": "Road",
+    "站": "Station"
+}
+
+
 class WordCompleter(Completer):
     """ Custom word completer """
 
@@ -44,19 +63,6 @@ class WordCompleter(Completer):
                     display=display,
                     display_meta=display_meta,
                 )
-
-
-# dict for some better-to-translated characters
-PINYIN_DICT = {
-    "东": "East",
-    "西": "West",
-    "南": "South",
-    "北": "North",
-    "桥": "Bridge",
-    "街": "Street",
-    "路": "Road",
-    "站": "Station"
-}
 
 
 def to_pinyin(text: str) -> list[str]:
@@ -121,10 +127,6 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     return display_dict[answer.lower()]
 
 
-T = TypeVar("T")
-U = TypeVar("U")
-
-
 def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
     """ Ask a question with validator and post-processor """
 
@@ -160,7 +162,7 @@ def speed_str(speed: float) -> str:
     return f"{speed:.2f}km/h"
 
 
-def parse_time(time_str: str, next_day: bool = False) -> tuple[time, bool]:
+def parse_time(time_str: str, next_day: bool = False) -> TimeSpec:
     """ Parse time as hh:mm """
     if len(time_str) == 4:
         time_str = "0" + time_str
@@ -178,7 +180,7 @@ def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time |
     return parse_time(time_str, next_day)
 
 
-def add_min(time_obj: time, minutes: int, next_day: bool = False) -> tuple[time, bool]:
+def add_min(time_obj: time, minutes: int, next_day: bool = False) -> TimeSpec:
     """ Add minutes """
     new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
     return new_time, minutes >= 0 and (new_time < time_obj or next_day)
@@ -189,7 +191,7 @@ def to_minutes(cur_time: time, cur_day: bool = False) -> int:
     return cur_time.hour * 60 + cur_time.minute + (24 * 60 if cur_day else 0)
 
 
-def from_minutes(minutes: int) -> tuple[time, bool]:
+def from_minutes(minutes: int) -> TimeSpec:
     """ Convert from minutes """
     if minutes >= 24 * 60:
         next_day = True
@@ -248,9 +250,6 @@ def show_direction(stations: list[str], loop: bool = False):
     if loop:
         return f"{stations[0]} -> {int1} -> {int2} -> {stations[0]}"
     return f"{stations[0]} -> {int1} -> {int2} -> {stations[-1]}"
-
-
-possible_braces = ["()", "[]", "{}", "<>"]
 
 
 def distribute_braces(values: dict[T, int]) -> dict[str, T]:

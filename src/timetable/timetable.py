@@ -10,7 +10,7 @@ from typing import Iterable, Any
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
 from src.common.common import parse_time, add_min, get_time_str, get_time_repr, \
-    distribute_braces, combine_brace
+    distribute_braces, combine_brace, TimeSpec
 
 
 class Timetable:
@@ -59,7 +59,7 @@ class Timetable:
             """ Return the stations of this train """
             return route_stations(self.train_route)
 
-        def sort_key(self) -> tuple[time, bool]:
+        def sort_key(self) -> TimeSpec:
             """ Return the time """
             return self.leaving_time, self.next_day
 
