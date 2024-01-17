@@ -103,6 +103,9 @@ def parse_args(
     if include_limit:
         parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--include-lines", help="Include lines")
+    group.add_argument("-e", "--exclude-lines", help="Exclude lines")
     if more_args is not None:
         more_args(parser)
     args = parser.parse_args()
@@ -117,6 +120,15 @@ def parse_args(
     else:
         travel_date = ask_for_date()
         all_trains = get_all_trains(lines, train_dict, limit_date=travel_date)
+
+    # Parse include/exclude lines
+    if args.include_lines is not None:
+        assert args.exclude_lines is None, args
+        include_lines = [x.strip() for x in args.include_lines.split(",")]
+        all_trains = {k: [e for e in v if e[1].line.name in include_lines] for k, v in all_trains.items()}
+    elif args.exclude_lines is not None:
+        exclude_lines = [x.strip() for x in args.exclude_lines.split(",")]
+        all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines] for k, v in all_trains.items()}
     return all_trains, args
 
 

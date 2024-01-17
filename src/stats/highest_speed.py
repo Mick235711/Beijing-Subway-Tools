@@ -16,13 +16,11 @@ from src.stats.city_statistics import display_first, parse_args
 
 
 def highest_speed_train(
-    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5, full_only: bool = False,
-    exclude_lines: Sequence[str] | None = None
+    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5, full_only: bool = False
 ) -> None:
     """ Print fastest/slowest N trains of the whole city """
     print("Fastest/Slowest " + ("Full " if full_only else "") + "Trains:")
-    train_set = set(t for x in all_trains.values() for t in x
-                    if exclude_lines is None or t[1].line.name not in exclude_lines)
+    train_set = set(t for x in all_trains.values() for t in x)
     if full_only:
         train_set = set(filter(
             lambda x: x[1].stations == x[1].line.direction_base_route[x[1].direction].stations,
@@ -48,7 +46,6 @@ def highest_speed_train(
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[Line, set[Train]], tuple], *,
-                  exclude_lines: Sequence[str] | None = None,
                   sort_index: int = 0, reverse: bool = False, full_only: bool = False,
                   table_format: str = "simple") -> None:
     """ Obtain data on lines """
@@ -57,8 +54,6 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     for train_list in all_trains.values():
         for date_group, train in train_list:
             if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
-                continue
-            if exclude_lines is not None and train.line.name in exclude_lines:
                 continue
             if train.line.name not in line_dict:
                 line_dict[train.line.name] = (train.line, set())
@@ -108,14 +103,13 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
 
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
                  data_callback: Callable[[Line, set[Train]], tuple],
-                 sort_columns: Sequence[str], sort_columns_unit: Sequence[str], *,
-                 exclude_lines: Sequence[str] | None = None) -> None:
+                 sort_columns: Sequence[str], sort_columns_unit: Sequence[str]) -> None:
     """ Output data as table """
     sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
     sort_index = 0 if args.sort_by == "" else sort_columns_key.index(args.sort_by)
     header = [(column if unit == "" else f"{column}\n({unit})")
               for column, unit in zip(sort_columns, sort_columns_unit)]
-    get_line_data(all_trains, header, data_callback, full_only=args.full_only, exclude_lines=exclude_lines,
+    get_line_data(all_trains, header, data_callback, full_only=args.full_only,
                   sort_index=sort_index, reverse=args.reverse, table_format=args.table_format)
 
 
@@ -131,13 +125,8 @@ def main() -> None:
         parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
         parser.add_argument("-t", "--table-format", help="Table format", default="simple")
         parser.add_argument("-c", "--capacity", action="store_true", help="Show capacity data")
-        parser.add_argument("-e", "--exclude-line", help="Exclude some lines")
 
     all_trains, args = parse_args(append_arg)
-    if args.exclude_line is not None:
-        exclude_lines = [x.strip() for x in args.exclude_line.split(",")]
-    else:
-        exclude_lines = None
     if args.per_line:
         if args.capacity:
             output_table(all_trains, args, get_capacity_data, [
@@ -145,16 +134,16 @@ def main() -> None:
                 "Carriage", "Capacity", "Train\nCount", "Total Cap", "Car Dist", "Avg Car\nDist", "People Dist"
             ], [
                 "", "", "km", "", "km/h", "", "ppl", "", "w ppl", "w km", "", "y ppl km"
-            ], exclude_lines=exclude_lines)
+            ])
         else:
             output_table(all_trains, args, get_speed_data, [
                 "Line", "Interval", "Distance", "Station", "Design Spd",
                 "Avg Dist", "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"
             ], [
                 "", "", "km", "", "km/h", "km", "", "km/h", "km/h", "km/h"
-            ], exclude_lines=exclude_lines)
+            ])
     else:
-        highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only, exclude_lines=exclude_lines)
+        highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only)
 
 
 # Call main
