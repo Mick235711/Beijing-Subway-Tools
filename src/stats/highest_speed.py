@@ -82,7 +82,7 @@ def get_speed_data(line: Line, train_set: set[Train]) -> tuple:
     return (
         line.name, f"{line.stations[0]} - {line.stations[-1]}",
         total_distance / 1000, len(line.stations), line.design_speed,
-        total_distance / (total_stations * 1000),
+        total_distance / (total_stations * 1000), min(line.station_dists) / 1000, max(line.station_dists) / 1000,
         len(train_set), avg_speed, min_speed, max_speed
     )
 
@@ -138,9 +138,9 @@ def main() -> None:
         else:
             output_table(all_trains, args, get_speed_data, [
                 "Line", "Interval", "Distance", "Station", "Design Spd",
-                "Avg Dist", "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"
+                "Avg Dist", "Min Dist", "Max Dist", "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"
             ], [
-                "", "", "km", "", "km/h", "km", "", "km/h", "km/h", "km/h"
+                "", "", "km", "", "km/h", "km", "km", "km", "", "km/h", "km/h", "km/h"
             ])
     else:
         highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only)
