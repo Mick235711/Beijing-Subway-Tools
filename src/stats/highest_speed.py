@@ -24,10 +24,7 @@ def highest_speed_train(
     print("Fastest/Slowest " + ("Full " if full_only else "") + "Trains:")
     train_set = set(t for x in all_trains.values() for t in x)
     if full_only:
-        train_set = set(filter(
-            lambda x: x[1].stations == x[1].line.direction_base_route[x[1].direction].stations,
-            train_set
-        ))
+        train_set = set(filter(lambda x: x[1].is_full(), train_set))
 
     # Remove tied trains
     train_set_processed: dict[tuple[str, str, str, int], tuple[str, Train, int]] = {}
@@ -55,7 +52,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     line_dict: dict[str, tuple[Line, set[Train]]] = {}
     for train_list in all_trains.values():
         for date_group, train in train_list:
-            if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
+            if full_only and not train.is_full():
                 continue
             if train.line.name not in line_dict:
                 line_dict[train.line.name] = (train.line, set())
@@ -187,7 +184,7 @@ def get_section_data(
     # Calculate line -> (date_group, direction, station) -> list of trains
     processed_dict: dict[str, dict[tuple[str, str, str], list[Train]]] = {}
     for date_group, train in set(x for y in all_trains.values() for x in y):
-        if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
+        if full_only and not train.is_full():
             continue
         if train.line.name not in processed_dict:
             processed_dict[train.line.name] = {}

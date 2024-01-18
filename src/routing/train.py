@@ -169,6 +169,12 @@ class Train:
             self.stations, self.loop_next is not None
         )
 
+    def is_full(self) -> bool:
+        """ Determine if this train is a full-distance train """
+        if self.line.loop and self.loop_next is None:
+            return False
+        return self.stations == self.line.direction_base_route[self.direction].stations
+
     def speed(self) -> float:
         """ Speed of the entire train """
         return segment_speed(self.distance(), self.duration())

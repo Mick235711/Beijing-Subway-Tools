@@ -20,7 +20,7 @@ def hour_trains(
     print(("Capacity" if use_capacity else "Train") + " Count by Hour:")
     hour_dict: dict[int, set[Train]] = {}
     for date_group, train in set(t for x in all_trains.values() for t in x):
-        if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
+        if full_only and not train.is_full():
             continue
         for arrival_time, arrival_day in train.arrival_time.values():
             hour = arrival_time.hour + (24 if arrival_day else 0)
@@ -44,7 +44,7 @@ def minute_trains(
     """ Print train number & capacity per minute """
     minute_dict: dict[str, dict[str, int]] = {"Total": {}}
     for _, train in set(t for x in all_trains.values() for t in x):
-        if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
+        if full_only and not train.is_full():
             continue
         if train.line.name not in minute_dict:
             minute_dict[train.line.name] = {}
