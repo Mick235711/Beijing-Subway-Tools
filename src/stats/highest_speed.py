@@ -10,7 +10,7 @@ from collections.abc import Callable, Sequence
 from tabulate import tabulate
 
 from src.city.line import Line
-from src.common.common import speed_str, moving_average
+from src.common.common import speed_str, moving_average_dict
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, parse_args
 from src.stats.hour_trains import minute_trains
@@ -116,15 +116,11 @@ def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], line
             continue
         avg_cnt, (
             min_cnt_beg, min_cnt_end, min_cnt
-        ), (max_cnt_beg, max_cnt_end, max_cnt) = moving_average(
-            list(line_dict.keys()), lambda x: line_dict[x], moving_min
-        )
+        ), (max_cnt_beg, max_cnt_end, max_cnt) = moving_average_dict(line_dict, moving_min)
         line_cap_dict = capacity_dict[line_name]
         avg_cap_cnt, (
             min_cap_cnt_beg, min_cap_cnt_end, min_cap_cnt
-        ), (max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt) = moving_average(
-            list(line_cap_dict.keys()), lambda x: line_cap_dict[x], moving_min
-        )
+        ), (max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt) = moving_average_dict(line_cap_dict, moving_min)
         line = lines[line_name]
         result[line_name] = (
             line.name, f"{line.stations[0]} - {line.stations[-1]}",

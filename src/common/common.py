@@ -375,3 +375,9 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
         cur_sum.append(moving_avg)
     assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, data
     return sum(cur_sum) / len(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
+
+
+def moving_average_dict(data: dict[T, int | float], moving_min: int,
+                        include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
+    """ Calculate moving average on a dictionary, return avg & min/max interval """
+    return moving_average(list(data.keys()), lambda x: data[x], moving_min, include_edge)
