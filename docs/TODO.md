@@ -1,0 +1,78 @@
+# Beijing Subway
+- 1号线 ~~东行~~ ~~西行~~ ~~Chart~~ (to be updated)
+- 2号线 ~~外环~~ ~~内环~~ ~~Chart~~
+- 4号线 ~~南行~~ ~~北行~~ ~~Chart~~
+- 5号线 ~~南行~~ ~~北行~~ ~~Chart~~
+- 6号线 ~~东行~~ ~~西行~~ ~~Chart~~
+- 7号线 东行 西行 Chart
+- 8号线 南行 北行 Chart
+- 9号线 南行 北行 Chart
+- 10号线 外环 内环 Chart
+- 11号线 南行 北行 Chart
+- 13号线 东行 西行 Chart
+- 14号线 东北行 西南行 Chart
+- 15号线 东行 西行 Chart
+- 16号线 南行 北行 Chart
+- 17号线 南行 北行 Chart
+- 19号线 南行 北行 Chart
+- 亦庄线 进城 出城 Chart
+- 房山线 进城 出城 Chart
+- 燕房线 进城 出城 Chart
+- S1线 进城 出城 Chart
+- 昌平线 进城 出城 Chart
+- 西郊线 东行 西行 Chart
+- 亦庄T1线 东北行 西南行 Chart
+- 首都机场线 进城 出城 Chart
+- 大兴机场线 进城 出城 Chart
+
+# Enhancements
+- [x] 快车实现：正常记录过站时间，但是不允许上车（显示passing/通过）
+- [x] 东西南北 East West South North 桥 Bridge ...
+- [x] 多音字处理：十里堡 pu 朝阳门 chao
+- avg_shortest Min/Max显示
+  - [x] 出发时间 （或许显示route时直接显示起终时间更好？)
+  - [x] 每个径路的示例时间
+- [x] First/Last Train显示线路
+- [x] 末班车First/Last Leaving Train
+- [x] Train type/carriage number (etc 6B) + 设计速度
+- [x] 部分节点低峰时段允许逆行（Special Rules）
+- [x] 文档：每个py文件的参数说明
+- [x] 旅速：per line & average (+min/max)
+- [x] 表格版per line旅速（+站间距，首末站，每天列车数量等等）
+- [x] 每天列车数量，总运行距离，总运量，总车距离，总人距离
+- [x] 最快/最慢车排除某些线路（比如有鬼）
+- [x] Per minute train count graph
+- [x] 最长/短站间距
+- [x] Moving Average: 每30/60min最高/低运量/列车数
+- [x] Add total row to highest_speed
+- [x] Add include/exclude support to highest_speed
+- [x] 站/区间断面30/60min最高/低运量/列车数
+- [x] Embed include_edge into options
+- [ ] 和环线相似的快车专门分析：平均速度，平均用时，同区间快多少，越行几次
+- [ ] 最早/最晚路径
+- [ ] Line colors
+- [ ] 数字编号排序
+- [ ] contour vs contourf调整
+- 完善文档
+  - [ ] create a new line
+  - [ ] tools
+- [ ] 开通日期（optional，毕竟有换乘，wb东管头南有统计）
+- [ ] Use color to represent different train routes (optional)
+
+## 线网径路PK：对于同一个首末站组合，指定不同径路
+- 指定径路：
+  - [ ] 指定线路自动生成（例如5号线-1号线[西行]-4号线，或者菜单选换乘站）
+  - [ ] 指定途径站
+  - [ ] 最短的N个路径
+  - [ ] 途经点
+  - [ ] 不允许经过某站/某线
+- 输出统计：
+  - [ ] 每个径路占优百分比
+  - [ ] 单独最短/长时间 & 例子
+  - [ ] 相对最短/长时间（即#1 - #2极值）
+
+## 高难度/远期
+- [ ] 反转整个图，BFS创造单终点最短路（即到某站的最短时间）
+- [ ] 忽略某条线/某站/某个换乘
+- [ ] 某条线延长N站（输入站名，运行时间，如果不存在可以输入坐标）
+- [ ] 到某一组站（比如2/10号线）的最短时间
