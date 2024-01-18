@@ -182,8 +182,18 @@ def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time |
 
 def add_min(time_obj: time, minutes: int, next_day: bool = False) -> TimeSpec:
     """ Add minutes """
+    if minutes == 0:
+        return time_obj, next_day
     new_time = (datetime.combine(date.today(), time_obj) + timedelta(minutes=minutes)).time()
-    return new_time, minutes >= 0 and (new_time < time_obj or next_day)
+    if minutes > 0:
+        return new_time, new_time < time_obj or next_day
+    else:
+        return new_time, new_time < time_obj and next_day
+
+
+def add_min_tuple(time_spec: TimeSpec, minutes: int) -> TimeSpec:
+    """ Add minutes """
+    return add_min(time_spec[0], minutes, time_spec[1])
 
 
 def to_minutes(cur_time: time, cur_day: bool = False) -> int:
@@ -207,6 +217,11 @@ def from_minutes(minutes: int) -> TimeSpec:
 def diff_time(time1: time, time2: time, next_day1: bool = False, next_day2: bool = False) -> int:
     """ Compute time1 - time2 """
     return to_minutes(time1, next_day1) - to_minutes(time2, next_day2)
+
+
+def diff_time_tuple(time1: TimeSpec, time2: TimeSpec) -> int:
+    """ Compute time1 - time2 """
+    return diff_time(time1[0], time2[0], time1[1], time2[1])
 
 
 def get_time_str(time_obj: time, next_day: bool = False) -> str:
@@ -355,6 +370,7 @@ def percentage_coverage(data: Sequence[tuple[Iterable[T], U]]) -> list[tuple[flo
 def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_min: int,
                    include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average, return avg & min/max interval """
+    assert len(data) > 0, data
     cur_min: float | None = None
     cur_min_beg: T | None = None
     cur_min_end: T | None = None
@@ -368,10 +384,10 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
         moving_avg = sum(cur_slice) / len(cur_slice)
         if cur_min is None or cur_min > moving_avg:
             cur_min = moving_avg
-            cur_min_beg, cur_min_end = data[max(0, i)], data[min(len(data) - 1, i + moving_min)]
+            cur_min_beg, cur_min_end = data[max(0, i)], data[min(len(data), i + moving_min) - 1]
         if cur_max is None or cur_max < moving_avg:
             cur_max = moving_avg
-            cur_max_beg, cur_max_end = data[max(0, i)], data[min(len(data) - 1, i + moving_min)]
+            cur_max_beg, cur_max_end = data[max(0, i)], data[min(len(data), i + moving_min) - 1]
         cur_sum.append(moving_avg)
     assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, data
     return sum(cur_sum) / len(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
@@ -381,3 +397,8 @@ def moving_average_dict(data: Mapping[T, int | float], moving_min: int,
                         include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average on a dictionary, return avg & min/max interval """
     return moving_average(list(data.keys()), lambda x: data[x], moving_min, include_edge)
+
+
+def arg_minmax(data: Mapping[T, int | float]) -> tuple[T, T]:
+    """ Calculate argmin & argmax """
+    return min(data.keys(), key=lambda x: data[x]), max(data.keys(), key=lambda x: data[x])

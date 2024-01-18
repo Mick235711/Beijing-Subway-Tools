@@ -10,7 +10,8 @@ from collections.abc import Callable, Sequence
 from tabulate import tabulate
 
 from src.city.line import Line
-from src.common.common import speed_str, moving_average_dict
+from src.common.common import speed_str, moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, \
+    diff_time_tuple
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, parse_args
 from src.stats.hour_trains import minute_trains
@@ -149,6 +150,80 @@ def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], line
     return result
 
 
+def count_train(station: str, trains: Sequence[Train], moving_min: int = 60,
+                start_time: TimeSpec | None = None, end_time: TimeSpec | None = None) -> dict[str, tuple[int, int]]:
+    """ Count the trains as moving average of station-wise count/capacities """
+    result_dict: dict[str, tuple[int, int]] = {}
+    for train in trains:
+        start_tuple = train.arrival_time[station]
+        for i in range(-moving_min + 1, 1):
+            cur_tuple = add_min_tuple(start_tuple, i)
+            if start_time is not None and diff_time_tuple(start_time, cur_tuple) > 0:
+                continue
+            next_tuple = add_min_tuple(cur_tuple, moving_min - 1)
+            if end_time is not None and diff_time_tuple(end_time, next_tuple) < 0:
+                continue
+            cur_str = get_time_str(*cur_tuple) + " - " + get_time_str(*next_tuple)
+            if cur_str not in result_dict:
+                result_dict[cur_str] = (0, 0)
+            result_dict[cur_str] = (
+                result_dict[cur_str][0] + 1,
+                result_dict[cur_str][1] + train.train_capacity()
+            )
+    return result_dict
+
+
+def get_section_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
+                     moving_min: int = 60, full_only: bool = False) -> dict[str, tuple]:
+    """ Get sectional (station-wise) data """
+    # Calculate line -> (date_group, direction, station) -> list of trains
+    processed_dict: dict[str, dict[tuple[str, str, str], list[Train]]] = {}
+    for date_group, train in set(x for y in all_trains.values() for x in y):
+        if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
+            continue
+        if train.line.name not in processed_dict:
+            processed_dict[train.line.name] = {}
+        for station in train.stations:
+            key = (date_group, train.direction, station)
+            if key not in processed_dict[train.line.name]:
+                processed_dict[train.line.name][key] = []
+            processed_dict[train.line.name][key].append(train)
+
+    result: dict[str, tuple] = {}
+    processed_dict = dict(sorted(processed_dict.items(), key=lambda x: x[0]))
+    for line_name, processed_line in processed_dict.items():
+        # Calculate train count/capacity dict
+        # After this, the structure will be (date_group, direction, station, time) -> count/capacity
+        print(f"Calculating {line_name}...")
+        count_dict: dict[tuple[str, str, str, str], int] = {}
+        cap_dict: dict[tuple[str, str, str, str], int] = {}
+        for key, value in processed_line.items():
+            station = key[2]
+            sorted_list = sorted(value, key=lambda t: t.stop_time(station))
+            for time_str, (count_value, cap_value) in count_train(
+                station, value, moving_min, sorted_list[0].arrival_time[station], sorted_list[-1].arrival_time[station]
+            ).items():
+                count_dict[key + (time_str,)] = count_value
+                cap_dict[key + (time_str,)] = cap_value
+
+        # Calculate min/max
+        min_cnt_key, max_cnt_key = arg_minmax(count_dict)
+        min_cap_cnt_key, max_cap_cnt_key = arg_minmax(cap_dict)
+        line = lines[line_name]
+        result[line_name] = (
+            line.name, f"{line.stations[0]} - {line.stations[-1]}",
+            line.total_distance() / 1000, len(line.stations), line.design_speed,
+            line.train_code(), line.train_capacity(),
+            f"{count_dict[min_cnt_key]:.2f}\n[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]",
+            f"{count_dict[max_cnt_key]:.2f}\n[{max_cnt_key[2]} {max_cnt_key[1]} {max_cnt_key[0]} {max_cnt_key[3]}]",
+            f"{cap_dict[min_cap_cnt_key]:.2f}\n" +
+            f"[{min_cap_cnt_key[2]} {min_cap_cnt_key[1]} {min_cap_cnt_key[0]} {min_cap_cnt_key[3]}]",
+            f"{cap_dict[max_cap_cnt_key]:.2f}\n" +
+            f"[{max_cap_cnt_key[2]} {max_cap_cnt_key[1]} {max_cap_cnt_key[0]} {max_cap_cnt_key[3]}]"
+        )
+    return result
+
+
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
                  data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple],
                  sort_columns: Sequence[str], sort_columns_unit: Sequence[str]) -> None:
@@ -175,6 +250,8 @@ def main() -> None:
         group = parser.add_mutually_exclusive_group()
         group.add_argument("-c", "--capacity", action="store_true", help="Show general capacity data")
         group.add_argument("-m", "--moving-average", type=int, help="Calculate moving average capacity")
+        group.add_argument("--section", type=int,
+                           help="Show cross-sectional (station-wise) capacity data")
 
     all_trains, lines, args = parse_args(append_arg)
     if args.per_line:
@@ -195,6 +272,18 @@ def main() -> None:
                     average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
                 ], [
                     "", "", "km", "", "km/h", "", "ppl", "", "", "", "", "", ""
+                ]
+            )
+        elif args.section:
+            average_str = f"{args.section}-min Avg\n"
+            output_table(
+                all_trains, args,
+                get_section_data(all_trains, lines, args.section, args.full_only), [
+                    "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
+                    average_str + "Min Count", average_str + "Max Count",
+                    average_str + "Min Cap", average_str + "Max Cap"
+                ], [
+                    "", "", "km", "", "km/h", "", "ppl", "", "", "", ""
                 ]
             )
         else:

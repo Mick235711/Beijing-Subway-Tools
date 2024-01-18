@@ -7,7 +7,7 @@
 import argparse
 import json
 
-from src.common.common import add_min, get_time_str, suffix_s
+from src.common.common import add_min_tuple, get_time_str, suffix_s
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, divide_by_line, parse_args
 
@@ -43,14 +43,14 @@ def minute_trains(
 ) -> dict[str, dict[str, int]]:
     """ Print train number & capacity per minute """
     minute_dict: dict[str, dict[str, int]] = {"Total": {}}
-    for date_group, train in set(t for x in all_trains.values() for t in x):
+    for _, train in set(t for x in all_trains.values() for t in x):
         if full_only and train.stations != train.line.direction_base_route[train.direction].stations:
             continue
         if train.line.name not in minute_dict:
             minute_dict[train.line.name] = {}
-        start_tuple = train.arrival_time[train.stations[0]]
+        start_tuple = train.start_time()
         for i in range(0, train.duration() + 1):
-            cur_tuple = add_min(start_tuple[0], i, start_tuple[1])
+            cur_tuple = add_min_tuple(start_tuple, i)
             cur_str = get_time_str(*cur_tuple)
             train_cap = train.train_capacity()
             if cur_str not in minute_dict[train.line.name]:

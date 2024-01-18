@@ -38,8 +38,8 @@ def main() -> None:
 
     meta_information: dict[str, str] = {}
     for i, train_loop in enumerate(loop_dict):
-        first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time()}"
-        last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time()}"
+        first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time_repr()}"
+        last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time_repr()}"
         meta_information[f"#{i + 1} {first_str} -> ... -> {last_str}"] = \
             suffix_s("loop", len(train_loop))
     result = complete_pinyin("Please select a train:", meta_information)

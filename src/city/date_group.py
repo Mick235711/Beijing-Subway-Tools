@@ -7,7 +7,7 @@
 from datetime import date, time
 from typing import Any
 
-from src.common.common import get_time_repr, diff_time, TimeSpec, parse_time
+from src.common.common import get_time_repr, diff_time_tuple, TimeSpec, parse_time
 
 
 class DateGroup:
@@ -81,9 +81,9 @@ class TimeInterval:
         for date_group, start, end in self.time_intervals:
             if date_group is not None and not date_group.covers(cur_date):
                 continue
-            if start is not None and diff_time(cur_time, start[0], cur_day, start[1]) < 0:
+            if start is not None and diff_time_tuple((cur_time, cur_day), start) < 0:
                 continue
-            if end is not None and diff_time(cur_time, end[0], cur_day, end[1]) > 0:
+            if end is not None and diff_time_tuple((cur_time, cur_day), end) > 0:
                 continue
             return True
         return False

@@ -16,7 +16,8 @@ from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_da
 from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer
-from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str, get_time_repr
+from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
+    distance_str, get_time_repr
 from src.routing.train import Train, parse_all_trains
 
 
@@ -161,10 +162,7 @@ def find_next_train(
             next_time, next_day = add_min(cur_time, ceil(transfer_time), cur_day)
         else:
             next_time, next_day = cur_time, cur_day
-        if diff_time(
-            next_time, train.arrival_time[station][0],
-            next_day, train.arrival_time[station][1]
-        ) > 0:
+        if diff_time_tuple((next_time, next_day), train.arrival_time[station]) > 0:
             continue
         if exclude_tuple is not None and (train.line, train.direction) in exclude_tuple:
             continue
