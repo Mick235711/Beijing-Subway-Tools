@@ -110,7 +110,7 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
 
 def get_moving_average_data(
     all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
-    moving_min: int = 60, full_only: bool = False, show_example: bool = False
+    moving_min: int = 60, full_only: bool = False, show_example: bool = False, include_edge: bool = False
 ) -> dict[str, tuple]:
     """ Get moving average data """
     minute_dict = minute_trains(all_trains, full_only)
@@ -119,11 +119,15 @@ def get_moving_average_data(
     for line_name, line_dict in minute_dict.items():
         avg_cnt, (
             min_cnt_beg, min_cnt_end, min_cnt
-        ), (max_cnt_beg, max_cnt_end, max_cnt) = moving_average_dict(line_dict, moving_min)
+        ), (
+            max_cnt_beg, max_cnt_end, max_cnt
+        ) = moving_average_dict(line_dict, moving_min, include_edge)
         line_cap_dict = capacity_dict[line_name]
         avg_cap_cnt, (
             min_cap_cnt_beg, min_cap_cnt_end, min_cap_cnt
-        ), (max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt) = moving_average_dict(line_cap_dict, moving_min)
+        ), (
+            max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt
+        ) = moving_average_dict(line_cap_dict, moving_min, include_edge)
         if line_name == "Total":
             result[line_name] = (
                 line_name, "",
@@ -175,8 +179,10 @@ def count_train(station: str, trains: Sequence[Train], moving_min: int = 60,
     return result_dict
 
 
-def get_section_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
-                     moving_min: int = 60, full_only: bool = False, show_example: bool = False) -> dict[str, tuple]:
+def get_section_data(
+    all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
+    moving_min: int = 60, full_only: bool = False, show_example: bool = False, include_edge: bool = False
+) -> dict[str, tuple]:
     """ Get sectional (station-wise) data """
     # Calculate line -> (date_group, direction, station) -> list of trains
     processed_dict: dict[str, dict[tuple[str, str, str], list[Train]]] = {}
@@ -203,7 +209,9 @@ def get_section_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict
             station = key[2]
             sorted_list = sorted(value, key=lambda t: t.stop_time(station))
             for time_str, (count_value, cap_value) in count_train(
-                station, value, moving_min, sorted_list[0].arrival_time[station], sorted_list[-1].arrival_time[station]
+                station, value, moving_min,
+                None if include_edge else sorted_list[0].arrival_time[station],
+                None if include_edge else sorted_list[-1].arrival_time[station]
             ).items():
                 count_dict[key + (time_str,)] = count_value
                 cap_dict[key + (time_str,)] = cap_value
@@ -259,6 +267,7 @@ def main() -> None:
         group.add_argument("--section", type=int,
                            help="Show cross-sectional (station-wise) capacity data")
         parser.add_argument("--show-example", action="store_true", help="Show example")
+        parser.add_argument("--include-edge", action="store_true", help="Include edge in moving average")
 
     all_trains, lines, args = parse_args(append_arg)
     if args.per_line:
@@ -274,7 +283,7 @@ def main() -> None:
             output_table(
                 all_trains, args,
                 get_moving_average_data(
-                    all_trains, lines, args.moving_average, args.full_only, args.show_example
+                    all_trains, lines, args.moving_average, args.full_only, args.show_example, args.include_edge
                 ), [
                     "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                     average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
@@ -288,7 +297,7 @@ def main() -> None:
             output_table(
                 all_trains, args,
                 get_section_data(
-                    all_trains, lines, args.section, args.full_only, args.show_example
+                    all_trains, lines, args.section, args.full_only, args.show_example, args.include_edge
                 ), [
                     "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                     average_str + "Min Count", average_str + "Max Count",
