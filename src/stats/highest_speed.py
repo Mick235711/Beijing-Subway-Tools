@@ -67,6 +67,8 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
             data.append(data_callback[line_name])
         else:
             data.append(data_callback(line, train_set))
+    if isinstance(data_callback, dict) and "Total" in data_callback:
+        data.append(data_callback["Total"])
 
     data = sorted(data, key=lambda x: x[sort_index], reverse=reverse)
     print(tabulate(
@@ -112,8 +114,6 @@ def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], line
     capacity_dict = minute_trains(all_trains, full_only, True)
     result: dict[str, tuple] = {}
     for line_name, line_dict in minute_dict.items():
-        if line_name == "Total":
-            continue
         avg_cnt, (
             min_cnt_beg, min_cnt_end, min_cnt
         ), (max_cnt_beg, max_cnt_end, max_cnt) = moving_average_dict(line_dict, moving_min)
@@ -121,6 +121,19 @@ def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], line
         avg_cap_cnt, (
             min_cap_cnt_beg, min_cap_cnt_end, min_cap_cnt
         ), (max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt) = moving_average_dict(line_cap_dict, moving_min)
+        if line_name == "Total":
+            result[line_name] = (
+                line_name, "",
+                sum(line.total_distance() / 1000 for line in lines.values()),
+                sum(len(line.stations) for line in lines.values()), "", "", "",
+                avg_cnt,
+                f"{min_cnt:.2f}\n[{min_cnt_beg} - {min_cnt_end}]",
+                f"{max_cnt:.2f}\n[{max_cnt_beg} - {max_cnt_end}]",
+                avg_cap_cnt,
+                f"{min_cap_cnt:.2f}\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]",
+                f"{max_cap_cnt:.2f}\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]"
+            )
+            continue
         line = lines[line_name]
         result[line_name] = (
             line.name, f"{line.stations[0]} - {line.stations[-1]}",

@@ -131,9 +131,11 @@ def parse_args(
         assert args.exclude_lines is None, args
         include_lines = [x.strip() for x in args.include_lines.split(",")]
         all_trains = {k: [e for e in v if e[1].line.name in include_lines] for k, v in all_trains.items()}
+        lines = {k: v for k, v in lines.items() if v.name in include_lines}
     elif args.exclude_lines is not None:
         exclude_lines = [x.strip() for x in args.exclude_lines.split(",")]
         all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines] for k, v in all_trains.items()}
+        lines = {k: v for k, v in lines.items() if v.name not in exclude_lines}
     return all_trains, lines, args
 
 

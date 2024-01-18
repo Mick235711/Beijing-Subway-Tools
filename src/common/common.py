@@ -5,7 +5,7 @@
 
 # Libraries
 import itertools
-from collections.abc import Iterable, Callable, Sequence
+from collections.abc import Iterable, Callable, Sequence, Mapping
 from datetime import datetime, date, time, timedelta
 from typing import TypeVar, Any
 
@@ -377,7 +377,7 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
     return sum(cur_sum) / len(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
 
 
-def moving_average_dict(data: dict[T, int | float], moving_min: int,
+def moving_average_dict(data: Mapping[T, int | float], moving_min: int,
                         include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average on a dictionary, return avg & min/max interval """
     return moving_average(list(data.keys()), lambda x: data[x], moving_min, include_edge)
