@@ -63,7 +63,7 @@ def latest_first_train(
 
 def main() -> None:
     """ Main function """
-    all_trains, args = parse_args()
+    all_trains, _, args = parse_args()
     first_train_station(all_trains, limit_num=args.limit_num)
     print()
     latest_first_train(all_trains, limit_num=args.limit_num)

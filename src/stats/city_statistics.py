@@ -49,7 +49,7 @@ def get_all_trains(
     return dict(sorted(list(all_trains.items()), key=lambda x: len(x[1]), reverse=True))
 
 
-def divide_by_line(trains: Iterable[Train]) -> str:
+def divide_by_line(trains: Iterable[Train], use_capacity: bool = False) -> str:
     """ Divide train number by line """
     res = ""
     first = True
@@ -58,8 +58,13 @@ def divide_by_line(trains: Iterable[Train]) -> str:
             first = False
         else:
             res += ", "
-        res += f"{line} {sum(len(x) for x in new_line_dict.values())} ("
-        res += ", ".join(f"{direction} {len(sub_trains)}" for direction, sub_trains in new_line_dict.items())
+        if use_capacity:
+            res += f"{line} {sum(sum(t.train_capacity() for t in x) for x in new_line_dict.values())} ("
+            res += ", ".join(f"{direction} {sum(train.train_capacity() for train in sub_trains)}"
+                             for direction, sub_trains in new_line_dict.items())
+        else:
+            res += f"{line} {sum(len(x) for x in new_line_dict.values())} ("
+            res += ", ".join(f"{direction} {len(sub_trains)}" for direction, sub_trains in new_line_dict.items())
         res += ")"
     return res
 
@@ -97,7 +102,7 @@ def max_train_station(
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True
-) -> tuple[dict[str, list[tuple[str, Train]]], argparse.Namespace]:
+) -> tuple[dict[str, list[tuple[str, Train]]], dict[str, Line], argparse.Namespace]:
     """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
     if include_limit:
@@ -129,12 +134,12 @@ def parse_args(
     elif args.exclude_lines is not None:
         exclude_lines = [x.strip() for x in args.exclude_lines.split(",")]
         all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines] for k, v in all_trains.items()}
-    return all_trains, args
+    return all_trains, lines, args
 
 
 def main() -> None:
     """ Main function """
-    all_trains, args = parse_args()
+    all_trains, _, args = parse_args()
     max_train_station(all_trains, limit_num=args.limit_num)
 
 

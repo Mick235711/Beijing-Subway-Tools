@@ -10,9 +10,10 @@ from collections.abc import Callable, Sequence
 from tabulate import tabulate
 
 from src.city.line import Line
-from src.common.common import speed_str
+from src.common.common import speed_str, moving_average
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, parse_args
+from src.stats.hour_trains import minute_trains
 
 
 def highest_speed_train(
@@ -45,7 +46,7 @@ def highest_speed_train(
 
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
-                  data_callback: Callable[[Line, set[Train]], tuple], *,
+                  data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple], *,
                   sort_index: int = 0, reverse: bool = False, full_only: bool = False,
                   table_format: str = "simple") -> None:
     """ Obtain data on lines """
@@ -62,11 +63,14 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     # Obtain data for each line
     data: list[tuple] = []
     for line_name, (line, train_set) in line_dict.items():
-        data.append(data_callback(line, train_set))
+        if isinstance(data_callback, dict):
+            data.append(data_callback[line_name])
+        else:
+            data.append(data_callback(line, train_set))
 
     data = sorted(data, key=lambda x: x[sort_index], reverse=reverse)
     print(tabulate(
-        data, headers=header, tablefmt=table_format, numalign="decimal", floatfmt=".2f"
+        data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
     ))
 
 
@@ -101,8 +105,43 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
     )
 
 
+def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
+                            moving_min: int = 60, full_only: bool = False) -> dict[str, tuple]:
+    """ Get moving average data """
+    minute_dict = minute_trains(all_trains, full_only)
+    capacity_dict = minute_trains(all_trains, full_only, True)
+    result: dict[str, tuple] = {}
+    for line_name, line_dict in minute_dict.items():
+        if line_name == "Total":
+            continue
+        avg_cnt, (
+            min_cnt_beg, min_cnt_end, min_cnt
+        ), (max_cnt_beg, max_cnt_end, max_cnt) = moving_average(
+            list(line_dict.keys()), lambda x: line_dict[x], moving_min
+        )
+        line_cap_dict = capacity_dict[line_name]
+        avg_cap_cnt, (
+            min_cap_cnt_beg, min_cap_cnt_end, min_cap_cnt
+        ), (max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt) = moving_average(
+            list(line_cap_dict.keys()), lambda x: line_cap_dict[x], moving_min
+        )
+        line = lines[line_name]
+        result[line_name] = (
+            line.name, f"{line.stations[0]} - {line.stations[-1]}",
+            line.total_distance() / 1000, len(line.stations), line.design_speed,
+            line.train_code(), line.train_capacity(),
+            avg_cnt,
+            f"{min_cnt:.2f}\n[{min_cnt_beg} - {min_cnt_end}]",
+            f"{max_cnt:.2f}\n[{max_cnt_beg} - {max_cnt_end}]",
+            avg_cap_cnt,
+            f"{min_cap_cnt:.2f}\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]",
+            f"{max_cap_cnt:.2f}\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]"
+        )
+    return result
+
+
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
-                 data_callback: Callable[[Line, set[Train]], tuple],
+                 data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple],
                  sort_columns: Sequence[str], sort_columns_unit: Sequence[str]) -> None:
     """ Output data as table """
     sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
@@ -124,9 +163,11 @@ def main() -> None:
         parser.add_argument("-s", "--sort-by", help="Sort by this column", default="")
         parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
         parser.add_argument("-t", "--table-format", help="Table format", default="simple")
-        parser.add_argument("-c", "--capacity", action="store_true", help="Show capacity data")
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument("-c", "--capacity", action="store_true", help="Show general capacity data")
+        group.add_argument("-m", "--moving-average", type=int, help="Calculate moving average capacity")
 
-    all_trains, args = parse_args(append_arg)
+    all_trains, lines, args = parse_args(append_arg)
     if args.per_line:
         if args.capacity:
             output_table(all_trains, args, get_capacity_data, [
@@ -135,6 +176,18 @@ def main() -> None:
             ], [
                 "", "", "km", "", "km/h", "", "ppl", "", "w ppl", "w km", "", "y ppl km"
             ])
+        elif args.moving_average:
+            average_str = f"{args.moving_average}-min Avg\n"
+            output_table(
+                all_trains, args,
+                get_moving_average_data(all_trains, lines, args.moving_average, args.full_only), [
+                    "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
+                    average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
+                    average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
+                ], [
+                    "", "", "km", "", "km/h", "", "ppl", "", "", "", "", "", ""
+                ]
+            )
         else:
             output_table(all_trains, args, get_speed_data, [
                 "Line", "Interval", "Distance", "Station", "Design Spd",

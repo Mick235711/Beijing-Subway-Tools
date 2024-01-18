@@ -350,3 +350,28 @@ def percentage_coverage(data: Sequence[tuple[Iterable[T], U]]) -> list[tuple[flo
         count_dict[tuple(key)].append(value)
     result = [(len(entries) / len(data), list(key), entries) for key, entries in count_dict.items()]
     return sorted(result, key=lambda x: x[0], reverse=True)
+
+
+def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_min: int,
+                   include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
+    """ Calculate moving average, return avg & min/max interval """
+    cur_min: float | None = None
+    cur_min_beg: T | None = None
+    cur_min_end: T | None = None
+    cur_max: float | None = None
+    cur_max_beg: T | None = None
+    cur_max_end: T | None = None
+    cur_sum: list[float] = []
+    total_length = len(data) - (0 if include_edge else moving_min)
+    for i in range(1 - moving_min if include_edge else 0, total_length):
+        cur_slice = [key(x) for x in data[max(0, i):i + moving_min]]
+        moving_avg = sum(cur_slice) / len(cur_slice)
+        if cur_min is None or cur_min > moving_avg:
+            cur_min = moving_avg
+            cur_min_beg, cur_min_end = data[max(0, i)], data[min(len(data) - 1, i + moving_min)]
+        if cur_max is None or cur_max < moving_avg:
+            cur_max = moving_avg
+            cur_max_beg, cur_max_end = data[max(0, i)], data[min(len(data) - 1, i + moving_min)]
+        cur_sum.append(moving_avg)
+    assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, data
+    return sum(cur_sum) / len(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)

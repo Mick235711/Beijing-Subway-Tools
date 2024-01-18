@@ -27,6 +27,18 @@ class Train:
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
 
+    def train_capacity(self) -> int:
+        """ Capacity for this line """
+        return self.line.carriage_type.train_capacity(self.carriage_num)
+
+    def train_code(self) -> str:
+        """ Code name for this line """
+        return self.line.carriage_type.train_code(self.carriage_num)
+
+    def train_formal_name(self) -> str:
+        """ Formal name for a train """
+        return self.line.carriage_type.train_formal_name(self.carriage_num)
+
     def start_time(self) -> str:
         """ Train start time """
         return get_time_repr(*self.arrival_time[self.stations[0]])
