@@ -86,6 +86,37 @@
                         {plan: "高楼金回库车", trains: ["23:06", "23:14"]}
                     ]
                 }
+            },
+            "西行": {
+                // 以+2min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:53", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "07:21", delta: [4, 3, 3, 4, [34, [3]], 4, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "16:09", delta: [7, [11, [6]], [33, [3]], 4, 4, 7, 7, 7, 6, [10, [8]], [8, [9]]]},
+                        {first_train: "22:17", delta: [[11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:53", count: 3},
+                        {plan: "双合出库车", trains: ["06:30", "07:12", "07:18"]},
+                        {plan: "双合出库车", first_train: "07:35", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "08:05", skip_trains: 1, until: "09:17"},
+                        {plan: "双合出库车", first_train: "17:28", skip_trains: 1, until: "19:05"},
+                        {plan: "高楼金出库车", trains: ["07:25", "07:41", "07:53"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:53", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "07:27", delta: [6, 7, 6, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:53", count: 3},
+                        {plan: "双合出库车", trains: ["06:22"]},
+                        {plan: "双合出库车", first_train: "08:05", skip_trains: 3, until: "21:41"},
+                        {plan: "高楼金出库车", trains: ["06:41", "06:51", "07:08"]}
+                    ]
+                }
             }
         },
         "湾子": {
@@ -111,6 +142,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "06:38", skip_trains: 3, until: "21:50"},
                         {plan: "高楼金回库车", trains: ["23:08", "23:16"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:51", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "07:19", delta: [4, 3, 3, 4, [34, [3]], 4, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "16:07", delta: [7, [11, [6]], [33, [3]], 4, 4, 7, 7, 7, 6, [10, [8]], [8, [9]]]},
+                        {first_train: "22:15", delta: [[11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:51", count: 3},
+                        {plan: "双合出库车", trains: ["06:28", "07:10", "07:16"]},
+                        {plan: "双合出库车", first_train: "07:33", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "08:03", skip_trains: 1, until: "09:15"},
+                        {plan: "双合出库车", first_train: "17:26", skip_trains: 1, until: "19:03"},
+                        {plan: "高楼金出库车", trains: ["07:23", "07:39", "07:51"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:51", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "07:25", delta: [6, 7, 6, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:51", count: 3},
+                        {plan: "双合出库车", trains: ["06:20"]},
+                        {plan: "双合出库车", first_train: "08:03", skip_trains: 3, until: "21:39"},
+                        {plan: "高楼金出库车", trains: ["06:39", "06:49", "07:06"]}
                     ]
                 }
             }
@@ -140,6 +201,36 @@
                         {plan: "高楼金回库车", trains: ["23:10", "23:18"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:50", delta: [8, 7, 9, 8, 4, 4, 7, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "07:18", delta: [3, 4, [35, [3]], 4, 3, [6, [6]], 7, 6, 6, [12, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:59", delta: [7, [7, [6]], 7, 6, 6, 6, 5, 4, [33, [3]], 4, 7]},
+                        {first_train: "19:19", delta: [7, 7, [10, [8]], [9, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:50", count: 3},
+                        {plan: "双合出库车", trains: ["06:26", "07:08", "07:14"]},
+                        {plan: "双合出库车", first_train: "07:31", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "08:01", skip_trains: 1, until: "09:14"},
+                        {plan: "双合出库车", first_train: "17:25", skip_trains: 1, until: "19:01"},
+                        {plan: "高楼金出库车", trains: ["07:21", "07:37", "07:49"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:50", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 6]},
+                        {first_train: "07:23", delta: [6, 7, 6, 7, 7, [139, [6]], 8, 8, 9, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:50", count: 3},
+                        {plan: "双合出库车", trains: ["06:19"]},
+                        {plan: "双合出库车", first_train: "08:02", skip_trains: 3, until: "21:38"},
+                        {plan: "高楼金出库车", trains: ["06:38", "06:48", "07:05"]}
+                    ]
+                }
             }
         },
         "广安门内": {
@@ -165,6 +256,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "06:43", skip_trains: 3, until: "21:55"},
                         {plan: "高楼金回库车", trains: ["23:13", "23:21"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [8, 7, 9, 8, 4, 4, [5, [7]], 3, 4, 3, 3, 4, [35, [3]]]},
+                        {first_train: "09:07", delta: [4, 3, [6, [6]], 7, 6, 6, [9, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:35", delta: [7, 7, 7, [2, [7, 6, 6, 6, 6, 6]], 5, 4, [32, [3]]]},
+                        {first_train: "18:58", delta: [4, 7, 7, 7, 7, [10, [8]], [9, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:47", count: 3},
+                        {plan: "双合出库车", trains: ["06:23", "07:05", "07:12"]},
+                        {plan: "双合出库车", first_train: "07:28", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:58", skip_trains: 1, until: "09:11"},
+                        {plan: "双合出库车", first_train: "17:22", skip_trains: 1, until: "18:58"},
+                        {plan: "高楼金出库车", trains: ["07:19", "07:34", "07:46"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 6]},
+                        {first_train: "07:20", delta: [6, 7, 7, 6, 7, [138, [6]], 7, 7, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:47", count: 3},
+                        {plan: "双合出库车", trains: ["06:16"]},
+                        {plan: "双合出库车", first_train: "07:59", skip_trains: 3, until: "21:35"},
+                        {plan: "高楼金出库车", trains: ["06:35", "06:45", "07:02"]}
                     ]
                 }
             }
@@ -194,6 +315,36 @@
                         {plan: "高楼金回库车", trains: ["23:16", "23:24"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, [3, [3, 4, 3]]]},
+                        {first_train: "07:32", delta: [[32, [3]], 4, [7, [6]], 7, 6, 6, [4, [7, 7, 7, 8, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "16:00", delta: [7, [11, [6]], 4, [33, [3]], 4, 7, 7, 6, 7, [10, [8]], [8, [9]]]},
+                        {first_train: "22:08", delta: [[11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:44", count: 3},
+                        {plan: "双合出库车", trains: ["06:21", "07:02", "07:09"]},
+                        {plan: "双合出库车", first_train: "07:26", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:56", skip_trains: 1, until: "09:08"},
+                        {plan: "双合出库车", first_train: "17:20", skip_trains: 1, until: "18:56"},
+                        {plan: "高楼金出库车", trains: ["07:16", "07:32", "07:44"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "07:17", delta: [7, 6, 7, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:44", count: 3},
+                        {plan: "双合出库车", trains: ["06:13"]},
+                        {plan: "双合出库车", first_train: "07:56", skip_trains: 3, until: "21:32"},
+                        {plan: "高楼金出库车", trains: ["06:32", "06:42", "06:59"]}
+                    ]
+                }
             }
         },
         "虎坊桥": {
@@ -219,6 +370,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "06:48", skip_trains: 3, until: "22:00"},
                         {plan: "高楼金回库车", trains: ["23:18", "23:26"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:42", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, 3, 4, 3]},
+                        {first_train: "07:10", delta: [4, 3, 4, [35, [3]], 4, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:58", delta: [7, [11, [6]], 4, [33, [3]], 4, 7, 7, 7, 6, [10, [8]], [8, [9]]]},
+                        {first_train: "22:06", delta: [[11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:42", count: 3},
+                        {plan: "双合出库车", trains: ["06:19", "07:00", "07:07"]},
+                        {plan: "双合出库车", first_train: "07:24", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:54", skip_trains: 1, until: "09:06"},
+                        {plan: "双合出库车", first_train: "17:18", skip_trains: 1, until: "18:54"},
+                        {plan: "高楼金出库车", trains: ["07:14", "07:30", "07:42"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:42", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "07:15", delta: [7, 6, 7, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:42", count: 3},
+                        {plan: "双合出库车", trains: ["06:11"]},
+                        {plan: "双合出库车", first_train: "07:54", skip_trains: 3, until: "21:30"},
+                        {plan: "高楼金出库车", trains: ["06:30", "06:40", "06:57"]}
                     ]
                 }
             }
@@ -248,6 +429,36 @@
                         {plan: "高楼金回库车", trains: ["23:20", "23:28"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:40", delta: [8, 7, 9, 8, 4, 4, 8, 7, 7, 7, 6, 3, 4, [2, [3, 3, 4, 3]]]},
+                        {first_train: "07:31", delta: [[32, [3]], [6, [6]], 7, 7, 6, 6, [6, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:14", delta: [[6, [7]], 6, 6, 6, 6, 7, [6, [6]], 5, 4, [32, [3]]]},
+                        {first_train: "18:52", delta: [4, 6, 7, 7, 7, [10, [8]], [9, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:40", count: 3},
+                        {plan: "双合出库车", trains: ["06:16", "06:58", "07:05"]},
+                        {plan: "双合出库车", first_train: "07:21", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:52", skip_trains: 1, until: "09:04"},
+                        {plan: "双合出库车", first_train: "17:15", skip_trains: 1, until: "18:52"},
+                        {plan: "高楼金出库车", trains: ["07:12", "07:28", "07:40"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:40", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 6]},
+                        {first_train: "07:13", delta: [7, 6, 7, 6, 7, [138, [6]], 7, 7, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:40", count: 3},
+                        {plan: "双合出库车", trains: ["06:09"]},
+                        {plan: "双合出库车", first_train: "07:52", skip_trains: 3, until: "21:28"},
+                        {plan: "高楼金出库车", trains: ["06:28", "06:38", "06:55"]}
+                    ]
+                }
             }
         },
         "桥湾": {
@@ -273,6 +484,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "06:52", skip_trains: 3, until: "22:04"},
                         {plan: "高楼金回库车", trains: ["23:22", "23:30"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:38", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, [3, [3, 4, 3]]]},
+                        {first_train: "07:26", delta: [[32, [3]], 4, [7, [6]], 7, 6, 6, [4, [7, 7, 7, 7, 8, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:54", delta: [7, [11, [6]], 4, [33, [3]], 4, 6, 7, 7, 7, [10, [8]], [8, [9]]]},
+                        {first_train: "22:02", delta: [[11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:38", count: 3},
+                        {plan: "双合出库车", trains: ["06:15", "06:56", "07:03"]},
+                        {plan: "双合出库车", first_train: "07:20", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:50", skip_trains: 1, until: "09:02"},
+                        {plan: "双合出库车", first_train: "17:14", skip_trains: 1, until: "18:50"},
+                        {plan: "高楼金出库车", trains: ["07:10", "07:26", "07:38"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:38", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, [4, [7, 6]]]},
+                        {first_train: "07:56", delta: [[136, [6]], 7, 7, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:38", count: 3},
+                        {plan: "双合出库车", trains: ["06:07"]},
+                        {plan: "双合出库车", first_train: "07:50", skip_trains: 3, until: "21:26"},
+                        {plan: "高楼金出库车", trains: ["06:26", "06:36", "06:53"]}
                     ]
                 }
             }
@@ -302,6 +543,37 @@
                         {plan: "高楼金回库车", trains: ["23:24", "23:32"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:36", delta: [8, 7, 9, 8, 4, 4, [5, [7]], 3, 4, [2, [3, 3, 4, 3]]]},
+                        {first_train: "07:27", delta: [[32, [3]], [6, [6]], 7, 6, 6, [8, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:17", delta: [[5, [7]], [5, [6]], 7, [5, [6]], 5, 5, [33, [3]], 4, 6]},
+                        {first_train: "19:05", delta: [7, 7, [10, [8]], [9, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:36", count: 3},
+                        {plan: "双合出库车", trains: ["06:12", "06:54", "07:01"]},
+                        {plan: "双合出库车", first_train: "07:17", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:48", skip_trains: 1, until: "09:00"},
+                        {plan: "双合出库车", first_train: "17:12", skip_trains: 1, until: "18:48"},
+                        {plan: "高楼金出库车", trains: ["07:08", "07:24", "07:36"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:36", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 6]},
+                        {first_train: "07:09", delta: [6, 7, 6, 7, 7, [34, [6, 5, 7, 6]], 6, 5, 8, 7]},
+                        {first_train: "21:52", delta: [9, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:36", count: 3},
+                        {plan: "双合出库车", trains: ["06:05"]},
+                        {plan: "双合出库车", first_train: "07:48", skip_trains: 3, until: "21:24"},
+                        {plan: "高楼金出库车", trains: ["06:24", "06:34", "06:51"]}
+                    ]
+                }
             }
         },
         "广渠门内": {
@@ -327,6 +599,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "06:56", skip_trains: 3, until: "22:08"},
                         {plan: "高楼金回库车", trains: ["23:26", "23:34"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:33", delta: [8, 8, 8, 9, 4, 4, [5, [7]], 3, 4, 3, 3, 4, [35, [3]]]},
+                        {first_train: "08:54", delta: [4, 3, [6, [6]], 7, 6, 6, [10, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:29", delta: [7, 7, 7, [6, [6]], 7, 6, 6, 6, 6, 5, 4, [31, [3]]]},
+                        {first_train: "18:42", delta: [4, 4, 6, 7, 7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:33", count: 3},
+                        {plan: "双合出库车", trains: ["06:10", "06:52", "06:59"]},
+                        {plan: "双合出库车", first_train: "07:15", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:45", skip_trains: 1, until: "08:58"},
+                        {plan: "双合出库车", first_train: "17:09", skip_trains: 1, until: "18:46"},
+                        {plan: "高楼金出库车", trains: ["07:06", "07:21", "07:33"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:33", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "07:07", delta: [6, 7, 6, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:33", count: 3},
+                        {plan: "双合出库车", trains: ["06:02"]},
+                        {plan: "双合出库车", first_train: "07:45", skip_trains: 3, until: "21:21"},
+                        {plan: "高楼金出库车", trains: ["06:21", "06:31", "06:48"]}
                     ]
                 }
             }
@@ -356,6 +658,36 @@
                         {plan: "高楼金回库车", trains: ["23:29", "23:37"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [8, 8, 8, 9, 4, 4, 7, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "07:00", delta: [4, [36, [3]], 4, 3, [6, [6]], 7, 6, 6, [13, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:47", delta: [7, [6, [6]], 7, 6, 6, 6, 5, 4, [32, [3]], 4, 3]},
+                        {first_train: "18:54", delta: [7, 7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:31", count: 3},
+                        {plan: "双合出库车", trains: ["06:08", "06:50", "06:56"]},
+                        {plan: "双合出库车", first_train: "07:13", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:43", skip_trains: 1, until: "08:56"},
+                        {plan: "双合出库车", first_train: "17:07", skip_trains: 1, until: "18:44"},
+                        {plan: "高楼金出库车", trains: ["07:04", "07:19", "07:31"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "07:04", delta: [7, 6, 7, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:31", count: 3},
+                        {plan: "双合出库车", trains: ["06:00"]},
+                        {plan: "双合出库车", first_train: "07:43", skip_trains: 3, until: "21:19"},
+                        {plan: "高楼金出库车", trains: ["06:19", "06:29", "06:46"]}
+                    ]
+                }
             }
         },
         "双井": {
@@ -381,6 +713,37 @@
                     filters: [
                         {plan: "双合回库车", first_train: "07:01", skip_trains: 3, until: "22:13"},
                         {plan: "高楼金回库车", trains: ["23:31", "23:39"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [8, 7, 9, 8, 4, 4, 8, 7, 7, 7, 6, [3, [3, 4, 3]]]},
+                        {first_train: "07:17", delta: [[33, [3]], [6, [6]], 7, 7, 6, 6, [6, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:03", delta: [[6, [7]], 6, 6, 6, 6, 7, [6, [6]], 5, 5, [33, [3]]]},
+                        {first_train: "18:45", delta: [6, 7, 7, 7, [10, [8]], [9, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:29", count: 3},
+                        {plan: "双合出库车", trains: ["06:05", "06:47", "06:54"]},
+                        {plan: "双合出库车", first_train: "07:11", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:41", skip_trains: 1, until: "08:53"},
+                        {plan: "双合出库车", first_train: "17:05", skip_trains: 1, until: "18:41"},
+                        {plan: "高楼金出库车", trains: ["07:01", "07:17", "07:29"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 6]},
+                        {first_train: "07:02", delta: [6, 7, 6, 7, 7, [34, [6, 5, 7, 6]], 6, 5, 8, 7]},
+                        {first_train: "21:45", delta: [9, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:29", count: 3},
+                        {plan: "双合出库车", trains: ["05:58"]},
+                        {plan: "双合出库车", first_train: "07:41", skip_trains: 3, until: "21:17"},
+                        {plan: "高楼金出库车", trains: ["06:17", "06:27", "06:44"]}
                     ]
                 }
             }
@@ -410,6 +773,36 @@
                         {plan: "高楼金回库车", trains: ["23:34", "23:42"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:26", delta: [8, 8, 8, 9, 4, 4, 7, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "06:55", delta: [4, [36, [3]], 4, 3, [6, [6]], 7, 6, 6, [10, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:22", delta: [7, 7, 7, [6, [6]], 7, 6, 6, 6, 6, 5, 4, [31, [3]]]},
+                        {first_train: "18:35", delta: [4, 4, 6, 7, 7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:26", count: 3},
+                        {plan: "双合出库车", trains: ["06:03", "06:45", "06:51"]},
+                        {plan: "双合出库车", first_train: "07:08", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:38", skip_trains: 1, until: "08:51"},
+                        {plan: "双合出库车", first_train: "17:02", skip_trains: 1, until: "18:39"},
+                        {plan: "高楼金出库车", trains: ["06:59", "07:14", "07:26"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:26", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "06:59", delta: [7, 7, 6, 7, [139, [6]], 7, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:26", count: 3},
+                        {plan: "双合出库车", trains: ["05:55"]},
+                        {plan: "双合出库车", first_train: "07:38", skip_trains: 3, until: "21:14"},
+                        {plan: "高楼金出库车", trains: ["06:14", "06:24", "06:41"]}
+                    ]
+                }
             }
         },
         "大郊亭": {
@@ -435,6 +828,37 @@
                     filters: [
                         {plan: "双合回库车", first_train: "07:06", skip_trains: 3, until: "22:18"},
                         {plan: "高楼金回库车", trains: ["23:36", "23:44"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [8, 7, 9, 8, 4, 4, [5, [7]], 3, 4, 3, 3, 4, [35, [3]]]},
+                        {first_train: "08:45", delta: [4, 3, [6, [6]], 7, 6, 6, [8, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:06", delta: [[5, [7]], [5, [6]], 7, [5, [6]], 5, 5, [33, [3]], 4, 6]},
+                        {first_train: "18:54", delta: [7, 7, [10, [8]], [9, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:25", count: 3},
+                        {plan: "双合出库车", trains: ["06:01", "06:43", "06:50"]},
+                        {plan: "双合出库车", first_train: "07:06", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:36", skip_trains: 1, until: "08:49"},
+                        {plan: "双合出库车", first_train: "17:01", skip_trains: 1, until: "18:37"},
+                        {plan: "高楼金出库车", trains: ["06:57", "07:12", "07:24"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 6]},
+                        {first_train: "06:58", delta: [6, 7, 6, 7, 7, [34, [6, 5, 7, 6]], 6, 5, 7, 8]},
+                        {first_train: "21:41", delta: [9, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:25", count: 3},
+                        {plan: "双合出库车", trains: ["05:54"]},
+                        {plan: "双合出库车", first_train: "07:37", skip_trains: 3, until: "21:13"},
+                        {plan: "高楼金出库车", trains: ["06:13", "06:23", "06:40"]}
                     ]
                 }
             }
@@ -464,6 +888,36 @@
                         {plan: "高楼金回库车", trains: ["23:37", "23:45"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [8, 7, 8, 9, 4, 4, [5, [7]], 3, 4, 3, 3, 4, [35, [3]]]},
+                        {first_train: "08:43", delta: [4, 3, [6, [6]], 7, 6, 6, [8, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:04", delta: [[5, [7]], [5, [6]], 7, [5, [6]], 5, 5, [33, [3]], 4, 6]},
+                        {first_train: "18:52", delta: [7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:23", count: 3},
+                        {plan: "双合出库车", trains: ["05:59", "06:41", "06:48"]},
+                        {plan: "双合出库车", first_train: "07:04", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:34", skip_trains: 1, until: "08:47"},
+                        {plan: "双合出库车", first_train: "16:59", skip_trains: 1, until: "18:35"},
+                        {plan: "高楼金出库车", trains: ["06:55", "07:10", "07:22"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [8, 8, 7, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "06:56", delta: [6, 7, 6, [35, [7, 6, 6, 5]], 8, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:23", count: 3},
+                        {plan: "双合出库车", trains: ["05:51"]},
+                        {plan: "双合出库车", first_train: "07:34", skip_trains: 3, until: "21:10"},
+                        {plan: "高楼金出库车", trains: ["06:10", "06:20", "06:37"]}
+                    ]
+                }
             }
         },
         "化工": {
@@ -489,6 +943,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "07:10", skip_trains: 3, until: "22:22"},
                         {plan: "高楼金回库车", trains: ["23:40", "23:48"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:21", delta: [8, 7, 8, 9, 4, 4, [5, [7]], 3, 4, [2, [3, 3, 4, 3]]]},
+                        {first_train: "07:12", delta: [[32, [3]], [6, [6]], 7, 6, 6, [8, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:02", delta: [[5, [7]], [5, [6]], 7, [5, [6]], 5, 5, [33, [3]], 4, 6]},
+                        {first_train: "18:50", delta: [7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:21", count: 3},
+                        {plan: "双合出库车", trains: ["05:57", "06:39", "06:46"]},
+                        {plan: "双合出库车", first_train: "07:02", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:33", skip_trains: 1, until: "08:45"},
+                        {plan: "双合出库车", first_train: "16:57", skip_trains: 1, until: "18:33"},
+                        {plan: "高楼金出库车", trains: ["06:53", "07:09", "07:21"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:21", delta: [8, 8, 7, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "06:54", delta: [6, 7, 6, [35, [7, 6, 6, 5]], 8, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:21", count: 3},
+                        {plan: "双合出库车", trains: ["05:49"]},
+                        {plan: "双合出库车", first_train: "07:32", skip_trains: 3, until: "21:08"},
+                        {plan: "高楼金出库车", trains: ["06:08", "06:18", "06:35"]}
                     ]
                 }
             }
@@ -518,6 +1002,36 @@
                         {plan: "高楼金回库车", trains: ["23:42", "23:50"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:18", delta: [8, 8, 8, 9, 4, 4, 7, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "06:47", delta: [4, [36, [3]], 4, 3, [6, [6]], 7, 6, 6, [12, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:28", delta: [7, [7, [6]], 7, 6, 6, 6, 5, 4, [32, [3]], 4, 4]},
+                        {first_train: "18:41", delta: [7, 7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:18", count: 3},
+                        {plan: "双合出库车", trains: ["05:55", "06:37", "06:43"]},
+                        {plan: "双合出库车", first_train: "07:00", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:30", skip_trains: 1, until: "08:43"},
+                        {plan: "双合出库车", first_train: "16:54", skip_trains: 1, until: "18:31"},
+                        {plan: "高楼金出库车", trains: ["06:51", "07:06", "07:18"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:18", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "06:51", delta: [7, 6, 7, [35, [7, 6, 6, 5]], 8, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:18", count: 3},
+                        {plan: "双合出库车", trains: ["05:47"]},
+                        {plan: "双合出库车", first_train: "07:30", skip_trains: 3, until: "21:06"},
+                        {plan: "高楼金出库车", trains: ["06:06", "06:16", "06:33"]}
+                    ]
+                }
             }
         },
         "欢乐谷景区": {
@@ -545,6 +1059,36 @@
                         {plan: "高楼金回库车", trains: ["23:44", "23:52"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:16", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "06:44", delta: [5, [36, [3]], 4, 3, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:32", delta: [7, [11, [6]], 5, [33, [3]], 4, 6, 7, 7, 6, [10, [8]], [8, [9]]]},
+                        {first_train: "21:40", delta: [[11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:16", count: 3},
+                        {plan: "双合出库车", trains: ["05:53", "06:35", "06:41"]},
+                        {plan: "双合出库车", first_train: "06:58", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:28", skip_trains: 1, until: "08:41"},
+                        {plan: "双合出库车", first_train: "16:53", skip_trains: 1, until: "18:29"},
+                        {plan: "高楼金出库车", trains: ["06:49", "07:04", "07:16"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:16", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, [3, [7, 6]], 7]},
+                        {first_train: "07:28", delta: [[34, [4, 8, 6, 6]], 4, 9, 7, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:16", count: 3},
+                        {plan: "双合出库车", trains: ["05:45"]},
+                        {plan: "双合出库车", first_train: "07:28", skip_trains: 3, until: "21:04"},
+                        {plan: "高楼金出库车", trains: ["06:04", "06:14", "06:31"]}
+                    ]
+                }
             }
         },
         "垡头": {
@@ -570,6 +1114,36 @@
                     filters: [
                         {plan: "双合回库车", first_train: "07:16", skip_trains: 3, until: "22:28"},
                         {plan: "高楼金回库车", trains: ["23:46", "23:54"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:13", delta: [8, 8, 8, 9, 4, 4, 7, 7, 7, 7, 6, 4, 3, 3]},
+                        {first_train: "06:42", delta: [[2, [4, 3, 3, 3]], [31, [3]], [6, [6]], 7, 6, 6, [12, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:23", delta: [7, [7, [6]], 7, 6, 6, 6, 5, 5, [33, [3]], 4, 6]},
+                        {first_train: "18:43", delta: [7, 7, [10, [8]], [9, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:13", count: 3},
+                        {plan: "双合出库车", trains: ["05:50", "06:32", "06:38"]},
+                        {plan: "双合出库车", first_train: "06:55", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:26", skip_trains: 1, until: "08:38"},
+                        {plan: "双合出库车", first_train: "16:50", skip_trains: 1, until: "18:26"},
+                        {plan: "高楼金出库车", trains: ["06:46", "07:02", "07:14"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:13", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, 7]},
+                        {first_train: "06:46", delta: [7, 6, 7, [35, [7, 6, 6, 5]], 8, 8, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:13", count: 3},
+                        {plan: "双合出库车", trains: ["05:42"]},
+                        {plan: "双合出库车", first_train: "07:25", skip_trains: 3, until: "21:01"},
+                        {plan: "高楼金出库车", trains: ["06:01", "06:11", "06:28"]}
                     ]
                 }
             }
@@ -602,6 +1176,37 @@
                         {plan: "高楼金回库车", trains: ["23:49", "23:57"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:11", delta: [8, 8, 8, 8, 5, 3, 8, 7, 7, 7, 6, 3, 4, 3]},
+                        {first_train: "06:39", delta: [5, [37, [3]], 4, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:27", delta: [7, [11, [6]], 5, [28, [3]], 2, 4, 2, 4, 3, 4, 6]},
+                        {first_train: "18:41", delta: [7, 6, [9, [8]], 4, 4, 9, 5, 4, [7, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:11", count: 3},
+                        {plan: "双合出库车", trains: ["05:48", "06:29", "06:36"]},
+                        {plan: "双合出库车", first_train: "06:53", skip_trains: 3, count: 3},
+                        {plan: "双合出库车", first_train: "07:23", skip_trains: 1, until: "08:35"},
+                        {plan: "双合出库车", first_train: "16:48", skip_trains: 1, until: "18:24"},
+                        {plan: "高楼金出库车", trains: ["06:44", "06:59", "07:11"]},
+                        {plan: "双合回库车", trains: ["20:10", "20:28"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:11", delta: [8, 8, 8, 5, 5, 9, 5, 5, 5, 5, 7, 5, 5, [3, [7, 6]], 7]},
+                        {first_train: "07:23", delta: [[34, [4, 7, 7, 6]], 4, 8, 8, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:11", count: 3},
+                        {plan: "双合出库车", trains: ["05:40"]},
+                        {plan: "双合出库车", first_train: "07:23", skip_trains: 3, until: "20:59"},
+                        {plan: "高楼金出库车", trains: ["05:59", "06:09", "06:26"]}
+                    ]
+                }
             }
         },
         "焦化厂": {
@@ -627,6 +1232,31 @@
                     filters: [
                         {plan: "双合出库车", first_train: "05:31", count: 5},
                         {plan: "高楼金回库车", trains: ["23:51", "23:59"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [[6, [8]], 7, 7, 7, 6, 7, 7, 4, [3, [3, 3, 6]], [11, [6]]]},
+                        {first_train: "08:30", delta: [7, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:25", delta: [7, [11, [6]], 5, [16, [6]], 7, 6, 7, 7, 6, [9, [8]]]},
+                        {first_train: "20:08", delta: [4, 9, 5, 4, [7, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:09", count: 3},
+                        {plan: "高楼金出库车", trains: ["06:42", "06:57", "07:09"]},
+                        {plan: "双合回库车", trains: ["20:08", "20:26"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [8, 8, 8, 10, 9, 5, 5, 5, 5, 7, 5, 5, 7, 6]},
+                        {first_train: "06:49", delta: [6, 7, 6, [34, [7, 10, 7]], 7, 10, 8, 8, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "焦化厂出库车", first_train: "05:09", count: 3},
+                        {plan: "高楼金出库车", trains: ["05:57", "06:07", "06:24"]}
                     ]
                 }
             }
@@ -656,6 +1286,30 @@
                         {plan: "高楼金回库车", trains: ["23:53", "00:01"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [9, 8, 8, 7, 7, 7, 6, 7, 6, 4, 4, 3, 6, 3]},
+                        {first_train: "06:58", delta: [6, 3, 3, [20, [6]], 7, 7, 6, 6, [6, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:41", delta: [[6, [7]], 6, 6, 6, 6, 7, [6, [6]], 5, 5, [16, [6]]]},
+                        {first_train: "18:24", delta: [5, 7, 7, 7, [9, [8]], 4, 4, 9, 5, 4, [7, [9]], [9, [10]]]},
+                        {first_train: "23:11", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:39", "06:55", "07:07"]},
+                        {plan: "双合回库车", trains: ["20:06", "20:24"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 7, 7, 6, 7, 6]},
+                        {first_train: "07:06", delta: [[35, [6, 10, 8]], 9, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:54", "06:04", "06:21"]}
+                    ]
+                }
             }
         },
         "郎辛庄": {
@@ -681,6 +1335,29 @@
                     filters: [
                         {plan: "双合出库车", first_train: "05:37", count: 5},
                         {plan: "高楼金回库车", trains: ["23:56", "00:04"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [8, 8, 8, 7, 7, 7, 6, 7, 6, 5, [3, [3, 3, 6]], [11, [6]]]},
+                        {first_train: "08:25", delta: [7, [7, [6]], 7, 6, 6, [4, [7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:20", delta: [7, [11, [6]], 5, [16, [6]], 7, 6, 7, 7, 6, [9, [8]]]},
+                        {first_train: "20:03", delta: [4, 9, 5, 4, [7, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:37", "06:52", "07:04"]},
+                        {plan: "双合回库车", trains: ["20:03", "20:21"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 6, 7, 6, 7, 7]},
+                        {first_train: "07:03", delta: [[34, [7, 9, 8]], 7, 9, 9, 8, 8, 9, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:52", "06:02", "06:19"]}
                     ]
                 }
             }
@@ -710,6 +1387,29 @@
                         {plan: "高楼金回库车", trains: ["23:59", "00:07"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [8, 8, 8, 7, 7, 7, 6, 7, 6, 5, [3, [3, 3, 6]], [11, [6]]]},
+                        {first_train: "08:22", delta: [7, [7, [6]], 7, 6, 6, [4, [7, 7, 7, 8, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:17", delta: [7, [11, [6]], 5, [16, [6]], 7, 6, 7, 6, 7, [9, [8]]]},
+                        {first_train: "20:00", delta: [4, 9, 5, 4, [7, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:34", "06:49", "07:01"]},
+                        {plan: "双合回库车", trains: ["20:00", "20:18"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 6, 7, 6, 7, 6]},
+                        {first_train: "07:00", delta: [7, [34, [9, 7, 8]], 9, 8, 9, 8, 9, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:49", "05:59", "06:16"]}
+                    ]
+                }
             }
         },
         "万盛西": {
@@ -735,6 +1435,29 @@
                     filters: [
                         {plan: "双合出库车", first_train: "05:44", count: 5},
                         {plan: "高楼金回库车", trains: ["00:03", "00:11"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:21", delta: [9, 8, 7, 7, 7, 7, 6, 7, 7, 4, 3, 3, 7, 3]},
+                        {first_train: "06:49", delta: [6, 3, 3, [20, [6]], 7, 6, 6, [12, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:07", delta: [7, [7, [6]], 7, 6, 6, 6, 5, 5, [16, [6]], 7, 6]},
+                        {first_train: "18:27", delta: [7, 7, [9, [8]], 3, 5, 9, 4, 5, [7, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:30", "06:46", "06:58"]},
+                        {plan: "双合回库车", trains: ["19:56", "20:14"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:21", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 7, 6, 7, 6, 7]},
+                        {first_train: "06:56", delta: [[34, [7, 9, 8]], 7, 9, 9, 8, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:45", "05:55", "06:12"]}
                     ]
                 }
             }
@@ -764,6 +1487,30 @@
                         {plan: "高楼金回库车", trains: ["00:06", "00:14"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:18", delta: [9, 8, 7, 7, 7, 7, 6, 7, 7, 4, 3, 3, 7, 3]},
+                        {first_train: "06:46", delta: [6, 3, 3, [20, [6]], 7, 6, 6, [10, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:50", delta: [7, 7, 7, [6, [6]], 7, 6, 6, 6, 6, 5, 5, [15, [6]]]},
+                        {first_train: "18:04", delta: [7, 6, 7, 7, 7, [9, [8]], 4, 4, 9, 4, 5, [7, [9]], [9, [10]]]},
+                        {first_train: "22:59", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:27", "06:43", "06:55"]},
+                        {plan: "双合回库车", trains: ["19:54", "20:11"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:18", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 7, 6, 7, 6, 7]},
+                        {first_train: "06:53", delta: [[35, [7, 9, 8]], 10, 8, 8, 10, 9, [9, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:42", "05:52", "06:09"]}
+                    ]
+                }
             }
         },
         "群芳": {
@@ -789,6 +1536,30 @@
                     filters: [
                         {plan: "双合出库车", first_train: "05:48", count: 5},
                         {plan: "高楼金回库车", trains: ["00:08", "00:16"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:16", delta: [9, 8, 7, 7, 7, 7, 6, 7, 7, 4, 3, 3, 7, 3]},
+                        {first_train: "06:44", delta: [6, 3, 3, [20, [6]], 7, 6, 6, [11, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:55", delta: [7, 7, [6, [6]], 7, 6, 6, 6, 6, 5, 5, [16, [6]]]},
+                        {first_train: "18:09", delta: [6, 7, 7, 7, [9, [8]], 4, 4, 9, 4, 5, [7, [9]], [9, [10]]]},
+                        {first_train: "22:57", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:25", "06:41", "06:53"]},
+                        {plan: "双合回库车", trains: ["19:52", "20:09"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:16", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 7, 6, 7, 6, 7]},
+                        {first_train: "06:51", delta: [7, [103, [8]], 9, 9, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:40", "05:50", "06:07"]}
                     ]
                 }
             }
@@ -818,6 +1589,29 @@
                         {plan: "高楼金回库车", trains: ["00:10", "00:18"]}
                     ]
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:14", delta: [9, 8, 7, 7, 7, 7, 6, 7, 7, 4, 3, 3, 7, 3]},
+                        {first_train: "06:42", delta: [6, 3, 3, [20, [6]], 7, 6, 6, [12, [7]], [3, [8, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:00", delta: [7, [7, [6]], 7, 6, 6, 6, 5, 5, [16, [6]], 7, 6]},
+                        {first_train: "18:20", delta: [7, 7, [9, [8]], 4, 4, 9, 4, 5, [7, [9]], [10, [10]], 9]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["06:23", "06:39", "06:51"]},
+                        {plan: "双合回库车", trains: ["19:50", "20:07"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:14", delta: [10, 9, 5, 5, 5, 5, 7, 5, 5, 6, 7, 6, 7, 7]},
+                        {first_train: "06:49", delta: [7, [103, [8]], 9, 9, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "高楼金出库车", trains: ["05:38", "05:48", "06:05"]}
+                    ]
+                }
             }
         },
         "花庄": {
@@ -842,6 +1636,26 @@
                     filters: [
                         {plan: "双合出库车", first_train: "05:53", count: 5}
                     ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [8, 8, 8, 7, 7, 7, 6, 7, 6, 7, 4, [17, [6]], 7, [6, [6]]]},
+                        {first_train: "08:58", delta: [7, 6, 6, [4, [7, 7, 7, 7, 8, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:04", delta: [7, [11, [6]], 5, [16, [6]], 7, 5, 7, 7, 7, [9, [8]]]},
+                        {first_train: "19:47", delta: [4, 9, 5, 4, [7, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "双合回库车", trains: ["19:47", "20:05"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [10, 9, 10, 10, 7, 10, 6, 7, 6, 7, 6, 7, 7, [102, [8]]]},
+                        {first_train: "20:38", delta: [9, 9, 8, 9, 9, [10, [10]]]}
+                    ],
+                    filters: []
                 }
             }
         },
@@ -868,6 +1682,26 @@
                     filters: [
                         {plan: "双合出库车", first_train: "05:56", count: 5}
                     ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [8, 8, 8, 7, 7, 7, 6, 7, 6, 7, 4, [17, [6]], 7, [6, [6]]]},
+                        {first_train: "08:55", delta: [7, 6, 6, [4, [7, 7, 8, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:01", delta: [7, [11, [6]], 5, [16, [6]], 7, 6, 7, 7, 6, [9, [8]]]},
+                        {first_train: "19:44", delta: [4, 9, 5, 4, [7, [9]], [11, [10]]]}
+                    ],
+                    filters: [
+                        {plan: "双合回库车", trains: ["19:44", "20:02"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [10, 9, 10, 10, 7, 10, 6, 7, 6, 7, 7, 6, 7, [102, [8]]]},
+                        {first_train: "20:35", delta: [9, 9, 9, 8, 9, [10, [10]]]}
+                    ],
+                    filters: []
                 }
             }
         }

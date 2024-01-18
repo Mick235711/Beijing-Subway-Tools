@@ -4,7 +4,7 @@
 - 4号线 ~~南行~~ ~~北行~~ ~~Chart~~
 - 5号线 ~~南行~~ ~~北行~~ ~~Chart~~
 - 6号线 ~~东行~~ ~~西行~~ ~~Chart~~
-- 7号线 ~~东行~~ 西行 Chart
+- 7号线 ~~东行~~ ~~西行~~ Chart
 - 8号线 南行 北行 Chart
 - 9号线 南行 北行 Chart
 - 10号线 外环 内环 Chart
@@ -55,6 +55,7 @@
 - 完善文档
   - [ ] create a new line
   - [ ] tools
+- [ ] 中文文档
 - [ ] 开通日期（optional，毕竟有换乘，wb东管头南有统计）
 - [ ] Use color to represent different train routes (optional)
 
