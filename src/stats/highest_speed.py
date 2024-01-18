@@ -108,8 +108,10 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
     )
 
 
-def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
-                            moving_min: int = 60, full_only: bool = False) -> dict[str, tuple]:
+def get_moving_average_data(
+    all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
+    moving_min: int = 60, full_only: bool = False, show_example: bool = False
+) -> dict[str, tuple]:
     """ Get moving average data """
     minute_dict = minute_trains(all_trains, full_only)
     capacity_dict = minute_trains(all_trains, full_only, True)
@@ -128,11 +130,11 @@ def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], line
                 sum(line.total_distance() / 1000 for line in lines.values()),
                 sum(len(line.stations) for line in lines.values()), "", "", "",
                 avg_cnt,
-                f"{min_cnt:.2f}\n[{min_cnt_beg} - {min_cnt_end}]",
-                f"{max_cnt:.2f}\n[{max_cnt_beg} - {max_cnt_end}]",
+                f"{min_cnt:.2f}" + (f"\n[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),
+                f"{max_cnt:.2f}" + (f"\n[{max_cnt_beg} - {max_cnt_end}]" if show_example else ""),
                 avg_cap_cnt,
-                f"{min_cap_cnt:.2f}\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]",
-                f"{max_cap_cnt:.2f}\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]"
+                f"{min_cap_cnt:.2f}" + (f"\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]" if show_example else ""),
+                f"{max_cap_cnt:.2f}" + (f"\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]" if show_example else "")
             )
             continue
         line = lines[line_name]
@@ -141,11 +143,11 @@ def get_moving_average_data(all_trains: dict[str, list[tuple[str, Train]]], line
             line.total_distance() / 1000, len(line.stations), line.design_speed,
             line.train_code(), line.train_capacity(),
             avg_cnt,
-            f"{min_cnt:.2f}\n[{min_cnt_beg} - {min_cnt_end}]",
-            f"{max_cnt:.2f}\n[{max_cnt_beg} - {max_cnt_end}]",
+            f"{min_cnt:.2f}" + (f"\n[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),
+            f"{max_cnt:.2f}" + (f"\n[{max_cnt_beg} - {max_cnt_end}]" if show_example else ""),
             avg_cap_cnt,
-            f"{min_cap_cnt:.2f}\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]",
-            f"{max_cap_cnt:.2f}\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]"
+            f"{min_cap_cnt:.2f}" + (f"\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]" if show_example else ""),
+            f"{max_cap_cnt:.2f}" + (f"\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]" if show_example else "")
         )
     return result
 
@@ -174,7 +176,7 @@ def count_train(station: str, trains: Sequence[Train], moving_min: int = 60,
 
 
 def get_section_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
-                     moving_min: int = 60, full_only: bool = False) -> dict[str, tuple]:
+                     moving_min: int = 60, full_only: bool = False, show_example: bool = False) -> dict[str, tuple]:
     """ Get sectional (station-wise) data """
     # Calculate line -> (date_group, direction, station) -> list of trains
     processed_dict: dict[str, dict[tuple[str, str, str], list[Train]]] = {}
@@ -214,12 +216,16 @@ def get_section_data(all_trains: dict[str, list[tuple[str, Train]]], lines: dict
             line.name, f"{line.stations[0]} - {line.stations[-1]}",
             line.total_distance() / 1000, len(line.stations), line.design_speed,
             line.train_code(), line.train_capacity(),
-            f"{count_dict[min_cnt_key]:.2f}\n[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]",
-            f"{count_dict[max_cnt_key]:.2f}\n[{max_cnt_key[2]} {max_cnt_key[1]} {max_cnt_key[0]} {max_cnt_key[3]}]",
-            f"{cap_dict[min_cap_cnt_key]:.2f}\n" +
-            f"[{min_cap_cnt_key[2]} {min_cap_cnt_key[1]} {min_cap_cnt_key[0]} {min_cap_cnt_key[3]}]",
-            f"{cap_dict[max_cap_cnt_key]:.2f}\n" +
-            f"[{max_cap_cnt_key[2]} {max_cap_cnt_key[1]} {max_cap_cnt_key[0]} {max_cap_cnt_key[3]}]"
+            f"{count_dict[min_cnt_key]}" +
+            (f"\n[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
+            f"{count_dict[max_cnt_key]}" +
+            (f"\n[{max_cnt_key[2]} {max_cnt_key[1]} {max_cnt_key[0]} {max_cnt_key[3]}]" if show_example else ""),
+            f"{cap_dict[min_cap_cnt_key]}\n" +
+            (f"[{min_cap_cnt_key[2]} {min_cap_cnt_key[1]} {min_cap_cnt_key[0]} {min_cap_cnt_key[3]}]"
+             if show_example else ""),
+            f"{cap_dict[max_cap_cnt_key]}\n" +
+            (f"[{max_cap_cnt_key[2]} {max_cap_cnt_key[1]} {max_cap_cnt_key[0]} {max_cap_cnt_key[3]}]"
+             if show_example else "")
         )
     return result
 
@@ -252,6 +258,7 @@ def main() -> None:
         group.add_argument("-m", "--moving-average", type=int, help="Calculate moving average capacity")
         group.add_argument("--section", type=int,
                            help="Show cross-sectional (station-wise) capacity data")
+        parser.add_argument("--show-example", action="store_true", help="Show example")
 
     all_trains, lines, args = parse_args(append_arg)
     if args.per_line:
@@ -266,7 +273,9 @@ def main() -> None:
             average_str = f"{args.moving_average}-min Avg\n"
             output_table(
                 all_trains, args,
-                get_moving_average_data(all_trains, lines, args.moving_average, args.full_only), [
+                get_moving_average_data(
+                    all_trains, lines, args.moving_average, args.full_only, args.show_example
+                ), [
                     "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                     average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
                     average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
@@ -275,10 +284,12 @@ def main() -> None:
                 ]
             )
         elif args.section:
-            average_str = f"{args.section}-min Avg\n"
+            average_str = f"{args.section}-min\n"
             output_table(
                 all_trains, args,
-                get_section_data(all_trains, lines, args.section, args.full_only), [
+                get_section_data(
+                    all_trains, lines, args.section, args.full_only, args.show_example
+                ), [
                     "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                     average_str + "Min Count", average_str + "Max Count",
                     average_str + "Min Cap", average_str + "Max Cap"
