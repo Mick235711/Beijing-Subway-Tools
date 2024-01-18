@@ -50,7 +50,6 @@
 - [x] Embed include_edge into options
 - [ ] 和环线相似的快车专门分析：平均速度，平均用时，同区间快多少，越行几次
 - [ ] 最早/最晚路径
-- [ ] Line colors
 - [ ] 数字编号排序
 - [ ] contour vs contourf调整
 - 完善文档

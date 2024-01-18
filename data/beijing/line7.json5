@@ -1,0 +1,63 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 7号线时刻表 新8版
+{
+    name: "7号线",
+    aliases: ["Line 7"],
+    carriage_num: 8,
+    carriage_type: "B",
+    design_speed: 100,
+    stations: [
+        {name: "北京西站", aliases: ["Beijing West Railway Station"]},
+        {name: "湾子", dist: 935},
+        {name: "达官营", dist: 734},
+        {name: "广安门内", dist: 1875},
+        {name: "菜市口", dist: 1373},
+        {name: "虎坊桥", dist: 886},
+        {name: "珠市口", dist: 1205},
+        {name: "桥湾", dist: 869},
+        {name: "磁器口", dist: 1016},
+        {name: "广渠门内", dist: 1138},
+        {name: "广渠门外", dist: 1332},
+        {name: "双井", dist: 1241},
+        {name: "九龙山", dist: 1311},
+        {name: "大郊亭", dist: 781},
+        {name: "百子湾", dist: 865},
+        {name: "化工", dist: 903},
+        {name: "南楼梓庄", dist: 1465},
+        {name: "欢乐谷景区", dist: 905, aliases: ["Happy Valley"]},
+        {name: "垡头", dist: 1679},
+        {name: "双合", dist: 1304},
+        {name: "焦化厂", dist: 1021},
+        {name: "黄厂", dist: 1678},
+        {name: "郎辛庄", dist: 1752},
+        {name: "黑庄户", dist: 2517},
+        {name: "万盛西", dist: 2961},
+        {name: "万盛东", dist: 2110},
+        {name: "群芳", dist: 1160},
+        {name: "高楼金", dist: 1195},
+        {name: "花庄", dist: 1425},
+        {name: "环球度假区", dist: 1769, aliases: ["Universal Resort"]}
+    ],
+    train_routes: {
+        "东行": {
+            aliases: ["Eastbound"],
+            "全程车": {},
+            "双合回库车": {ends_with: "双合"},
+            "高楼金回库车": {ends_with: "高楼金"}
+        },
+        "西行": {
+            aliases: ["Westbound"],
+            reversed: true,
+            "全程车": {},
+            "双合回库车": {ends_with: "双合"},
+            "焦化厂出库车": {starts_with: "焦化厂"},
+            "高楼金出库车": {starts_with: "高楼金"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
