@@ -43,11 +43,13 @@ def minute_trains(
 ) -> dict[str, dict[str, int]]:
     """ Print train number & capacity per minute """
     minute_dict: dict[str, dict[str, int]] = {"Total": {}}
+    index_dict: dict[str, int] = {}
     for _, train in set(t for x in all_trains.values() for t in x):
         if full_only and not train.is_full():
             continue
         if train.line.name not in minute_dict:
             minute_dict[train.line.name] = {}
+        index_dict[train.line.name] = train.line.index
         start_tuple = train.start_time()
         for i in range(0, train.duration() + 1):
             cur_tuple = add_min_tuple(start_tuple, i)
@@ -61,7 +63,7 @@ def minute_trains(
             minute_dict["Total"][cur_str] += train_cap if use_capacity else 1
     for line, line_dict in minute_dict.items():
         minute_dict[line] = dict(sorted(line_dict.items(), key=lambda x: x[0]))
-    return dict(sorted(minute_dict.items(), key=lambda x: x[0]))
+    return dict(sorted(minute_dict.items(), key=lambda x: index_dict[x[0]]))
 
 
 def main() -> None:

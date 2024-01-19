@@ -50,8 +50,8 @@
 - [x] Embed include_edge into options
 - [x] 和环线相似的快车专门分析：平均速度，平均用时，同区间快多少，越行几次
 - [ ] ~~show_loop扩展到普通线路（出库-折返-回库）~~ （谁教我一下怎么区分回库和折返...）
+- [x] 数字编号排序
 - [ ] 最早/最晚路径
-- [ ] 数字编号排序
 - [ ] contour vs contourf调整
 - 完善文档
   - [ ] create a new line

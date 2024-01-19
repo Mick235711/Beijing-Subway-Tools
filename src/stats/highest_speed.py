@@ -195,7 +195,7 @@ def get_section_data(
             processed_dict[train.line.name][key].append(train)
 
     result: dict[str, tuple] = {}
-    processed_dict = dict(sorted(processed_dict.items(), key=lambda x: x[0]))
+    processed_dict = dict(sorted(processed_dict.items(), key=lambda x: lines[x[0]].index))
     for line_name, processed_line in processed_dict.items():
         # Calculate train count/capacity dict
         # After this, the structure will be (date_group, direction, station, time) -> count/capacity

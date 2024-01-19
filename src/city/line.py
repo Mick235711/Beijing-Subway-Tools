@@ -5,6 +5,7 @@
 
 # Libraries
 import os
+import re
 
 import pyjson5
 
@@ -18,10 +19,11 @@ from src.timetable.timetable import Timetable, parse_timetable
 class Line:
     """ Represents a subway line """
 
-    def __init__(self, name: str, carriage_num: int, carriage_type: Carriage, design_speed: int,
+    def __init__(self, name: str, index: int, carriage_num: int, carriage_type: Carriage, design_speed: int,
                  aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
+        self.index = index
         self.aliases = aliases or []
         self.carriage_num = carriage_num
         self.carriage_type = carriage_type
@@ -102,7 +104,16 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
     with open(line_file) as fp:
         line_dict = pyjson5.decode_io(fp)
         carriage = carriage_dict[line_dict["carriage_type"]]
-        line = Line(line_dict["name"], line_dict["carriage_num"], carriage,
+
+        # Calculate index, try to automatically detect
+        if "index" in line_dict:
+            index = int(line_dict["index"])
+        else:
+            result = re.search(r'\d+', line_file)
+            assert result is not None, line_file
+            index = int(result.group())
+
+        line = Line(line_dict["name"], index, line_dict["carriage_num"], carriage,
                     line_dict["design_speed"], line_dict.get("aliases"))
 
     # parse loop

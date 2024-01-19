@@ -80,7 +80,7 @@ def ask_for_station(
     for station, lines_set in station_lines.items():
         if exclude is not None and station in exclude:
             continue
-        meta_information[station] = ", ".join(sorted(x.name for x in lines_set))
+        meta_information[station] = ", ".join(line.name for line in sorted(list(lines_set), key=lambda x: x.index))
 
     # Ask
     if message is not None:
@@ -110,7 +110,7 @@ def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> 
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     lines_dict: dict[str, Line] = {line.name: line for line in lines}
-    for name, line in sorted(lines_dict.items(), key=lambda x: x[0]):
+    for name, line in sorted(lines_dict.items(), key=lambda x: x[1].index):
         meta_information[name] = line.line_str()
         if len(line.aliases) > 0:
             aliases[name] = line.aliases
