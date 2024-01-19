@@ -10,7 +10,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw
-from matplotlib.colors import LinearSegmentedColormap, Colormap
+from matplotlib.colors import LinearSegmentedColormap, Colormap, LogNorm, SymLogNorm
 from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map
@@ -33,7 +33,7 @@ def map_args() -> argparse.Namespace:
         "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
     parser.add_argument(
-        "-w", "--line-width", type=int, help="Override contour line width", default=10)
+        "-w", "--line-width", type=int, help="Override contour line width", default=5)
     parser.add_argument(
         "-m", "--verbose-per-minute", type=int, help="Show message per N minutes", default=20)
     return parser.parse_args()
@@ -69,14 +69,16 @@ def draw_station(
 
 def draw_all_station(
     draw: ImageDraw.ImageDraw,
-    colormap: Colormap,
+    colormap: Colormap | tuple[float, float, float] | tuple[float, float, float, float],
     map_obj: Map, avg_shortest: dict[str, float]
 ) -> None:
     """ Draw on all stations """
     max_value = max(list(avg_shortest.values()))
     for station, shortest in avg_shortest.items():
         draw_station(
-            draw, station, colormap(shortest / max_value), map_obj, str(round(shortest, 1))
+            draw, station,
+            colormap if isinstance(colormap, tuple) else colormap(shortest / max_value),
+            map_obj, str(round(shortest, 1))
         )
 
 
@@ -109,37 +111,87 @@ def draw_contours(
     if isinstance(levels, list):
         max_value = max(abs(v) for v in avg_shortest.values())
         min_value = min(list(avg_shortest.values()))
-        levels = [level for level in levels if min(min_value, 0) <= level <= max_value]
+        processed_levels = [level for level in levels if min(min_value, 0) <= level <= max_value]
+        processed_levels.append(min(level for level in levels if level > max_value))
+
+        have_minus = any(level < 0 for level in levels)
+        if have_minus:
+            levels = [max(level for level in levels if level <= min(min_value, 0))] + processed_levels
+            levels = sorted(list(set(levels)))
+        else:
+            levels = sorted(x for x in list(set(processed_levels)) if x != 0)
+        print("Drawing levels:", levels)
 
     if levels is not None:
         kwargs["levels"] = levels
-    cs = ax.contour(X, Y, Z, cmap=colormap, origin="upper", linestyles="solid", **kwargs)
+
+    if isinstance(levels, list):
+        have_minus = any(level < 0 for level in levels)
+        if have_minus:
+            min0 = min(list(avg_shortest.values()))
+        else:
+            min0 = levels[0]
+        max0 = max(list(avg_shortest.values()))
+        print(f"Recalculated min/max: {min0:.2f} - {max0:.2f}")
+        norm = SymLogNorm(
+            30,  # min(list(map(abs, list(filter(lambda f: f != 0, levels))))),
+            vmin=min0, vmax=max0
+        ) if have_minus else LogNorm(min0, max0)
+    else:
+        norm = None
+    cs = ax.contour(X, Y, Z, norm=norm, colors=([
+        ((0.0, 0.0, 0.0, 0.8) if f == 0 else (0.0, 0.0, 0.0, 0.2))
+        for f in levels
+    ]) if isinstance(levels, list) else [
+        (0.0, 0.0, 0.0, 0.2)
+    ], origin="upper", linestyles="solid", **kwargs)
+
     for _ in range(label_num):
-        ax.clabel(cs, inline=True, fontsize=32)
+        labels = ax.clabel(cs, inline=True, fontsize=32)
+        for label in labels:
+            label.set_alpha(0.8)
+
+    # Draw contour filled
+    del kwargs["linewidths"]
+    ax.contourf(X, Y, Z, norm=norm,
+                cmap=colormap, origin="upper", extend="both", alpha=0.1, **kwargs)
 
 
 def draw_contour_wrap(
-    fig: plt.Figure, img: Image.Image, *args, **kwargs
+    img: Image.Image, *args, dpi: int, output: str, **kwargs
 ) -> None:
     """ Draw contour in the current figure """
+    fig = plt.figure(
+        figsize=(img.size[0] / dpi, img.size[1] / dpi), frameon=False)
     ax = plt.Axes(fig, (0., 0., 1., 1.))
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(img, aspect="equal")
     draw_contours(ax, img.size, *args, **kwargs)
     print("Drawing contours done! Saving...")
+    fig.savefig(output, dpi=dpi)
 
 
 def main() -> None:
     """ Main function """
     args = map_args()
     if args.color_map is None:
-        cmap: Colormap = LinearSegmentedColormap.from_list("GYR", ["g", "y", "r"])
+        cmap: Colormap = LinearSegmentedColormap("GYR", {
+            'red': ((0.0, 0.0, 0.0),
+                    (0.5, 1.0, 1.0),
+                    (1.0, 1.0, 1.0)),
+            'green': ((0.0, 1.0, 1.0),
+                      (0.5, 1.0, 1.0),
+                      (1.0, 0.0, 0.0)),
+            'blue': ((0.0, 0.0, 0.0),
+                     (0.5, 0.0, 0.0),
+                     (1.0, 0.0, 0.0))
+        })
     else:
         cmap = mpl.colormaps[args.color_map]
 
     if args.levels is None:
-        levels = [10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240]
+        levels = [0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240]
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
@@ -151,18 +203,16 @@ def main() -> None:
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)
     result_dict[start] = 0
-    draw_all_station(draw, cmap, map_obj, result_dict)
+    draw_all_station(draw, (0.0, 0.0, 0.0), map_obj, result_dict)
     print("Drawing stations done!")
 
     # Draw contours
-    fig = plt.figure(
-        figsize=(img.size[0] / args.dpi, img.size[1] / args.dpi), frameon=False)
     draw_contour_wrap(
-        fig, img, cmap, map_obj, result_dict,
+        img, cmap, map_obj, result_dict,
+        dpi=args.dpi, output=args.output,
         levels=levels, label_num=args.label_num,
         linewidths=args.line_width
     )
-    fig.savefig(args.output, dpi=args.dpi)
 
 
 # Call main

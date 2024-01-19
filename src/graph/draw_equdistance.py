@@ -5,9 +5,8 @@
 
 # Libraries
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
-from matplotlib.colors import Colormap, LinearSegmentedColormap, TwoSlopeNorm
+from matplotlib.colors import Colormap, LinearSegmentedColormap
 from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_city, ask_for_date
@@ -38,7 +37,21 @@ def main() -> None:
     """ Main function """
     args = map_args()
     if args.color_map is None:
-        cmap: Colormap = LinearSegmentedColormap.from_list("RB", ["r", "b"])
+        cmap: Colormap = LinearSegmentedColormap("RB", {
+            'red': ((0.0, 1.0, 1.0),
+                    (0.5, 1.0, 1.0),
+                    # (0.666, 0.25, 0.25),
+                    (1.0, 0.0, 0.0)),
+            'green': ((0.0, 0.0, 0.0),
+                      # (0.333, 0.25, 0.25),
+                      (0.5, 1.0, 1.0),
+                      # (0.666, 0.25, 0.25),
+                      (1.0, 0.0, 0.0)),
+            'blue': ((0.0, 0.0, 0.0),
+                     # (0.333, 0.25, 0.25),
+                     (0.5, 1.0, 1.0),
+                     (1.0, 1.0, 1.0))
+        })
     else:
         cmap = mpl.colormaps[args.color_map]
 
@@ -67,7 +80,7 @@ def main() -> None:
 
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)
-    draw_all_station(draw, cmap, map_obj, result_dict)
+    draw_all_station(draw, (0.0, 0.0, 0.0), map_obj, result_dict)
 
     # Draw extremes: two starting points, and unreachable
     draw_station_filled(draw, station1, cmap(0.0), map_obj)
@@ -83,14 +96,12 @@ def main() -> None:
     print("Drawing stations done!")
 
     # Draw contours
-    fig = plt.figure(
-        figsize=(img.size[0] / args.dpi, img.size[1] / args.dpi), frameon=False)
     draw_contour_wrap(
-        fig, img, cmap, map_obj, result_dict,
+        img, cmap, map_obj, result_dict,
+        dpi=args.dpi, output=args.output,
         levels=levels, label_num=args.label_num,
-        linewidths=args.line_width, norm=TwoSlopeNorm(vcenter=0.0)
+        linewidths=args.line_width
     )
-    fig.savefig(args.output, dpi=args.dpi)
 
 
 # Call main
