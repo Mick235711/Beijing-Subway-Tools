@@ -39,11 +39,15 @@ def ask_for_city(*, message: str | None = None) -> City:
     return cities[answer]
 
 
-def ask_for_line(city: City, *, message: str | None = None, only_loop: bool = False) -> Line:
+def ask_for_line(city: City, *, message: str | None = None,
+                 only_loop: bool = False, only_express: bool = False) -> Line:
     """ Ask for a line in the city """
     lines = city.lines()
     if only_loop:
         lines = {name: line for name, line in lines.items() if line.loop}
+    if only_express:
+        lines = {name: line for name, line in lines.items() if any(
+            route.is_express() for route_dict in line.train_routes.values() for route in route_dict.values())}
     return ask_for_line_in_station(set(lines.values()), message=message)
 
 
@@ -155,29 +159,30 @@ def ask_for_station_pair_in_line(
 
 def ask_for_direction(
     line: Line, *,
-    with_timetabled_station: str | None = None, message: str | None = None
+    with_timetabled_station: str | None = None, message: str | None = None,
+    only_express: bool = False
 ) -> str:
     """ Ask for a line direction """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     if with_timetabled_station is None:
-        for name, stations in line.directions.items():
-            meta_information[name] = show_direction(stations, line.loop)
-            if name in line.direction_aliases:
-                aliases[name] = line.direction_aliases[name]
+        directions = list(line.directions.keys())
     else:
-        timetable_dict = line.timetables()[with_timetabled_station]
-        if len(timetable_dict) == 0:
-            print("No directions present!")
-            sys.exit(0)
-        elif len(timetable_dict) == 1:
-            print(f"Direction default: {list(timetable_dict.keys())[0]}")
-            return list(timetable_dict.keys())[0]
-        for name in timetable_dict.keys():
-            stations = line.directions[name]
-            meta_information[name] = show_direction(stations, line.loop)
-            if name in line.direction_aliases:
-                aliases[name] = line.direction_aliases[name]
+        directions = list(line.timetables()[with_timetabled_station].keys())
+
+    if only_express:
+        directions = [direction_name for direction_name in directions if any(
+            route.is_express() for route in line.train_routes[direction_name].values())]
+    if len(directions) == 0:
+        print("No directions present!")
+        sys.exit(0)
+    elif len(directions) == 1:
+        print(f"Direction default: {directions[0]}")
+        return directions[0]
+    for name in directions:
+        meta_information[name] = show_direction(line.directions[name], line.loop)
+        if name in line.direction_aliases:
+            aliases[name] = line.direction_aliases[name]
 
     # Ask
     if message is not None:
@@ -193,24 +198,23 @@ def ask_for_date_group(
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     if with_timetabled_sd is None:
-        for name, group in line.date_groups.items():
-            meta_information[name] = group.group_str()
-            if len(group.aliases) > 0:
-                aliases[name] = group.aliases
+        date_groups = list(line.date_groups.keys())
     else:
         station, direction = with_timetabled_sd
         timetable_dict = line.timetables()[station][direction]
-        if len(timetable_dict) == 0:
-            print("No date group present!")
-            sys.exit(0)
-        elif len(timetable_dict) == 1:
-            print(f"Date group default: {list(timetable_dict.keys())[0]}")
-            return line.date_groups[list(timetable_dict.keys())[0]]
-        for name in timetable_dict.keys():
-            group = line.date_groups[name]
-            meta_information[name] = group.group_str()
-            if len(group.aliases) > 0:
-                aliases[name] = group.aliases
+        date_groups = list(timetable_dict.keys())
+
+    if len(date_groups) == 0:
+        print("No date group present!")
+        sys.exit(0)
+    elif len(date_groups) == 1:
+        print(f"Date group default: {date_groups[0]}")
+        return line.date_groups[date_groups[0]]
+    for name in date_groups:
+        group = line.date_groups[name]
+        meta_information[name] = group.group_str()
+        if len(group.aliases) > 0:
+            aliases[name] = group.aliases
 
     # Ask
     if message is not None:

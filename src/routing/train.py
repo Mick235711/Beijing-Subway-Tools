@@ -175,6 +175,10 @@ class Train:
             return False
         return self.stations == self.line.direction_base_route[self.direction].stations
 
+    def is_express(self) -> bool:
+        """ Determine if this train is an express train """
+        return len(self.skip_stations) > 0
+
     def speed(self) -> float:
         """ Speed of the entire train """
         return segment_speed(self.distance(), self.duration())

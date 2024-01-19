@@ -5,10 +5,31 @@
 
 # Libraries
 import argparse
+import sys
+from collections.abc import Sequence
 
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
 from src.common.common import complete_pinyin
-from src.routing.train import parse_trains
+from src.routing.train import parse_trains, Train
+
+
+def ask_for_train(train_list: Sequence[Train], *, with_speed: bool = False) -> Train:
+    """ Ask for a train """
+    if len(train_list) == 0:
+        print("No trains found!")
+        sys.exit(0)
+    elif len(train_list) == 1:
+        print(f"Train default: {train_list[0].line_repr()}")
+        return train_list[0]
+
+    meta_information: dict[str, str] = {}
+    for i, train in enumerate(train_list):
+        meta_information[f"{i + 1:>{len(str(len(train_list)))}}# {train.line_repr()}"] = train.duration_repr(
+            with_speed=with_speed
+        )
+    result = complete_pinyin("Please select a train:", meta_information)
+    train_index = int(result[:result.find("#")].strip())
+    return train_list[train_index - 1]
 
 
 def main() -> None:
@@ -23,14 +44,7 @@ def main() -> None:
     date_group = ask_for_date_group(line)
     train_dict = parse_trains(line, {direction})
     train_list = train_dict[direction][date_group.name]
-    meta_information: dict[str, str] = {}
-    for i, train in enumerate(train_list):
-        meta_information[f"{i + 1:>{len(str(len(train_list)))}}# {train.line_repr()}"] = train.duration_repr(
-            with_speed=args.with_speed
-        )
-    result = complete_pinyin("Please select a train:", meta_information)
-    train_index = int(result[:result.find("#")].strip())
-    train_list[train_index - 1].pretty_print(with_speed=args.with_speed)
+    ask_for_train(train_list, with_speed=args.with_speed).pretty_print(with_speed=args.with_speed)
 
 
 # Call main

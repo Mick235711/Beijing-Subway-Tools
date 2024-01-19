@@ -28,13 +28,17 @@ class TrainRoute:
             base = f"<{self.direction_str()}"
         else:
             base = f"<{self.direction_str()}: {show_direction(self.stations, self.loop)}"
-            if len(self.skip_stations) > 0:
+            if self.is_express():
                 base += " (skip " + suffix_s("station", len(self.skip_stations)) + ")"
         return base + (" (loop)>" if self.loop else ">")
 
     def direction_str(self) -> str:
         """ Get a simple directional string representation """
         return f"[{self.direction}] {self.name}"
+
+    def is_express(self) -> bool:
+        """ Determine if this route is an express service """
+        return len(self.skip_stations) > 0
 
     def __eq__(self, other: object) -> bool:
         """ Determine equality """

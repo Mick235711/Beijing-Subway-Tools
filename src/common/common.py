@@ -235,18 +235,20 @@ def get_time_repr(time_obj: time, next_day: bool = False) -> str:
     return key + (" (+1)" if next_day else "")
 
 
-def format_duration(duration: timedelta | int) -> str:
+def format_duration(duration: timedelta | int | float) -> str:
     """ Get string representation of duration """
-    if isinstance(duration, int):
+    if not isinstance(duration, timedelta):
         return format_duration(timedelta(minutes=duration))
 
     # we don't care about seconds or lower, just day-hour-minute
     days, seconds = duration.days, duration.seconds
     minutes, seconds = seconds // 60, seconds % 60
     hours, minutes = minutes // 60, minutes % 60
-    result = ("" if days == 0 else f"{days}d") + \
-             ("" if hours == 0 else f"{hours}h") + \
-             ("" if minutes == 0 else f"{minutes}min")
+    result = ("" if days == 0 else f"{days}d") + ("" if hours == 0 else f"{hours}h")
+    if seconds > 0:
+        result += f"{minutes + seconds / 60:.2f}min"
+    elif minutes > 0:
+        result += f"{minutes}min"
     return "<1min" if result == "" else result
 
 
