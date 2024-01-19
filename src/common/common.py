@@ -127,11 +127,14 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     return display_dict[answer.lower()]
 
 
-def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
+def ask_question(msg: str, func: Callable[[str], T], *args,
+                 valid_answer: Mapping[str, Callable[[], T]] | None = None, **kwargs) -> T:
     """ Ask a question with validator and post-processor """
 
     def validate_func(answer: str) -> str | bool:
         """ Validate function """
+        if valid_answer is not None and answer in valid_answer:
+            return True
         try:
             func(answer)
             return True
@@ -139,7 +142,9 @@ def ask_question(msg: str, func: Callable[[str], T], *args, **kwargs) -> T:
             return repr(e)
 
     kwargs["validate"] = validate_func
-    return func(questionary.text(msg, *args, **kwargs).ask())
+    real_answer = questionary.text(msg, *args, **kwargs).ask()
+    return valid_answer[real_answer]() if valid_answer is not None and real_answer in valid_answer\
+        else func(real_answer)
 
 
 def distance_str(distance: int) -> str:

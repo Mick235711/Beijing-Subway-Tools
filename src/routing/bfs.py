@@ -6,19 +6,16 @@
 # Libraries
 from __future__ import annotations
 
-import argparse
-import sys
 from datetime import date, time
 from functools import cmp_to_key
 from math import ceil
 
-from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer
 from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
     distance_str, get_time_repr
-from src.routing.train import Train, parse_all_trains
+from src.routing.train import Train
 
 
 Path = list[tuple[str, Train]]
@@ -412,42 +409,3 @@ def k_shortest_path(
         candidate = candidate_list[1:]
 
     return result
-
-
-def main() -> None:
-    """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
-    args = parser.parse_args()
-
-    city = ask_for_city()
-    start, end = ask_for_station_pair(city)
-    lines = city.lines()
-    train_dict = parse_all_trains(list(lines.values()))
-    start_date = ask_for_date()
-    start_time = ask_for_time()
-
-    # For now, assume that any input after 3:30AM is this day
-    start_day = start_time < time(3, 30)
-    if start_day:
-        print("Warning: assuming next day!")
-    assert city.transfers is not None, city
-    results = k_shortest_path(
-        lines, train_dict, city.transfers,
-        start[0], end[0],
-        start_date, start_time, start_day,
-        k=args.num_path
-    )
-    if len(results) == 0:
-        print("Unreachable!")
-        sys.exit(0)
-
-    # Print results
-    for i, (k_result, k_path) in enumerate(results):
-        print(f"\nShortest Path #{i + 1}:")
-        k_result.pretty_print_path(k_path, city.transfers)
-
-
-# Call main
-if __name__ == "__main__":
-    main()

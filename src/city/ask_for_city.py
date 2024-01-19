@@ -5,12 +5,14 @@
 
 # Libraries
 import sys
+from collections.abc import Callable
 from datetime import datetime, date, time
 
 from src.city.city import City, get_all_cities
 from src.city.date_group import DateGroup
 from src.city.line import Line
-from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str
+from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str, TimeSpec, \
+    to_pinyin
 from src.graph.map import Map, get_all_maps
 from src.timetable.timetable import Timetable
 
@@ -81,6 +83,8 @@ def ask_for_station(
         if exclude is not None and station in exclude:
             continue
         meta_information[station] = ", ".join(line.name for line in sorted(list(lines_set), key=lambda x: x.index))
+    meta_information = dict(sorted(meta_information.items(), key=lambda x: to_pinyin(x[0])[0]))
+    aliases = dict(sorted(aliases.items(), key=lambda x: to_pinyin(x[0])[0]))
 
     # Ask
     if message is not None:
@@ -242,11 +246,18 @@ def ask_for_date() -> date:
     )
 
 
-def ask_for_time() -> time:
+def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
+                 allow_last: Callable[[], TimeSpec] | None = None) -> time:
     """ Ask for a time """
+    valid_answer: dict[str, Callable[[], TimeSpec]] = {}
+    if allow_first is not None:
+        valid_answer["first"] = allow_first
+    if allow_last is not None:
+        valid_answer["last"] = allow_last
     return ask_question(
-        "Please enter the travel time (hh:mm):", parse_time,
-        default=get_time_str(datetime.now().time())
+        "Please enter the travel time (hh:mm" +
+        (" or first" if allow_first else "") + (" or last" if allow_last else "") + "):",
+        parse_time, default=get_time_str(datetime.now().time()), valid_answer=valid_answer
     )[0]
 
 

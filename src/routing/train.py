@@ -375,6 +375,8 @@ def parse_all_trains(
 ) -> dict[str, dict[str, dict[str, list[Train]]]]:
     """ Parse all trains from timetables """
     result: dict[str, dict[str, dict[str, list[Train]]]] = {}
+    index_dict: dict[str, int] = {}
     for line in lines:
         result[line.name] = parse_trains(line)
-    return result
+        index_dict[line.name] = line.index
+    return dict(sorted(result.items(), key=lambda x: index_dict[x[0]]))

@@ -35,7 +35,7 @@ def map_args() -> argparse.Namespace:
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=10)
     parser.add_argument(
-        "-m", "--verbose-per-minute", type=int, help="Show message per N minutes", default=60)
+        "-m", "--verbose-per-minute", type=int, help="Show message per N minutes", default=20)
     return parser.parse_args()
 
 

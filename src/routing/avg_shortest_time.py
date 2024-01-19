@@ -20,7 +20,7 @@ from src.routing.train import Train, parse_all_trains
 PathInfo = tuple[int, Path, BFSResult]
 
 
-def calculate_shortest(
+def all_time_bfs(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer],
@@ -28,9 +28,8 @@ def calculate_shortest(
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
     verbose_per_minute: int = 60,
-) -> dict[str, tuple[float, PathInfo, PathInfo,
-          list[tuple[float, AbstractPath, list[PathInfo]]]]]:
-    """ Calculate the average shortest time to each station """
+) -> dict[str, list[PathInfo]]:
+    """ Run BFS through all times, tally to each station """
     # Loop through first train to last train
     all_trains = get_all_trains(lines, train_dict, start_station, start_date)
     start_time, start_day = all_trains[0].arrival_time[start_station]
@@ -54,7 +53,26 @@ def calculate_shortest(
                 single_result.arrival_time, cur_time,
                 single_result.arrival_day, cur_day
             ), single_result.shortest_path(bfs_result), single_result))
+    return results
 
+
+def calculate_shortest(
+    lines: dict[str, Line],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    transfer_dict: dict[str, Transfer],
+    start_date: date, start_station: str, *,
+    limit_start: time | None = None, limit_start_day: bool = False,
+    limit_end: time | None = None, limit_end_day: bool = False,
+    verbose_per_minute: int = 60,
+) -> dict[str, tuple[float, PathInfo, PathInfo,
+          list[tuple[float, AbstractPath, list[PathInfo]]]]]:
+    """ Calculate the average shortest time to each station """
+    results = all_time_bfs(
+        lines, train_dict, transfer_dict, start_date, start_station,
+        limit_start=limit_start, limit_start_day=limit_start_day,
+        limit_end=limit_end, limit_end_day=limit_end_day,
+        verbose_per_minute=verbose_per_minute
+    )
     result_dict: dict[str, tuple[float, PathInfo, PathInfo,
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
@@ -116,7 +134,7 @@ def main() -> None:
     parser.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
     parser.add_argument("-t", "--to-station", help="Only show average time to specified stations")
     parser.add_argument("-m", "--verbose-per-minute", type=int,
-                        help="Show message per N minutes", default=60)
+                        help="Show message per N minutes", default=20)
     args = parser.parse_args()
 
     stations: set[str] | None = None
