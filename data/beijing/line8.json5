@@ -1,0 +1,67 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 8号线时刻表 新8版
+{
+    name: "8号线",
+    aliases: ["Line 8"],
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 80,
+    stations: [
+        {name: "朱辛庄"},
+        {name: "育知路", dist: 2319},
+        {name: "平西府", dist: 1986},
+        {name: "回龙观东大街", dist: 2017},
+        {name: "霍营", dist: 1115},
+        {name: "育新", dist: 1895},
+        {name: "西小口", dist: 1543},
+        {name: "永泰庄", dist: 1042},
+        {name: "林萃桥", dist: 2553},
+        {name: "森林公园南门", dist: 2558, aliases: ["Forest Park South Gate"]},
+        {name: "奥林匹克公园", dist: 1017, aliases: ["Olympic Park"]},
+        {name: "奥体中心", dist: 1667, aliases: ["Olympic Sports Center"]},
+        {name: "北土城", dist: 900},
+        {name: "安华桥", dist: 1009},
+        {name: "安德里北街", dist: 1275},
+        {name: "鼓楼大街", dist: 1084},
+        {name: "什刹海", dist: 1188},
+        {name: "南锣鼓巷", dist: 902},
+        {name: "中国美术馆", dist: 1437, aliases: ["National Art Museum"]},
+        {name: "金鱼胡同", dist: 873},
+        {name: "王府井", dist: 762},
+        {name: "前门", dist: 1857},
+        {name: "珠市口", dist: 1085},
+        {name: "天桥", dist: 881},
+        {name: "永定门外", dist: 1800},
+        {name: "木樨园", dist: 741},
+        {name: "海户屯", dist: 845},
+        {name: "大红门南", dist: 1678},
+        {name: "和义", dist: 2446},
+        {name: "东高地", dist: 1537},
+        {name: "火箭万源", dist: 1215},
+        {name: "五福堂", dist: 1684},
+        {name: "德茂", dist: 2076},
+        {name: "瀛海", dist: 1510}
+    ],
+    train_routes: {
+        "南行": {
+            aliases: ["Southbound"],
+            "全程车": {},
+            "回龙观东大街出库车": {starts_with: "回龙观东大街"},
+            "珠市口小交路": {ends_with: "珠市口"}
+        },
+        "北行": {
+            aliases: ["Northbound"],
+            reversed: true,
+            "全程车": {},
+            "回龙观东大街回库车": {ends_with: "回龙观东大街"},
+            "中国美术馆始发空车": {starts_with: "中国美术馆"},
+            "珠市口始发空车": {starts_with: "珠市口"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
