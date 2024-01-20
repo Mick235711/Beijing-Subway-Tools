@@ -61,6 +61,7 @@ def minute_trains(
             if cur_str not in minute_dict["Total"]:
                 minute_dict["Total"][cur_str] = 0
             minute_dict["Total"][cur_str] += train_cap if use_capacity else 1
+    index_dict["Total"] = max(index_dict.values()) + 1
     for line, line_dict in minute_dict.items():
         minute_dict[line] = dict(sorted(line_dict.items(), key=lambda x: x[0]))
     return dict(sorted(minute_dict.items(), key=lambda x: index_dict[x[0]]))
