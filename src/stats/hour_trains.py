@@ -6,6 +6,7 @@
 # Libraries
 import argparse
 import json
+import os
 
 from src.common.common import add_min_tuple, get_time_str, suffix_s
 from src.routing.train import Train
@@ -72,16 +73,29 @@ def main() -> None:
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
         parser.add_argument("-m", "--by-minutes", action="store_true", help="Output data by minutes")
-        parser.add_argument("-o", "--output", help="Output path", default="../data.json")
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument("-o", "--output", help="Output path", default="../data.json")
+        group.add_argument("--dump", help="Output path (dump everything)", default="../data.json")
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
         parser.add_argument("-f", "--full-only", action="store_true",
                             help="Only include train that runs the full journey")
 
     all_trains, _, args = parse_args(append_arg, include_limit=False)
     if args.by_minutes:
-        data = minute_trains(all_trains, args.full_only, args.capacity)
-        with open(args.output, "w", encoding="utf-8") as fp:
-            json.dump(data, fp, indent=4, ensure_ascii=False)
+        if args.dump is not None:
+            base, ext = os.path.splitext(args.dump)
+            for full_only in [True, False]:
+                for capacity in [True, False]:
+                    data = minute_trains(all_trains, full_only, capacity)
+                    filename = base + ('_full' if full_only else '') + ('_cap' if capacity else '') + ext
+                    print(f"Writing to {filename}...")
+                    with open(filename, "w", encoding="utf-8") as fp:
+                        json.dump(data, fp, indent=4, ensure_ascii=False)
+        else:
+            data = minute_trains(all_trains, args.full_only, args.capacity)
+            print(f"Writing to {args.output}...")
+            with open(args.output, "w", encoding="utf-8") as fp:
+                json.dump(data, fp, indent=4, ensure_ascii=False)
     else:
         hour_trains(all_trains, args.full_only, args.capacity)
 
