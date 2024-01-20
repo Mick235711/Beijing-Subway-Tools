@@ -144,8 +144,8 @@ def main() -> None:
 
     city = ask_for_city()
     line = ask_for_line(city)
-    station = ask_for_station_in_line(line, with_timetable=True)
-    direction = ask_for_direction(line, with_timetabled_station=station)
+    direction = ask_for_direction(line)
+    station = ask_for_station_in_line(line, with_timetable=True, with_direction=direction)
     date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
 
     index = line.directions[direction].index(station)

@@ -129,13 +129,21 @@ def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> 
 
 def ask_for_station_in_line(
     line: Line, *,
-    with_timetable: bool = False, exclude: set[str] | None = None,
-    message: str | None = None
+    with_timetable: bool = False, with_direction: str | None = None,
+    exclude: set[str] | None = None, message: str | None = None
 ) -> str:
     """ Ask for a station in line """
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
-    for station in (line.timetables().keys() if with_timetable else line.stations):
+    if with_timetable:
+        if with_direction is None:
+            stations = list(line.timetables().keys())
+        else:
+            stations = list(station for station in line.directions[with_direction]
+                            if station in line.timetables() and with_direction in line.timetables()[station])
+    else:
+        stations = line.stations
+    for station in stations:
         if exclude is not None and station in exclude:
             continue
         meta_information[station] = line.name
@@ -143,9 +151,14 @@ def ask_for_station_in_line(
             aliases[station] = line.station_aliases[station]
 
     # Ask
+    have_default = with_timetable and with_direction is not None
     if message is not None:
         return complete_pinyin(message, meta_information, aliases, sort=False)
-    return complete_pinyin("Please select a station:", meta_information, aliases, sort=False)
+    answer = complete_pinyin(
+        "Please select a station" + (f" (default: {stations[-1]}):" if have_default else ":"),
+        meta_information, aliases, sort=False, allow_empty=have_default
+    )
+    return stations[-1] if answer == "" else answer
 
 
 def ask_for_station_pair_in_line(
@@ -232,8 +245,8 @@ def ask_for_timetable() -> tuple[str, Timetable]:
     """ Ask for a specific station's timetable """
     city = ask_for_city()
     line = ask_for_line(city)
-    station = ask_for_station_in_line(line, with_timetable=True)
-    direction = ask_for_direction(line, with_timetabled_station=station)
+    direction = ask_for_direction(line)
+    station = ask_for_station_in_line(line, with_timetable=True, with_direction=direction)
     date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
     return station, line.timetables()[station][direction][date_group.name]
 
