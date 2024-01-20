@@ -97,11 +97,14 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
     total_distance = line.total_distance()
     train_distance = sum(train.distance() for train in train_set) / 10000
     total_cap = line.train_capacity() * len(train_set) / 10000
+    avg_dist = train_distance * 10 / len(train_set)
     return (
         line.name, f"{line.stations[0]} - {line.stations[-1]}",
         total_distance / 1000, len(line.stations), line.design_speed,
         line.train_code(), line.train_capacity(), len(train_set),
-        total_cap, train_distance, train_distance * 10 / len(train_set), train_distance * total_cap
+        total_cap, train_distance,
+        f"{avg_dist:.2f} ({avg_dist * 1000 / total_distance * 100:.2f}%)",
+        train_distance * total_cap
     )
 
 
