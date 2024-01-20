@@ -12,7 +12,7 @@ from typing import Iterable, Any
 from src.city.ask_for_city import ask_for_timetable
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
-from src.common.common import get_time_str, diff_time, parse_brace, TimeSpec
+from src.common.common import get_time_str, diff_time, parse_brace, TimeSpec, suffix_s, add_min
 from src.routing.train import filter_route
 from src.timetable.timetable import Timetable
 
@@ -295,7 +295,7 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     return res
 
 
-def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, tolerate: bool = False) -> None:
+def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, tolerate: bool = False) -> Timetable:
     """ Validate two timetables. Throw if not valid. """
     # Basically, we validate if each route has the same number,
     # and the assigned delta variance is < 5 minutes
@@ -319,6 +319,52 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
             if list(cur_train.route_iter()) == [current.base_route]
         }, current.base_route)
         cur_sorted = new_table.trains_sorted()
+
+        # Insert end station hooks
+        if len(prev_sorted) != len(cur_sorted):
+            no_end_table = Timetable({
+                cur_time: cur_train for cur_time, cur_train in prev.trains.items()
+                if list(cur_train.route_iter()) == prev.base_route or cur_train.route_stations()[-1] != cur_station
+            }, prev.base_route)
+            no_end_sorted = no_end_table.trains_sorted()
+            assert len(no_end_sorted) == len(cur_sorted), (no_end_table, current, new_table)
+
+            # Insert calculated trains
+            cnt = 0
+            prev_cnt = 0
+            for i, cur_train in enumerate(prev_sorted):
+                if list(cur_train.route_iter()) != prev.base_route and cur_train.route_stations()[-1] == cur_station:
+                    # Calculate delta before/after
+                    deltas_train: list[tuple[Timetable.Train, Timetable.Train]] = []
+                    if i > 0:
+                        deltas_train.append((no_end_sorted[prev_cnt - 1], cur_sorted[prev_cnt - 1]))
+                    if i < len(prev_sorted) - 1:
+                        deltas_train.append((no_end_sorted[prev_cnt], cur_sorted[prev_cnt]))
+                    print(deltas_train)
+
+                    assert len(deltas_train) > 0, (i, prev_sorted)
+                    deltas = [diff_time(
+                        new_train.leaving_time, prev_train.leaving_time,
+                        new_train.next_day, prev_train.next_day
+                    ) for prev_train, new_train in deltas_train]
+                    if len(deltas) > 1:
+                        delta_common = round(sum(deltas) / len(deltas))
+                    else:
+                        delta_common = deltas[0]
+
+                    new_time, new_day = add_min(cur_train.leaving_time, delta_common, cur_train.next_day)
+                    new_train = Timetable.Train(
+                        cur_train.station, cur_train.date_group, new_time,
+                        new_table.base_route, new_day
+                    )
+                    new_table.trains[new_time] = new_train
+                    print(new_train)
+                    cnt += 1
+                else:
+                    prev_cnt += 1
+            print("Inserted " + suffix_s("extra train", cnt) + ".")
+            cur_sorted = new_table.trains_sorted()
+
         assert len(prev_sorted) == len(cur_sorted), (prev, current, new_table)
 
         for prev_train, cur_train in zip(prev_sorted, cur_sorted):
@@ -370,6 +416,8 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                 print(f"Warning: {get_time_str(new_time, new_day)} differs from " +
                       get_time_str(prev_time, prev_day))
 
+    return new_table
+
 
 def main(timetable: Timetable | None = None, args: argparse.Namespace | None = None) -> None:
     """ Main function """
@@ -394,7 +442,7 @@ def main(timetable: Timetable | None = None, args: argparse.Namespace | None = N
 
     if validate:
         station, prev_timetable = ask_for_timetable()
-        validate_timetable(prev_timetable, station, timetable, empty)
+        timetable = validate_timetable(prev_timetable, station, timetable, empty)
     print(to_json_format(timetable, level=level, break_entries=break_entries))
 
 
