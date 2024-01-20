@@ -58,6 +58,12 @@ class DateGroup:
             return False
         return cur_date.isoweekday() in self.weekday
 
+    def sort_key(self) -> tuple[bool, tuple | None]:
+        """ Key for sorting """
+        if self.dates is not None:
+            return True, None
+        return False, tuple(sorted(list(self.weekday)))
+
 
 class TimeInterval:
     """ Represents many time intervals """

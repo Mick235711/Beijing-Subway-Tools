@@ -154,11 +154,19 @@ def ask_for_station_in_line(
     have_default = with_timetable and with_direction is not None
     if message is not None:
         return complete_pinyin(message, meta_information, aliases, sort=False)
+    if have_default:
+        assert with_direction is not None
+        viable = [
+            station for station in stations
+            if len(line.timetables()[station][with_direction]) == len(line.date_groups)
+        ]
+    else:
+        viable = []
     answer = complete_pinyin(
-        "Please select a station" + (f" (default: {stations[-1]}):" if have_default else ":"),
+        "Please select a station" + (f" (default: {viable[-1]}):" if have_default else ":"),
         meta_information, aliases, sort=False, allow_empty=have_default
     )
-    return stations[-1] if answer == "" else answer
+    return viable[-1] if answer == "" and have_default else answer
 
 
 def ask_for_station_pair_in_line(
@@ -177,7 +185,7 @@ def ask_for_station_pair_in_line(
 def ask_for_direction(
     line: Line, *,
     with_timetabled_station: str | None = None, message: str | None = None,
-    only_express: bool = False
+    only_express: bool = False, include_default: bool = True
 ) -> str:
     """ Ask for a line direction """
     meta_information: dict[str, str] = {}
@@ -204,7 +212,17 @@ def ask_for_direction(
     # Ask
     if message is not None:
         return complete_pinyin(message, meta_information, aliases)
-    return complete_pinyin("Please select a direction:", meta_information, aliases)
+
+    viable = [direction for direction in directions if 0 < sum(
+        1 if direction in station_dict else 0 for station_dict in line.timetables().values()
+    ) < len(line.stations)]
+    if len(viable) == 0:
+        include_default = False
+    answer = complete_pinyin(
+        "Please select a direction" + (f" (default: {viable[0]}):" if include_default else ":"),
+        meta_information, aliases, allow_empty=include_default
+    )
+    return viable[0] if answer == "" else answer
 
 
 def ask_for_date_group(
@@ -237,7 +255,29 @@ def ask_for_date_group(
     if message is not None:
         answer = complete_pinyin(message, meta_information, aliases)
     else:
-        answer = complete_pinyin("Please select a date group:", meta_information, aliases)
+        if with_timetabled_sd is not None:
+            station, direction = with_timetabled_sd
+            station_index = line.directions[direction].index(station)
+            if station_index == len(line.directions[direction]) - 1:
+                # End of route
+                viable = []
+            else:
+                next_station = line.directions[direction][station_index + 1]
+                viable = [date_group for date_group in date_groups
+                          if next_station not in line.timetables() or
+                          direction not in line.timetables()[next_station] or
+                          date_group not in line.timetables()[next_station][direction]]
+                viable = sorted(viable, key=lambda x: line.date_groups[x].sort_key())
+            if len(viable) == 0:
+                with_timetabled_sd = None
+        else:
+            viable = []
+        answer = complete_pinyin(
+            "Please select a date group" + (f" (default: {viable[0]}):" if with_timetabled_sd is not None else ":"),
+            meta_information, aliases, allow_empty=(with_timetabled_sd is not None)
+        )
+        if with_timetabled_sd is not None and answer == "":
+            answer = viable[0]
     return line.date_groups[answer]
 
 
