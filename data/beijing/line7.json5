@@ -5,7 +5,7 @@
     aliases: ["Line 7"],
     carriage_num: 8,
     carriage_type: "B",
-    design_speed: 100,
+    design_speed: 80,
     stations: [
         {name: "北京西站", aliases: ["Beijing West Railway Station"]},
         {name: "湾子", dist: 935},

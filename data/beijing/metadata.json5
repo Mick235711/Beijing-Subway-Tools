@@ -2,10 +2,11 @@
     city_name: "北京",
     city_aliases: ["Peking"],
     transfers: {
+        // 2021年以前参考：http://www.ditiezu.com/forum.php?mod=viewthread&tid=71145（所有时间x2）
         "复兴门": [
             {from: "1号线", to: "2号线", minutes: 3.5},
             {from: "2号线", to: "1号线", minutes: 0.5},
-            // 节点早晚可逆行
+            // 节点2->1, 早晚可逆行
             {
                 from: "1号线", to: "2号线", minutes: 1,
                 apply_time: [{end: "06:30"}, {start: "20:30"}]
@@ -14,7 +15,7 @@
         "建国门": [
             {from: "1号线", to: "2号线", minutes: 2.5},
             {from: "2号线", to: "1号线", minutes: 0.5},
-            // 节点非高峰可逆行
+            // 节点2->1, 非高峰可逆行
             {
                 from: "1号线", to: "2号线", minutes: 1,
                 apply_time: [{end: "07:00"}, {start: "09:30", end: "16:30"}, {start: "19:00"}]
@@ -27,10 +28,12 @@
         "西直门": [
             {from: "2号线", to: "4号线", minutes: 0.5},
             {from: "4号线", to: "2号线", minutes: 2.5}
+            // 节点2->4
         ],
         "宣武门": [
             {from: "2号线", to: "4号线", minutes: 1.5},
             {from: "4号线", to: "2号线", minutes: 2.5}
+            // 伪节点2->4
         ],
         "东单": [
             {from: "1号线", to: "5号线", minutes: 4}
@@ -38,6 +41,7 @@
         "雍和宫": [
             {from: "2号线", to: "5号线", minutes: 1.5},
             {from: "5号线", to: "2号线", minutes: 2.5}
+            // 伪节点2->5
         ],
         "崇文门": [
             {from: "2号线", to: "5号线", minutes: 3},
@@ -62,16 +66,42 @@
         "花庄": [
             {from: "1号线", to: "7号线", minutes: 1}
         ],
-        // 实际上没什么用
         "环球度假区": [
             {from: "1号线", to: "7号线", minutes: 1}
+            // 实际上没什么用
         ],
         "菜市口": [
             {from: "4号线", to: "7号线", minutes: 2},
             {from: "7号线", to: "4号线", minutes: 0.5}
+            // 节点7->4
         ],
         "磁器口": [
             {from: "5号线", to: "7号线", minutes: 2}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1r34y1z7f6
+        "王府井": [
+            {from: "1号线", to: "8号线", minutes: 1.5}
+        ],
+        "鼓楼大街": [
+            {from: "2号线", to: "8号线", minutes: 3.5},
+            {from: "8号线", to: "2号线", minutes: 4}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1wD4y1F7nS
+        "前门": [
+            {from: "2号线", to: "8号线", minutes: 5},
+            {from: "8号线", to: "2号线", minutes: 4.5}
+        ],
+        "南锣鼓巷": [
+            {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "南行", minutes: 1.5},
+            {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "北行", minutes: 1.5},
+            {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "北行", minutes: 2.5},
+            {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "南行", minutes: 2.5}
+            // 带通道的同台
+        ],
+        "珠市口": [
+            {from: "7号线", to: "8号线", minutes: 3},
+            {from: "8号线", to: "7号线", minutes: 1}
+            // 节点8->7
         ]
     }
 }
