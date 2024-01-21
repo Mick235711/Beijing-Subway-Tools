@@ -5,7 +5,7 @@
 - 5号线 ~~南行~~ ~~北行~~ ~~Chart~~
 - 6号线 ~~东行~~ ~~西行~~ ~~Chart~~
 - 7号线 ~~东行~~ ~~西行~~ ~~Chart~~
-- 8号线 ~~南行~~ ~~北行~~ Chart
+- 8号线 ~~南行~~ ~~北行~~ ~~Chart~~
 - 9号线 ~~南行~~ ~~北行~~ Chart
 - 10号线 外环 内环 Chart
 - 11号线 南行 北行 Chart
@@ -53,6 +53,7 @@
 - [x] 数字编号排序
 - [x] 最早/最晚路径
 - [x] contour vs contourf调整
+- [ ] Allow sort by multiple columns
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）
 - 完善文档
   - [ ] create a new line
