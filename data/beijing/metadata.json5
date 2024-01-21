@@ -96,12 +96,44 @@
             {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "北行", minutes: 1.5},
             {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "北行", minutes: 2.5},
             {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "南行", minutes: 2.5}
-            // 带通道的同台
+            // 带通道的同向同台
         ],
         "珠市口": [
             {from: "7号线", to: "8号线", minutes: 3},
             {from: "8号线", to: "7号线", minutes: 1}
             // 节点8->7
+        ],
+        "军事博物馆": [
+            {from: "1号线", to: "9号线", minutes: 2.5},
+            {from: "9号线", to: "1号线", minutes: 6},
+            // 非高峰可逆行1->9通道
+            {
+                from: "9号线", to: "1号线", minutes: 3,
+                apply_time: [{end: "06:30"}, {start: "10:30", end: "15:30"}, {start: "20:30"}]
+            }
+        ],
+        "国家图书馆": [
+            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "南行", minutes: 0},
+            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "北行", minutes: 0},
+            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "北行", minutes: 1},
+            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "南行", minutes: 1}
+            // 同向同台
+        ],
+        "白石桥南": [
+            {from: "6号线", to: "9号线", minutes: 1.5},
+            {from: "9号线", to: "6号线", minutes: 0.5},
+            // 节点9->6, 早晚可逆行
+            {
+                from: "6号线", to: "9号线", minutes: 1,
+                apply_time: [{end: "06:30"}, {start: "20:30"}]
+            }
+        ],
+        "北京西站": [
+            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "南行", minutes: 0},
+            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "北行", minutes: 0},
+            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "北行", minutes: 1},
+            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "南行", minutes: 1}
+            // 同向同台
         ]
     }
 }
