@@ -46,4 +46,4 @@ This document describes the usage, parameter, and intended result of each tool i
 # `graph/`: Draw equ-time graphs
 ### `draw_map.py`: Draw equ-time map originating from a station
 
-### `draw_equdistance.py`: Draw equ-time map from two stations
+### `draw_equtime.py`: Draw equ-time map from two stations

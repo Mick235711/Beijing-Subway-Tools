@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Draw an subway map with equal distance markings """
+""" Draw an subway map with equal time markings """
 
 # Libraries
 import matplotlib as mpl
