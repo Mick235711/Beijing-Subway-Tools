@@ -2,7 +2,7 @@
 Tools and data from subway systems around the world (currently only doing Beijing's data).
 
 Mainly focus on electronically recording the timetables of subway lines, to facilitate the creation
-of equ-distance graphs.
+of equ-time graphs.
 
 # Running Requirements
 Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate`
@@ -15,3 +15,9 @@ follow, and also [a-new-line-from-scratch.md](docs/a-new-line-from-scratch.md) f
 
 # Usage of Tools
 See [tools.md](docs/tools.md) for a description of all usable tools and their parameters.
+
+# Data Sources & License
+This work is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+All data present are based on openly available sources obtained from the official Beijing Subway website.
+
+There may be many mistakes in the data given as I'm human and can and will make mistakes.
