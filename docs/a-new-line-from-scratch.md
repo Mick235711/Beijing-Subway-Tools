@@ -123,3 +123,7 @@ In general, there are three viable approaches to fill an intermediate station's 
 ### 6.1. Branch
 
 ### 6.2. Single-Direction Service
+
+### 6.3. Multi-Carriage-Number Trains
+
+### 6.4. Virtual Transfer
