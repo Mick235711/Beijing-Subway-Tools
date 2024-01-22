@@ -71,6 +71,8 @@ def parse_train_route(direction: str, base: list[str],
     if "skip" in spec:
         route.skip_stations = set(spec["skip"])
         assert all(ss in route.stations for ss in route.skip_stations), spec
+    if route.stations[-1] != base[-1]:
+        route.loop = False
     return route
 
 
