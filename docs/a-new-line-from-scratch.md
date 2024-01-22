@@ -107,11 +107,13 @@ In general, there are three viable approaches to fill an intermediate station's 
 ### 3.3. Last Station
 
 ### 3.4. Special Cases
-#### 3.4.1. Regional Trains
+#### 3.4.1. Short-Distance Trains
 
-#### 3.4.2. Express/Rapid Service
+#### 3.4.2. Loop Lines
 
-#### 3.4.3. When the Timetable is Wrong
+#### 3.4.3. Express/Rapid Service
+
+#### 3.4.4. When the Timetable is Wrong
 
 ## 4. Fill the Transfer Times
 
