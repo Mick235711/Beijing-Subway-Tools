@@ -40,10 +40,10 @@ def main() -> None:
     for i, train_loop in enumerate(loop_dict):
         first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time_repr()}"
         last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time_repr()}"
-        meta_information[f"#{i + 1} {first_str} -> ... -> {last_str}"] = \
+        meta_information[f"{i + 1:>{len(str(len(loop_dict)))}}# {first_str} -> ... -> {last_str}"] = \
             suffix_s("loop", len(train_loop))
     result = complete_pinyin("Please select a train:", meta_information)
-    train_index = int(result[1:result.find(" ")])
+    train_index = int(result[:result.find("#")].strip())
 
     # Print the loop
     for i, train in enumerate(loop_dict[train_index - 1]):

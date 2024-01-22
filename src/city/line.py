@@ -40,6 +40,7 @@ class Line:
         self.timetables_processed: dict[str, dict[str, dict[str, Timetable]]] | None = None
         self.loop = False
         self.loop_last_segment = 0
+        self.loop_start_route: dict[str, TrainRoute] = {}
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -164,6 +165,9 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
                 direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop)
             if len(route_value) == 0:
                 line.direction_base_route[direction] = route
+            elif line.loop and len(route_value) == 1 and "starts_with" in route_value and\
+                    route_value["starts_with"] == line.directions[direction][0]:
+                line.loop_start_route[direction] = route
             line.train_routes[direction][route_name] = route
 
     # parse date groups

@@ -32,15 +32,17 @@
         "外环": {
             aliases: ["Counterclockwise"],
             "环行": {},
-            "积水潭回库车": {loop: false},
-            "北京站始发空车": {starts_with: "北京站"}
+            "西直门出库车": {starts_with: "西直门"},
+            "北京站始发空车": {starts_with: "北京站"},
+            "积水潭回库车": {loop: false}
         },
         "内环": {
             aliases: ["Clockwise"],
             reversed: true,
             "环行": {},
             "西直门回库车": {loop: false},
-            "北京站始发空车": {starts_with: "北京站"}
+            "北京站始发空车": {starts_with: "北京站"},
+            "积水潭出库车": {starts_with: "积水潭"}
         }
     },
     date_groups: {

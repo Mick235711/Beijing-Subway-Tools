@@ -252,7 +252,8 @@ class Train:
 
 def assign_loop_next(
     trains: dict[int, list[Train]], routes_dict: list[list[TrainRoute]],
-    stations: list[str], loop_last_segment: int = 0
+    stations: list[str], loop_last_segment: int,
+    base_route: TrainRoute, loop_start_route: TrainRoute
 ) -> dict[int, list[Train]]:
     """ Assign loop_next field for a loop line """
     trains_all = [t for tl in trains.values() for t in tl if stations[0] in t.arrival_time]
@@ -276,6 +277,12 @@ def assign_loop_next(
             assert found_train is not None, (train, trains_sorted)
             train.loop_next = found_train
             found_train.loop_prev = train
+
+    # Assign first trains to start route
+    for train in trains[routes_dict.index([base_route])]:
+        assert train.routes == [base_route], train
+        if train.loop_prev is None:
+            train.routes = [loop_start_route]
     return trains
 
 
@@ -299,7 +306,7 @@ def filter_route(
 
 
 def parse_trains_stations(
-    line: Line, train_dict: dict[str, Timetable], stations: list[str]
+    line: Line, direction: str, train_dict: dict[str, Timetable], stations: list[str]
 ) -> list[Train]:
     """ Parse the trains from several stations' timetables """
     # organize into station -> route -> list of trains
@@ -332,7 +339,9 @@ def parse_trains_stations(
                         timetable_trains[i].leaving_time,
                         timetable_trains[i].next_day
                     )
-    trains = assign_loop_next(trains, routes_dict, stations, line.loop_last_segment)
+    if line.loop:
+        trains = assign_loop_next(trains, routes_dict, stations, line.loop_last_segment,
+                                  line.direction_base_route[direction], line.loop_start_route[direction])
 
     # Collect all route types
     return [train for train_list in trains.values() for train in train_list]
@@ -366,7 +375,8 @@ def parse_trains(
             result_dict[direction] = {}
         for date_group, station_dict2 in direction_dict2.items():
             result_dict[direction][date_group] = parse_trains_stations(
-                line, station_dict2, line.direction_base_route[direction].stations)
+                line, direction, station_dict2, line.direction_base_route[direction].stations
+            )
     return result_dict
 
 
