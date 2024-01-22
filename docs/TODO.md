@@ -54,7 +54,7 @@
 - [x] 最早/最晚路径
 - [x] contour vs contourf调整
 - [x] 环线加入出库车自动判定（注：目前无法实现时刻表中标注，只有算出列车后的标注）
-- [ ] Allow sort by multiple columns
+- [x] Allow sort by multiple columns
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）
 - 完善文档
   - [ ] create a new line

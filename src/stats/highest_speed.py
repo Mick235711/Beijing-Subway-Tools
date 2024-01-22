@@ -45,7 +45,7 @@ def highest_speed_train(
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple], *,
-                  sort_index: int = 0, reverse: bool = False, full_only: bool = False,
+                  sort_index: list[int] | None = None, reverse: bool = False, full_only: bool = False,
                   table_format: str = "simple") -> None:
     """ Obtain data on lines """
     # Organize into lines
@@ -68,7 +68,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     if isinstance(data_callback, dict) and "Total" in data_callback:
         data.append(data_callback["Total"])
 
-    data = sorted(data, key=lambda x: x[sort_index], reverse=reverse)
+    data = sorted(data, key=lambda x: tuple(x[s] for s in (sort_index or [0])), reverse=reverse)
     print(tabulate(
         data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
     ))
@@ -243,7 +243,7 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
                  sort_columns: Sequence[str], sort_columns_unit: Sequence[str]) -> None:
     """ Output data as table """
     sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
-    sort_index = 0 if args.sort_by == "" else sort_columns_key.index(args.sort_by)
+    sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
     header = [(column if unit == "" else f"{column}\n({unit})")
               for column, unit in zip(sort_columns, sort_columns_unit)]
     get_line_data(all_trains, header, data_callback, full_only=args.full_only,
@@ -258,7 +258,7 @@ def main() -> None:
                             help="Only include train that runs the full journey")
         parser.add_argument("-l", "--per-line", action="store_true",
                             help="Show per-line speed aggregates")
-        parser.add_argument("-s", "--sort-by", help="Sort by this column", default="")
+        parser.add_argument("-s", "--sort-by", help="Sort by these column(s)", default="")
         parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
         parser.add_argument("-t", "--table-format", help="Table format", default="simple")
         group = parser.add_mutually_exclusive_group()
