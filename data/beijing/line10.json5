@@ -1,0 +1,85 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 10号线时刻表 新4版
+{
+    name: "10号线",
+    aliases: ["Line 10"],
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 80,
+    loop: true,
+    loop_last_segment: 2,
+    stations: [
+        {name: "宋家庄", dist: 1675},
+        {name: "石榴庄", dist: 1273},
+        {name: "大红门", dist: 1244},
+        {name: "角门东", dist: 1124},
+        {name: "角门西", dist: 1259},
+        {name: "草桥", dist: 1688},
+        {name: "纪家庙", dist: 1550},
+        {name: "首经贸", dist: 1119, aliases: ["Capital University of Economics and Business"]},
+        {name: "丰台站", dist: 1717, aliases: ["Fengtai Railway Station"]},
+        {name: "泥洼", dist: 954},
+        {name: "西局", dist: 749},
+        {name: "六里桥", dist: 1587},
+        {name: "莲花桥", dist: 2365},
+        {name: "公主坟", dist: 1041},
+        {name: "西钓鱼台", dist: 2386},
+        {name: "慈寿寺", dist: 1215},
+        {name: "车道沟", dist: 1591},
+        {name: "长春桥", dist: 1206},
+        {name: "火器营", dist: 778},
+        {name: "巴沟", dist: 1441},
+        {name: "苏州街", dist: 1110},  // 京港官网
+        {name: "海淀黄庄", dist: 950},
+        {name: "知春里", dist: 976},
+        {name: "知春路", dist: 1058},
+        {name: "西土城", dist: 1102},
+        {name: "牡丹园", dist: 1330},
+        {name: "健德门", dist: 967},
+        {name: "北土城", dist: 1100},
+        {name: "安贞门", dist: 1020},
+        {name: "惠新西街南口", dist: 982},
+        {name: "芍药居", dist: 1713},
+        {name: "太阳宫", dist: 1003},
+        {name: "三元桥", dist: 1759},
+        {name: "亮马桥", dist: 1535},
+        {name: "农业展览馆", dist: 914, aliases: ["Agricultural Exhibition Center"]},
+        {name: "团结湖", dist: 853},
+        {name: "呼家楼", dist: 1150},
+        {name: "金台夕照", dist: 734},
+        {name: "国贸", dist: 835},
+        {name: "双井", dist: 1760},
+        {name: "劲松", dist: 1033},
+        {name: "潘家园", dist: 1021},
+        {name: "十里河", dist: 1073},
+        {name: "分钟寺", dist: 1803},
+        {name: "成寿寺", dist: 1060}
+    ],
+    train_routes: {
+        "内环": {
+            aliases: ["Clockwise"],
+            "环行": {},
+            "宋家庄出库车": {starts_with: "宋家庄"},
+            "车道沟出库车": {starts_with: "车道沟"},
+            "巴沟出库车": {starts_with: "巴沟"},
+            "巴沟回库车": {ends_with: "巴沟"},
+            "成寿寺回库车": {loop: false}
+        },
+        "外环": {
+            aliases: ["Counterclockwise"],
+            reversed: true,
+            "环行": {},
+            "成寿寺出库车": {starts_with: "成寿寺"},
+            "巴沟出库车": {starts_with: "巴沟"},
+            "巴沟回库车": {ends_with: "巴沟"},
+            "车道沟回库车": {ends_with: "车道沟"},
+            "宋家庄回库车": {loop: false}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
