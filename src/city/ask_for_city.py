@@ -88,9 +88,9 @@ def ask_for_station(
 
     # Ask
     if message is not None:
-        station = complete_pinyin(message, meta_information, aliases)
+        station = complete_pinyin(message, meta_information, aliases, sort=False)
     else:
-        station = complete_pinyin("Please select a station:", meta_information, aliases)
+        station = complete_pinyin("Please select a station:", meta_information, aliases, sort=False)
     return station, station_lines[station]
 
 
@@ -121,9 +121,9 @@ def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> 
 
     # Ask
     if message is not None:
-        answer = complete_pinyin(message, meta_information, aliases)
+        answer = complete_pinyin(message, meta_information, aliases, sort=False)
     else:
-        answer = complete_pinyin("Please select a line:", meta_information, aliases)
+        answer = complete_pinyin("Please select a line:", meta_information, aliases, sort=False)
     return lines_dict[answer]
 
 
