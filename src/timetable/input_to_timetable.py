@@ -337,11 +337,11 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                 if list(cur_train.route_iter()) != prev.base_route and cur_train.route_stations()[-1] == cur_station:
                     # Calculate delta before/after
                     deltas_train: list[tuple[Timetable.Train, Timetable.Train]] = []
-                    if i > 0:
+                    if prev_cnt > 0:
                         deltas_train.append((no_end_sorted[prev_cnt - 1], cur_sorted[prev_cnt - 1]))
-                    if i < len(prev_sorted) - 1:
+                    if prev_cnt < len(no_end_sorted) - 1:
                         deltas_train.append((no_end_sorted[prev_cnt], cur_sorted[prev_cnt]))
-                    print(deltas_train)
+                    print("\n".join(f"{train1} -> {train2}" for train1, train2 in deltas_train))
 
                     assert len(deltas_train) > 0, (i, prev_sorted)
                     deltas = [diff_time(
@@ -359,7 +359,7 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                         new_table.base_route, new_day
                     )
                     new_table.trains[new_time] = new_train
-                    print(new_train)
+                    print("===>", cur_train, "->", new_train)
                     cnt += 1
                 else:
                     prev_cnt += 1
