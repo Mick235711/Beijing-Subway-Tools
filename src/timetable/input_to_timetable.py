@@ -329,7 +329,9 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
         if len(prev_sorted) != len(cur_sorted):
             no_end_table = Timetable({
                 cur_time: cur_train for cur_time, cur_train in prev.trains.items()
-                if list(cur_train.route_iter()) == prev.base_route or cur_train.route_stations()[-1] != cur_station
+                if list(cur_train.route_iter()) == [prev.base_route] or (
+                    cur_train.is_loop() or cur_train.route_stations()[-1] != cur_station
+                )
             }, prev.base_route)
             no_end_sorted = no_end_table.trains_sorted()
             assert len(no_end_sorted) == len(cur_sorted), (no_end_table, current, new_table)
@@ -338,7 +340,9 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
             cnt = 0
             prev_cnt = 0
             for i, cur_train in enumerate(prev_sorted):
-                if list(cur_train.route_iter()) != prev.base_route and cur_train.route_stations()[-1] == cur_station:
+                if list(cur_train.route_iter()) != [prev.base_route] and (
+                    (not cur_train.is_loop()) and cur_train.route_stations()[-1] == cur_station
+                ):
                     # Calculate delta before/after
                     deltas_train: list[tuple[Timetable.Train, Timetable.Train]] = []
                     if prev_cnt > 0:

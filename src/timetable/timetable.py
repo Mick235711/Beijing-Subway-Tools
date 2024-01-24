@@ -59,6 +59,10 @@ class Timetable:
             """ Return the stations of this train """
             return route_stations(self.train_route)
 
+        def is_loop(self) -> bool:
+            """ Return true if this train's route is loop """
+            return all(route.loop for route in self.route_iter())
+
         def sort_key(self) -> TimeSpec:
             """ Return the time """
             return self.leaving_time, self.next_day
