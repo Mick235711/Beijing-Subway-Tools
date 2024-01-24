@@ -17,15 +17,17 @@ from src.routing.train import parse_all_trains, Train
 def count_trains(trains: Iterable[Train]) -> dict[str, dict[str, list[Train]]]:
     """ Reorganize trains into line -> direction -> train """
     result_dict: dict[str, dict[str, list[Train]]] = {}
+    index_dict: dict[str, int] = {}
     for train in trains:
         if train.line.name not in result_dict:
             result_dict[train.line.name] = {}
         if train.direction not in result_dict[train.line.name]:
             result_dict[train.line.name][train.direction] = []
         result_dict[train.line.name][train.direction].append(train)
+        index_dict[train.line.name] = train.line.index
     for name, direction_dict in result_dict.items():
         result_dict[name] = dict(sorted(direction_dict.items(), key=lambda x: x[0]))
-    return dict(sorted(result_dict.items(), key=lambda x: x[0]))
+    return dict(sorted(result_dict.items(), key=lambda x: index_dict[x[0]]))
 
 
 def get_all_trains(
