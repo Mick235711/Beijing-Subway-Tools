@@ -61,7 +61,6 @@
             "环行": {},
             "宋家庄出库车": {starts_with: "宋家庄"},
             "车道沟出库车": {starts_with: "车道沟"},
-            "巴沟出库车": {starts_with: "巴沟"},
             "巴沟回库车": {ends_with: "巴沟"},
             "成寿寺回库车": {loop: false}
         },
@@ -81,5 +80,1892 @@
         "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
     },
     timetable: {
+        "宋家庄": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:07", delta: [10, 9, 8, 5, 5, 6, 4, 5, 4, 5, [4, [5, 4]], [3, [2, 3, 2, 2]]]},
+                        {first_train: "07:13", delta: [3, 3, 1, [2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "08:31", delta: [[3, [2, 2, 3, 2]], 2, 3, 2, 2, 2, 3, 2, 4, 5, 4, 5, 4, 5, 5, 4, 5, 4]},
+                        {first_train: "10:04", delta: [[5, [4, 5]], 5, 4, 5, 4, 5, [18, [6, 7]], 3, 3, 7]},
+                        {first_train: "15:25", delta: [7, 2, 4, 3, 4, 6, 3, 4, 2, 4, 7, 2, 4, 7]},
+                        {first_train: "16:26", delta: [4, 2, 5, 6, 3, 4, 6, 4, 4, 1, 3, 2, 1, 3]},
+                        {first_train: "17:16", delta: [1, 3, 1, 3, 1, 3, [57, [2]], [31, [4]], [19, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:32", skip_trains: 1, until: "08:26"},
+                        {plan: "成寿寺回库车", first_train: "17:40", skip_trains: 1, until: "18:12"},
+                        {plan: "成寿寺回库车", trains: ["18:44", "19:16"]},
+                        {plan: "成寿寺回库车", first_train: "19:50", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "21:50", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:31", skip_trains: 1, until: "09:12"},
+                        {plan: "巴沟回库车", first_train: "09:41", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:26", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:16", skip_trains: 1, until: "18:40"},
+                        {plan: "巴沟回库车", first_train: "18:48", skip_trains: 1, until: "19:12"},
+                        {plan: "巴沟回库车", trains: ["19:20"]},
+                        {plan: "巴沟回库车", first_train: "20:38", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:38"]},
+                        {plan: "巴沟回库车", first_train: "22:14", until: "23:28"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:07", delta: [7, 7, 7, 6, 8, 8, [7, [7]], 6, 7, 7, 7, 7, 6]},
+                        {first_train: "07:27", delta: [[11, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:28", delta: [[17, [7]], 3, 5, 6, 3, 4, 6, 7, 3, 5, 6, 4]},
+                        {first_train: "16:25", delta: [4, 7, 3, 7, 4, 3, 7, 4, 7, [7, [5]], 6, 4, 5]},
+                        {first_train: "18:06", delta: [4, 5, 5, 6, 4, [2, [5, 6, 4, 5]], 5, 5, 5, [4, [7]]]},
+                        {first_train: "20:00", delta: [6, [19, [7]], 6, [9, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["17:56", "18:10"]},
+                        {plan: "成寿寺回库车", first_train: "21:51", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:30", "18:45", "19:05", "19:20"]},
+                        {plan: "巴沟回库车", first_train: "22:12", until: "23:28"}
+                    ]
+                }
+            }
+        },
+        "石榴庄": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:10", delta: [10, 9, 8, 5, 5, [2, [5, 5, 4, 5, 4]], 5, 4, 5, [5, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "07:41", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], 3, [3, [2, 2, 3, 2]]]},
+                        {first_train: "09:16", delta: [[4, [5, 4]], 5, [7, [5, 4]], 5, 5, 4, [18, [7, 6]]]},
+                        {first_train: "15:12", delta: [3, 6, 7, 6, 3, 4, 3, 3, 7, 3, 3, 3, 4, 6]},
+                        {first_train: "16:16", delta: [4, 6, 3, 4, 2, 4, 7, 3, 3, 6, 4, 4, [69, [2]], [30, [4]]]},
+                        {first_train: "21:28", delta: [6, [9, [7, 5]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:34", skip_trains: 1, until: "08:29"},
+                        {plan: "成寿寺回库车", first_train: "17:42", skip_trains: 1, until: "18:14"},
+                        {plan: "成寿寺回库车", trains: ["18:46", "19:18"]},
+                        {plan: "成寿寺回库车", first_train: "19:52", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "21:53", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:33", skip_trains: 1, until: "09:14"},
+                        {plan: "巴沟回库车", first_train: "09:43", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:29", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:18", skip_trains: 1, until: "18:42"},
+                        {plan: "巴沟回库车", first_train: "18:50", skip_trains: 1, until: "19:14"},
+                        {plan: "巴沟回库车", trains: ["19:22"]},
+                        {plan: "巴沟回库车", first_train: "20:40", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:41"]},
+                        {plan: "巴沟回库车", first_train: "22:17", until: "23:30"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:10", delta: [7, 7, 7, 6, 7, 8, [12, [7]], 5, 9, [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:33", delta: [[8, [7]], 4, 4, 6, 4, 4, 6, 7, 3, 5, 6, 3]},
+                        {first_train: "16:28", delta: [4, 7, 3, 7, 3, 4, 6, 4, 7, [7, [5]], 6, 4, [4, [5]]]},
+                        {first_train: "18:23", delta: [6, 4, [2, [5, 6, 4, 5]], 4, 5, 5, [13, [7]], 6, [18, [7]]]},
+                        {first_train: "23:17", delta: [6, 7]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["17:58", "18:13"]},
+                        {plan: "成寿寺回库车", first_train: "21:53", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:33", "18:48", "19:08", "19:22"]},
+                        {plan: "巴沟回库车", first_train: "22:14", until: "23:30"}
+                    ]
+                }
+            }
+        },
+        "大红门": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:13", delta: [10, 9, 7, 5, 5, 6, [6, [4, 5]], 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3]},
+                        {first_train: "08:15", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], 5, [7, [5, 4]]]},
+                        {first_train: "10:31", delta: [[5, [5, 4]], [18, [7, 6]], 4, 3, 6, 7, 6, 3, 4, 3]},
+                        {first_train: "15:49", delta: [7, 3, 3, 3, 4, 6, 3, 4, 6, 3, 4, 2, 4, 7]},
+                        {first_train: "16:51", delta: [3, 7, 4, 4, [69, [2]], [31, [4]], [9, [5, 7]], 5, 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:36", skip_trains: 1, until: "08:31"},
+                        {plan: "成寿寺回库车", first_train: "17:45", skip_trains: 1, until: "18:17"},
+                        {plan: "成寿寺回库车", trains: ["18:49", "19:21"]},
+                        {plan: "成寿寺回库车", first_train: "19:55", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "21:55", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:35", skip_trains: 1, until: "09:16"},
+                        {plan: "巴沟回库车", first_train: "09:46", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:31", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:21", skip_trains: 1, until: "18:45"},
+                        {plan: "巴沟回库车", first_train: "18:53", skip_trains: 1, until: "19:17"},
+                        {plan: "巴沟回库车", trains: ["19:25"]},
+                        {plan: "巴沟回库车", first_train: "20:43", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:43"]},
+                        {plan: "巴沟回库车", first_train: "22:19", until: "23:32"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:13", delta: [7, 6, 7, 6, 8, 8, 6, [11, [7]], 5, 9, [3, [7, 7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:36", delta: [7, 7, 7, 6, 7, 7, 7, 7, 4, 4, 6, 4, 4]},
+                        {first_train: "15:59", delta: [7, 3, 5, 6, 4, 6, 4, 7, 3, 7, 4, 3, 7, 4]},
+                        {first_train: "17:16", delta: [5, [2, [4, 5, 5, 5, 5, 5, 6]], 4, [2, [5, 6, 4, 5]]]},
+                        {first_train: "19:20", delta: [5, 5, 6, [17, [7]], 6, [15, [7]], 6]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:00", "18:15"]},
+                        {plan: "成寿寺回库车", first_train: "21:55", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:35", "18:50", "19:10", "19:25"]},
+                        {plan: "巴沟回库车", first_train: "22:16", until: "23:32"}
+                    ]
+                }
+            }
+        },
+        "角门东": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:15", delta: [10, 9, 7, 5, 5, 6, [5, [4, 5]], 5, 4, [3, [2, 3, 2, 2]]]},
+                        {first_train: "07:21", delta: [2, 3, [5, [2]], [2, [3, 2, 2, 2]], [2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:05", delta: [2, 2, 3, 2, 2, 2, 3, [6, [4, 5]], [7, [5, 4]], [18, [7, 6]]]},
+                        {first_train: "15:16", delta: [3, 6, 7, 6, 3, 4, 3, 3, 7, 3, 3, 3, 4]},
+                        {first_train: "16:17", delta: [3, 4, 6, 3, 4, 2, 4, 7, 3, 3, 7, 4, 4, [68, [2]]]},
+                        {first_train: "19:29", delta: [[31, [4]], [19, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:39", skip_trains: 1, until: "08:33"},
+                        {plan: "成寿寺回库车", first_train: "17:47", skip_trains: 1, until: "18:19"},
+                        {plan: "成寿寺回库车", trains: ["18:51", "19:23"]},
+                        {plan: "成寿寺回库车", first_train: "19:57", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "21:57", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:38", skip_trains: 1, until: "09:18"},
+                        {plan: "巴沟回库车", first_train: "09:48", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:33", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:23", skip_trains: 1, until: "18:47"},
+                        {plan: "巴沟回库车", first_train: "18:55", skip_trains: 1, until: "19:19"},
+                        {plan: "巴沟回库车", trains: ["19:27"]},
+                        {plan: "巴沟回库车", first_train: "20:45", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:45"]},
+                        {plan: "巴沟回库车", first_train: "22:21", until: "23:35"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:15", delta: [7, 7, 7, 5, 8, 8, 7, 7, 7, 6, [8, [7]], 6, 8, [6, [7]]]},
+                        {first_train: "08:23", delta: [[3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:26", delta: [7, 4, 4, 6, 4, 4, 6, 7, 3, 5, 6, 4, 6]},
+                        {first_train: "16:36", delta: [7, 3, 7, 4, 3, 7, 4, 7, [5, [5]], 4, 5, 6, 4, [4, [5]]]},
+                        {first_train: "18:27", delta: [6, 4, [2, [5, 6, 4, 5]], 5, 5, 5, 6, [19, [7]], 6, [14, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:02", "18:17"]},
+                        {plan: "成寿寺回库车", first_train: "21:57", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:37", "18:52", "19:12", "19:27"]},
+                        {plan: "巴沟回库车", first_train: "22:18", until: "23:35"}
+                    ]
+                }
+            }
+        },
+        "角门西": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [10, 9, 7, 5, 5, 6, 4, [2, [5, 4, 5, 4, 5]], 4]},
+                        {first_train: "06:55", delta: [3, [3, [2, 2, 3, 2]], 3, [5, [2]], 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2]},
+                        {first_train: "08:10", delta: [[2, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [3, [3, 2, 2]]]},
+                        {first_train: "09:18", delta: [2, 3, [5, [4, 5]], [7, [5, 4]], 5, 5, [18, [6, 7]], 3]},
+                        {first_train: "15:21", delta: [7, 6, 7, 2, 4, 4, 3, 6, 4, 3, 3, 3, 7, 2]},
+                        {first_train: "16:26", delta: [7, 3, 3, 3, 4, 6, 3, 4, 6, 4, 4, [69, [2]], [30, [4]]]},
+                        {first_train: "21:35", delta: [[19, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:41", skip_trains: 1, until: "08:35"},
+                        {plan: "成寿寺回库车", first_train: "17:49", skip_trains: 1, until: "18:21"},
+                        {plan: "成寿寺回库车", trains: ["18:53", "19:25"]},
+                        {plan: "成寿寺回库车", first_train: "19:59", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "21:59", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:40", skip_trains: 1, until: "09:20"},
+                        {plan: "巴沟回库车", first_train: "09:50", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:35", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:25", skip_trains: 1, until: "18:49"},
+                        {plan: "巴沟回库车", first_train: "18:57", skip_trains: 1, until: "19:21"},
+                        {plan: "巴沟回库车", trains: ["19:29"]},
+                        {plan: "巴沟回库车", first_train: "20:47", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:47"]},
+                        {plan: "巴沟回库车", first_train: "22:23", until: "23:37"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [7, 7, 7, 5, 8, 8, [5, [7]], 6, [6, [7]], 6, 8, [8, [7]]]},
+                        {first_train: "08:39", delta: [[3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:39", delta: [4, 6, 4, 4, 6, 7, 3, 5, 6, 4, 6, 4, 7]},
+                        {first_train: "16:48", delta: [7, 4, 3, 7, 4, 7, [7, [5]], 6, 3, [5, [5]], 6, 4, [2, [5, 6, 4, 5]]]},
+                        {first_train: "19:24", delta: [5, 5, 7, 7, 6, [19, [7]], 6, [12, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:04", "18:19"]},
+                        {plan: "成寿寺回库车", first_train: "22:00", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:39", "18:54", "19:14", "19:29"]},
+                        {plan: "巴沟回库车", first_train: "22:20", until: "23:37"}
+                    ]
+                }
+            }
+        },
+        "草桥": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:20", delta: [10, 9, 8, 5, 5, 5, [4, [5, 4]], 5, 5, 4, 5, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:15", delta: [[6, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:15", delta: [2, 2, 3, 2, 2, [6, [5, 4]], 5, [6, [5, 4]], 5, [18, [6, 7]]]},
+                        {first_train: "15:22", delta: [2, 7, 6, 7, 3, 3, 4, 3, 6, 4, 3, 3, 3]},
+                        {first_train: "16:23", delta: [3, 3, 7, 3, 3, 3, 4, 6, 4, 3, 6, 4, 4, [68, [2]]]},
+                        {first_train: "19:34", delta: [[31, [4]], 6, [9, [7, 5]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:44", skip_trains: 1, until: "08:38"},
+                        {plan: "成寿寺回库车", first_train: "17:52", skip_trains: 1, until: "18:24"},
+                        {plan: "成寿寺回库车", trains: ["18:56", "19:28"]},
+                        {plan: "成寿寺回库车", first_train: "20:02", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:03", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:43", skip_trains: 1, until: "09:24"},
+                        {plan: "巴沟回库车", first_train: "09:53", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:39", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:28", skip_trains: 1, until: "18:52"},
+                        {plan: "巴沟回库车", first_train: "19:00", skip_trains: 1, until: "19:24"},
+                        {plan: "巴沟回库车", trains: ["19:32"]},
+                        {plan: "巴沟回库车", first_train: "20:50", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:51"]},
+                        {plan: "巴沟回库车", first_train: "22:27", until: "23:40"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:20", delta: [7, 7, 7, 6, 7, 8, [12, [7]], 5, 8, [17, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:22", delta: [[11, [7]], 4, [5, [5]], [2, [6, 4, 5, 5]], [2, [4, 6, 5, 5, 5]]]},
+                        {first_train: "17:43", delta: [5, 5, [2, [6, 7, 3, 4, 7, 4, 4]], 5, 7, 4]},
+                        {first_train: "19:22", delta: [7, 4, 4, [11, [7]], 6, [19, [7]], 6, 7, 7, 7]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:09", "18:24"]},
+                        {plan: "成寿寺回库车", first_train: "22:03", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:44", "18:59", "19:19", "19:33"]},
+                        {plan: "巴沟回库车", first_train: "22:24", until: "23:40"}
+                    ]
+                }
+            }
+        },
+        "纪家庙": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [10, 9, 7, 5, 5, 6, [6, [4, 5]], 2, 2, 3, [5, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "08:00", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], 3, [2, [2, 2, 3, 2]]]},
+                        {first_train: "09:26", delta: [2, 5, 4, 5, [7, [5, 4]], 5, [4, [5, 4]], [18, [7, 6]]]},
+                        {first_train: "15:24", delta: [3, 6, 7, 6, 3, 4, 3, 3, 7, 3, 3, 3, 4]},
+                        {first_train: "16:25", delta: [3, 4, 6, 3, 4, 2, 4, 7, 3, 3, 7, 4, 4, [68, [2]]]},
+                        {first_train: "19:37", delta: [[31, [4]], [9, [5, 7]], 5, 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:46", skip_trains: 1, until: "08:41"},
+                        {plan: "成寿寺回库车", first_train: "17:55", skip_trains: 1, until: "18:27"},
+                        {plan: "成寿寺回库车", trains: ["18:59", "19:31"]},
+                        {plan: "成寿寺回库车", first_train: "20:05", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:05", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:45", skip_trains: 1, until: "09:26"},
+                        {plan: "巴沟回库车", first_train: "09:56", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:41", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:31", skip_trains: 1, until: "18:55"},
+                        {plan: "巴沟回库车", first_train: "19:03", skip_trains: 1, until: "19:27"},
+                        {plan: "巴沟回库车", trains: ["19:35"]},
+                        {plan: "巴沟回库车", first_train: "20:53", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:53"]},
+                        {plan: "巴沟回库车", first_train: "22:29", until: "23:42"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [7, 6, 7, 6, 8, 8, 6, [11, [7]], 5, 9, [3, [7, 7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:46", delta: [7, 7, 7, 6, 7, 7, 7, 7, 4, 5, 5, 5, 5]},
+                        {first_train: "16:11", delta: [5, 5, 4, 5, 6, 4, 5, 6, 3, 7, 5, 4, 5, 5]},
+                        {first_train: "17:26", delta: [4, [5, [5]], 6, 7, 4, 3, [2, [7, 4, 4, 6, 7, 3, 4]]]},
+                        {first_train: "19:32", delta: [4, 4, 6, [16, [7]], 6, [16, [7]], 6]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:12", "18:26"]},
+                        {plan: "成寿寺回库车", first_train: "22:05", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:46", "19:01", "19:21", "19:36"]},
+                        {plan: "巴沟回库车", first_train: "22:26", until: "23:42"}
+                    ]
+                }
+            }
+        },
+        "首经贸": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [10, 9, 7, 5, 5, 6, [6, [4, 5]], 2, 2, 3, [5, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "08:02", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], 3, [2, [2, 2, 3, 2]]]},
+                        {first_train: "09:28", delta: [2, 5, 4, 5, [7, [5, 4]], 5, [4, [5, 4]], [18, [7, 6]]]},
+                        {first_train: "15:26", delta: [3, 6, 7, 6, 3, 4, 3, 3, 7, 3, 3, 3, 4]},
+                        {first_train: "16:27", delta: [3, 4, 6, 3, 4, 2, 4, 7, 3, 3, 7, 4, 4, [68, [2]]]},
+                        {first_train: "19:39", delta: [[31, [4]], [9, [5, 7]], 5, 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:48", skip_trains: 1, until: "08:43"},
+                        {plan: "成寿寺回库车", first_train: "17:57", skip_trains: 1, until: "18:29"},
+                        {plan: "成寿寺回库车", trains: ["19:01", "19:33"]},
+                        {plan: "成寿寺回库车", first_train: "20:07", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:07", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:47", skip_trains: 1, until: "09:28"},
+                        {plan: "巴沟回库车", first_train: "09:58", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:43", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:33", skip_trains: 1, until: "18:57"},
+                        {plan: "巴沟回库车", first_train: "19:05", skip_trains: 1, until: "19:29"},
+                        {plan: "巴沟回库车", trains: ["19:37"]},
+                        {plan: "巴沟回库车", first_train: "20:55", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:55"]},
+                        {plan: "巴沟回库车", first_train: "22:31", until: "23:44"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [6, 7, 7, 6, 8, 8, 6, [11, [7]], 5, 9, [3, [7, 7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:48", delta: [7, 7, 7, 6, 7, 7, 7, 7, 4, 5, 5, 5, 5]},
+                        {first_train: "16:13", delta: [5, 5, 4, 5, 6, 4, 5, 6, 3, 7, 5, 4, 5, 5]},
+                        {first_train: "17:28", delta: [4, [5, [5]], 6, 7, 4, 3, [2, [7, 4, 4, 6, 7, 3, 4]]]},
+                        {first_train: "19:34", delta: [4, 4, 6, [16, [7]], 6, [16, [7]], 6]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:14", "18:28"]},
+                        {plan: "成寿寺回库车", first_train: "22:07", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:48", "19:03", "19:23", "19:38"]},
+                        {plan: "巴沟回库车", first_train: "22:28", until: "23:44"}
+                    ]
+                }
+            }
+        },
+        "丰台站": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [10, 9, 8, 6, 4, [2, [5, 4, 5, 4, 5]], 4, 5, 4, [2, [3, 2, 2, 2]], 3, 2, 2]},
+                        {first_train: "07:31", delta: [[3, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:16", delta: [[2, [2, 2, 3, 2]], 4, 5, 4, 7, 6, 3, 4, 6]},
+                        {first_train: "10:17", delta: [3, 6, 4, 3, 6, [4, [7, 3, 3]], [18, [7, 6]], 7, 4]},
+                        {first_train: "15:40", delta: [6, 6, [23, [4]], [69, [2]], [5, [4]], [8, [6, 3, 3]], 6, 6]},
+                        {first_train: "21:56", delta: [3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:52", skip_trains: 1, until: "08:46"},
+                        {plan: "成寿寺回库车", first_train: "18:00", skip_trains: 1, until: "18:32"},
+                        {plan: "成寿寺回库车", trains: ["19:04", "19:36"]},
+                        {plan: "成寿寺回库车", first_train: "20:11", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:10", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:51", skip_trains: 1, until: "09:32"},
+                        {plan: "巴沟回库车", first_train: "10:03", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:49", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:36", skip_trains: 1, until: "19:00"},
+                        {plan: "巴沟回库车", first_train: "19:08", skip_trains: 1, until: "19:32"},
+                        {plan: "巴沟回库车", trains: ["19:40"]},
+                        {plan: "巴沟回库车", first_train: "20:59", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["21:59"]},
+                        {plan: "巴沟回库车", first_train: "22:34", until: "23:48"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [7, 7, 7, 6, 8, [7, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:55", delta: [[16, [7]], [5, [5]], 4, [21, [5]], 6, [2, [7, 4, 3, 7, 4, 3, 7]]]},
+                        {first_train: "19:24", delta: [3, 4, 7, 4, 3, [5, [7]], 6, [15, [7]], 8, 9, 4, [5, [7]]]},
+                        {first_train: "23:14", delta: [6, 7, 7, 7, 7]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:18", "18:32"]},
+                        {plan: "成寿寺回库车", first_train: "22:11", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:53", "19:07", "19:27", "19:42"]},
+                        {plan: "巴沟回库车", first_train: "22:32", until: "23:48"}
+                    ]
+                }
+            }
+        },
+        "泥洼": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [10, 9, 7, 6, [5, [5, 4]], 5, 5, 4, 5, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:25", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:07", delta: [[3, [2, 2, 3, 2]], 2, 5, 4, 5, 6, [3, [7, 3, 3]]]},
+                        {first_train: "10:42", delta: [6, 3, 4, 6, 4, 3, 6, 3, 4, 6, 3, 4, [18, [6, 7]]]},
+                        {first_train: "15:34", delta: [4, 4, 6, 6, [23, [4]], [69, [2]], [5, [4]], [8, [6, 3, 3]]]},
+                        {first_train: "21:46", delta: [6, 6, 3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:54", skip_trains: 1, until: "08:49"},
+                        {plan: "成寿寺回库车", first_train: "18:02", skip_trains: 1, until: "18:34"},
+                        {plan: "成寿寺回库车", trains: ["19:06", "19:38"]},
+                        {plan: "成寿寺回库车", first_train: "20:13", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:12", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:53", skip_trains: 1, until: "09:34"},
+                        {plan: "巴沟回库车", first_train: "10:06", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:51", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:38", skip_trains: 1, until: "19:02"},
+                        {plan: "巴沟回库车", first_train: "19:10", skip_trains: 1, until: "19:34"},
+                        {plan: "巴沟回库车", trains: ["19:42"]},
+                        {plan: "巴沟回库车", first_train: "21:01", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:01"]},
+                        {plan: "巴沟回库车", first_train: "22:36", until: "23:50"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [7, 7, 6, 6, 8, [15, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:53", delta: [[8, [7]], [16, [5]], 4, [10, [5]], 7, 7, 3, 4, 7, 3]},
+                        {first_train: "18:38", delta: [7, 7, 3, 4, 6, 4, 3, 7, 7, 3, 4, 7, 4, 3, [12, [7]]]},
+                        {first_train: "21:18", delta: [6, [7, [7]], 8, 9, 4, [10, [7]], 6]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:20", "18:34"]},
+                        {plan: "成寿寺回库车", first_train: "22:13", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:55", "19:09", "19:29", "19:44"]},
+                        {plan: "巴沟回库车", first_train: "22:34", until: "23:50"}
+                    ]
+                }
+            }
+        },
+        "西局": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [10, 9, 8, 6, 4, 5, 4, 5, [5, [5, 4]], 3, 2, 2, 2, 3, 2, 2]},
+                        {first_train: "07:26", delta: [[3, [3, 2, 2]], [2, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:11", delta: [[3, [2, 2, 3, 2]], 4, 5, 5, 6, 7, 2, 4, 7]},
+                        {first_train: "10:21", delta: [3, 7, 3, 3, 7, [4, [6, 3, 4]], [18, [6, 7]], 6, 4]},
+                        {first_train: "15:44", delta: [6, 6, [23, [4]], [69, [2]], [5, [4]], [8, [6, 3, 3]], 6, 6]},
+                        {first_train: "22:00", delta: [3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:56", skip_trains: 1, until: "08:50"},
+                        {plan: "成寿寺回库车", first_train: "18:04", skip_trains: 1, until: "18:36"},
+                        {plan: "成寿寺回库车", trains: ["19:08", "19:40"]},
+                        {plan: "成寿寺回库车", first_train: "20:15", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:14", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:55", skip_trains: 1, until: "09:36"},
+                        {plan: "巴沟回库车", first_train: "10:07", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:53", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:40", skip_trains: 1, until: "19:04"},
+                        {plan: "巴沟回库车", first_train: "19:12", skip_trains: 1, until: "19:36"},
+                        {plan: "巴沟回库车", trains: ["19:44"]},
+                        {plan: "巴沟回库车", first_train: "21:03", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:03"]},
+                        {plan: "巴沟回库车", first_train: "22:38", until: "23:52"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [7, 7, 7, 6, 8, [9, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:13", delta: [[14, [7]], [8, [5]], 4, [18, [5]], 7, 7, 3, 3, [2, [7, 4, 3, 7]]]},
+                        {first_train: "19:11", delta: [3, 7, 7, 3, 4, 7, 4, 3, [7, [7]], 6, [13, [7]]]},
+                        {first_train: "22:23", delta: [9, 4, [8, [7]], 6, 7, 7]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:22", "18:36"]},
+                        {plan: "成寿寺回库车", first_train: "22:15", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:57", "19:11", "19:31", "19:46"]},
+                        {plan: "巴沟回库车", first_train: "22:36", until: "23:52"}
+                    ]
+                }
+            }
+        },
+        "六里桥": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:35", delta: [10, 9, 7, 7, [5, [4, 5]], 5, 4, 5, 4, 2, 3, 2, 2, 2, 3, 2]},
+                        {first_train: "07:29", delta: [[3, [3, 2, 2, 2]], [3, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:41", delta: [4, 5, 4, 7, 6, 3, 4, 6, 3, 4, 6, 4, 3]},
+                        {first_train: "10:46", delta: [[4, [7, 3, 3]], [18, [7, 6]], 7, 4, 4, 6, 6, [23, [4]], [68, [2]]]},
+                        {first_train: "19:49", delta: [[5, [4]], [8, [5, 4, 3]], 5, 7, 5, 4, 4, [8, [7, 5]], 9]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "07:59", skip_trains: 1, until: "08:53"},
+                        {plan: "成寿寺回库车", first_train: "18:07", skip_trains: 1, until: "18:39"},
+                        {plan: "成寿寺回库车", trains: ["19:11", "19:43"]},
+                        {plan: "成寿寺回库车", first_train: "20:18", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:17", count: 4},
+                        {plan: "巴沟回库车", first_train: "08:58", skip_trains: 1, until: "09:38"},
+                        {plan: "巴沟回库车", first_train: "10:10", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "10:56", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:43", skip_trains: 1, until: "19:07"},
+                        {plan: "巴沟回库车", first_train: "19:15", skip_trains: 1, until: "19:39"},
+                        {plan: "巴沟回库车", trains: ["19:47"]},
+                        {plan: "巴沟回库车", first_train: "21:06", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:06"]},
+                        {plan: "巴沟回库车", first_train: "22:41", until: "23:55"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:35", delta: [7, 7, 7, 5, 9, [4, [7, 7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:33", delta: [7, 7, 7, 5, 4, [25, [5]], 6, [3, [7, 3, 4, 7, 3, 4, 7]]]},
+                        {first_train: "20:06", delta: [7, 6, [15, [7]], 6, 7, 8, 9, 5, 7, 7, 7, 7]},
+                        {first_train: "23:13", delta: [[6, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:24", "18:38"]},
+                        {plan: "成寿寺回库车", first_train: "22:17", count: 3},
+                        {plan: "巴沟回库车", trains: ["18:59", "19:13", "19:34", "19:48"]},
+                        {plan: "巴沟回库车", first_train: "22:39", until: "23:55"}
+                    ]
+                }
+            }
+        },
+        "莲花桥": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:39", delta: [10, 9, 7, 6, [2, [5, 4, 5, 4, 5]], 4, 5, 4, 5, [2, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "07:42", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], 3, [3, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "09:24", delta: [[2, [2, 3, 2, 2]], 2, 5, 4, 5, 7, [3, [6, 3, 4]]]},
+                        {first_train: "10:50", delta: [7, 3, 3, 7, 3, 3, 7, 2, 4, 7, 3, 3, [18, [7, 6]]]},
+                        {first_train: "15:42", delta: [4, 4, 6, 6, [23, [4]], [69, [2]], [5, [4]], 6, [8, [4, 3, 5]]]},
+                        {first_train: "22:01", delta: [5, 4, 4, [8, [7, 5]], 9]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "08:02", skip_trains: 1, until: "08:57"},
+                        {plan: "成寿寺回库车", first_train: "18:10", skip_trains: 1, until: "18:42"},
+                        {plan: "成寿寺回库车", trains: ["19:14", "19:46"]},
+                        {plan: "成寿寺回库车", first_train: "20:22", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:21", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:01", skip_trains: 1, until: "09:42"},
+                        {plan: "巴沟回库车", first_train: "10:14", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:00", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:46", skip_trains: 1, until: "19:10"},
+                        {plan: "巴沟回库车", first_train: "19:18", skip_trains: 1, until: "19:42"},
+                        {plan: "巴沟回库车", trains: ["19:50"]},
+                        {plan: "巴沟回库车", first_train: "21:10", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:10"]},
+                        {plan: "巴沟回库车", first_train: "22:45", until: "23:59"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:39", delta: [7, 7, 7, 5, 8, [19, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:29", delta: [7, 7, 7, 7, [22, [5]], 4, 5, 5, 5, 5, [2, [7, 7, 3, 4, 7, 3, 4]]]},
+                        {first_train: "19:28", delta: [7, 3, 3, 7, 4, 3, [17, [7]], 6, 7, 7, 7, 8]},
+                        {first_train: "22:38", delta: [4, [11, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:28", "18:42"]},
+                        {plan: "成寿寺回库车", first_train: "22:21", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:03", "19:17", "19:38", "19:52"]},
+                        {plan: "巴沟回库车", first_train: "22:42", until: "23:59"}
+                    ]
+                }
+            }
+        },
+        "公主坟": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [10, 9, 7, 6, 5, 4, 5, [5, [5, 4]], 5, 2, 2, 3, 2, 2, 2, 3]},
+                        {first_train: "07:35", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:51", delta: [5, 4, 7, 6, 3, 4, 6, 3, 4, 6, 4, 3, 6]},
+                        {first_train: "10:59", delta: [3, 3, 7, 3, 3, 7, 2, 4, 7, 3, 3, [18, [7, 6]]]},
+                        {first_train: "15:44", delta: [4, 4, 6, 6, [23, [4]], [69, [2]], [5, [4]], 6, [8, [4, 3, 5]]]},
+                        {first_train: "22:03", delta: [5, 4, 4, [8, [7, 5]], 9]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "08:04", skip_trains: 1, until: "08:59"},
+                        {plan: "成寿寺回库车", first_train: "18:12", skip_trains: 1, until: "18:44"},
+                        {plan: "成寿寺回库车", trains: ["19:16", "19:48"]},
+                        {plan: "成寿寺回库车", first_train: "20:24", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:23", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:03", skip_trains: 1, until: "09:44"},
+                        {plan: "巴沟回库车", first_train: "10:16", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:02", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:48", skip_trains: 1, until: "19:12"},
+                        {plan: "巴沟回库车", first_train: "19:20", skip_trains: 1, until: "19:44"},
+                        {plan: "巴沟回库车", trains: ["19:52"]},
+                        {plan: "巴沟回库车", first_train: "21:12", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:12"]},
+                        {plan: "巴沟回库车", first_train: "22:47", until: "00:01"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [7, 7, 7, 5, 9, [4, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:38", delta: [7, 7, 7, [24, [5]], 4, 5, 5, [2, [7, 7, 3, 4, 7, 3, 4]]]},
+                        {first_train: "19:30", delta: [7, 3, 4, 6, 4, 3, [18, [7]], 6, 7, 7, 8, 9]},
+                        {first_train: "22:44", delta: [[11, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:30", "18:44"]},
+                        {plan: "成寿寺回库车", first_train: "22:23", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:05", "19:19", "19:40", "19:54"]},
+                        {plan: "巴沟回库车", first_train: "22:44", until: "00:01"}
+                    ]
+                }
+            }
+        },
+        "西钓鱼台": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [10, 10, 7, 6, 4, 5, [6, [5, 4]], [2, [3, 2, 2, 2, 3, 2, 2]]]},
+                        {first_train: "07:55", delta: [2, [3, [2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3]]]},
+                        {first_train: "09:41", delta: [2, 2, 3, 2, 5, 4, 5, 6, 7, 2, 4, 7, 3]},
+                        {first_train: "10:36", delta: [7, 3, 3, 7, 6, 3, 4, 6, 4, 3, 6, 3, 4, 6]},
+                        {first_train: "11:44", delta: [4, [18, [6, 7]], 6, 4, 4, 6, 6, [23, [4]], [69, [2]], [4, [4]]]},
+                        {first_train: "20:18", delta: [[8, [6, 3, 3]], 6, 6, 6, 3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "08:08", skip_trains: 1, until: "09:02"},
+                        {plan: "成寿寺回库车", first_train: "18:16", skip_trains: 1, until: "18:48"},
+                        {plan: "成寿寺回库车", trains: ["19:20", "19:52"]},
+                        {plan: "成寿寺回库车", first_train: "20:27", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:26", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:07", skip_trains: 1, until: "09:48"},
+                        {plan: "巴沟回库车", first_train: "10:19", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:05", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:52", skip_trains: 1, until: "19:16"},
+                        {plan: "巴沟回库车", first_train: "19:24", skip_trains: 1, until: "19:48"},
+                        {plan: "巴沟回库车", trains: ["19:56"]},
+                        {plan: "巴沟回库车", first_train: "21:15", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:15"]},
+                        {plan: "巴沟回库车", first_train: "22:50", until: "00:04"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [7, 7, 7, 6, 8, [10, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:32", delta: [[13, [7]], [9, [5]], 4, [17, [5]], 7, 7, 3, 4, 6, 4]},
+                        {first_train: "18:51", delta: [7, 7, 4, 3, 7, 4, 3, 7, 7, 3, 4, 7, 4, 3, [7, [7]]]},
+                        {first_train: "20:57", delta: [6, [12, [7]], 8, 9, 4, [9, [7]], 6, 7]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:34", "18:48"]},
+                        {plan: "成寿寺回库车", first_train: "22:27", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:09", "19:23", "19:43", "19:58"]},
+                        {plan: "巴沟回库车", first_train: "22:48", until: "00:04"}
+                    ]
+                }
+            }
+        },
+        "慈寿寺": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:46", delta: [10, 9, 8, 6, [7, [5, 4]], 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2]},
+                        {first_train: "08:12", delta: [[2, [3, 2, 2, 2]], [2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:41", delta: [2, 2, 3, 2, 2, 5, 4, 5, 6, 7, 2, 4, 7]},
+                        {first_train: "10:35", delta: [3, 7, 3, 3, 7, 6, 3, 4, 6, 4, 3, 6, 3, 4]},
+                        {first_train: "11:43", delta: [3, 4, [18, [6, 7]], 6, 4, 4, 6, 6, [23, [4]], [69, [2]], [4, [4]]]},
+                        {first_train: "20:20", delta: [[8, [6, 3, 3]], 6, 6, 6, 3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", first_train: "08:10", skip_trains: 1, until: "09:04"},
+                        {plan: "成寿寺回库车", first_train: "18:18", skip_trains: 1, until: "18:50"},
+                        {plan: "成寿寺回库车", trains: ["19:22", "19:54"]},
+                        {plan: "成寿寺回库车", first_train: "20:29", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:28", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:09", skip_trains: 1, until: "09:50"},
+                        {plan: "巴沟回库车", first_train: "10:21", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:07", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:54", skip_trains: 1, until: "19:18"},
+                        {plan: "巴沟回库车", first_train: "19:26", skip_trains: 1, until: "19:50"},
+                        {plan: "巴沟回库车", trains: ["19:58"]},
+                        {plan: "巴沟回库车", first_train: "21:17", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:17"]},
+                        {plan: "巴沟回库车", first_train: "22:52", until: "00:06"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:46", delta: [7, 7, 7, 6, 8, [11, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:41", delta: [7, 7, 7, 7, 8, 6, 7, 8, 6, 8, 6, 7, [10, [5]]]},
+                        {first_train: "17:00", delta: [4, [15, [5]], 7, 7, 3, 4, 7, 3, 4, 6, 7, 4, 3]},
+                        {first_train: "19:21", delta: [4, 3, 7, 7, 3, 4, 7, 4, 3, [10, [7]], 6, [10, [7]]]},
+                        {first_train: "22:37", delta: [9, 4, [10, [7]], 6]}
+                    ],
+                    filters: [
+                        {plan: "成寿寺回库车", trains: ["18:36", "18:50"]},
+                        {plan: "成寿寺回库车", first_train: "22:29", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:11", "19:25", "19:45", "20:00"]},
+                        {plan: "巴沟回库车", first_train: "22:50", until: "00:06"}
+                    ]
+                }
+            }
+        },
+        "车道沟": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:31", delta: [5, 5, 6, [7, [4, 5]], 5, 4, 5, 4, 5, 2, 4, 3, 2, 2, 2, 3, 2, 2]},
+                        {first_train: "06:37", delta: [[5, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:30", delta: [[2, [2, 2, 3, 2]], 2, 2, 3, 4, 5, 4, 7, 6]},
+                        {first_train: "10:24", delta: [4, 6, 3, 4, 6, 4, 3, 6, [4, [7, 3, 3]], [18, [7, 6]]]},
+                        {first_train: "15:53", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [109, [2]], [5, [4]], [8, [5, 4, 3]]]},
+                        {first_train: "22:04", delta: [7, 5, 4, 4, [8, [7, 5]], 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:31", until: "05:45"},
+                        {plan: "车道沟出库车", first_train: "05:55", skip_trains: 1, until: "07:23"},
+                        {plan: "车道沟出库车", trains: ["16:05", "16:11"]},
+                        {plan: "车道沟出库车", first_train: "16:27", skip_trains: 1, until: "17:43"},
+                        {plan: "成寿寺回库车", first_train: "08:13", skip_trains: 1, until: "09:07"},
+                        {plan: "成寿寺回库车", first_train: "18:21", skip_trains: 1, until: "18:53"},
+                        {plan: "成寿寺回库车", trains: ["19:25", "19:57"]},
+                        {plan: "成寿寺回库车", first_train: "20:32", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:31", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:12", skip_trains: 1, until: "09:52"},
+                        {plan: "巴沟回库车", first_train: "10:24", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:10", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:57", skip_trains: 1, until: "19:21"},
+                        {plan: "巴沟回库车", first_train: "19:29", skip_trains: 1, until: "19:53"},
+                        {plan: "巴沟回库车", trains: ["20:01"]},
+                        {plan: "巴沟回库车", first_train: "21:20", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:20"]},
+                        {plan: "巴沟回库车", first_train: "22:55", until: "00:09"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:31", delta: [8, 8, 6, [11, [7]], 5, 9, [3, [7, 7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:28", delta: [7, 7, 7, 6, [6, [7]], 3, 4, 7, 7, 3, 4, 7]},
+                        {first_train: "15:16", delta: [4, 6, 7, 3, 5, 6, 3, 5, 6, 7, 4, [26, [5]], 6, [3, [7, 3, 4, 7, 3, 4, 7]]]},
+                        {first_train: "20:20", delta: [6, [16, [7]], 6, 7, 8, 9, 5, 7, 7, 7, 6, [7, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:31", until: "05:42"},
+                        {plan: "车道沟出库车", trains: ["14:40", "15:01", "15:16", "15:36", "15:50"]},
+                        {plan: "成寿寺回库车", trains: ["18:38", "18:52"]},
+                        {plan: "成寿寺回库车", first_train: "22:31", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:13", "19:27", "19:48", "20:02"]},
+                        {plan: "巴沟回库车", first_train: "22:53", until: "00:09"}
+                    ]
+                }
+            }
+        },
+        "长春桥": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:33", delta: [5, 5, 6, [4, [4, 5]], [5, [5, 4]], 5, 3, 4, [2, [2, 2, 2, 3]], 2, 2, 2]},
+                        {first_train: "06:49", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "08:31", delta: [[4, [2, 2, 3, 2]], 1, 4, [3, [2, 2, 2, 3]], [2, [2, 2, 3, 2]]]},
+                        {first_train: "10:01", delta: [5, 4, 7, 6, 3, 4, 6, 4, 3, 6, 4, 3, 6, [3, [7, 3, 3]], 7, 3]},
+                        {first_train: "11:54", delta: [[18, [7, 6]], 7, 4, 4, 4, 2, 4, 2, 4, 4, 4, [108, [2]]]},
+                        {first_train: "20:05", delta: [[5, [4]], [8, [6, 3, 3]], 6, 6, 6, 3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:33", until: "05:48"},
+                        {plan: "车道沟出库车", first_train: "05:57", skip_trains: 1, until: "07:25"},
+                        {plan: "车道沟出库车", trains: ["16:07", "16:13"]},
+                        {plan: "车道沟出库车", first_train: "16:29", skip_trains: 1, until: "17:45"},
+                        {plan: "成寿寺回库车", first_train: "08:15", skip_trains: 1, until: "09:08"},
+                        {plan: "成寿寺回库车", first_train: "18:23", skip_trains: 1, until: "18:55"},
+                        {plan: "成寿寺回库车", trains: ["19:27", "19:59"]},
+                        {plan: "成寿寺回库车", first_train: "20:34", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:33", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:14", skip_trains: 1, until: "09:55"},
+                        {plan: "巴沟回库车", first_train: "10:26", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:12", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "18:59", skip_trains: 1, until: "19:23"},
+                        {plan: "巴沟回库车", first_train: "19:31", skip_trains: 1, until: "19:55"},
+                        {plan: "巴沟回库车", trains: ["20:03"]},
+                        {plan: "巴沟回库车", first_train: "21:22", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:22"]},
+                        {plan: "巴沟回库车", first_train: "22:57", until: "00:11"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:33", delta: [8, 8, 7, 7, 7, 7, 6, [7, [7]], 6, 8, [8, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:25", delta: [7, 7, 4, 3, 7, 7, 3, 4, 7, 4, 4, 6, 7]},
+                        {first_train: "15:38", delta: [5, 6, 3, 5, 6, 7, [6, [5]], 4, [20, [5]], 7, 6, [2, [4, 3, 7, 4, 3, 7, 7]]]},
+                        {first_train: "19:50", delta: [4, 7, 4, 3, [6, [7]], 6, [14, [7]], 8, 9, 4, [6, [7]]]},
+                        {first_train: "23:44", delta: [6, 7, 7, 7]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:33", until: "05:44"},
+                        {plan: "车道沟出库车", trains: ["14:43", "15:03", "15:18", "15:38", "15:52"]},
+                        {plan: "成寿寺回库车", trains: ["18:41", "18:55"]},
+                        {plan: "成寿寺回库车", first_train: "22:34", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:16", "19:30", "19:50", "20:05"]},
+                        {plan: "巴沟回库车", first_train: "22:55", until: "00:11"}
+                    ]
+                }
+            }
+        },
+        "火器营": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:35", delta: [5, 5, 6, [6, [4, 5]], 5, 4, 5, 4, 5, 4, 5, 2]},
+                        {first_train: "06:23", delta: [[2, [3, 2, 2, 2, 3, 2, 2]], [2, [2, 3, 2, 2]], [2, [3, 2, 2, 2]], 3, 2, 2]},
+                        {first_train: "07:40", delta: [[4, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:59", delta: [4, 5, 4, 7, 6, 3, 4, 6, 3, 4, 6, 4, 3]},
+                        {first_train: "11:04", delta: [[4, [7, 3, 3]], [18, [7, 6]], 7, 4, 4, 4, 2, 4, 2]},
+                        {first_train: "16:21", delta: [4, 4, [109, [2]], [5, [4]], [8, [6, 3, 3]], 6, 6, 6, 3]},
+                        {first_train: "22:29", delta: [6, 5, 7, [13, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:35", until: "05:50"},
+                        {plan: "车道沟出库车", first_train: "05:59", skip_trains: 1, until: "07:27"},
+                        {plan: "车道沟出库车", trains: ["16:09", "16:15"]},
+                        {plan: "车道沟出库车", first_train: "16:31", skip_trains: 1, until: "17:47"},
+                        {plan: "成寿寺回库车", first_train: "08:17", skip_trains: 1, until: "09:11"},
+                        {plan: "成寿寺回库车", first_train: "18:25", skip_trains: 1, until: "18:57"},
+                        {plan: "成寿寺回库车", trains: ["19:29", "20:01"]},
+                        {plan: "成寿寺回库车", first_train: "20:36", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:35", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:16", skip_trains: 1, until: "09:56"},
+                        {plan: "巴沟回库车", first_train: "10:28", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:14", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "19:01", skip_trains: 1, until: "19:25"},
+                        {plan: "巴沟回库车", first_train: "19:33", skip_trains: 1, until: "19:57"},
+                        {plan: "巴沟回库车", trains: ["20:05"]},
+                        {plan: "巴沟回库车", first_train: "21:24", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:24"]},
+                        {plan: "巴沟回库车", first_train: "22:59", until: "00:13"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:35", delta: [8, 8, 7, 6, [10, [7]], 5, 9, [5, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:06", delta: [[5, [7]], 3, 4, 7, 7, 3, 4, 7, 4, 4, 6, 7]},
+                        {first_train: "15:40", delta: [5, 6, 3, 5, 6, 7, 5, 5, 4, [24, [5]], 6, [2, [7, 4, 3, 7, 4, 3, 7]]]},
+                        {first_train: "19:49", delta: [3, 4, 7, 4, 3, 7, 7, 7, 7, 6, [16, [7]], 8]},
+                        {first_train: "22:53", delta: [4, [5, [7]], 6, [5, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:35", until: "05:46"},
+                        {plan: "车道沟出库车", trains: ["14:44", "15:05", "15:20", "15:40", "15:54"]},
+                        {plan: "成寿寺回库车", trains: ["18:43", "18:57"]},
+                        {plan: "成寿寺回库车", first_train: "22:36", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:18", "19:32", "19:52", "20:07"]},
+                        {plan: "巴沟回库车", first_train: "22:57", until: "00:13"}
+                    ]
+                }
+            }
+        },
+        "巴沟": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:37", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "06:26", delta: [[5, [2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2]]]},
+                        {first_train: "09:18", delta: [2, 2, 3, 3, 2, [3, [2, 2, 2, 3]], 2, 2, 5]},
+                        {first_train: "10:10", delta: [5, 6, 7, 2, 4, 7, 2, 4, 7, 3, 3, 7, [3, [6, 3, 4]], 6, 3]},
+                        {first_train: "11:59", delta: [[18, [6, 7]], 6, 4, 4, 4, 2, 4, 2, 4, 4, 4, [108, [2]]]},
+                        {first_train: "20:09", delta: [[5, [4]], [8, [6, 3, 3]], 6, 6, 6, 3, 5, [16, [6]], 8]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:37", until: "05:52"},
+                        {plan: "车道沟出库车", first_train: "06:01", skip_trains: 1, until: "07:29"},
+                        {plan: "车道沟出库车", trains: ["16:11", "16:17"]},
+                        {plan: "车道沟出库车", first_train: "16:33", skip_trains: 1, until: "17:49"},
+                        {plan: "成寿寺回库车", first_train: "08:19", skip_trains: 1, until: "09:14"},
+                        {plan: "成寿寺回库车", first_train: "18:27", skip_trains: 1, until: "18:59"},
+                        {plan: "成寿寺回库车", trains: ["19:31", "20:03"]},
+                        {plan: "成寿寺回库车", first_train: "20:38", skip_trains: 2, count: 4},
+                        {plan: "成寿寺回库车", first_train: "22:37", count: 4},
+                        {plan: "巴沟回库车", first_train: "09:18", skip_trains: 1, until: "09:59"},
+                        {plan: "巴沟回库车", first_train: "10:30", skip_trains: 2, count: 3},
+                        {plan: "巴沟回库车", first_train: "11:16", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", first_train: "19:03", skip_trains: 1, until: "19:27"},
+                        {plan: "巴沟回库车", first_train: "19:35", skip_trains: 1, until: "19:59"},
+                        {plan: "巴沟回库车", trains: ["20:07"]},
+                        {plan: "巴沟回库车", first_train: "21:26", skip_trains: 2, count: 4},
+                        {plan: "巴沟回库车", trains: ["22:26"]},
+                        {plan: "巴沟回库车", first_train: "23:01", until: "00:15"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:37", delta: [8, 8, [11, [7]], 6, 6, 8, [15, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "12:59", delta: [[15, [7]], 3, 4, 7, 7, 2, 5, 6, 4, 4, 6, 7]},
+                        {first_train: "15:43", delta: [4, 6, 4, 4, 6, 7, [17, [5]], 4, [9, [5]], 7, 7, 3]},
+                        {first_train: "18:49", delta: [7, 3, 4, 7, 7, 4, 3, 6, 4, 3, 7, 7, 3, 4]},
+                        {first_train: "20:05", delta: [4, 3, [13, [7]], 6, [7, [7]], 8, 9, 4, [5, [7]], 6, [5, [7]]]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:37", until: "05:49"},
+                        {plan: "车道沟出库车", trains: ["14:47", "15:07", "15:22", "15:43", "15:57"]},
+                        {plan: "成寿寺回库车", trains: ["18:45", "18:59"]},
+                        {plan: "成寿寺回库车", first_train: "22:38", count: 3},
+                        {plan: "巴沟回库车", trains: ["19:21", "19:34", "19:54", "20:09"]},
+                        {plan: "巴沟回库车", first_train: "22:59", until: "00:15"}
+                    ]
+                }
+            }
+        },
+        "苏州街": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:39", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "06:28", delta: [[5, [2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2]]]},
+                        {first_train: "09:22", delta: [5, [5, [5, 4]], 5, [26, [6, 7]], 6, 4, 4, 4, 2]},
+                        {first_train: "16:19", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "20:31", delta: [6, [4, [4, 3, 5]], [5, [7, 5]], 8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:39", until: "05:54"},
+                        {plan: "车道沟出库车", first_train: "06:03", skip_trains: 1, until: "07:31"},
+                        {plan: "车道沟出库车", trains: ["16:13", "16:19"]},
+                        {plan: "车道沟出库车", first_train: "16:35", skip_trains: 1, until: "17:51"},
+                        {plan: "成寿寺回库车", first_train: "08:21", skip_trains: 1, until: "09:16"},
+                        {plan: "成寿寺回库车", first_train: "18:29", skip_trains: 1, until: "19:01"},
+                        {plan: "成寿寺回库车", first_train: "19:33", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "20:53", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:39", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:39", delta: [8, 8, [11, [7]], 6, 6, 8, [15, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:01", delta: [[15, [7]], 3, 4, 7, 7, 2, 5, 6, 4, 4, 6, 7]},
+                        {first_train: "15:45", delta: [4, 6, 4, 4, 6, 7, [17, [5]], 4, [9, [5]], 7, 7, 3]},
+                        {first_train: "18:51", delta: [7, 3, 4, 7, 7, 7, 7, 6, [19, [7]], 6, [6, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:39", until: "05:51"},
+                        {plan: "车道沟出库车", trains: ["14:49", "15:09", "15:24", "15:45", "15:59"]},
+                        {plan: "成寿寺回库车", trains: ["18:47", "19:01"]},
+                        {plan: "成寿寺回库车", first_train: "22:40", count: 3}
+                    ]
+                }
+            }
+        },
+        "海淀黄庄": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:41", delta: [5, 5, 6, 4, 5, [7, [5, 4]], 5, 5, 4, 3, 4, [3, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "07:06", delta: [[4, [2, 3, 2, 2]], [2, [3, 2, 2, 2]], 3, [4, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "08:48", delta: [[3, [2, 3, 2, 2]], 2, 3, [4, [4, 5]], 5, 4, 5, 4]},
+                        {first_train: "10:19", delta: [[26, [6, 7]], 6, 4, 4, 4, 2, 4, 2, 4, 4, 4, [74, [2]]]},
+                        {first_train: "19:05", delta: [[7, [4]], 2, 2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [10, [6]]]},
+                        {first_train: "22:27", delta: [8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:41", until: "05:56"},
+                        {plan: "车道沟出库车", first_train: "06:05", skip_trains: 1, until: "07:33"},
+                        {plan: "车道沟出库车", trains: ["16:15", "16:21"]},
+                        {plan: "车道沟出库车", first_train: "16:37", skip_trains: 1, until: "17:53"},
+                        {plan: "成寿寺回库车", first_train: "08:23", skip_trains: 1, until: "09:17"},
+                        {plan: "成寿寺回库车", first_train: "18:31", skip_trains: 1, until: "19:03"},
+                        {plan: "成寿寺回库车", first_train: "19:35", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "20:54", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:41", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:41", delta: [8, 8, [8, [7]], 6, 7, 7, 7, 6, 8, [12, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "12:42", delta: [[18, [7]], 3, 4, 6, 7, 3, 4, 7, 4, 4, 6, 7]},
+                        {first_train: "15:46", delta: [5, 6, 3, 5, 6, 7, [12, [5]], 4, [14, [5]], 7, 7, 3]},
+                        {first_train: "18:53", delta: [7, 3, 4, 6, [19, [7]], 6, [10, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:41", until: "05:53"},
+                        {plan: "车道沟出库车", trains: ["14:51", "15:11", "15:26", "15:46", "16:00"]},
+                        {plan: "成寿寺回库车", trains: ["18:49", "19:03"]},
+                        {plan: "成寿寺回库车", first_train: "22:42", count: 3}
+                    ]
+                }
+            }
+        },
+        "知春里": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:43", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "06:32", delta: [[2, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [2, [3, 2, 2, 2]], 3, 2, 2]},
+                        {first_train: "07:53", delta: [[2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:04", delta: [[2, [2, 2, 3, 2]], 4, 5, 4, 5, [4, [5, 4]], 5, [26, [6, 7]]]},
+                        {first_train: "16:05", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "19:37", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "22:43", delta: [6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:43", until: "05:58"},
+                        {plan: "车道沟出库车", first_train: "06:07", skip_trains: 1, until: "07:35"},
+                        {plan: "车道沟出库车", trains: ["16:17", "16:23"]},
+                        {plan: "车道沟出库车", first_train: "16:39", skip_trains: 1, until: "17:55"},
+                        {plan: "成寿寺回库车", first_train: "08:25", skip_trains: 1, until: "09:20"},
+                        {plan: "成寿寺回库车", first_train: "18:33", skip_trains: 1, until: "19:05"},
+                        {plan: "成寿寺回库车", first_train: "19:37", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "20:56", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:43", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:43", delta: [8, 8, [10, [7]], 6, 7, 6, 8, [14, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "12:58", delta: [[16, [7]], 3, 4, 7, 7, 2, 4, [2, [7, 4, 4, 6]]]},
+                        {first_train: "16:03", delta: [4, 6, 7, [16, [5]], 4, [10, [5]], 7, 7, 3, 4, 7, 3]},
+                        {first_train: "19:09", delta: [7, 7, 7, 6, [19, [7]], 6, [7, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:43", until: "05:55"},
+                        {plan: "车道沟出库车", trains: ["14:53", "15:13", "15:28", "15:49", "16:03"]},
+                        {plan: "成寿寺回库车", trains: ["18:51", "19:05"]},
+                        {plan: "成寿寺回库车", first_train: "22:44", count: 3}
+                    ]
+                }
+            }
+        },
+        "知春路": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:45", delta: [5, 5, 6, [2, [5, 5, 4, 5, 4]], [4, [5, 4]], 5, 3]},
+                        {first_train: "06:35", delta: [2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:43", delta: [[2, [2, 2, 2, 3, 2, 2, 3]], 2, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "09:25", delta: [[5, [4, 5]], 5, 4, 5, [26, [6, 7]], 6, 4, 4, 4, 2]},
+                        {first_train: "16:26", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "20:38", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:45", until: "06:01"},
+                        {plan: "车道沟出库车", first_train: "06:10", skip_trains: 1, until: "07:38"},
+                        {plan: "车道沟出库车", trains: ["16:20", "16:26"]},
+                        {plan: "车道沟出库车", first_train: "16:42", skip_trains: 1, until: "17:58"},
+                        {plan: "成寿寺回库车", first_train: "08:28", skip_trains: 1, until: "09:22"},
+                        {plan: "成寿寺回库车", first_train: "18:36", skip_trains: 1, until: "19:08"},
+                        {plan: "成寿寺回库车", first_train: "19:40", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "20:59", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:46", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:45", delta: [8, 8, [9, [7]], 6, 7, 7, 6, 8, [13, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "12:53", delta: [[17, [7]], 3, 4, 7, 6, 3, 4, 7, 4, 5, 5, 7]},
+                        {first_train: "15:50", delta: [6, 5, 3, 6, 5, 7, [14, [5]], 4, [12, [5]], 7, 7, 3]},
+                        {first_train: "18:57", delta: [7, 3, 4, 7, 6, [19, [7]], 6, [9, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:45", until: "05:57"},
+                        {plan: "车道沟出库车", trains: ["14:55", "15:15", "15:30", "15:50", "16:04"]},
+                        {plan: "成寿寺回库车", trains: ["18:53", "19:07"]},
+                        {plan: "成寿寺回库车", first_train: "22:46", count: 3}
+                    ]
+                }
+            }
+        },
+        "西土城": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:48", delta: [[5, [5]], 4, 5, 4, 5, [6, [5, 4]], 5, 3, 4, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:45", delta: [[2, [2, 2, 2, 3, 2, 2, 3]], 2, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "09:27", delta: [[5, [4, 5]], 5, 4, 5, [26, [6, 7]], 6, 4, 4, 4, 2]},
+                        {first_train: "16:28", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "20:40", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:48", until: "06:03"},
+                        {plan: "车道沟出库车", first_train: "06:12", skip_trains: 1, until: "07:40"},
+                        {plan: "车道沟出库车", trains: ["16:22", "16:28"]},
+                        {plan: "车道沟出库车", first_train: "16:44", skip_trains: 1, until: "18:00"},
+                        {plan: "成寿寺回库车", first_train: "08:30", skip_trains: 1, until: "09:24"},
+                        {plan: "成寿寺回库车", first_train: "18:38", skip_trains: 1, until: "19:10"},
+                        {plan: "成寿寺回库车", first_train: "19:42", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:01", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:48", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:48", delta: [7, 8, 8, [5, [7]], 6, [5, [7]], 6, 8, [10, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:54", delta: [3, 4, 7, 7, 2, 5, 7, 4, 5, 5, 7, 3, 6]},
+                        {first_train: "16:04", delta: [3, 6, 5, 7, [9, [5]], 4, [17, [5]], 7, 7, 3, 4, 6]},
+                        {first_train: "19:10", delta: [3, [18, [7]], 6, [12, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:48", until: "05:59"},
+                        {plan: "车道沟出库车", trains: ["14:57", "15:17", "15:33", "15:53", "16:07"]},
+                        {plan: "成寿寺回库车", trains: ["18:56", "19:10"]},
+                        {plan: "成寿寺回库车", first_train: "22:49", count: 3}
+                    ]
+                }
+            }
+        },
+        "牡丹园": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:50", delta: [5, 5, 5, 6, [7, [4, 5]], 5, 4, 5, 4, 3, 4, [2, [2, 2, 3, 2]], 2, 2, 3]},
+                        {first_train: "07:06", delta: [[4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:20", delta: [2, 2, 3, 2, 4, [2, [5, 4, 5, 4, 5]], 4, 5, [26, [6, 7]]]},
+                        {first_train: "16:12", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "19:44", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "22:50", delta: [6, 6, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:50", until: "06:05"},
+                        {plan: "车道沟出库车", first_train: "06:14", skip_trains: 1, until: "07:42"},
+                        {plan: "车道沟出库车", trains: ["16:24", "16:30"]},
+                        {plan: "车道沟出库车", first_train: "16:46", skip_trains: 1, until: "18:02"},
+                        {plan: "成寿寺回库车", first_train: "08:32", skip_trains: 1, until: "09:27"},
+                        {plan: "成寿寺回库车", first_train: "18:40", skip_trains: 1, until: "19:12"},
+                        {plan: "成寿寺回库车", first_train: "19:44", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:03", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:50", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:50", delta: [8, [13, [7]], 5, 9, [3, [7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:47", delta: [7, 7, 6, [7, [7]], 3, 4, 7, 7, 3, 4, [2, [7, 3, 6, 5]]]},
+                        {first_train: "16:09", delta: [6, 5, 6, [27, [5]], 6, 7, 3, 4, 7, 3, 4, [10, [7]]]},
+                        {first_train: "20:32", delta: [6, [17, [7]], 6, 7, 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:50", until: "06:01"},
+                        {plan: "车道沟出库车", trains: ["14:59", "15:20", "15:34", "15:55", "16:09"]},
+                        {plan: "成寿寺回库车", trains: ["18:57", "19:11"]},
+                        {plan: "成寿寺回库车", first_train: "22:50", count: 3}
+                    ]
+                }
+            }
+        },
+        "健德门": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:52", delta: [[5, [5]], 4, 5, 4, 5, [6, [5, 4]], 5, 3, 4, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:49", delta: [[2, [2, 2, 2, 3, 2, 2, 3]], 2, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "09:31", delta: [[5, [4, 5]], 5, 4, 5, [26, [6, 7]], 6, 4, 4, 4, 2]},
+                        {first_train: "16:32", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "20:44", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:52", until: "06:07"},
+                        {plan: "车道沟出库车", first_train: "06:16", skip_trains: 1, until: "07:44"},
+                        {plan: "车道沟出库车", trains: ["16:26", "16:32"]},
+                        {plan: "车道沟出库车", first_train: "16:48", skip_trains: 1, until: "18:04"},
+                        {plan: "成寿寺回库车", first_train: "08:34", skip_trains: 1, until: "09:28"},
+                        {plan: "成寿寺回库车", first_train: "18:42", skip_trains: 1, until: "19:14"},
+                        {plan: "成寿寺回库车", first_train: "19:46", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:05", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:52", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:52", delta: [7, 8, [12, [7]], 5, 9, [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:48", delta: [[10, [7]], 3, 4, 7, 7, 2, [2, [5, 7, 3, 6]], 4]},
+                        {first_train: "16:11", delta: [5, 5, 7, [24, [5]], 4, 5, 5, 7, 7, 3, 4, 7, 3]},
+                        {first_train: "19:17", delta: [[8, [7]], 6, [19, [7]], 6, 7, 7, 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:52", until: "06:03"},
+                        {plan: "车道沟出库车", trains: ["15:01", "15:21", "15:36", "15:57", "16:11"]},
+                        {plan: "成寿寺回库车", trains: ["18:59", "19:13"]},
+                        {plan: "成寿寺回库车", first_train: "22:52", count: 3}
+                    ]
+                }
+            }
+        },
+        "北土城": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:54", delta: [5, 5, [2, [5, 5, 4, 5, 4, 5, 4]], 5, 4, 5, 4]},
+                        {first_train: "06:31", delta: [4, 3, 4, [2, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [3, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:12", delta: [[2, [2, 2, 3, 2]], 2, [5, [5, 4]], 5, 5, 4, [26, [7, 6]]]},
+                        {first_train: "16:15", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "19:47", delta: [2, [7, [4]], 2, 2, [6, [4]], 6, [4, [4, 3, 5]], [5, [7, 5]]]},
+                        {first_train: "22:47", delta: [7, 5, 7, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:54", until: "06:08"},
+                        {plan: "车道沟出库车", first_train: "06:17", skip_trains: 1, until: "07:46"},
+                        {plan: "车道沟出库车", trains: ["16:27", "16:33"]},
+                        {plan: "车道沟出库车", first_train: "16:49", skip_trains: 1, until: "18:05"},
+                        {plan: "成寿寺回库车", first_train: "08:35", skip_trains: 1, until: "09:30"},
+                        {plan: "成寿寺回库车", first_train: "18:43", skip_trains: 1, until: "19:15"},
+                        {plan: "成寿寺回库车", first_train: "19:47", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:07", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:54", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:54", delta: [7, 8, [12, [7]], 5, 8, [19, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:43", delta: [[11, [7]], 3, 4, 7, 7, 2, 5, 7, 3, 7, 4, 7]},
+                        {first_train: "15:59", delta: [6, 4, 4, 6, 4, 7, [23, [5]], 4, 5, 5, 5, 7, 7]},
+                        {first_train: "19:01", delta: [4, 7, 3, 4, [8, [7]], 6, [19, [7]], 6, 7, 7, 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:54", until: "06:05"},
+                        {plan: "车道沟出库车", trains: ["15:03", "15:23", "15:38", "15:59", "16:13"]},
+                        {plan: "成寿寺回库车", trains: ["19:01", "19:15"]},
+                        {plan: "成寿寺回库车", first_train: "22:54", count: 3}
+                    ]
+                }
+            }
+        },
+        "安贞门": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:56", delta: [5, 5, 6, [5, [4, 5]], [4, [5, 4]], 5, 3, 4, [2, [2, 2, 2, 3]], 2, 2, 2]},
+                        {first_train: "07:12", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "08:54", delta: [[4, [2, 2, 3, 2]], 2, 3, [6, [4, 5]], 4, [26, [7, 6]]]},
+                        {first_train: "16:18", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "19:50", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "22:56", delta: [6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:56", until: "06:11"},
+                        {plan: "车道沟出库车", first_train: "06:20", skip_trains: 1, until: "07:48"},
+                        {plan: "车道沟出库车", trains: ["16:30", "16:36"]},
+                        {plan: "车道沟出库车", first_train: "16:52", skip_trains: 1, until: "18:08"},
+                        {plan: "成寿寺回库车", first_train: "08:38", skip_trains: 1, until: "09:32"},
+                        {plan: "成寿寺回库车", first_train: "18:46", skip_trains: 1, until: "19:18"},
+                        {plan: "成寿寺回库车", first_train: "19:50", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:09", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:56", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:56", delta: [8, 8, 7, 7, 7, 6, [8, [7]], 6, 8, [7, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:41", delta: [7, 7, 7, 4, 3, 7, 7, 3, 4, 7, 4, 6, 4]},
+                        {first_train: "15:58", delta: [3, 7, 4, 3, 7, 4, 7, [5, [5]], 4, [21, [5]], 6, 7]},
+                        {first_train: "19:04", delta: [3, 7, 4, 3, [15, [7]], 6, [15, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:56", until: "06:07"},
+                        {plan: "车道沟出库车", trains: ["15:06", "15:26", "15:41", "16:01", "16:15"]},
+                        {plan: "成寿寺回库车", trains: ["19:04", "19:18"]},
+                        {plan: "成寿寺回库车", first_train: "22:57", count: 3}
+                    ]
+                }
+            }
+        },
+        "惠新西街南口": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:58", delta: [5, 5, 6, 4, [2, [5, 4, 5, 4, 5]], [4, [4, 5]], 3]},
+                        {first_train: "06:47", delta: [2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:55", delta: [[2, [2, 2, 2, 3, 2, 2, 3]], 2, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "09:37", delta: [[5, [4, 5]], 5, 4, 5, [26, [6, 7]], 6, 4, 4, 4, 2]},
+                        {first_train: "16:38", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "20:50", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:58", until: "06:13"},
+                        {plan: "车道沟出库车", first_train: "06:22", skip_trains: 1, until: "07:50"},
+                        {plan: "车道沟出库车", trains: ["16:32", "16:38"]},
+                        {plan: "车道沟出库车", first_train: "16:54", skip_trains: 1, until: "18:10"},
+                        {plan: "成寿寺回库车", first_train: "08:40", skip_trains: 1, until: "09:34"},
+                        {plan: "成寿寺回库车", first_train: "18:48", skip_trains: 1, until: "19:20"},
+                        {plan: "成寿寺回库车", first_train: "19:52", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:11", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "22:58", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:58", delta: [8, 8, [6, [7]], 6, [5, [7]], 6, 8, [10, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:04", delta: [4, 3, 7, 7, 3, 4, 7, 4, 6, 4, 7, 3, 7]},
+                        {first_train: "16:14", delta: [3, 7, 4, 7, [9, [5]], 4, [17, [5]], 7, 7, 3, 4, 6]},
+                        {first_train: "19:20", delta: [3, [18, [7]], 6, [12, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "04:58", until: "06:09"},
+                        {plan: "车道沟出库车", trains: ["15:08", "15:28", "15:43", "16:03", "16:17"]},
+                        {plan: "成寿寺回库车", trains: ["19:06", "19:20"]},
+                        {plan: "成寿寺回库车", first_train: "22:59", count: 3}
+                    ]
+                }
+            }
+        },
+        "芍药居": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:01", delta: [5, 5, 6, [5, [4, 5]], [4, [5, 4]], 5, 2, 4, [5, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:44", delta: [[6, [5, 4]], [26, [7, 6]], 7, 4, 4, 4, 2, 4, 2]},
+                        {first_train: "16:47", delta: [4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]]]},
+                        {first_train: "21:47", delta: [[10, [6]], 8, 6, 5, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:01", until: "06:16"},
+                        {plan: "车道沟出库车", first_train: "06:25", skip_trains: 1, until: "07:53"},
+                        {plan: "车道沟出库车", trains: ["16:35", "16:41"]},
+                        {plan: "车道沟出库车", first_train: "16:57", skip_trains: 1, until: "18:13"},
+                        {plan: "成寿寺回库车", first_train: "08:43", skip_trains: 1, until: "09:37"},
+                        {plan: "成寿寺回库车", first_train: "18:51", skip_trains: 1, until: "19:23"},
+                        {plan: "成寿寺回库车", first_train: "19:55", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:14", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:01", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:01", delta: [8, 8, 7, 7, 6, [9, [7]], 5, 9, [6, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:39", delta: [7, 7, [2, [7, 7, 3, 4]], 7, 4, 6, 4, 7, 3]},
+                        {first_train: "16:13", delta: [4, 3, 7, 4, 7, 5, 5, 5, 5, 4, [22, [5]], 6, 7]},
+                        {first_train: "19:09", delta: [3, 7, 4, 3, [15, [7]], 6, [15, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:01", until: "06:12"},
+                        {plan: "车道沟出库车", trains: ["15:10", "15:31", "15:46", "16:06", "16:20"]},
+                        {plan: "成寿寺回库车", trains: ["19:09", "19:23"]},
+                        {plan: "成寿寺回库车", first_train: "23:02", count: 3}
+                    ]
+                }
+            }
+        },
+        "太阳宫": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:03", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "06:52", delta: [[2, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [2, [3, 2, 2, 2]], 3, 2, 2]},
+                        {first_train: "08:13", delta: [[2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:24", delta: [[2, [2, 2, 3, 2]], 4, 5, 4, 5, [4, [5, 4]], 5, [26, [6, 7]]]},
+                        {first_train: "16:25", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "19:57", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "23:03", delta: [6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:03", until: "06:18"},
+                        {plan: "车道沟出库车", first_train: "06:27", skip_trains: 1, until: "07:55"},
+                        {plan: "车道沟出库车", trains: ["16:37", "16:43"]},
+                        {plan: "车道沟出库车", first_train: "16:59", skip_trains: 1, until: "18:15"},
+                        {plan: "成寿寺回库车", first_train: "08:45", skip_trains: 1, until: "09:40"},
+                        {plan: "成寿寺回库车", first_train: "18:53", skip_trains: 1, until: "19:25"},
+                        {plan: "成寿寺回库车", first_train: "19:57", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:16", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:03", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:03", delta: [8, 8, [10, [7]], 6, 7, 6, 8, [14, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:18", delta: [[16, [7]], 3, 4, 7, 7, 2, [2, [4, 7, 4, 6]], 4]},
+                        {first_train: "16:23", delta: [6, 4, 7, [16, [5]], 4, [10, [5]], 7, 7, 3, 4, 7, 3]},
+                        {first_train: "19:29", delta: [7, 7, 7, 6, [19, [7]], 6, [7, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:03", until: "06:15"},
+                        {plan: "车道沟出库车", trains: ["15:13", "15:33", "15:48", "16:09", "16:23"]},
+                        {plan: "成寿寺回库车", trains: ["19:11", "19:25"]},
+                        {plan: "成寿寺回库车", first_train: "23:04", count: 3}
+                    ]
+                }
+            }
+        },
+        "三元桥": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:06", delta: [5, 5, 6, [4, [4, 5]], [5, [5, 4]], 5, 3, 4, [2, [2, 2, 2, 3]], 2, 2, 2]},
+                        {first_train: "07:22", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:04", delta: [[4, [2, 2, 3, 2]], 2, 3, [6, [4, 5]], 4, [26, [7, 6]]]},
+                        {first_train: "16:28", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "20:00", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "23:06", delta: [6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:06", until: "06:21"},
+                        {plan: "车道沟出库车", first_train: "06:30", skip_trains: 1, until: "07:58"},
+                        {plan: "车道沟出库车", trains: ["16:40", "16:46"]},
+                        {plan: "车道沟出库车", first_train: "17:02", skip_trains: 1, until: "18:18"},
+                        {plan: "成寿寺回库车", first_train: "08:48", skip_trains: 1, until: "09:42"},
+                        {plan: "成寿寺回库车", first_train: "18:56", skip_trains: 1, until: "19:28"},
+                        {plan: "成寿寺回库车", first_train: "20:00", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:19", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:06", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:06", delta: [8, 8, 7, 7, 7, 7, 6, [7, [7]], 6, 8, [8, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:58", delta: [7, 7, 4, 3, 7, 7, 3, 4, 7, 4, 6, 4, 7]},
+                        {first_train: "16:11", delta: [7, 4, 3, 7, 4, 7, [6, [5]], 4, [20, [5]], 7, 6, 4]},
+                        {first_train: "19:17", delta: [7, 4, 3, [16, [7]], 6, [14, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:06", until: "06:17"},
+                        {plan: "车道沟出库车", trains: ["15:16", "15:36", "15:51", "16:11", "16:25"]},
+                        {plan: "成寿寺回库车", trains: ["19:14", "19:28"]},
+                        {plan: "成寿寺回库车", first_train: "23:07", count: 3}
+                    ]
+                }
+            }
+        },
+        "亮马桥": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [5, 5, [2, [5, 5, 4, 5, 4]], [5, [5, 4]], 3, 4, [3, [2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2]]]},
+                        {first_train: "08:41", delta: [3, [2, [2, 2, 3, 2]], 2, [3, [2, 2, 3]], [2, [2, 2, 2, 3]]]},
+                        {first_train: "09:45", delta: [2, [4, [5, 4]], 5, 5, 4, 5, 4, [26, [7, 6]], 6]},
+                        {first_train: "16:34", delta: [4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [6, [4]]]},
+                        {first_train: "20:32", delta: [2, 2, [6, [4]], 6, [4, [4, 3, 5]], [5, [7, 5]], 8, 7]},
+                        {first_train: "23:14", delta: [7, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:09", until: "06:23"},
+                        {plan: "车道沟出库车", first_train: "06:32", skip_trains: 1, until: "08:01"},
+                        {plan: "车道沟出库车", trains: ["16:42", "16:48"]},
+                        {plan: "车道沟出库车", first_train: "17:04", skip_trains: 1, until: "18:20"},
+                        {plan: "成寿寺回库车", first_train: "08:51", skip_trains: 1, until: "09:45"},
+                        {plan: "成寿寺回库车", first_train: "18:58", skip_trains: 1, until: "19:30"},
+                        {plan: "成寿寺回库车", first_train: "20:02", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:22", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:09", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [7, 8, [12, [7]], 5, 9, [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:05", delta: [[10, [7]], 3, 4, 7, 7, 3, [2, [4, 7, 3, 7]], 3]},
+                        {first_train: "16:28", delta: [6, 4, 7, [25, [5]], 4, 5, 7, 7, 3, 4, 7, 3, 4, [8, [7]]]},
+                        {first_train: "20:37", delta: [6, [19, [7]], 6, 7, 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:09", until: "06:20"},
+                        {plan: "车道沟出库车", trains: ["15:18", "15:39", "15:53", "16:14", "16:28"]},
+                        {plan: "成寿寺回库车", trains: ["19:16", "19:30"]},
+                        {plan: "成寿寺回库车", first_train: "23:09", count: 3}
+                    ]
+                }
+            }
+        },
+        "农业展览馆": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:11", delta: [5, 5, [2, [5, 5, 4, 5, 4, 5, 4]], 5, 4, 5, 4]},
+                        {first_train: "06:48", delta: [4, 3, 4, [2, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [3, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:29", delta: [[2, [2, 2, 3, 2]], 2, [5, [5, 4]], 5, 5, 4, [26, [7, 6]]]},
+                        {first_train: "16:32", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "20:04", delta: [2, [7, [4]], 2, 2, [6, [4]], 6, [4, [4, 3, 5]], [5, [7, 5]]]},
+                        {first_train: "23:04", delta: [7, 5, 7, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:11", until: "06:25"},
+                        {plan: "车道沟出库车", first_train: "06:34", skip_trains: 1, until: "08:03"},
+                        {plan: "车道沟出库车", trains: ["16:44", "16:50"]},
+                        {plan: "车道沟出库车", first_train: "17:06", skip_trains: 1, until: "18:22"},
+                        {plan: "成寿寺回库车", first_train: "08:52", skip_trains: 1, until: "09:47"},
+                        {plan: "成寿寺回库车", first_train: "19:00", skip_trains: 1, until: "19:32"},
+                        {plan: "成寿寺回库车", first_train: "20:04", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:24", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:11", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:11", delta: [7, 8, [12, [7]], 5, 8, [19, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:00", delta: [[11, [7]], 3, 4, 7, 7, 2, 5, 7, 3, 7, 4, 7]},
+                        {first_train: "16:16", delta: [6, 4, 4, 6, 4, 7, [23, [5]], 4, 5, 5, 5, 7, 7]},
+                        {first_train: "19:18", delta: [4, 7, 3, 4, [8, [7]], 6, [19, [7]], 6, 7, 7, 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:11", until: "06:22"},
+                        {plan: "车道沟出库车", trains: ["15:20", "15:40", "15:55", "16:16", "16:30"]},
+                        {plan: "成寿寺回库车", trains: ["19:18", "19:32"]},
+                        {plan: "成寿寺回库车", first_train: "23:11", count: 3}
+                    ]
+                }
+            }
+        },
+        "团结湖": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "07:01", delta: [[2, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [2, [3, 2, 2, 2]], 3, 2, 2]},
+                        {first_train: "08:22", delta: [[2, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:33", delta: [[2, [2, 2, 3, 2]], 4, 5, 4, 5, [4, [5, 4]], 5, [26, [6, 7]]]},
+                        {first_train: "16:34", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "20:06", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "23:12", delta: [6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:12", until: "06:27"},
+                        {plan: "车道沟出库车", first_train: "06:36", skip_trains: 1, until: "08:04"},
+                        {plan: "车道沟出库车", trains: ["16:46", "16:52"]},
+                        {plan: "车道沟出库车", first_train: "17:08", skip_trains: 1, until: "18:24"},
+                        {plan: "成寿寺回库车", first_train: "08:54", skip_trains: 1, until: "09:49"},
+                        {plan: "成寿寺回库车", first_train: "19:02", skip_trains: 1, until: "19:34"},
+                        {plan: "成寿寺回库车", first_train: "20:06", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:25", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:12", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [8, 8, [11, [7]], 6, 6, 8, [15, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:34", delta: [[15, [7]], 3, 4, 7, 7, 2, 5, 6, 4, 6, 4, 7]},
+                        {first_train: "16:18", delta: [6, 4, 4, 6, 4, 7, [16, [5]], 4, [10, [5]], 7, 7, 3]},
+                        {first_train: "19:24", delta: [7, 3, 4, 7, 7, 7, 6, [19, [7]], 6, [7, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:12", until: "06:24"},
+                        {plan: "车道沟出库车", trains: ["15:22", "15:42", "15:57", "16:18", "16:32"]},
+                        {plan: "成寿寺回库车", trains: ["19:20", "19:34"]},
+                        {plan: "成寿寺回库车", first_train: "23:13", count: 3}
+                    ]
+                }
+            }
+        },
+        "呼家楼": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:14", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "07:03", delta: [[5, [2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2]]]},
+                        {first_train: "09:57", delta: [5, [5, [5, 4]], 5, [26, [6, 7]], 6, 4, 4, 4, 2]},
+                        {first_train: "16:54", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 3, 1, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "21:06", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:14", until: "06:29"},
+                        {plan: "车道沟出库车", first_train: "06:38", skip_trains: 1, until: "08:06"},
+                        {plan: "车道沟出库车", trains: ["16:48", "16:54"]},
+                        {plan: "车道沟出库车", first_train: "17:10", skip_trains: 1, until: "18:26"},
+                        {plan: "成寿寺回库车", first_train: "08:56", skip_trains: 1, until: "09:51"},
+                        {plan: "成寿寺回库车", first_train: "19:04", skip_trains: 1, until: "19:36"},
+                        {plan: "成寿寺回库车", first_train: "20:09", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:27", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:14", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:14", delta: [8, 8, [11, [7]], 6, 6, 8, [15, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:36", delta: [[15, [7]], 3, 4, 7, 7, 2, 5, 6, 4, 6, 4, 7]},
+                        {first_train: "16:20", delta: [6, 4, 4, 6, 4, 7, [17, [5]], 4, [9, [5]], 7, 7, 3]},
+                        {first_train: "19:26", delta: [7, 3, 4, 7, 7, 7, 6, [19, [7]], 6, [7, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:14", until: "06:26"},
+                        {plan: "车道沟出库车", trains: ["15:24", "15:44", "15:59", "16:20", "16:34"]},
+                        {plan: "成寿寺回库车", trains: ["19:22", "19:36"]},
+                        {plan: "成寿寺回库车", first_train: "23:15", count: 3}
+                    ]
+                }
+            }
+        },
+        "金台夕照": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:16", delta: [5, 5, 6, [6, [5, 4]], 5, 5, 4, 5, 4, 5, 4, 3]},
+                        {first_train: "07:05", delta: [[5, [2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2]]]},
+                        {first_train: "09:59", delta: [5, [5, [5, 4]], 4, [26, [7, 6]], 7, 4, 4, 4, 2]},
+                        {first_train: "16:56", delta: [2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "21:08", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:16", until: "06:31"},
+                        {plan: "车道沟出库车", first_train: "06:40", skip_trains: 1, until: "08:08"},
+                        {plan: "车道沟出库车", trains: ["16:50", "16:56"]},
+                        {plan: "车道沟出库车", first_train: "17:12", skip_trains: 1, until: "18:28"},
+                        {plan: "成寿寺回库车", first_train: "08:58", skip_trains: 1, until: "09:53"},
+                        {plan: "成寿寺回库车", first_train: "19:06", skip_trains: 1, until: "19:38"},
+                        {plan: "成寿寺回库车", first_train: "20:10", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:29", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:16", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:16", delta: [8, 8, [11, [7]], 6, 6, 8, [15, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "13:38", delta: [[15, [7]], 3, 4, 7, 7, 2, 5, 6, 4, 6, 4, 7]},
+                        {first_train: "16:22", delta: [6, 4, 4, 6, 4, 7, [17, [5]], 4, [9, [5]], 7, 7, 3]},
+                        {first_train: "19:28", delta: [7, 3, 4, 7, 7, 7, 6, [19, [7]], 6, [7, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:16", until: "06:28"},
+                        {plan: "车道沟出库车", trains: ["15:26", "15:46", "16:01", "16:22", "16:36"]},
+                        {plan: "成寿寺回库车", trains: ["19:24", "19:38"]},
+                        {plan: "成寿寺回库车", first_train: "23:17", count: 3}
+                    ]
+                }
+            }
+        },
+        "国贸": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:18", delta: [5, 5, 6, 4, [2, [5, 4, 5, 4, 5]], [4, [4, 5]], 3]},
+                        {first_train: "07:07", delta: [2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "08:15", delta: [[2, [2, 2, 2, 3, 2, 2, 3]], 2, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "09:57", delta: [[5, [4, 5]], 5, 4, 4, [26, [7, 6]], 7, 4, 4, 4, 2]},
+                        {first_train: "16:58", delta: [2, 4, 6, [76, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [5, [4]]]},
+                        {first_train: "21:10", delta: [[4, [6, 3, 3]], [11, [6]], 8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:18", until: "06:33"},
+                        {plan: "车道沟出库车", first_train: "06:42", skip_trains: 1, until: "08:10"},
+                        {plan: "车道沟出库车", trains: ["16:52", "16:58"]},
+                        {plan: "车道沟出库车", first_train: "17:14", skip_trains: 1, until: "18:30"},
+                        {plan: "成寿寺回库车", first_train: "09:00", skip_trains: 1, until: "09:54"},
+                        {plan: "成寿寺回库车", first_train: "19:08", skip_trains: 1, until: "19:40"},
+                        {plan: "成寿寺回库车", first_train: "20:12", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:31", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:18", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:18", delta: [8, 8, [6, [7]], 6, [5, [7]], 6, 8, [10, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:24", delta: [4, 3, 7, 7, 3, 4, 7, 4, 6, 4, 7, 3, 7]},
+                        {first_train: "16:34", delta: [3, 7, 4, 7, [9, [5]], 4, [17, [5]], 7, 7, 3, 4, 6]},
+                        {first_train: "19:40", delta: [3, [18, [7]], 6, [12, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:18", until: "06:29"},
+                        {plan: "车道沟出库车", trains: ["15:28", "15:48", "16:03", "16:23", "16:37"]},
+                        {plan: "成寿寺回库车", trains: ["19:26", "19:40"]},
+                        {plan: "成寿寺回库车", first_train: "23:19", count: 3}
+                    ]
+                }
+            }
+        },
+        "双井": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:21", delta: [5, 5, 6, [4, [4, 5]], [5, [5, 4]], 5, 3, 4, 2, 2, 2, 3, 2, 2, 2]},
+                        {first_train: "07:28", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:10", delta: [[4, [2, 2, 3, 2]], 2, 3, 2, 2, 2, 3, [6, [4, 5]]]},
+                        {first_train: "10:58", delta: [[26, [7, 6]], 7, 4, 4, 4, 2, 4, 2, 4, 6, [75, [2]]]},
+                        {first_train: "19:45", delta: [[7, [4]], 2, 2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [10, [6]]]},
+                        {first_train: "23:07", delta: [8, 6, 6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:21", until: "06:36"},
+                        {plan: "车道沟出库车", first_train: "06:45", skip_trains: 1, until: "08:13"},
+                        {plan: "车道沟出库车", trains: ["16:55", "17:01"]},
+                        {plan: "车道沟出库车", first_train: "17:17", skip_trains: 1, until: "18:33"},
+                        {plan: "成寿寺回库车", first_train: "09:03", skip_trains: 1, until: "09:57"},
+                        {plan: "成寿寺回库车", first_train: "19:11", skip_trains: 1, until: "19:43"},
+                        {plan: "成寿寺回库车", first_train: "20:15", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:34", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:21", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:21", delta: [8, 8, 7, 7, 7, 7, 6, [7, [7]], 6, 8, [8, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:13", delta: [7, 7, 4, 3, 7, 7, 3, 4, 7, 4, 6, 4, 7]},
+                        {first_train: "16:26", delta: [7, 4, 3, 7, 4, 7, [7, [5]], 4, [19, [5]], 7, 7, 3]},
+                        {first_train: "19:32", delta: [7, 4, 3, [17, [7]], 6, [13, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:21", until: "06:32"},
+                        {plan: "车道沟出库车", trains: ["15:31", "15:51", "16:06", "16:26", "16:40"]},
+                        {plan: "成寿寺回库车", trains: ["19:29", "19:43"]},
+                        {plan: "成寿寺回库车", first_train: "23:22", count: 3}
+                    ]
+                }
+            }
+        },
+        "劲松": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [5, 5, 6, [5, [4, 5]], [4, [5, 4]], 5, 3, 4, [2, [2, 2, 2, 3]], 2, 2, 2]},
+                        {first_train: "07:39", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:21", delta: [[4, [2, 2, 3, 2]], 2, 3, [6, [4, 5]], 4, [26, [7, 6]]]},
+                        {first_train: "16:45", delta: [4, 4, 4, 2, 4, 2, 4, 6, [76, [2]], [7, [4]], 2]},
+                        {first_train: "20:19", delta: [[7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8, 6]},
+                        {first_train: "23:29", delta: [6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:23", until: "06:38"},
+                        {plan: "车道沟出库车", first_train: "06:47", skip_trains: 1, until: "08:15"},
+                        {plan: "车道沟出库车", trains: ["16:57", "17:03"]},
+                        {plan: "车道沟出库车", first_train: "17:19", skip_trains: 1, until: "18:35"},
+                        {plan: "成寿寺回库车", first_train: "09:05", skip_trains: 1, until: "09:59"},
+                        {plan: "成寿寺回库车", first_train: "19:13", skip_trains: 1, until: "19:45"},
+                        {plan: "成寿寺回库车", first_train: "20:17", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:36", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:23", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [8, 8, 7, 7, 7, 6, [8, [7]], 6, 8, [7, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:08", delta: [7, 7, 7, 4, 3, 7, 7, 3, 4, 7, 4, 6, 4]},
+                        {first_train: "16:25", delta: [3, 7, 4, 3, 7, 4, 7, [5, [5]], 4, [21, [5]], 7, 6]},
+                        {first_train: "19:31", delta: [3, 7, 4, 3, [16, [7]], 6, [14, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:23", until: "06:34"},
+                        {plan: "车道沟出库车", trains: ["15:33", "15:53", "16:08", "16:28", "16:42"]},
+                        {plan: "成寿寺回库车", trains: ["19:31", "19:45"]},
+                        {plan: "成寿寺回库车", first_train: "23:24", count: 3}
+                    ]
+                }
+            }
+        },
+        "潘家园": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [5, 5, 6, [5, [4, 5]], [4, [5, 4]], 5, 2, 4, [5, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "10:08", delta: [[6, [5, 4]], [26, [7, 6]], 7, 4, 4, 4, 2, 4, 2]},
+                        {first_train: "17:11", delta: [4, 4, [75, [2]], [7, [4]], 2, 2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]]]},
+                        {first_train: "22:11", delta: [[10, [6]], 8, 6, 5, 7, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:25", until: "06:40"},
+                        {plan: "车道沟出库车", first_train: "06:49", skip_trains: 1, until: "08:17"},
+                        {plan: "车道沟出库车", trains: ["16:59", "17:05"]},
+                        {plan: "车道沟出库车", first_train: "17:21", skip_trains: 1, until: "18:37"},
+                        {plan: "成寿寺回库车", first_train: "09:07", skip_trains: 1, until: "10:01"},
+                        {plan: "成寿寺回库车", first_train: "19:15", skip_trains: 1, until: "19:47"},
+                        {plan: "成寿寺回库车", first_train: "20:19", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:38", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:25", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:25", delta: [8, 8, 7, 7, 7, 6, [8, [7]], 5, 9, [7, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:10", delta: [7, [2, [7, 7, 3, 4]], 7, 4, 6, 4, 7, 3, 7]},
+                        {first_train: "16:41", delta: [3, 7, 4, 7, 5, 5, 5, 5, 4, [22, [5]], 6, 7, 4]},
+                        {first_train: "19:36", delta: [7, 4, 3, [15, [7]], 6, [15, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:25", until: "06:36"},
+                        {plan: "车道沟出库车", trains: ["15:34", "15:55", "16:10", "16:30", "16:44"]},
+                        {plan: "成寿寺回库车", trains: ["19:33", "19:47"]},
+                        {plan: "成寿寺回库车", first_train: "23:26", count: 3}
+                    ]
+                }
+            }
+        },
+        "十里河": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:27", delta: [5, 5, 6, [4, [4, 5]], [5, [5, 4]], 5, 3, 4, [2, [2, 2, 2, 3]], 2, 2, 2]},
+                        {first_train: "07:43", delta: [[4, [2, 2, 3, 2]], [4, [2, 3, 2, 2]], [3, [3, 2, 2, 2]]]},
+                        {first_train: "09:25", delta: [[4, [2, 2, 3, 2]], 2, 3, [6, [4, 5]], 4, [26, [7, 6]]]},
+                        {first_train: "16:49", delta: [4, 4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]]]},
+                        {first_train: "20:21", delta: [2, [7, [4]], 2, 2, [6, [4]], [4, [6, 3, 3]], [11, [6]], 8]},
+                        {first_train: "23:27", delta: [6, 6, 6]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:27", until: "06:42"},
+                        {plan: "车道沟出库车", first_train: "06:51", skip_trains: 1, until: "08:19"},
+                        {plan: "车道沟出库车", trains: ["17:01", "17:07"]},
+                        {plan: "车道沟出库车", first_train: "17:23", skip_trains: 1, until: "18:39"},
+                        {plan: "成寿寺回库车", first_train: "09:09", skip_trains: 1, until: "10:03"},
+                        {plan: "成寿寺回库车", first_train: "19:17", skip_trains: 1, until: "19:49"},
+                        {plan: "成寿寺回库车", first_train: "20:21", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:40", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:27", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:27", delta: [8, 8, 7, 7, 7, 7, 6, [7, [7]], 6, 8, [8, [7]], [3, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "15:19", delta: [7, 7, 4, 3, 7, 7, 3, 4, 7, 4, 6, 4, 7]},
+                        {first_train: "16:32", delta: [7, 4, 3, 7, 4, 7, [6, [5]], 4, [20, [5]], 7, 6, 4]},
+                        {first_train: "19:38", delta: [7, 4, 3, [16, [7]], 6, [14, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:27", until: "06:38"},
+                        {plan: "车道沟出库车", trains: ["15:37", "15:57", "16:12", "16:32", "16:46"]},
+                        {plan: "成寿寺回库车", trains: ["19:35", "19:49"]},
+                        {plan: "成寿寺回库车", first_train: "23:28", count: 3}
+                    ]
+                }
+            }
+        },
+        "分钟寺": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [5, 5, [2, [5, 5, 4, 5, 4, 5, 4]], 5, 4, 5, 4]},
+                        {first_train: "07:07", delta: [4, 3, 4, [3, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [3, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:57", delta: [2, 2, 3, 2, 2, [6, [5, 4]], 5, [26, [7, 6]], 6]},
+                        {first_train: "16:55", delta: [4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [6, [4]]]},
+                        {first_train: "20:53", delta: [2, 2, [6, [4]], 6, [4, [4, 3, 5]], [5, [7, 5]], 8, 7]},
+                        {first_train: "23:35", delta: [7, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:30", until: "06:44"},
+                        {plan: "车道沟出库车", first_train: "06:53", skip_trains: 1, until: "08:22"},
+                        {plan: "车道沟出库车", trains: ["17:03", "17:09"]},
+                        {plan: "车道沟出库车", first_train: "17:25", skip_trains: 1, until: "18:41"},
+                        {plan: "成寿寺回库车", first_train: "09:11", skip_trains: 1, until: "10:06"},
+                        {plan: "成寿寺回库车", first_train: "19:19", skip_trains: 1, until: "19:51"},
+                        {plan: "成寿寺回库车", first_train: "20:23", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:43", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:30", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [7, 8, [12, [7]], 5, 8, [19, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:19", delta: [[11, [7]], 3, 4, 7, 7, 2, 5, 7, 3, 7, 4, 7]},
+                        {first_train: "16:35", delta: [6, 4, 4, 6, 4, 7, [22, [5]], 4, 5, 5, 5, 5, 7]},
+                        {first_train: "19:34", delta: [3, 4, 7, 3, 4, [7, [7]], 6, [19, [7]], 6, 7, 7, 7]},
+                        {first_train: "23:38", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:30", until: "06:41"},
+                        {plan: "车道沟出库车", trains: ["15:39", "15:59", "16:14", "16:35", "16:49"]},
+                        {plan: "成寿寺回库车", trains: ["19:37", "19:51"]},
+                        {plan: "成寿寺回库车", first_train: "23:30", count: 3}
+                    ]
+                }
+            }
+        },
+        "成寿寺": {
+            "内环": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [5, 5, [2, [5, 5, 4, 5, 4, 5, 4, 5, 4]], 5, 4]},
+                        {first_train: "07:16", delta: [4, [3, [2, 3, 2, 2]], [3, [3, 2, 2, 2]], [3, [3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2]]]},
+                        {first_train: "09:59", delta: [2, 2, 3, 2, 2, [6, [5, 4]], 5, [26, [6, 7]], 6]},
+                        {first_train: "16:57", delta: [4, 4, 2, 4, 2, 4, 4, 4, [75, [2]], [7, [4]], 2, 2, [6, [4]]]},
+                        {first_train: "20:55", delta: [2, 2, [6, [4]], 6, [4, [4, 3, 5]], [5, [7, 5]], 8, 7]},
+                        {first_train: "23:37", delta: [7, 5]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:32", until: "06:46"},
+                        {plan: "车道沟出库车", first_train: "06:55", skip_trains: 1, until: "08:24"},
+                        {plan: "车道沟出库车", trains: ["17:05", "17:11"]},
+                        {plan: "车道沟出库车", first_train: "17:27", skip_trains: 1, until: "18:43"},
+                        {plan: "成寿寺回库车", first_train: "09:13", skip_trains: 1, until: "10:08"},
+                        {plan: "成寿寺回库车", first_train: "19:21", skip_trains: 1, until: "19:53"},
+                        {plan: "成寿寺回库车", first_train: "20:25", skip_trains: 8, count: 3},
+                        {plan: "成寿寺回库车", first_train: "21:45", skip_trains: 2, count: 3},
+                        {plan: "成寿寺回库车", first_train: "23:32", count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [7, 8, [12, [7]], 5, 8, [18, [7]], [2, [6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]]]},
+                        {first_train: "14:14", delta: [[12, [7]], 3, 4, 7, 7, 2, 5, 7, 3, 7, 4, 6]},
+                        {first_train: "16:37", delta: [6, 4, 4, 6, 4, 7, [21, [5]], 4, [5, [5]], 7, 7, 3]},
+                        {first_train: "19:43", delta: [7, 3, 4, [6, [7]], 6, [19, [7]], 6, 7, 7, 7, 7, 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "车道沟出库车", first_train: "05:32", until: "06:43"},
+                        {plan: "车道沟出库车", trains: ["15:41", "16:01", "16:16", "16:37", "16:51"]},
+                        {plan: "成寿寺回库车", trains: ["19:39", "19:53"]},
+                        {plan: "成寿寺回库车", first_train: "23:32", count: 3}
+                    ]
+                }
+            }
+        }
     }
 }
