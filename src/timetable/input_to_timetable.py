@@ -51,8 +51,12 @@ def parse_input(tolerate: bool = False) -> Timetable:
             next_day = True
             hour %= 24
         spec = [x.strip() for x in line[index + 1:].strip().split()]
+        last_minute: int | None = None
         for time_str in spec:
             braces, minute = parse_brace(time_str)
+            if last_minute is not None:
+                assert last_minute < minute, (hour, last_minute, minute)
+            last_minute = minute
             for brace in braces:
                 if brace not in route_dict:
                     route_dict[brace] = []
