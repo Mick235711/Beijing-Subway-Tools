@@ -314,7 +314,6 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
             new_prev[prev_time] = prev_train
     prev.trains = new_prev
 
-    altered = False
     if tolerate:
         # assign the corresponding route to every train in current
         # first let's sort everything by time
@@ -366,14 +365,17 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                         cur_train.station, cur_train.date_group, new_time,
                         new_table.base_route, new_day
                     )
-                    new_table.trains[new_time] = new_train
+                    current.trains[new_time] = new_train
                     print("===>", cur_train, "->", new_train)
                     cnt += 1
                 else:
                     prev_cnt += 1
             print("Inserted " + suffix_s("extra train", cnt) + ".")
+            new_table = Timetable({
+                cur_time: cur_train for cur_time, cur_train in current.trains.items()
+                if list(cur_train.route_iter()) == [current.base_route]
+            }, current.base_route)
             cur_sorted = new_table.trains_sorted()
-            altered = True
 
         assert len(prev_sorted) == len(cur_sorted), (prev, current, new_table)
 
@@ -426,7 +428,7 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                 print(f"Warning: {get_time_str(new_time, new_day)} differs from " +
                       get_time_str(prev_time, prev_day))
 
-    return new_table if altered else current
+    return current
 
 
 def main(timetable: Timetable | None = None, args: argparse.Namespace | None = None) -> None:
