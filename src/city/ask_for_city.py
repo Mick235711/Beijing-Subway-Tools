@@ -160,6 +160,8 @@ def ask_for_station_in_line(
             station for station in stations
             if len(line.timetables()[station][with_direction]) == len(line.date_groups)
         ]
+        if len(viable) == 0:
+            have_default = False
     else:
         viable = []
     answer = complete_pinyin(
