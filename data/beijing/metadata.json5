@@ -134,6 +134,49 @@
             {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "北行", minutes: 1},
             {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "南行", minutes: 1}
             // 同向同台
+        ],
+        "公主坟": [
+            {from: "1号线", to: "10号线", minutes: 2}
+        ],
+        "国贸": [
+            {from: "1号线", to: "10号线", to_direction: "内环", minutes: 4},
+            {from: "1号线", to: "10号线", to_direction: "外环", minutes: 4.5},
+        ],
+        "海淀黄庄": [
+            {from: "4号线", to: "10号线", minutes: 1.5}
+        ],
+        "角门西": [
+            {from: "4号线", to: "10号线", minutes: 2.5}
+        ],
+        "惠新西街南口": [
+            {from: "5号线", to: "10号线", minutes: 0.5}
+        ],
+        "宋家庄": [
+            {from: "5号线", to: "10号线", to_direction: "外环", minutes: 1},
+            {from: "5号线", to: "10号线", to_direction: "内环", minutes: 1.5}
+        ],
+        "慈寿寺": [
+            {from: "6号线", to: "10号线", minutes: 1.5},
+            {from: "10号线", to: "6号线", minutes: 0.5}
+            // 节点10->6
+        ],
+        "呼家楼": [
+            {from: "6号线", to: "10号线", minutes: 0.5}
+        ],
+        "双井": [
+            {from: "7号线", to: "10号线", minutes: 2.5}
+        ],
+        "北土城": [
+            {from: "8号线", to: "10号线", minutes: 1.5},
+            {from: "10号线", to: "8号线", minutes: 0.5},
+            // 节点10->8, 非高峰可逆行
+            {
+                from: "8号线", to: "10号线", minutes: 1,
+                apply_time: [{end: "07:00"}, {start: "09:00", end: "17:00"}, {start: "19:00"}]
+            }
+        ],
+        "六里桥": [
+            {from: "9号线", to: "10号线", minutes: 0.5}
         ]
     }
 }
