@@ -40,7 +40,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
     parser.add_argument("-m", "--verbose-per-minute", type=int,
-                        help="Show message per N minutes", default=20)
+                        help="Show message per N minutes", default=10)
     args = parser.parse_args()
 
     city = ask_for_city()

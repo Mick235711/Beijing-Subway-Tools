@@ -134,7 +134,7 @@ def main() -> None:
     parser.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
     parser.add_argument("-t", "--to-station", help="Only show average time to specified stations")
     parser.add_argument("-m", "--verbose-per-minute", type=int,
-                        help="Show message per N minutes", default=20)
+                        help="Show message per N minutes", default=10)
     args = parser.parse_args()
 
     stations: set[str] | None = None
