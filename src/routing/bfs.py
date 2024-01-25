@@ -243,24 +243,11 @@ def bfs(
             cur_time, cur_day, prev_line, prev_direction,
             exclude_tuple=exclude_tuple
         ):
-            arrival_items = list(next_train.arrival_time.items())
-            arrival_keys = list(next_train.arrival_time.keys())
-            arrival_index = arrival_keys.index(station)
-            next_stations = arrival_items[arrival_index + 1:]
-            if next_train.loop_next is not None:
-                # also append the other half of the loop
-                arrival_items_next = list(next_train.loop_next.arrival_time.items())
-                arrival_keys_next = list(next_train.loop_next.arrival_time.keys())
-                arrival_index_next = arrival_keys_next.index(station)
-                item_next = arrival_items_next[:arrival_index_next]
-                next_stations += item_next
-            else:
-                item_next = []
-
+            next_stations = list(next_train.arrival_time_virtual(station).items())[1:]
             for next_station, (next_time, next_day) in next_stations:
                 if next_station in next_train.skip_stations:
                     continue
-                if next_train.loop_next is not None and next_station in item_next and \
+                if next_train.loop_next is not None and next_station not in next_train.arrival_time and \
                         next_station in next_train.loop_next.skip_stations:
                     continue
                 if exclude_stations is not None and next_station in exclude_stations:
