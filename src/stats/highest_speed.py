@@ -84,7 +84,7 @@ def get_speed_data(line: Line, train_set: set[Train]) -> tuple:
     total_distance = line.total_distance()
     total_stations = len(line.stations) - (0 if line.loop else 1)
     return (
-        line.name, f"{line.stations[0]} - {line.stations[-1]}",
+        line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
         total_distance / 1000, len(line.stations), line.design_speed,
         total_distance / (total_stations * 1000), min(line.station_dists) / 1000, max(line.station_dists) / 1000,
         len(train_set), avg_speed, min_speed, max_speed
@@ -99,7 +99,7 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
     total_cap = line.train_capacity() * len(train_set) / 10000
     avg_dist = train_distance * 10 / len(train_set)
     return (
-        line.name, f"{line.stations[0]} - {line.stations[-1]}",
+        line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
         total_distance / 1000, len(line.stations), line.design_speed,
         line.train_code(), line.train_capacity(), len(train_set),
         total_cap, train_distance,
@@ -143,7 +143,7 @@ def get_moving_average_data(
             continue
         line = lines[line_name]
         result[line_name] = (
-            line.name, f"{line.stations[0]} - {line.stations[-1]}",
+            line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
             line.total_distance() / 1000, len(line.stations), line.design_speed,
             line.train_code(), line.train_capacity(),
             avg_cnt,
@@ -221,7 +221,7 @@ def get_section_data(
         min_cap_cnt_key, max_cap_cnt_key = arg_minmax(cap_dict)
         line = lines[line_name]
         result[line_name] = (
-            line.name, f"{line.stations[0]} - {line.stations[-1]}",
+            line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
             line.total_distance() / 1000, len(line.stations), line.design_speed,
             line.train_code(), line.train_capacity(),
             f"{count_dict[min_cnt_key]}" +
@@ -273,10 +273,10 @@ def main() -> None:
     if args.per_line:
         if args.capacity:
             output_table(all_trains, args, get_capacity_data, [
-                "Line", "Interval", "Distance", "Station", "Design Spd",
+                "Index", "Line", "Interval", "Distance", "Station", "Design Spd",
                 "Carriage", "Capacity", "Train\nCount", "Total Cap", "Car Dist", "Avg Car\nDist", "People Dist"
             ], [
-                "", "", "km", "", "km/h", "", "ppl", "", "w ppl", "w km", "", "y ppl km"
+                "", "", "", "km", "", "km/h", "", "ppl", "", "w ppl", "w km", "", "y ppl km"
             ])
         elif args.moving_average:
             average_str = f"{args.moving_average}-min Avg\n"
@@ -285,11 +285,11 @@ def main() -> None:
                 get_moving_average_data(
                     all_trains, lines, args.moving_average, args.full_only, args.show_example, args.include_edge
                 ), [
-                    "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
+                    "Index", "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                     average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
                     average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
                 ], [
-                    "", "", "km", "", "km/h", "", "ppl", "", "", "", "", "", ""
+                    "", "", "", "km", "", "km/h", "", "ppl", "", "", "", "", "", ""
                 ]
             )
         elif args.section:
@@ -299,19 +299,19 @@ def main() -> None:
                 get_section_data(
                     all_trains, lines, args.section, args.full_only, args.show_example, args.include_edge
                 ), [
-                    "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
+                    "Index", "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                     average_str + "Min Count", average_str + "Max Count",
                     average_str + "Min Cap", average_str + "Max Cap"
                 ], [
-                    "", "", "km", "", "km/h", "", "ppl", "", "", "", ""
+                    "", "", "", "km", "", "km/h", "", "ppl", "", "", "", ""
                 ]
             )
         else:
             output_table(all_trains, args, get_speed_data, [
-                "Line", "Interval", "Distance", "Station", "Design Spd",
+                "Index", "Line", "Interval", "Distance", "Station", "Design Spd",
                 "Avg Dist", "Min Dist", "Max Dist", "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"
             ], [
-                "", "", "km", "", "km/h", "km", "km", "km", "", "km/h", "km/h", "km/h"
+                "", "", "", "km", "", "km/h", "km", "km", "km", "", "km/h", "km/h", "km/h"
             ])
     else:
         highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only)
