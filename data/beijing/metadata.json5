@@ -27,8 +27,12 @@
         ],
         "西直门": [
             {from: "2号线", to: "4号线", minutes: 0.5},
-            {from: "4号线", to: "2号线", minutes: 2.5}
+            {from: "4号线", to: "2号线", minutes: 2.5},
             // 节点2->4
+            {from: "2号线", to: "13号线", minutes: 6},
+            {from: "13号线", to: "2号线", minutes: 6.5},
+            {from: "4号线", to: "13号线", minutes: 4.5},
+            {from: "13号线", to: "4号线", minutes: 5}
         ],
         "宣武门": [
             {from: "2号线", to: "4号线", minutes: 1.5},
@@ -181,6 +185,25 @@
         // 参考：https://www.bilibili.com/video/BV1bY411n73i/
         "金安桥": [
             {from: "6号线", to: "11号线", minutes: 3}
-        ]
+        ],
+        "东直门": [
+            {from: "2号线", to: "13号线", minutes: 8.5},
+            {from: "13号线", to: "2号线", minutes: 5}
+        ],
+        "立水桥": [
+            {from: "5号线", from_direction: "南行", to: "13号线", minutes: 2},
+            {from: "5号线", from_direction: "北行", to: "13号线", minutes: 3}
+        ],
+        "霍营": [
+            {from: "8号线", to: "13号线", minutes: 3.5}
+        ],
+        "知春路": [
+            {from: "10号线", from_direction: "内环", to: "13号线", minutes: 4},
+            {from: "10号线", from_direction: "外环", to: "13号线", minutes: 4.5}
+        ],
+        "芍药居": [
+            {from: "10号线", to: "13号线", to_direction: "东行", minutes: 3.5},
+            {from: "10号线", to: "13号线", to_direction: "西行", minutes: 3}
+        ],
     }
 }
