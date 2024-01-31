@@ -1,0 +1,49 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 13号线时刻表 新4版
+{
+    name: "13号线",
+    aliases: ["Line 13"],
+    carriage_num: 6,
+    carriage_type: "B-",
+    design_speed: 80,
+    stations: [
+        {name: "西直门"},
+        {name: "大钟寺", dist: 2839},
+        {name: "知春路", dist: 1206},
+        {name: "五道口", dist: 1829},
+        {name: "上地", dist: 4866},
+        {name: "清河站", dist: 1018, aliases: ["Qinghe Railway Station"]},
+        {name: "西二旗", dist: 1545},
+        {name: "龙泽", dist: 3623},
+        {name: "回龙观", dist: 1423},
+        {name: "霍营", dist: 2110},
+        {name: "立水桥", dist: 4786},
+        {name: "北苑", dist: 2272},
+        {name: "望京西", dist: 6720},
+        {name: "芍药居", dist: 2152},
+        {name: "光熙门", dist: 1110},
+        {name: "柳芳", dist: 1135},
+        {name: "东直门", dist: 1769}
+    ],
+    train_routes: {
+        "东行": {
+            aliases: ["Eastbound"],
+            "全程车": {},
+            "霍营回库车": {ends_with: "霍营"},
+            "霍营出库车": {starts_with: "霍营"},
+            "立水桥出库车": {starts_with: "立水桥"}
+        },
+        "西行": {
+            aliases: ["Westbound"],
+            reversed: true,
+            "全程车": {},
+            "回龙观回库车": {ends_with: "回龙观"},
+            "霍营出库车": {starts_with: "霍营"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {}
+}
