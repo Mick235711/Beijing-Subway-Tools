@@ -68,7 +68,10 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     if isinstance(data_callback, dict) and "Total" in data_callback:
         data.append(data_callback["Total"])
 
-    data = sorted(data, key=lambda x: tuple(x[s] for s in (sort_index or [0])), reverse=reverse)
+    max_value = max(line.index for line, _ in line_dict.values()) + 1
+    data = sorted(data, key=lambda x: tuple(
+        max_value if x[s] == "" else x[s] for s in (sort_index or [0])
+    ), reverse=reverse)
     print(tabulate(
         data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
     ))
@@ -130,7 +133,7 @@ def get_moving_average_data(
         ) = moving_average_dict(line_cap_dict, moving_min, include_edge)
         if line_name == "Total":
             result[line_name] = (
-                line_name, "",
+                "", line_name, "",
                 sum(line.total_distance() / 1000 for line in lines.values()),
                 sum(len(line.stations) for line in lines.values()), "", "", "",
                 avg_cnt,
