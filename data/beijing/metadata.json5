@@ -177,6 +177,10 @@
         ],
         "六里桥": [
             {from: "9号线", to: "10号线", minutes: 0.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1bY411n73i/
+        "金安桥": [
+            {from: "6号线", to: "11号线", minutes: 3}
         ]
     }
 }
