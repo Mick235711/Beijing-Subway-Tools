@@ -54,6 +54,7 @@
             reversed: true,
             "全程车": {},
             "大瓦窑回库车": {ends_with: "大瓦窑"},
+            "西局始发空车": {starts_with: "西局"},
             "丽泽商务区小交路": {ends_with: "丽泽商务区"},
             "九龙山小交路": {ends_with: "九龙山"}
         }
@@ -80,6 +81,28 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                // 以+1min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 12, 6, 8, 8, 8, 8, [9, [6]], 5, 7, [24, [6]], 4]},
+                        {first_train: "10:36", delta: [[101, [6]], 9, 9, 6, 9, [9, [6]], 7, 7, 8, 8, 8, 8]},
+                        {first_train: "23:04", delta: [8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["06:00", "06:07"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 12, 7, [5, [10]], 8, 9, 8, 7, 8, 9, 7, 8, 9]},
+                        {first_train: "08:36", delta: [8, 8, [111, [6]], [11, [7]], 8, 8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["06:00", "06:07"]}
+                    ]
+                }
             }
         },
         "园博园": {
@@ -98,6 +121,27 @@
                         {first_train: "18:59", delta: [[11, [8]], [5, [9]], 10, [9, [9]]]}
                     ],
                     filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:59", delta: [7, 12, 6, 8, 8, 8, 8, [9, [6]], 5, 7, [24, [6]], 4]},
+                        {first_train: "10:35", delta: [[101, [6]], 9, 9, 6, 9, [9, [6]], 7, 7, 8, 8, 8, 8]},
+                        {first_train: "23:03", delta: [8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:59", "06:06"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:59", delta: [7, 12, 7, [5, [10]], 8, 9, 8, 7, 8, 9, 7, 8, 9]},
+                        {first_train: "08:35", delta: [8, 8, [111, [6]], [11, [7]], 8, 8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:59", "06:06"]}
+                    ]
                 }
             }
         },
@@ -122,6 +166,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:54", delta: [7, 12, 6, 8, 8, 8, 8, [9, [6]], 5, 7, [12, [6]], 7]},
+                        {first_train: "09:21", delta: [6, 6, [16, [3]], 4, 5, [95, [6]], [3, [3, 3, 6]], 4, 5]},
+                        {first_train: "20:54", delta: [6, 9, [9, [6]], 7, 7, 8, 8, 8, 8, 9, 8, 9, 12]},
+                        {first_train: "23:39", delta: [11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:54", "06:01"]},
+                        {plan: "大瓦窑回库车", first_train: "09:36", skip_trains: 1, until: "10:18"},
+                        {plan: "大瓦窑回库车", first_train: "20:03", skip_trains: 2, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:54", delta: [7, 12, 7, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [10, [7]]]},
+                        {first_train: "21:09", delta: [8, 8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:54", "06:01"]}
+                    ]
+                }
             }
         },
         "郭庄子": {
@@ -144,6 +212,29 @@
                         {first_train: "19:07", delta: [[11, [8]], [6, [9]], 10, [8, [9]]]}
                     ],
                     filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:52", delta: [7, 11, 7, 8, 8, 8, 8, [9, [6]], 5, 7, [16, [6]], [15, [3]]]},
+                        {first_train: "10:19", delta: [4, 5, [95, [6]], [3, [3, 3, 6]], 4, 5, 9, 6, 9, [8, [6]]]},
+                        {first_train: "22:01", delta: [7, 7, 8, 8, 7, 9, 9, 8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:52", "05:59"]},
+                        {plan: "大瓦窑回库车", first_train: "09:34", skip_trains: 1, until: "10:16"},
+                        {plan: "大瓦窑回库车", first_train: "20:01", skip_trains: 2, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:52", delta: [7, 11, 7, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8]},
+                        {first_train: "21:22", delta: [8, [16, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:52", "05:59"]}
+                    ]
                 }
             }
         },
@@ -168,6 +259,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:49", delta: [7, 11, 7, 8, 8, 8, 8, [9, [6]], 5, 7, [16, [6]], [15, [3]]]},
+                        {first_train: "10:16", delta: [4, 5, [95, [6]], 2, 4, 6, 3, 3, 6, 3, 3, 6, 4]},
+                        {first_train: "20:40", delta: [9, 6, 9, [9, [6]], 7, 6, 8, 8, 9, 8, 9, 8, 8]},
+                        {first_train: "23:22", delta: [12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:49", "05:56"]},
+                        {plan: "大瓦窑回库车", first_train: "09:31", skip_trains: 1, until: "10:13"},
+                        {plan: "大瓦窑回库车", first_train: "19:57", skip_trains: 2, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:49", delta: [7, 11, 7, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "21:11", delta: [8, 8, [16, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:49", "05:56"]}
+                    ]
+                }
             }
         },
         "七里庄": {
@@ -190,6 +305,29 @@
                         {first_train: "19:13", delta: [[11, [8]], [6, [9]], 10, [8, [9]]]}
                     ],
                     filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:46", delta: [7, 11, 7, 8, 8, 8, 8, [9, [6]], 5, 7, [16, [6]], [15, [3]]]},
+                        {first_train: "10:13", delta: [4, 5, [95, [6]], [3, [3, 3, 6]], 4, 5, 9, 6, 9, [8, [6]]]},
+                        {first_train: "21:55", delta: [7, 7, 8, 8, 8, 8, 9, 8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:46", "05:53"]},
+                        {plan: "大瓦窑回库车", first_train: "09:28", skip_trains: 1, until: "10:10"},
+                        {plan: "大瓦窑回库车", first_train: "19:55", skip_trains: 2, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:46", delta: [7, 11, 7, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8]},
+                        {first_train: "21:16", delta: [8, [16, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:46", "05:53"]}
+                    ]
                 }
             }
         },
@@ -214,6 +352,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:45", delta: [6, 11, 7, 8, 8, 8, 8, [9, [6]], 5, 7, [16, [6]], [15, [3]]]},
+                        {first_train: "10:11", delta: [4, 5, [95, [6]], 2, 4, 6, 3, 3, 6, 3, 3, 6, 4]},
+                        {first_train: "20:34", delta: [10, 5, 10, [9, [6]], 7, 6, 8, 8, 9, 8, 9, 8, 8]},
+                        {first_train: "23:17", delta: [12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:45", "05:51"]},
+                        {plan: "大瓦窑回库车", first_train: "09:26", skip_trains: 1, until: "10:08"},
+                        {plan: "大瓦窑回库车", first_train: "19:52", skip_trains: 2, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:45", delta: [6, 11, 7, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "21:06", delta: [8, 8, [16, [9]]]}
+                    ],
+                    filters: [
+                        {plan: "西局始发空车", trains: ["05:45", "05:51"]}
+                    ]
+                }
             }
         },
         "东管头": {
@@ -234,6 +396,26 @@
                     schedule: [
                         {first_train: "05:15", delta: [9, 8, 8, [5, [9]], [8, [8]], 7, 7, [111, [6]], 7, 7, 8]},
                         {first_train: "19:17", delta: [[11, [8]], [5, [9]], 10, [9, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [6, 8, 8, 8, 8, [9, [6]], 5, 7, [12, [6]], 7, 5, 6]},
+                        {first_train: "09:20", delta: [[16, [3]], 4, 5, [95, [6]], [3, [3, 3, 6]], 4, 5, 9, 6]},
+                        {first_train: "20:56", delta: [[9, [6]], 7, 7, 8, 8, 8, 8, 9, 8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "大瓦窑回库车", first_train: "09:23", skip_trains: 1, until: "10:05"},
+                        {plan: "大瓦窑回库车", first_train: "19:50", skip_trains: 2, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "21:04", delta: [8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
                     ],
                     filters: []
                 }
@@ -264,6 +446,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:58", delta: [6, 8, 8, 8, 8, [9, [6]], 5, 4, [26, [3]], 4, 2, [20, [3]]]},
+                        {first_train: "10:06", delta: [4, 5, [80, [6]], [42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7]},
+                        {first_train: "22:10", delta: [8, 8, 8, 9, 8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:39", skip_trains: 1, until: "09:15"},
+                        {plan: "丽泽商务区小交路", first_train: "18:18", skip_trains: 1, until: "19:42"},
+                        {plan: "丽泽商务区小交路", first_train: "19:54", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:49"]},
+                        {plan: "大瓦窑回库车", first_train: "09:21", skip_trains: 1, until: "10:03"},
+                        {plan: "大瓦窑回库车", first_train: "19:48", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:58", delta: [7, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "21:02", delta: [8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
+                    ],
+                    filters: []
+                }
             }
         },
         "菜户营": {
@@ -287,6 +493,30 @@
                     schedule: [
                         {first_train: "05:20", delta: [8, 8, 8, [5, [9]], [8, [8]], 7, 7, [111, [6]], 7, 7, 8]},
                         {first_train: "19:21", delta: [[11, [8]], [5, [9]], 10, [9, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:56", delta: [6, 8, 8, 8, 8, [9, [6]], 5, 4, [26, [3]], 4, 2, [20, [3]]]},
+                        {first_train: "10:04", delta: [4, 5, [80, [6]], [42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7]},
+                        {first_train: "22:08", delta: [8, 8, 8, 9, 8, 9, 12, 12, 12, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:37", skip_trains: 1, until: "09:13"},
+                        {plan: "丽泽商务区小交路", first_train: "18:16", skip_trains: 1, until: "19:40"},
+                        {plan: "丽泽商务区小交路", first_train: "19:52", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:47"]},
+                        {plan: "大瓦窑回库车", first_train: "09:19", skip_trains: 1, until: "10:01"},
+                        {plan: "大瓦窑回库车", first_train: "19:46", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:56", delta: [7, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "21:00", delta: [8, 8, 8, [6, [9]], 10, 8, [6, [9]], 10]}
                     ],
                     filters: []
                 }
@@ -316,6 +546,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:54", delta: [6, 8, 8, 8, 8, [9, [6]], 5, 4, [49, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "18:11", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8]},
+                        {first_train: "22:39", delta: [8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:35", skip_trains: 1, until: "09:11"},
+                        {plan: "丽泽商务区小交路", first_train: "18:14", skip_trains: 1, until: "19:38"},
+                        {plan: "丽泽商务区小交路", first_train: "19:50", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:45"]},
+                        {plan: "大瓦窑回库车", first_train: "09:17", skip_trains: 1, until: "09:59"},
+                        {plan: "大瓦窑回库车", first_train: "19:44", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:54", delta: [7, [5, [10]], 8, 9, 8, 7, 8, 9, 7, 8, 9, 7, 8]},
+                        {first_train: "08:27", delta: [[111, [6]], [11, [7]], 8, 8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
+                    ],
+                    filters: []
+                }
             }
         },
         "景风门": {
@@ -339,6 +593,29 @@
                     schedule: [
                         {first_train: "05:24", delta: [9, 8, 8, [5, [9]], [8, [8]], 7, 7, [111, [6]], 7, 7, 7]},
                         {first_train: "19:26", delta: [[11, [8]], [6, [9]], 10, [8, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:51", delta: [7, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "18:09", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8]},
+                        {first_train: "22:37", delta: [8, 9, 12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:32", skip_trains: 1, until: "09:09"},
+                        {plan: "丽泽商务区小交路", first_train: "18:12", skip_trains: 1, until: "19:36"},
+                        {plan: "丽泽商务区小交路", first_train: "19:48", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:43"]},
+                        {plan: "大瓦窑回库车", first_train: "09:15", skip_trains: 1, until: "09:57"},
+                        {plan: "大瓦窑回库车", first_train: "19:42", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:51", delta: [7, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8, 8, 8, [16, [9]]]}
                     ],
                     filters: []
                 }
@@ -368,6 +645,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "18:07", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 6]},
+                        {first_train: "22:01", delta: [8, 9, 8, 9, 8, 8, 13, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:30", skip_trains: 1, until: "09:07"},
+                        {plan: "丽泽商务区小交路", first_train: "18:10", skip_trains: 1, until: "19:34"},
+                        {plan: "丽泽商务区小交路", first_train: "19:46", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:41"]},
+                        {plan: "大瓦窑回库车", first_train: "09:13", skip_trains: 1, until: "09:55"},
+                        {plan: "大瓦窑回库车", first_train: "19:39", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [9, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]], 8, 8]},
+                        {first_train: "21:09", delta: [[16, [9]]]}
+                    ],
+                    filters: []
+                }
             }
         },
         "永定门外": {
@@ -391,6 +692,30 @@
                     schedule: [
                         {first_train: "05:30", delta: [9, 8, 7, 10, 9, 9, 9, 9, [8, [8]], 7, 7, [111, [6]]]},
                         {first_train: "19:11", delta: [7, 7, 7, [11, [8]], [6, [9]], 10, [8, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [[5, [8]], [9, [6]], 5, 4, [49, [3]], 4, 5, [80, [6]], [42, [3]]]},
+                        {first_train: "20:13", delta: [4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8, 9, 8, 9]},
+                        {first_train: "23:00", delta: [12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:27", skip_trains: 1, until: "09:03"},
+                        {plan: "丽泽商务区小交路", first_train: "18:06", skip_trains: 1, until: "19:30"},
+                        {plan: "丽泽商务区小交路", first_train: "19:42", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:37"]},
+                        {plan: "大瓦窑回库车", first_train: "09:09", skip_trains: 1, until: "09:51"},
+                        {plan: "大瓦窑回库车", first_train: "19:36", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [9, [5, [10]], 8, 9, 8, 7, 8, 9, 7, 8, 9, 7, 8]},
+                        {first_train: "08:19", delta: [[111, [6]], [11, [7]], 8, 8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
                     ],
                     filters: []
                 }
@@ -420,6 +745,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "18:01", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 6]},
+                        {first_train: "21:55", delta: [8, 9, 8, 9, 8, 8, 13, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:24", skip_trains: 1, until: "09:01"},
+                        {plan: "丽泽商务区小交路", first_train: "18:04", skip_trains: 1, until: "19:28"},
+                        {plan: "丽泽商务区小交路", first_train: "19:40", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:35"]},
+                        {plan: "大瓦窑回库车", first_train: "09:07", skip_trains: 1, until: "09:49"},
+                        {plan: "大瓦窑回库车", first_train: "19:33", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [9, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]], 8, 8]},
+                        {first_train: "21:03", delta: [[16, [9]]]}
+                    ],
+                    filters: []
+                }
             }
         },
         "蒲黄榆": {
@@ -443,6 +792,30 @@
                     schedule: [
                         {first_train: "05:35", delta: [8, 8, 8, [5, [9]], [8, [8]], 7, 7, [111, [6]], 7, 7, 7]},
                         {first_train: "19:36", delta: [[11, [8]], [6, [9]], 10, [8, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:39", delta: [[5, [8]], [9, [6]], 5, 4, [26, [3]], 4, 2, [21, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:58", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8]},
+                        {first_train: "22:26", delta: [8, 9, 12, 12, 12, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:22", skip_trains: 1, until: "08:58"},
+                        {plan: "丽泽商务区小交路", first_train: "18:01", skip_trains: 1, until: "19:25"},
+                        {plan: "丽泽商务区小交路", first_train: "19:37", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:32"]},
+                        {plan: "大瓦窑回库车", first_train: "09:04", skip_trains: 1, until: "09:46"},
+                        {plan: "大瓦窑回库车", first_train: "19:31", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:39", delta: [9, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:45", delta: [8, 8, 8, [6, [9]], 10, 8, [6, [9]], 10]}
                     ],
                     filters: []
                 }
@@ -472,6 +845,29 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:37", delta: [[5, [8]], [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [80, [6]], [41, [3]]]},
+                        {first_train: "20:02", delta: [4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8, 9, 8]},
+                        {first_train: "22:41", delta: [12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:19", skip_trains: 1, until: "08:56"},
+                        {plan: "丽泽商务区小交路", first_train: "17:59", skip_trains: 1, until: "19:23"},
+                        {plan: "丽泽商务区小交路", first_train: "19:35", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:30"]},
+                        {plan: "大瓦窑回库车", first_train: "09:02", skip_trains: 1, until: "09:44"},
+                        {plan: "大瓦窑回库车", first_train: "19:29", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:37", delta: [8, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8, 8, 8, [16, [9]]]}
+                    ],
+                    filters: []
+                }
             }
         },
         "十里河": {
@@ -495,6 +891,30 @@
                     schedule: [
                         {first_train: "05:40", delta: [8, 8, 8, [5, [9]], [8, [8]], 7, 7, [111, [6]], 7, 7, 8]},
                         {first_train: "19:41", delta: [[11, [8]], [5, [9]], 10, [9, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:34", delta: [[5, [8]], [9, [6]], 5, 4, [49, [3]], 4, 5, [80, [6]], [42, [3]]]},
+                        {first_train: "20:03", delta: [4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8, 9, 8, 9]},
+                        {first_train: "22:50", delta: [12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:17", skip_trains: 1, until: "08:53"},
+                        {plan: "丽泽商务区小交路", first_train: "17:56", skip_trains: 1, until: "19:20"},
+                        {plan: "丽泽商务区小交路", first_train: "19:32", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:27"]},
+                        {plan: "大瓦窑回库车", first_train: "08:59", skip_trains: 1, until: "09:41"},
+                        {plan: "大瓦窑回库车", first_train: "19:26", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:34", delta: [9, [5, [10]], 8, 9, 8, 7, 8, 9, 7, 8, 9, 7, 8]},
+                        {first_train: "08:09", delta: [[111, [6]], [11, [7]], 8, 8, 8, 8, [6, [9]], 10, 8, [7, [9]]]}
                     ],
                     filters: []
                 }
@@ -524,6 +944,30 @@
                     ],
                     filters: []
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [[5, [8]], [9, [6]], 5, 4, [26, [3]], 4, 2, [21, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:49", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8]},
+                        {first_train: "22:17", delta: [8, 9, 12, 12, 12, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:13", skip_trains: 1, until: "08:49"},
+                        {plan: "丽泽商务区小交路", first_train: "17:52", skip_trains: 1, until: "19:16"},
+                        {plan: "丽泽商务区小交路", first_train: "19:28", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:23"]},
+                        {plan: "大瓦窑回库车", first_train: "08:55", skip_trains: 1, until: "09:37"},
+                        {plan: "大瓦窑回库车", first_train: "19:22", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [9, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:36", delta: [8, 8, 8, [6, [9]], 10, 8, [6, [9]], 10]}
+                    ],
+                    filters: []
+                }
             }
         },
         "平乐园": {
@@ -547,6 +991,29 @@
                     schedule: [
                         {first_train: "05:46", delta: [9, 8, 7, 10, 9, 9, 9, 9, [8, [8]], 7, 7, [111, [6]]]},
                         {first_train: "19:27", delta: [7, 7, 7, [11, [8]], [6, [9]], 10, [8, [9]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [[5, [8]], [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [80, [6]], [41, [3]]]},
+                        {first_train: "19:53", delta: [4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 8, 9, 8]},
+                        {first_train: "22:32", delta: [12, 12, 11, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:10", skip_trains: 1, until: "08:47"},
+                        {plan: "丽泽商务区小交路", first_train: "17:50", skip_trains: 1, until: "19:14"},
+                        {plan: "丽泽商务区小交路", first_train: "19:26", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:21"]},
+                        {plan: "大瓦窑回库车", first_train: "08:53", skip_trains: 1, until: "09:35"},
+                        {plan: "大瓦窑回库车", first_train: "19:20", skip_trains: 3, count: 4}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [8, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8, 8, 8, [16, [9]]]}
                     ],
                     filters: []
                 }
@@ -581,6 +1048,33 @@
                         {plan: "九龙山始发空车", trains: ["21:59", "23:12"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:26", delta: [[5, [8]], [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [80, [6]], [41, [3]]]},
+                        {first_train: "19:51", delta: [4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, [2, [4, 4, 5, 4]]]},
+                        {first_train: "22:36", delta: [[4, [6]], 5, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:08", skip_trains: 1, until: "08:45"},
+                        {plan: "丽泽商务区小交路", first_train: "17:48", skip_trains: 1, until: "19:12"},
+                        {plan: "丽泽商务区小交路", first_train: "19:24", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:19"]},
+                        {plan: "大瓦窑回库车", first_train: "08:51", skip_trains: 1, until: "09:33"},
+                        {plan: "大瓦窑回库车", first_train: "19:18", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "22:00", skip_trains: 1, until: "23:00"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:26", delta: [8, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8, 8, 8, [6, [9]]]},
+                        {first_train: "21:50", delta: [4, 5, [7, [9]], 5, 4]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:54", "23:07"]}
+                    ]
+                }
             }
         },
         "大望路": {
@@ -611,6 +1105,33 @@
                         {plan: "九龙山始发空车", trains: ["22:01", "23:14"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [[5, [8]], [9, [6]], 5, 4, [49, [3]], 4, 5, [80, [6]], [42, [3]]]},
+                        {first_train: "19:52", delta: [4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, [2, [4, 4, 5, 4]]]},
+                        {first_train: "22:33", delta: [[4, [6]], 5, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:06", skip_trains: 1, until: "08:42"},
+                        {plan: "丽泽商务区小交路", first_train: "17:45", skip_trains: 1, until: "19:09"},
+                        {plan: "丽泽商务区小交路", first_train: "19:21", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:16"]},
+                        {plan: "大瓦窑回库车", first_train: "08:48", skip_trains: 1, until: "09:30"},
+                        {plan: "大瓦窑回库车", first_train: "19:15", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:57", skip_trains: 1, until: "22:57"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [8, [5, [10]], 9, [7, [8]], 9, 7, 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:29", delta: [8, 8, 8, [6, [9]], 5, 5, 8, [6, [9]], 5, 4]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:52", "23:04"]}
+                    ]
+                }
             }
         },
         "金台路": {
@@ -639,6 +1160,33 @@
                     ],
                     filters: [
                         {plan: "九龙山始发空车", trains: ["22:04", "23:17"]}
+                    ]
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:19", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 4, [49, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:39", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, [2, [4, 4, 5, 4]]]},
+                        {first_train: "22:30", delta: [[4, [6]], 5, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:03", skip_trains: 1, until: "08:39"},
+                        {plan: "丽泽商务区小交路", first_train: "17:42", skip_trains: 1, until: "19:06"},
+                        {plan: "丽泽商务区小交路", first_train: "19:18", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:13"]},
+                        {plan: "大瓦窑回库车", first_train: "08:45", skip_trains: 1, until: "09:27"},
+                        {plan: "大瓦窑回库车", first_train: "19:12", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:54", skip_trains: 1, until: "22:54"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:19", delta: [9, [5, [10]], 9, [7, [8]], 9, 7, 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:26", delta: [8, 8, 8, [6, [9]], 5, 5, 8, [6, [9]], 5, 4]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:49", "23:01"]}
                     ]
                 }
             }
@@ -672,6 +1220,33 @@
                         {plan: "九龙山始发空车", trains: ["22:06", "23:19"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:37", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, 4]},
+                        {first_train: "21:56", delta: [5, 4, 4, 4, 4, 5, [5, [6]], 5, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "07:00", skip_trains: 1, until: "08:37"},
+                        {plan: "丽泽商务区小交路", first_train: "17:40", skip_trains: 1, until: "19:04"},
+                        {plan: "丽泽商务区小交路", first_train: "19:16", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:11"]},
+                        {plan: "大瓦窑回库车", first_train: "08:43", skip_trains: 1, until: "09:25"},
+                        {plan: "大瓦窑回库车", first_train: "19:10", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:52", skip_trains: 1, until: "22:52"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [9, [5, [10]], 9, [10, [8]], 7, [111, [6]], [11, [7]], 8, 8, 8, [6, [9]]]},
+                        {first_train: "21:42", delta: [4, 5, [7, [9]], 5, 4]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:46", "22:59"]}
+                    ]
+                }
             }
         },
         "枣营": {
@@ -702,6 +1277,33 @@
                         {plan: "九龙山始发空车", trains: ["22:09", "23:21"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:15", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:35", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 6]},
+                        {first_train: "21:29", delta: [8, 9, 4, 4, 5, [5, [4]], 7, 6, 6, 6, 6, 5, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:58", skip_trains: 1, until: "08:35"},
+                        {plan: "丽泽商务区小交路", first_train: "17:38", skip_trains: 1, until: "19:02"},
+                        {plan: "丽泽商务区小交路", first_train: "19:14", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:09"]},
+                        {plan: "大瓦窑回库车", first_train: "08:41", skip_trains: 1, until: "09:23"},
+                        {plan: "大瓦窑回库车", first_train: "19:07", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:50", skip_trains: 1, until: "22:50"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:15", delta: [9, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]], 8, 8]},
+                        {first_train: "20:37", delta: [[7, [9]], 4, 5, [7, [9]], 5, 4]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:44", "22:57"]}
+                    ]
+                }
             }
         },
         "东风北桥": {
@@ -730,6 +1332,33 @@
                     ],
                     filters: [
                         {plan: "九龙山始发空车", trains: ["22:12", "23:24"]}
+                    ]
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [[5, [8]], [9, [6]], 5, 4, [26, [3]], 4, 2, [21, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:31", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, [2, [4, 4, 5, 4]]]},
+                        {first_train: "22:22", delta: [[6, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:55", skip_trains: 1, until: "08:31"},
+                        {plan: "丽泽商务区小交路", first_train: "17:34", skip_trains: 1, until: "18:58"},
+                        {plan: "丽泽商务区小交路", first_train: "19:10", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:05"]},
+                        {plan: "大瓦窑回库车", first_train: "08:37", skip_trains: 1, until: "09:19"},
+                        {plan: "大瓦窑回库车", first_train: "19:04", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:46", skip_trains: 1, until: "22:46"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [9, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:18", delta: [8, 8, 8, [6, [9]], 5, 5, 8, [6, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:41", "22:53"]}
                     ]
                 }
             }
@@ -763,6 +1392,33 @@
                         {plan: "九龙山始发空车", trains: ["22:15", "23:27"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:29", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 6]},
+                        {first_train: "21:23", delta: [8, 9, 4, 4, 5, [5, [4]], 7, 6, 6, 6, 6, 5, 6]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:52", skip_trains: 1, until: "08:29"},
+                        {plan: "丽泽商务区小交路", first_train: "17:32", skip_trains: 1, until: "18:56"},
+                        {plan: "丽泽商务区小交路", first_train: "19:08", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:03"]},
+                        {plan: "大瓦窑回库车", first_train: "08:35", skip_trains: 1, until: "09:17"},
+                        {plan: "大瓦窑回库车", first_train: "19:01", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:44", skip_trains: 1, until: "22:44"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:09", delta: [9, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]], 8, 8]},
+                        {first_train: "20:31", delta: [[7, [9]], 4, 5, [7, [9]], 5, 4]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:38", "22:51"]}
+                    ]
+                }
             }
         },
         "望京南": {
@@ -791,6 +1447,33 @@
                     ],
                     filters: [
                         {plan: "九龙山始发空车", trains: ["22:18", "23:30"]}
+                    ]
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:06", delta: [[5, [8]], [9, [6]], 5, 4, [26, [3]], 4, 2, [21, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:25", delta: [[42, [3]], 4, 4, 6, 4, 5, 6, 4, [9, [6]], 7, 7, 8]},
+                        {first_train: "21:28", delta: [8, [2, [4, 4, 5, 4]], [7, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:49", skip_trains: 1, until: "08:25"},
+                        {plan: "丽泽商务区小交路", first_train: "17:28", skip_trains: 1, until: "18:52"},
+                        {plan: "丽泽商务区小交路", first_train: "19:04", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["20:00"]},
+                        {plan: "大瓦窑回库车", first_train: "08:31", skip_trains: 1, until: "09:13"},
+                        {plan: "大瓦窑回库车", first_train: "18:58", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:40", skip_trains: 1, until: "22:40"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:06", delta: [9, [5, [10]], 8, [3, [9, 8, 7]], 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:12", delta: [8, 8, 8, [6, [9]], 5, 5, 8, [6, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:35", "22:47"]}
                     ]
                 }
             }
@@ -823,6 +1506,33 @@
                         {plan: "九龙山始发空车", trains: ["22:20", "23:33"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:03", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 4, [49, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:23", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, [2, [4, 4, 5, 4]]]},
+                        {first_train: "22:14", delta: [[6, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:47", skip_trains: 1, until: "08:23"},
+                        {plan: "丽泽商务区小交路", first_train: "17:26", skip_trains: 1, until: "18:50"},
+                        {plan: "丽泽商务区小交路", first_train: "19:02", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["19:57"]},
+                        {plan: "大瓦窑回库车", first_train: "08:29", skip_trains: 1, until: "09:11"},
+                        {plan: "大瓦窑回库车", first_train: "18:56", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:38", skip_trains: 1, until: "22:38"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:03", delta: [[6, [10]], 8, 9, 8, 7, 8, 9, 7, 8, 9, 7, 8, 8, [110, [6]]]},
+                        {first_train: "18:45", delta: [[11, [7]], 8, 8, 8, 8, [6, [9]], 5, 5, 8, [6, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:33", "22:45"]}
+                    ]
+                }
             }
         },
         "望京": {
@@ -851,6 +1561,33 @@
                     ],
                     filters: [
                         {plan: "九龙山始发空车", trains: ["22:22", "23:35"]}
+                    ]
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:01", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 4, [49, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:21", delta: [[42, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7, 8, 8, 8, [2, [4, 4, 5, 4]]]},
+                        {first_train: "22:12", delta: [[6, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:45", skip_trains: 1, until: "08:21"},
+                        {plan: "丽泽商务区小交路", first_train: "17:24", skip_trains: 1, until: "18:48"},
+                        {plan: "丽泽商务区小交路", first_train: "19:00", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["19:55"]},
+                        {plan: "大瓦窑回库车", first_train: "08:27", skip_trains: 1, until: "09:09"},
+                        {plan: "大瓦窑回库车", first_train: "18:54", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:36", skip_trains: 1, until: "22:36"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:01", delta: [9, [5, [10]], 9, [7, [8]], 9, 7, 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:08", delta: [8, 8, 8, [6, [9]], 5, 5, 8, [6, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:31", "22:43"]}
                     ]
                 }
             }
@@ -884,6 +1621,33 @@
                         {plan: "九龙山始发空车", trains: ["22:25", "23:37"]}
                     ]
                 }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:59", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:19", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7]},
+                        {first_train: "21:14", delta: [8, 8, 4, 4, 5, 4, 4, 4, 4, 5, [7, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:42", skip_trains: 1, until: "08:19"},
+                        {plan: "丽泽商务区小交路", first_train: "17:22", skip_trains: 1, until: "18:46"},
+                        {plan: "丽泽商务区小交路", first_train: "18:58", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["19:53"]},
+                        {plan: "大瓦窑回库车", first_train: "08:25", skip_trains: 1, until: "09:07"},
+                        {plan: "大瓦窑回库车", first_train: "18:51", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:34", skip_trains: 1, until: "22:34"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:59", delta: [9, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]], 8, 8]},
+                        {first_train: "20:21", delta: [[7, [9]], 4, 5, [7, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:28", "22:41"]}
+                    ]
+                }
             }
         },
         "来广营": {
@@ -912,6 +1676,33 @@
                     ],
                     filters: [
                         {plan: "九龙山始发空车", trains: ["22:27", "23:39"]}
+                    ]
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:57", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:17", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7]},
+                        {first_train: "21:12", delta: [8, 8, 4, 4, 5, 4, 4, 4, 4, 5, [7, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:40", skip_trains: 1, until: "08:17"},
+                        {plan: "丽泽商务区小交路", first_train: "17:20", skip_trains: 1, until: "18:44"},
+                        {plan: "丽泽商务区小交路", first_train: "18:56", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["19:51"]},
+                        {plan: "大瓦窑回库车", first_train: "08:23", skip_trains: 1, until: "09:05"},
+                        {plan: "大瓦窑回库车", first_train: "18:49", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:32", skip_trains: 1, until: "22:32"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:57", delta: [9, [5, [10]], 9, [9, [8]], 7, 8, [111, [6]], [11, [7]], 8, 8]},
+                        {first_train: "20:19", delta: [[7, [9]], 4, 5, [7, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:26", "22:39"]}
                     ]
                 }
             }
@@ -943,6 +1734,33 @@
                     ],
                     filters: [
                         {plan: "九龙山始发空车", trains: ["22:29", "23:41"]}
+                    ]
+                }
+            },
+            "西南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "04:55", delta: [9, 8, 8, 8, 8, [9, [6]], 5, 3, 4, [48, [3]], 4, 5, [79, [6]]]},
+                        {first_train: "17:15", delta: [[30, [3]], 2, 4, [10, [3]], 4, 4, [5, [5]], [9, [6]], 7, 7]},
+                        {first_train: "21:10", delta: [8, 8, 4, 4, 5, 4, 4, 4, 4, 5, [7, [6]]]}
+                    ],
+                    filters: [
+                        {plan: "丽泽商务区小交路", first_train: "06:38", skip_trains: 1, until: "08:15"},
+                        {plan: "丽泽商务区小交路", first_train: "17:18", skip_trains: 1, until: "18:42"},
+                        {plan: "丽泽商务区小交路", first_train: "18:54", skip_trains: 3, count: 4},
+                        {plan: "丽泽商务区小交路", trains: ["19:49"]},
+                        {plan: "大瓦窑回库车", first_train: "08:21", skip_trains: 1, until: "09:03"},
+                        {plan: "大瓦窑回库车", first_train: "18:47", skip_trains: 3, count: 4},
+                        {plan: "九龙山小交路", first_train: "21:30", skip_trains: 1, until: "22:30"}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "04:55", delta: [9, [5, [10]], 8, 9, [7, [8]], 7, 8, 8, [111, [6]], [11, [7]]]},
+                        {first_train: "20:01", delta: [8, 8, [7, [9]], 4, 5, [7, [9]], 5, 5]}
+                    ],
+                    filters: [
+                        {plan: "九龙山小交路", trains: ["21:24", "22:37"]}
                     ]
                 }
             }
