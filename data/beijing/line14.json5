@@ -1,0 +1,67 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 14号线时刻表 第2版
+{
+    name: "14号线",
+    aliases: ["Line 14"],
+    carriage_num: 6,
+    carriage_type: "A",
+    design_speed: 80,
+    stations: [
+        {name: "张郭庄"},
+        {name: "园博园", dist: 1345, aliases: ["Garden Expo Park"]},
+        {name: "大瓦窑", dist: 4073},
+        {name: "郭庄子", dist: 1236},
+        {name: "大井", dist: 2044},
+        {name: "七里庄", dist: 1579},
+        {name: "西局", dist: 845},
+        {name: "东管头", dist: 1489},
+        {name: "丽泽商务区", dist: 958, alises: ["Lize Business District"]},
+        {name: "菜户营", dist: 828},
+        {name: "西铁营", dist: 1462},
+        {name: "景风门", dist: 883},
+        {name: "北京南站", dist: 1164, aliases: ["Beijing South Railway Station"]},
+        {name: "永定门外", dist: 1950},
+        {name: "景泰", dist: 1119},
+        {name: "蒲黄榆", dist: 1025},
+        {name: "方庄", dist: 1486},
+        {name: "十里河", dist: 1618},
+        {name: "北工大西门", dist: 2423, aliases: ["Beijing University of Technology West Gate"]},
+        {name: "平乐园", dist: 1128},
+        {name: "九龙山", dist: 897},
+        {name: "大望路", dist: 1780},
+        {name: "金台路", dist: 1602},
+        {name: "朝阳公园", dist: 1085},
+        {name: "枣营", dist: 1221},
+        {name: "东风北桥", dist: 2173},
+        {name: "将台", dist: 1600},
+        {name: "望京南", dist: 1847},
+        {name: "阜通", dist: 1168},
+        {name: "望京", dist: 903},
+        {name: "东湖渠", dist: 1283},
+        {name: "来广营", dist: 1100},
+        {name: "善各庄", dist: 1364}
+    ],
+    train_routes: {
+        "东北行": {
+            aliases: ["East-northbound"],
+            "全程车": {},
+            "大瓦窑出库车": {starts_with: "大瓦窑"},
+            "丽泽商务区始发空车": {starts_with: "丽泽商务区"},
+            "九龙山始发空车": {starts_with: "九龙山"}
+        },
+        "西南行": {
+            aliases: ["West-southbound"],
+            reversed: true,
+            "全程车": {},
+            "大瓦窑回库车": {ends_with: "大瓦窑"},
+            "丽泽商务区小交路": {ends_with: "丽泽商务区"},
+            "九龙山小交路": {ends_with: "九龙山"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
