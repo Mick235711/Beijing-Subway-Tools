@@ -205,5 +205,41 @@
             {from: "10号线", to: "13号线", to_direction: "东行", minutes: 3.5},
             {from: "10号线", to: "13号线", to_direction: "西行", minutes: 3}
         ],
+        "大望路": [
+            {from: "1号线", to: "14号线", minutes: 5.5},
+            {from: "14号线", to: "1号线", minutes: 5.5}
+        ],
+        "北京南站": [
+            {from: "4号线", to: "14号线", minutes: 0.5},
+            {from: "14号线", to: "4号线", minutes: 1.5}
+            // 节点4->14
+        ],
+        "蒲黄榆": [
+            {from: "5号线", to: "14号线", minutes: 2}
+        ],
+        "金台路": [
+            {from: "6号线", to: "14号线", minutes: 0.5},
+            {from: "14号线", to: "6号线", minutes: 2}
+            // 节点6->14
+        ],
+        "九龙山": [
+            {from: "7号线", to: "14号线", minutes: 2},
+            {from: "14号线", to: "7号线", minutes: 0.5}
+            // 节点14->7
+        ],
+        "永定门外": [
+            {from: "8号线", to: "14号线", minutes: 2.5}
+        ],
+        "七里庄": [
+            {from: "9号线", to: "14号线", minutes: 0.5}
+        ],
+        "西局": [
+            {from: "10号线", to: "14号线", minutes: 1.5},
+            {from: "14号线", to: "10号线", minutes: 0.5}
+            // 节点14->10
+        ],
+        "十里河": [
+            {from: "10号线", to: "14号线", minutes: 3}
+        ]
     }
 }
