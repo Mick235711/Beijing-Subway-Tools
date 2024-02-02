@@ -43,6 +43,10 @@ This document describes the usage, parameter, and intended result of each tool i
 
 ### [`highest_speed.py`](/src/stats/highest_speed.py): Highest/Lowest/Average travel speed of each line
 
+### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
+
+### [`moving_average.py`](/src/stats/moving_average.py): Moving average statistics of trains
+
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time map originating from a station
 
