@@ -66,10 +66,12 @@ def main() -> None:
     start_date = ask_for_date()
     _, _, result_dict_temp1 = shortest_in_city(
         args.limit_start, args.limit_end, (city, station1, start_date),
+        exclude_edge=args.exclude_edge
     )
     result_dict1 = {station: x[0] for station, x in result_dict_temp1.items()}
     _, _, result_dict_temp2 = shortest_in_city(
         args.limit_start, args.limit_end, (city, station2, start_date),
+        exclude_edge=args.exclude_edge
     )
     result_dict2 = {station: x[0] for station, x in result_dict_temp2.items()}
     result_dict = {

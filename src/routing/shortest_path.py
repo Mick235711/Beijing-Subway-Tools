@@ -21,11 +21,13 @@ def find_last_train(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer],
-    start_date: date, start_station: str, end_station: str
+    start_date: date, start_station: str, end_station: str, *,
+    exclude_edge: bool = False
 ) -> TimeSpec:
     """ Calculate the last possible time to reach station """
     results = all_time_bfs(
-        lines, train_dict, transfer_dict, start_date, start_station
+        lines, train_dict, transfer_dict, start_date, start_station,
+        exclude_edge=exclude_edge
     )
     max_result = max(results[end_station], key=lambda x: (
         get_time_str(x[2].arrival_time, x[2].arrival_day), get_time_str(x[2].initial_time, x[2].initial_day)
@@ -37,6 +39,7 @@ def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+    parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -60,7 +63,8 @@ def main() -> None:
         allow_last=lambda: find_last_train(
             lines, train_dict,
             city.transfers,  # type: ignore
-            start_date, start[0], end[0]
+            start_date, start[0], end[0],
+            exclude_edge=args.exclude_edge
         )
     )
 
@@ -73,7 +77,7 @@ def main() -> None:
         lines, train_dict, city.transfers,
         start[0], end[0],
         start_date, start_time, start_day,
-        k=args.num_path
+        k=args.num_path, exclude_edge=args.exclude_edge
     )
     if len(results) == 0:
         print("Unreachable!")

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import date, time
 from functools import cmp_to_key
-from math import ceil
+from math import floor, ceil
 
 from src.city.line import Line
 from src.city.train_route import TrainRoute
@@ -143,7 +143,8 @@ def find_next_train(
     cur_date: date, station: str, cur_time: time, cur_day: bool = False,
     cur_line: Line | None = None, cur_direction: str | None = None,
     *,
-    exclude_tuple: set[tuple[Line, str]] | None = None
+    exclude_tuple: set[tuple[Line, str]] | None = None,
+    exclude_edge: bool = False
 ) -> list[Train]:
     """ Find all possible next trains """
     # Find one for each line/direction/routes pair
@@ -156,10 +157,13 @@ def find_next_train(
                 cur_line, cur_direction, train.line, train.direction,
                 cur_date, cur_time, cur_day
             )
-            next_time, next_day = add_min(cur_time, ceil(transfer_time), cur_day)
+            next_time, next_day = add_min(cur_time, (floor if exclude_edge else ceil)(transfer_time), cur_day)
         else:
             next_time, next_day = cur_time, cur_day
-        if diff_time_tuple((next_time, next_day), train.arrival_time[station]) > 0:
+        diff_min = diff_time_tuple((next_time, next_day), train.arrival_time[station])
+        if diff_min > 0:
+            continue
+        if exclude_edge and diff_min == 0:
             continue
         if exclude_tuple is not None and (train.line, train.direction) in exclude_tuple:
             continue
@@ -215,7 +219,8 @@ def bfs(
     initial_line: Line | None = None,
     initial_direction: str | None = None,
     exclude_stations: set[str] | None = None,
-    exclude_edges: dict[str, set[tuple[Line, str]]] | None = None  # station -> line, direction
+    exclude_edges: dict[str, set[tuple[Line, str]]] | None = None,  # station -> line, direction
+    exclude_edge: bool = False
 ) -> dict[str, BFSResult]:
     """ Search for the shortest path (by time) to every station """
     queue = [start_station]
@@ -241,7 +246,7 @@ def bfs(
         for next_train in find_next_train(
             lines, train_dict, transfer_dict, start_date, station,
             cur_time, cur_day, prev_line, prev_direction,
-            exclude_tuple=exclude_tuple
+            exclude_tuple=exclude_tuple, exclude_edge=exclude_edge
         ):
             next_stations = list(next_train.arrival_time_virtual(station).items())[1:]
             for next_station, (next_time, next_day) in next_stations:
@@ -323,7 +328,7 @@ def k_shortest_path(
     transfer_dict: dict[str, Transfer],
     start_station: str, end_station: str,
     start_date: date, start_time: time, start_day: bool = False,
-    k: int = 1
+    k: int = 1, *, exclude_edge: bool = False
 ) -> list[tuple[BFSResult, Path]]:
     """ Find the k shortest paths """
     result: list[tuple[BFSResult, Path]] = []
@@ -332,7 +337,7 @@ def k_shortest_path(
     # First find p1
     bfs_result = bfs(
         lines, train_dict, transfer_dict, start_date,
-        start_station, start_time, start_day
+        start_station, start_time, start_day, exclude_edge=exclude_edge
     )
     if end_station not in bfs_result:
         return result
@@ -363,7 +368,7 @@ def k_shortest_path(
                 initial_line=(None if i == 0 else last_train.line),
                 initial_direction=(None if i == 0 else last_train.direction),
                 exclude_stations=set(x[0] for x in trace[:i]),
-                exclude_edges=exclude_edges
+                exclude_edges=exclude_edges, exclude_edge=exclude_edge
             )
             if last_train != train:
                 last_station = station
