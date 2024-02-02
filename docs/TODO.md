@@ -55,6 +55,8 @@
 - [x] contour vs contourf调整
 - [x] 环线加入出库车自动判定（注：目前无法实现时刻表中标注，只有算出列车后的标注）
 - [x] Allow sort by multiple columns
+- [x] 优化avg_shortest，每分钟更改为每列车开始
+- [ ] 多线程与进度条
 - [ ] 拆分highest_speed，改名city_statistics
 - [ ] --include-edge扩展到首/末班车
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）

@@ -32,17 +32,14 @@ def all_time_bfs(
     """ Run BFS through all times, tally to each station """
     # Loop through first train to last train
     all_trains = get_all_trains(lines, train_dict, start_station, start_date)
-    start_time, start_day = all_trains[0].arrival_time[start_station]
-    end_time, end_day = all_trains[-1].arrival_time[start_station]
+    all_arrival = [train.arrival_time[start_station] for train in all_trains]
+    all_minutes = list(set(to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival))
     results: dict[str, list[PathInfo]] = {}
     limit_start_num = 0 if limit_start is None else to_minutes(limit_start, limit_start_day)
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
-    for minute in range(
-        max(to_minutes(start_time, start_day), limit_start_num),
-        min(to_minutes(end_time, end_day), limit_end_num) + 1
-    ):
+    for i, minute in enumerate(x for x in all_minutes if limit_start_num <= x <= limit_end_num):
         cur_time, cur_day = from_minutes(minute)
-        if cur_time.minute % verbose_per_minute == 0:
+        if i % verbose_per_minute == 0:
             print(f"Calculating {start_station} from " + get_time_str(cur_time, cur_day))
         bfs_result = bfs(lines, train_dict, transfer_dict,
                          start_date, start_station, cur_time, cur_day)
@@ -53,6 +50,27 @@ def all_time_bfs(
                 single_result.arrival_time, cur_time,
                 single_result.arrival_day, cur_day
             ), single_result.shortest_path(bfs_result), single_result))
+
+    # Reconstruct the path on time between trains
+    for station, paths in results.items():
+        paths = sorted(paths, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+        new_paths = paths[:]
+        for i, (duration, path, result) in enumerate(paths):
+            if i == 0:
+                continue
+            last_time, last_day = paths[i - 1][2].initial_time, paths[i - 1][2].initial_day
+            init_minute = to_minutes(last_time, last_day)
+            last_minute = to_minutes(result.initial_time, result.initial_day)
+            for minute in range(init_minute + 1, last_minute):
+                cur_time, cur_day = from_minutes(minute)
+                new_result = BFSResult(
+                    result.station, result.start_date,
+                    cur_time, cur_day,
+                    result.arrival_time, result.arrival_day,
+                    result.prev_station, result.prev_train
+                )
+                new_paths.append((duration + last_minute - minute, path, new_result))
+        results[station] = sorted(new_paths, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
     return results
 
 
