@@ -8,6 +8,7 @@ import argparse
 from collections.abc import Callable, Sequence
 
 from tabulate import tabulate
+from tqdm import tqdm
 
 from src.city.line import Line
 from src.common.common import speed_str, moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, \
@@ -202,10 +203,11 @@ def get_section_data(
 
     result: dict[str, tuple] = {}
     processed_dict = dict(sorted(processed_dict.items(), key=lambda x: lines[x[0]].index))
-    for line_name, processed_line in processed_dict.items():
+    for line_name in (bar := tqdm(list(processed_dict.keys()))):
         # Calculate train count/capacity dict
         # After this, the structure will be (date_group, direction, station, time) -> count/capacity
-        print(f"Calculating {line_name}...")
+        bar.set_description(f"Calculating {line_name}")
+        processed_line = processed_dict[line_name]
         count_dict: dict[tuple[str, str, str, str], int] = {}
         cap_dict: dict[tuple[str, str, str, str], int] = {}
         for key, value in processed_line.items():

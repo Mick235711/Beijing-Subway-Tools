@@ -21,13 +21,11 @@ def find_last_train(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer],
-    start_date: date, start_station: str, end_station: str, *,
-    verbose_per_train: int = 10,
+    start_date: date, start_station: str, end_station: str
 ) -> TimeSpec:
     """ Calculate the last possible time to reach station """
     results = all_time_bfs(
-        lines, train_dict, transfer_dict, start_date, start_station,
-        verbose_per_train=verbose_per_train
+        lines, train_dict, transfer_dict, start_date, start_station
     )
     max_result = max(results[end_station], key=lambda x: (
         get_time_str(x[2].arrival_time, x[2].arrival_day), get_time_str(x[2].initial_time, x[2].initial_day)
@@ -39,8 +37,6 @@ def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
-    parser.add_argument("-m", "--verbose-per-train", type=int,
-                        help="Show message per N trains", default=10)
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -64,7 +60,7 @@ def main() -> None:
         allow_last=lambda: find_last_train(
             lines, train_dict,
             city.transfers,  # type: ignore
-            start_date, start[0], end[0], verbose_per_train=args.verbose_per_train
+            start_date, start[0], end[0]
         )
     )
 
