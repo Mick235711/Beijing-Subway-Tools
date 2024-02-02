@@ -57,7 +57,7 @@
 - [x] Allow sort by multiple columns
 - [x] 优化avg_shortest，每分钟更改为每列车开始
 - [x] ~~多线程与~~进度条
-- [ ] 拆分highest_speed，改名city_statistics
+- [x] 拆分highest_speed，改名city_statistics
 - [ ] --include-edge扩展到首/末班车
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）
 - [ ] 平均间隔，高峰平均间隔，平均全程车占比，高峰全程车占比

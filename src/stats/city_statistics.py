@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Print statistics for a city """
+""" Common functions for calculating statistics for a city """
 
 # Libraries
 import argparse
-from collections.abc import Iterable, Callable, Collection
+from collections.abc import Iterable, Callable, Collection, Sequence
 from datetime import date
 from typing import TypeVar, Any
+
+from tabulate import tabulate
 
 from src.city.ask_for_city import ask_for_city, ask_for_date
 from src.city.line import Line
@@ -89,18 +91,6 @@ def display_first(
         print(data_str(element))
 
 
-def max_train_station(
-    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5
-) -> None:
-    """ Print max/min # of trains for each station """
-    display_first(
-        all_trains.items(),
-        lambda station_trains: f"{station_trains[0]}: {len(station_trains[1])} trains " +
-                               f"({divide_by_line(x[1] for x in station_trains[1])})",
-        limit_num=limit_num
-    )
-
-
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True
@@ -141,12 +131,56 @@ def parse_args(
     return all_trains, lines, args
 
 
-def main() -> None:
-    """ Main function """
-    all_trains, _, args = parse_args()
-    max_train_station(all_trains, limit_num=args.limit_num)
+def append_sort_args(parser: argparse.ArgumentParser) -> None:
+    """ Append common sorting arguments like -s """
+    parser.add_argument("-f", "--full-only", action="store_true",
+                        help="Only include train that runs the full journey")
+    parser.add_argument("-s", "--sort-by", help="Sort by these column(s)", default="")
+    parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
+    parser.add_argument("-t", "--table-format", help="Table format", default="simple")
 
 
-# Call main
-if __name__ == "__main__":
-    main()
+def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
+                  data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple], *,
+                  sort_index: list[int] | None = None, reverse: bool = False, full_only: bool = False,
+                  table_format: str = "simple") -> None:
+    """ Obtain data on lines """
+    # Organize into lines
+    line_dict: dict[str, tuple[Line, set[Train]]] = {}
+    for train_list in all_trains.values():
+        for date_group, train in train_list:
+            if full_only and not train.is_full():
+                continue
+            if train.line.name not in line_dict:
+                line_dict[train.line.name] = (train.line, set())
+            line_dict[train.line.name][1].add(train)
+
+    # Obtain data for each line
+    data: list[tuple] = []
+    for line_name, (line, train_set) in line_dict.items():
+        if isinstance(data_callback, dict):
+            data.append(data_callback[line_name])
+        else:
+            data.append(data_callback(line, train_set))
+    if isinstance(data_callback, dict) and "Total" in data_callback:
+        data.append(data_callback["Total"])
+
+    max_value = max(line.index for line, _ in line_dict.values()) + 1
+    data = sorted(data, key=lambda x: tuple(
+        max_value if x[s] == "" else x[s] for s in (sort_index or [0])
+    ), reverse=reverse)
+    print(tabulate(
+        data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
+    ))
+
+
+def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
+                 data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple],
+                 sort_columns: Sequence[str], sort_columns_unit: Sequence[str]) -> None:
+    """ Output data as table """
+    sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
+    sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
+    header = [(column if unit == "" else f"{column}\n({unit})")
+              for column, unit in zip(sort_columns, sort_columns_unit)]
+    get_line_data(all_trains, header, data_callback, full_only=args.full_only,
+                  sort_index=sort_index, reverse=args.reverse, table_format=args.table_format)

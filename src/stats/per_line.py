@@ -8,8 +8,7 @@ import argparse
 
 from src.city.line import Line
 from src.routing.train import Train
-from src.stats.city_statistics import parse_args
-from src.stats.highest_speed import append_sort_args, output_table
+from src.stats.city_statistics import parse_args, append_sort_args, output_table
 
 
 def get_speed_data(line: Line, train_set: set[Train]) -> tuple:

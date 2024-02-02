@@ -12,8 +12,7 @@ from tqdm import tqdm
 from src.city.line import Line
 from src.common.common import moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, diff_time_tuple
 from src.routing.train import Train
-from src.stats.city_statistics import parse_args
-from src.stats.highest_speed import append_sort_args, output_table
+from src.stats.city_statistics import parse_args, append_sort_args, output_table
 from src.stats.hour_trains import minute_trains
 
 

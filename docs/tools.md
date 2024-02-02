@@ -35,7 +35,7 @@ This document describes the usage, parameter, and intended result of each tool i
 ### [`show_express_trains.py`](/src/routing/show_express_trains.py): Express train analyzer
 
 # [`stats/`](/src/stats): Statistics of a city and its lines
-### [`city_statistics.py`](/src/stats/city_statistics.py): Trains count for each station
+### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
 
 ### [`hour_trains.py`](/src/stats/hour_trains.py): Trains count for each hour
 
