@@ -35,7 +35,7 @@ def map_args() -> argparse.Namespace:
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=5)
     parser.add_argument(
-        "-m", "--verbose-per-minute", type=int, help="Show message per N minutes", default=10)
+        "-m", "--verbose-per-train", type=int, help="Show message per N trains", default=10)
     return parser.parse_args()
 
 
@@ -196,7 +196,7 @@ def main() -> None:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
     city, start, result_dict_temp = shortest_in_city(
-        args.limit_start, args.limit_end, verbose_per_minute=args.verbose_per_minute)
+        args.limit_start, args.limit_end, verbose_per_train=args.verbose_per_train)
     result_dict = {station: x[0] for station, x in result_dict_temp.items()}
     map_obj = ask_for_map(city)
 

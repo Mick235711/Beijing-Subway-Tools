@@ -27,7 +27,7 @@ def all_time_bfs(
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
-    verbose_per_minute: int = 60,
+    verbose_per_train: int = 10,
 ) -> dict[str, list[PathInfo]]:
     """ Run BFS through all times, tally to each station """
     # Loop through first train to last train
@@ -39,7 +39,7 @@ def all_time_bfs(
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
     for i, minute in enumerate(x for x in all_minutes if limit_start_num <= x <= limit_end_num):
         cur_time, cur_day = from_minutes(minute)
-        if i % verbose_per_minute == 0:
+        if i % verbose_per_train == 0:
             print(f"Calculating {start_station} from " + get_time_str(cur_time, cur_day))
         bfs_result = bfs(lines, train_dict, transfer_dict,
                          start_date, start_station, cur_time, cur_day)
@@ -81,7 +81,7 @@ def calculate_shortest(
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
-    verbose_per_minute: int = 60,
+    verbose_per_train: int = 10,
 ) -> dict[str, tuple[float, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station """
@@ -89,7 +89,7 @@ def calculate_shortest(
         lines, train_dict, transfer_dict, start_date, start_station,
         limit_start=limit_start, limit_start_day=limit_start_day,
         limit_end=limit_end, limit_end_day=limit_end_day,
-        verbose_per_minute=verbose_per_minute
+        verbose_per_train=verbose_per_train
     )
     result_dict: dict[str, tuple[float, PathInfo, PathInfo,
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
@@ -111,7 +111,7 @@ def shortest_in_city(
     limit_start: str | None = None,
     limit_end: str | None = None,
     city_station: tuple[City, str, date] | None = None, *,
-    verbose_per_minute: int = 60
+    verbose_per_train: int = 10
 ) -> tuple[City, str, dict[str, tuple[float, PathInfo, PathInfo,
            list[tuple[float, AbstractPath, list[PathInfo]]]]]]:
     """ Find the shortest path in the city """
@@ -130,7 +130,7 @@ def shortest_in_city(
         lines, train_dict, city.transfers, start_date, start,
         limit_start=ls_time, limit_start_day=ls_day,
         limit_end=le_time, limit_end_day=le_day,
-        verbose_per_minute=verbose_per_minute
+        verbose_per_train=verbose_per_train
     )
 
 
@@ -151,8 +151,8 @@ def main() -> None:
     parser.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
     parser.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
     parser.add_argument("-t", "--to-station", help="Only show average time to specified stations")
-    parser.add_argument("-m", "--verbose-per-minute", type=int,
-                        help="Show message per N minutes", default=10)
+    parser.add_argument("-m", "--verbose-per-train", type=int,
+                        help="Show message per N trains", default=10)
     args = parser.parse_args()
 
     stations: set[str] | None = None
@@ -163,7 +163,7 @@ def main() -> None:
             stations = {args.to_station.strip()}
 
     city, _, result_dict = shortest_in_city(
-        args.limit_start, args.limit_end, verbose_per_minute=args.verbose_per_minute)
+        args.limit_start, args.limit_end, verbose_per_train=args.verbose_per_train)
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:
         for i, (station, (avg_time, max_info, min_info, path_coverage)) in enumerate(result_dict.items()):
