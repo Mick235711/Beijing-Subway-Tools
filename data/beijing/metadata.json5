@@ -240,6 +240,19 @@
         ],
         "十里河": [
             {from: "10号线", to: "14号线", minutes: 3}
+        ],
+        "大屯路东": [
+            {from: "5号线", to: "15号线", minutes: 4.5}
+        ],
+        "奥林匹克公园": [
+            {from: "8号线", to: "15号线", minutes: 5}
+        ],
+        "望京西": [
+            {from: "13号线", from_direction: "东行", to: "15号线", minutes: 5.5},
+            {from: "13号线", from_direction: "西行", to: "15号线", minutes: 5}
+        ],
+        "望京": [
+            {from: "14号线", to: "15号线", minutes: 2.5}
         ]
     }
 }
