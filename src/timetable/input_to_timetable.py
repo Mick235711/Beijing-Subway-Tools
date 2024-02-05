@@ -333,7 +333,7 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                 )
             }, prev.base_route)
             no_end_sorted = no_end_table.trains_sorted()
-            assert len(no_end_sorted) == len(cur_sorted), (no_end_table, current, new_table)
+            assert len(no_end_sorted) == len(cur_sorted), (prev, no_end_table, current, new_table)
 
             # Insert calculated trains
             cnt = 0
