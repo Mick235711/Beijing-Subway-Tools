@@ -1,0 +1,55 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 15号线时刻表 新6版
+{
+    name: "15号线",
+    aliases: ["Line 15"],
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 100,
+    stations: [
+        {name: "清华东路西口"},
+        {name: "六道口", dist: 1145},
+        {name: "北沙滩", dist: 1337},
+        {name: "奥林匹克公园", dist: 1999, aliases: ["Olympic Park"]},
+        {name: "安立路", dist: 1369},
+        {name: "大屯路东", dist: 938},
+        {name: "关庄", dist: 1087},
+        {name: "望京西", dist: 2039},
+        {name: "望京", dist: 1759},
+        {name: "望京东", dist: 1652},
+        {name: "崔各庄", dist: 2295},
+        {name: "马泉营", dist: 2009},
+        {name: "孙河", dist: 3309},
+        {name: "国展", dist: 3387, aliases: ["China International Exhibition Center"]},
+        {name: "花梨坎", dist: 1616},
+        {name: "后沙峪", dist: 3354},
+        {name: "南法信", dist: 4567},
+        {name: "石门", dist: 2712},
+        {name: "顺义", dist: 1332},
+        {name: "俸伯", dist: 2441}
+    ],
+    train_routes: {
+        "东行": {
+            aliases: ["Eastbound"],
+            "全程车": {},
+            "大屯路东始发空车": {starts_with: "大屯路东"},
+            "马泉营回库车": {ends_with: "马泉营"},
+            "马泉营出库车": {starts_with: "马泉营"},
+            "后沙峪小交路": {ends_with: "后沙峪"}
+        },
+        "西行": {
+            aliases: ["Westbound"],
+            reversed: true,
+            "全程车": {},
+            "大屯路东小交路": {ends_with: "大屯路东"},
+            "马泉营回库车": {ends_with: "马泉营"},
+            "马泉营出库车": {starts_with: "马泉营"},
+            "后沙峪始发空车": {starts_with: "后沙峪"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {}
+}
