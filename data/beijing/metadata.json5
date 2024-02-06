@@ -120,8 +120,10 @@
             {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "南行", minutes: 0},
             {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "北行", minutes: 0},
             {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "北行", minutes: 1},
-            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "南行", minutes: 1}
+            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "南行", minutes: 1},
             // 同向同台
+            {from: "4号线", to: "16号线", minutes: 4},
+            {from: "9号线", to: "16号线", minutes: 4}
         ],
         "白石桥南": [
             {from: "6号线", to: "9号线", minutes: 1.5},
@@ -253,6 +255,30 @@
         ],
         "望京": [
             {from: "14号线", to: "15号线", minutes: 2.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1Fd4y1h7HJ/
+        "木樨地": [
+            {from: "1号线", to: "16号线", minutes: 8}
+            // 出站换乘
+        ],
+        "西苑": [
+            {from: "4号线", to: "16号线", minutes: 3.5}
+        ],
+        "二里沟": [
+            {from: "6号线", to: "16号线", minutes: 1}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1vD4y157EP/
+        "达官营": [
+            {from: "7号线", to: "16号线", minutes: 3.5},
+            {from: "16号线", to: "7号线", minutes: 3}
+        ],
+        "丰台南路": [
+            {from: "9号线", to: "16号线", minutes: 1}
+            // 共用站厅
+        ],
+        // 参考：https://www.bilibili.com/video/BV1SG4y1j7hH/
+        "丰台站": [
+            {from: "10号线", to: "16号线", minutes: 2.5}
         ]
     }
 }
