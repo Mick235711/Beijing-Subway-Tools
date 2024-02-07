@@ -100,7 +100,7 @@ class BFSResult:
         for i, (station, train) in enumerate(path):
             if not isinstance(train, Train):
                 # Print virtual transfer information only
-                print(f"Virtual transfer: {train[0]}[{train[2][0]}] -> {train[1]}[{train[2][2]}], " +
+                print(f"{indent_str}Virtual transfer: {train[0]}[{train[2][0]}] -> {train[1]}[{train[2][2]}], " +
                       suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
                 last_virtual = train
                 continue
