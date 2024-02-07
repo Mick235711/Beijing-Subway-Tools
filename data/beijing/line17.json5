@@ -45,6 +45,22 @@
                     ],
                     filters: []
                 }
+            },
+            "北行": {
+                // 以+4min计算
+                // 可能偏高，但是对向时刻表就是这样
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:51", delta: [9, 9, 9, [6, [8]], [20, [6]], [102, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:51", delta: [9, 9, 9, [123, [8]], 9]}
+                    ],
+                    filters: []
+                }
             }
         },
         "周家庄": {
@@ -58,6 +74,20 @@
                 "双休日": {
                     schedule: [
                         {first_train: "05:57", delta: [9, 9, [121, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [9, 9, 9, [6, [8]], [20, [6]], [102, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [9, 9, 9, [123, [8]], 9]}
                     ],
                     filters: []
                 }
@@ -77,6 +107,20 @@
                     ],
                     filters: []
                 }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [9, 9, 9, [6, [8]], [20, [6]], [102, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [9, 9, 9, [123, [8]], 9]}
+                    ],
+                    filters: []
+                }
             }
         },
         "北神树": {
@@ -90,6 +134,20 @@
                 "双休日": {
                     schedule: [
                         {first_train: "06:06", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:38", delta: [9, 9, 9, [6, [8]], [20, [6]], [102, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:38", delta: [9, 9, 9, [123, [8]], 9]}
                     ],
                     filters: []
                 }
@@ -109,6 +167,20 @@
                     ],
                     filters: []
                 }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:35", delta: [9, 9, 9, [6, [8]], [20, [6]], [102, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:35", delta: [9, 9, 9, [123, [8]], 9]}
+                    ],
+                    filters: []
+                }
             }
         },
         "次渠": {
@@ -122,6 +194,20 @@
                 "双休日": {
                     schedule: [
                         {first_train: "06:12", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [9, 9, 9, [6, [8]], [20, [6]], [102, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [9, 9, 9, [123, [8]], 9]}
                     ],
                     filters: []
                 }
@@ -139,6 +225,20 @@
                 "双休日": {
                     schedule: [
                         {first_train: "06:15", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [8, 9, 9, [6, [8]], [20, [6]], [102, [8]], 10]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:30", delta: [8, 9, 9, [123, [8]], 10]}
                     ],
                     filters: []
                 }
