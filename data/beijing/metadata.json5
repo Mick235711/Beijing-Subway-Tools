@@ -241,7 +241,10 @@
             // 节点14->10
         ],
         "十里河": [
-            {from: "10号线", to: "14号线", minutes: 3}
+            {from: "10号线", to: "14号线", minutes: 3},
+            // 参考：https://www.bilibili.com/video/BV1MS4y1w7vk/
+            {from: "10号线", to: "17号线", minutes: 2.5},
+            {from: "14号线", to: "17号线", minutes: 4}
         ],
         "大屯路东": [
             {from: "5号线", to: "15号线", minutes: 4.5}
