@@ -61,7 +61,11 @@
         ],
         "平安里": [
             {from: "4号线", to: "6号线", minutes: 4},
-            {from: "6号线", to: "4号线", minutes: 3.5}
+            {from: "6号线", to: "4号线", minutes: 3.5},
+            // 参考：https://www.bilibili.com/video/BV16S4y1t7fG/
+            {from: "4号线", to: "19号线", minutes: 6.5},
+            // 参考：https://www.bilibili.com/video/BV1iB4y1b7kH/
+            {from: "6号线", to: "19号线", minutes: 4}
         ],
         "东四": [
             {from: "5号线", to: "6号线", minutes: 4},
@@ -189,7 +193,8 @@
             {from: "6号线", to: "11号线", minutes: 3}
         ],
         "东直门": [
-            {from: "2号线", to: "13号线", minutes: 8.5},
+            // 2->13调整时间，按1.5倍算
+            {from: "2号线", to: "13号线", minutes: 6.5},
             {from: "13号线", to: "2号线", minutes: 5}
         ],
         "立水桥": [
@@ -282,6 +287,45 @@
         // 参考：https://www.bilibili.com/video/BV1SG4y1j7hH/
         "丰台站": [
             {from: "10号线", to: "16号线", minutes: 2.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV18Y411a7Mc/
+        "积水潭": [
+            {from: "2号线", to: "19号线", minutes: 2.5},
+            {from: "19号线", to: "2号线", minutes: 3}
+        ],
+        "新宫": [
+            {from: "4号线", to: "19号线", minutes: 1.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1SF411n7FP/
+        "牡丹园": [
+            {from: "10号线", to: "19号线", minutes: 1.5},
+            {from: "19号线", to: "10号线", minutes: 2.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV13m4y1S7XH/
+        "草桥": [
+            {from: "10号线", to: "19号线", minutes: 4.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV13Y411f7Tb/
+        "景风门": [
+            {from: "14号线", to: "19号线", minutes: 2.5},
+            {from: "19号线", to: "14号线", minutes: 3}
         ]
-    }
+    },
+    virtual_transfers: [
+        // 参考：https://www.bilibili.com/video/BV1zN4y1L7wG/
+        {
+            from_station: "复兴门", to_station: "太平桥",
+            times: [
+                {from: "1号线", to: "19号线", minutes: 11},
+                {from: "2号线", to: "19号线", minutes: 10}
+            ]
+        },
+        // 参考：https://www.bilibili.com/video/BV1U8411s7vC/
+        {
+            from_station: "广安门内", to_station: "牛街",
+            times: [
+                {from: "7号线", to: "19号线", minutes: 8.5}
+            ]
+        }
+    ]
 }
