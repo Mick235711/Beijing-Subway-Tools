@@ -1,0 +1,148 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 17号线时刻表 第1版
+{
+    name: "17号线",
+    aliases: ["Line 17"],
+    carriage_num: 8,
+    carriage_type: "A",
+    design_speed: 100,
+    stations: [
+        {name: "十里河"},
+        {name: "周家庄", dist: 1672},
+        {name: "十八里店", dist: 2349},
+        {name: "北神树", dist: 5840},
+        {name: "次渠北", dist: 2334},
+        {name: "次渠", dist: 1455},
+        {name: "嘉会湖", dist: 2125}
+    ],
+    train_routes: {
+        "南行": {
+            aliases: ["Southbound"],
+            "全程车": {}
+        },
+        "北行": {
+            aliases: ["Northbound"],
+            reversed: true,
+            "全程车": {}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+        "十里河": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:55", delta: [5, 9, 9, [6, [8]], [20, [6]], [99, [8]], 12]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:55", delta: [5, 9, 9, [120, [8]], 12]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "周家庄": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:57", delta: [9, 9, [6, [8]], 7, [19, [6]], 7, [99, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:57", delta: [9, 9, [121, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "十八里店": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, [8, [8]], [20, [6]], [99, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "北神树": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [10, [8, [8]], [20, [6]], [99, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "次渠北": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:09", delta: [10, 8, 9, [5, [8]], 7, [19, [6]], 7, [100, [8]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:09", delta: [10, 8, 9, [121, [8]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "次渠": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:12", delta: [10, [8, [8]], [20, [6]], [99, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:12", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "嘉会湖": {
+            "南行": {
+                // 以+3min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "06:15", delta: [10, [8, [8]], [20, [6]], [99, [8]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:15", delta: [10, [122, [8]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        }
+    }
+}
