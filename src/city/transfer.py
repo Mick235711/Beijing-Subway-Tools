@@ -4,32 +4,36 @@
 """ A class for transfer metadata """
 
 # Libraries
-import os
 from datetime import date, time
-
-import pyjson5
+from typing import Any
 
 from src.city.date_group import TimeInterval, parse_time_interval
 from src.city.line import Line
 
 
+TransferSpec = tuple[str, str, str, str]
+
+
 class Transfer:
     """ Represents the transfer metadata """
 
-    def __init__(self, station: str) -> None:
+    def __init__(self, station: str, second_station: str | None = None) -> None:
         """ Constructor """
         self.station = station
+        self.second_station = second_station
 
         # (from_line, from_direction, to_line, to_direction) -> minutes
-        self.transfer_time: dict[tuple[str, str, str, str], float] = {}
-        self.special_time: dict[tuple[str, str, str, str], tuple[float, TimeInterval]] = {}
+        self.transfer_time: dict[TransferSpec, float] = {}
+        self.special_time: dict[TransferSpec, tuple[float, TimeInterval]] = {}
 
     def __repr__(self) -> str:
         """ String representation """
         base: list[str] = []
         for (from_l, from_d, to_l, to_d), minutes in self.transfer_time.items():
             base.append(f"{from_l} ({from_d}) -> {to_l} ({to_d}): {minutes} minutes")
-        return "<" + ", ".join(base) + ">"
+        return "<" + self.station + (
+            ": " if self.second_station is None else f" - {self.second_station}: "
+        ) + ", ".join(base) + ">"
 
     def add_transfer_time(
         self, minutes: float, from_line: Line, to_line: Line,
@@ -61,24 +65,42 @@ class Transfer:
         return self.transfer_time[key], False
 
 
-def parse_transfer(lines: dict[str, Line], transfer_file: str) -> dict[str, Transfer]:
-    """ Parse JSON5 file as transfer metadata """
-    assert os.path.exists(transfer_file), transfer_file
-    with open(transfer_file) as fp:
-        transfer_dict = pyjson5.decode_io(fp)
+def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_datas: list[dict[str, Any]],
+                        reversed: bool = False) -> Transfer:
+    """ Parse a single transfer metadata spec """
+    for transfer_data in transfer_datas:
+        from_s, to_s = transfer_data["from"], transfer_data["to"]
+        from_d, to_d = transfer_data.get("from_direction"), transfer_data.get("to_direction")
+        if reversed:
+            from_s, to_s = to_s, from_s
+            from_d, to_d = to_d, from_d
+        transfer.add_transfer_time(
+            transfer_data["minutes"],
+            lines[from_s], lines[to_s],
+            from_d, to_d,
+            parse_time_interval(
+                lines[from_s].date_groups, transfer_data["apply_time"]
+            ) if "apply_time" in transfer_data else None
+        )
+    return transfer
 
+
+def parse_transfer(lines: dict[str, Line], transfer_dict: dict[str, Any]) -> dict[str, Transfer]:
+    """ Parse JSON5 spec as transfer metadata """
     result: dict[str, Transfer] = {}
-    for station, transfer_datas in transfer_dict["transfers"].items():
-        transfer = Transfer(station)
-        for transfer_data in transfer_datas:
-            from_s, to_s = transfer_data["from"], transfer_data["to"]
-            transfer.add_transfer_time(
-                transfer_data["minutes"],
-                lines[from_s], lines[to_s],
-                transfer_data.get("from_direction"), transfer_data.get("to_direction"),
-                parse_time_interval(
-                    lines[from_s].date_groups, transfer_data["apply_time"]
-                ) if "apply_time" in transfer_data else None
-            )
-        result[station] = transfer
+    for station, transfer_datas in transfer_dict.items():
+        result[station] = parse_transfer_data(Transfer(station), lines, transfer_datas)
+    return result
+
+
+def parse_virtual_transfer(
+    lines: dict[str, Line], transfer_dicts: list[dict[str, Any]]
+) -> dict[tuple[str, str], Transfer]:
+    """ Parse JSON5 spec as virtual transfer metadata """
+    result: dict[tuple[str, str], Transfer] = {}
+    for transfer_dict in transfer_dicts:
+        key = (transfer_dict["from_station"], transfer_dict["to_station"])
+        result[key] = parse_transfer_data(Transfer(key[0], key[1]), lines, transfer_dict["times"])
+        result[(key[1], key[0])] = parse_transfer_data(
+            Transfer(key[1], key[0]), lines, transfer_dict["times"], reversed=True)
     return result

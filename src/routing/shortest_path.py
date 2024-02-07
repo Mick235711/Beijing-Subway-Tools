@@ -20,13 +20,13 @@ from src.routing.train import Train, parse_all_trains
 def find_last_train(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
-    transfer_dict: dict[str, Transfer],
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, end_station: str, *,
     exclude_edge: bool = False
 ) -> TimeSpec:
     """ Calculate the last possible time to reach station """
     results = all_time_bfs(
-        lines, train_dict, transfer_dict, start_date, start_station,
+        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
         exclude_edge=exclude_edge
     )
     max_result = max(results[end_station], key=lambda x: (
@@ -62,7 +62,7 @@ def main() -> None:
         allow_first=lambda: all_trains[0].arrival_time[start[0]],
         allow_last=lambda: find_last_train(
             lines, train_dict,
-            city.transfers,  # type: ignore
+            city.transfers, city.virtual_transfers,
             start_date, start[0], end[0],
             exclude_edge=args.exclude_edge
         )
@@ -72,9 +72,8 @@ def main() -> None:
     start_day = start_time < time(3, 30)
     if start_day:
         print("Warning: assuming next day!")
-    assert city.transfers is not None, city
     results = k_shortest_path(
-        lines, train_dict, city.transfers,
+        lines, train_dict, city.transfers, city.virtual_transfers,
         start[0], end[0],
         start_date, start_time, start_day,
         k=args.num_path, exclude_edge=args.exclude_edge

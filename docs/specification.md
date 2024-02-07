@@ -111,11 +111,12 @@ For example, assuming the schedule is trained every 2 minutes from 07:00:
 # Metadata Specification Format
 This specification describes the key-values within `metadata.json5`.
 
-| Key          | Required | Type   | Default | Value                                                                                       |
-|--------------|----------|--------|---------|---------------------------------------------------------------------------------------------|
-| city_name    | Yes      | string |         | Name of the city                                                                            |
-| city_aliases | No       | array  | []      | Aliases (English) for the city                                                              |
-| transfers    | No       | object |         | A dictionary (station_name to array of sub-specifications) of station's transfer time data. |
+| Key               | Required | Type   | Default | Value                                                                                       |
+|-------------------|----------|--------|---------|---------------------------------------------------------------------------------------------|
+| city_name         | Yes      | string |         | Name of the city                                                                            |
+| city_aliases      | No       | array  | []      | Aliases (English) for the city                                                              |
+| transfers         | No       | object |         | A dictionary (station_name to array of sub-specifications) of station's transfer time data. |
+| virtual_transfers | No       | array  | []      | An array of object detailing a virtual transfer.                                            |
 
 For each sub-specification, its structure must be
 ```json5
@@ -130,6 +131,11 @@ If only time from Line A to Line B is provided, then the reverse direction is as
 `apply_time` field can be present when this time only applies under specific time (such as a shortcut that can only be taken under non-peak times).
 All three fields are optional, `start` and `end` defaults to the first/last train of the day, and if `date_group` is not present
 all dates are applicable.
+
+For a virtual transfer specification, each element of the array should be something like
+```json5
+{from_station: "Station A", to_station: "Station B", times: [{ array of transfer specs }]}
+```
 
 # Carriage Specification Format
 This specification describes the key-values within `carriage_types.json5`.

@@ -12,7 +12,7 @@ import pyjson5
 
 from src.city.carriage import Carriage, parse_carriage
 from src.city.line import Line, parse_line
-from src.city.transfer import Transfer, parse_transfer
+from src.city.transfer import Transfer, parse_transfer, parse_virtual_transfer
 
 METADATA_FILE = "metadata.json5"
 CARRIAGE_FILE = "carriage_types.json5"
@@ -29,7 +29,8 @@ class City:
         self.aliases = aliases or []
         self.line_files: list[str] = []
         self.lines_processed: dict[str, Line] | None = None
-        self.transfers: dict[str, Transfer] | None = None
+        self.transfers: dict[str, Transfer] = {}
+        self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
         self.carriages: dict[str, Carriage] | None = None
 
     def __repr__(self) -> str:
@@ -60,10 +61,10 @@ class City:
 
 def parse_city(city_root: str) -> City:
     """ Parse JSON5 files in a city directory """
-    transfer = os.path.join(city_root, METADATA_FILE)
-    assert os.path.exists(transfer), city_root
+    metadata_file = os.path.join(city_root, METADATA_FILE)
+    assert os.path.exists(metadata_file), city_root
 
-    with open(transfer) as fp:
+    with open(metadata_file) as fp:
         city_dict = pyjson5.decode_io(fp)
         city = City(city_dict["city_name"], city_root, city_dict.get("city_aliases"))
 
@@ -79,7 +80,10 @@ def parse_city(city_root: str) -> City:
     assert os.path.exists(carriage), city_root
     city.carriages = parse_carriage(carriage)
 
-    city.transfers = parse_transfer(city.lines(), transfer)
+    if "transfers" in city_dict:
+        city.transfers = parse_transfer(city.lines(), city_dict["transfers"])
+    if "virtual_transfers" in city_dict:
+        city.virtual_transfers = parse_virtual_transfer(city.lines(), city_dict["virtual_transfers"])
     return city
 
 

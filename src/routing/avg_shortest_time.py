@@ -15,17 +15,18 @@ from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s
-from src.routing.bfs import bfs, get_all_trains, AbstractPath, Path, BFSResult
+from src.routing.bfs import bfs, get_all_trains_single, Path, BFSResult
 from src.routing.train import Train, parse_all_trains
 
 
+AbstractPath = list[tuple[str, tuple[Line, str] | None]]
 PathInfo = tuple[int, Path, BFSResult]
 
 
 def all_time_bfs(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
-    transfer_dict: dict[str, Transfer],
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
@@ -33,7 +34,7 @@ def all_time_bfs(
 ) -> dict[str, list[PathInfo]]:
     """ Run BFS through all times, tally to each station """
     # Loop through first train to last train
-    all_trains = get_all_trains(lines, train_dict, start_station, start_date)
+    all_trains = get_all_trains_single(lines, train_dict, start_station, start_date)
     all_arrival = [train.arrival_time[start_station] for train in all_trains]
     all_minutes = list(set(to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival))
     results: dict[str, list[PathInfo]] = {}
@@ -42,7 +43,7 @@ def all_time_bfs(
     for i, minute in enumerate(bar := tqdm(list(x for x in all_minutes if limit_start_num <= x <= limit_end_num))):
         cur_time, cur_day = from_minutes(minute)
         bar.set_description(f"Calculating {start_station} from " + get_time_str(cur_time, cur_day))
-        bfs_result = bfs(lines, train_dict, transfer_dict,
+        bfs_result = bfs(lines, train_dict, transfer_dict, virtual_dict,
                          start_date, start_station, cur_time, cur_day, exclude_edge=exclude_edge)
         for station, single_result in bfs_result.items():
             if station not in results:
@@ -78,7 +79,7 @@ def all_time_bfs(
 def calculate_shortest(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
-    transfer_dict: dict[str, Transfer],
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
@@ -87,7 +88,7 @@ def calculate_shortest(
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station """
     results = all_time_bfs(
-        lines, train_dict, transfer_dict, start_date, start_station,
+        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
         limit_start=limit_start, limit_start_day=limit_start_day,
         limit_end=limit_end, limit_end_day=limit_end_day,
         exclude_edge=exclude_edge
@@ -97,7 +98,7 @@ def calculate_shortest(
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
         coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([(list(
-            (station, train.line, train.direction) for station, train in path[1]
+            (station, (train.line, train.direction) if isinstance(train, Train) else None) for station, train in path[1]
         ), path) for path in times_paths])
         result_dict[station] = (
             sum(times) / len(times),
@@ -124,11 +125,10 @@ def shortest_in_city(
         city, start, start_date = city_station
     lines = city.lines()
     train_dict = parse_all_trains(list(lines.values()))
-    assert city.transfers is not None, city
     ls_time, ls_day = parse_time_opt(limit_start)
     le_time, le_day = parse_time_opt(limit_end)
     return city, start, calculate_shortest(
-        lines, train_dict, city.transfers, start_date, start,
+        lines, train_dict, city.transfers, city.virtual_transfers, start_date, start,
         limit_start=ls_time, limit_start_day=ls_day,
         limit_end=le_time, limit_end_day=le_day,
         exclude_edge=exclude_edge
@@ -138,8 +138,11 @@ def shortest_in_city(
 def path_shorthand(end_station: str, path: AbstractPath) -> str:
     """ One-line representation of a path """
     result = ""
-    for station, line, direction in path:
-        result += f"{station} --- {line.name} ({direction}) --> "
+    for station, line_direction in path:
+        if line_direction is None:
+            result += f"{station} --- (virtual) --> "
+        else:
+            result += f"{station} --- {line_direction[0].name} ({line_direction[1]}) --> "
     return result + end_station
 
 
@@ -182,11 +185,9 @@ def main() -> None:
 
             if args.show_path:
                 print("\nMaximum time path:")
-                assert city.transfers is not None, city
                 max_info[2].pretty_print_path(max_info[1], city.transfers, indent=1)
 
                 print("\nMinimum time path:")
-                assert city.transfers is not None, city
                 min_info[2].pretty_print_path(min_info[1], city.transfers, indent=1)
                 print()
         return
