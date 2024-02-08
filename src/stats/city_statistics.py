@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+import csv
 from collections.abc import Iterable, Callable, Collection, Sequence
 from datetime import date
 from typing import TypeVar, Any
@@ -143,7 +144,7 @@ def append_sort_args(parser: argparse.ArgumentParser) -> None:
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple], *,
                   sort_index: list[int] | None = None, reverse: bool = False, full_only: bool = False,
-                  table_format: str = "simple") -> None:
+                  table_format: str = "simple") -> list[tuple]:
     """ Obtain data on lines """
     # Organize into lines
     line_dict: dict[str, tuple[Line, set[Train]]] = {}
@@ -172,6 +173,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     print(tabulate(
         data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
     ))
+    return data
 
 
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
@@ -182,5 +184,11 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
     sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
     header = [(column if unit == "" else f"{column}\n({unit})")
               for column, unit in zip(sort_columns, sort_columns_unit)]
-    get_line_data(all_trains, header, data_callback, full_only=args.full_only,
-                  sort_index=sort_index, reverse=args.reverse, table_format=args.table_format)
+    data = get_line_data(all_trains, header, data_callback, full_only=args.full_only,
+                         sort_index=sort_index, reverse=args.reverse, table_format=args.table_format)
+    if args.output is not None:
+        with open(args.output, "w", newline="") as fp:
+            writer = csv.writer(fp)
+            writer.writerow(sort_columns)
+            writer.writerows(data)
+            print(f"CSV Written to: {args.output}")

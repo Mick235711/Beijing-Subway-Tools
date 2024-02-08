@@ -50,8 +50,8 @@ def main() -> None:
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
         append_sort_args(parser)
-        group = parser.add_mutually_exclusive_group()
-        group.add_argument("-c", "--capacity", action="store_true", help="Show general capacity data")
+        parser.add_argument("-c", "--capacity", action="store_true", help="Show general capacity data")
+        parser.add_argument("-o", "--output", help="Output CSV file")
 
     all_trains, _, args = parse_args(append_arg)
     if args.capacity:

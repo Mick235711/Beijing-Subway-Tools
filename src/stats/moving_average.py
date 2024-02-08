@@ -158,6 +158,7 @@ def main() -> None:
                            help="Show cross-sectional (station-wise) capacity data")
         parser.add_argument("--show-example", action="store_true", help="Show example")
         parser.add_argument("--include-edge", action="store_true", help="Include edge in moving average")
+        parser.add_argument("-o", "--output", help="Output CSV file")
 
     all_trains, lines, args = parse_args(append_arg)
     if args.moving_average:
