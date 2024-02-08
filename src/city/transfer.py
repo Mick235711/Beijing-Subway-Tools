@@ -66,12 +66,12 @@ class Transfer:
 
 
 def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_datas: list[dict[str, Any]],
-                        reversed: bool = False) -> Transfer:
+                        reversed_line: bool = False) -> Transfer:
     """ Parse a single transfer metadata spec """
     for transfer_data in transfer_datas:
         from_s, to_s = transfer_data["from"], transfer_data["to"]
         from_d, to_d = transfer_data.get("from_direction"), transfer_data.get("to_direction")
-        if reversed:
+        if reversed_line:
             from_s, to_s = to_s, from_s
             from_d, to_d = to_d, from_d
         transfer.add_transfer_time(
@@ -102,5 +102,5 @@ def parse_virtual_transfer(
         key = (transfer_dict["from_station"], transfer_dict["to_station"])
         result[key] = parse_transfer_data(Transfer(key[0], key[1]), lines, transfer_dict["times"])
         result[(key[1], key[0])] = parse_transfer_data(
-            Transfer(key[1], key[0]), lines, transfer_dict["times"], reversed=True)
+            Transfer(key[1], key[0]), lines, transfer_dict["times"], reversed_line=True)
     return result
