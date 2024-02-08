@@ -14,6 +14,7 @@ from src.city.line import Line
 from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str, TimeSpec, \
     to_pinyin
 from src.graph.map import Map, get_all_maps
+from src.routing.train import Train, parse_trains
 from src.timetable.timetable import Timetable
 
 
@@ -281,6 +282,16 @@ def ask_for_date_group(
         if with_timetabled_sd is not None and answer == "":
             answer = viable[0]
     return line.date_groups[answer]
+
+
+def ask_for_train_list(only_express: bool = False) -> list[Train]:
+    """ Ask for a list of trains in a direction """
+    city = ask_for_city()
+    line = ask_for_line(city, only_express=only_express)
+    direction = ask_for_direction(line, only_express=only_express)
+    date_group = ask_for_date_group(line)
+    train_dict = parse_trains(line, {direction})
+    return train_dict[direction][date_group.name]
 
 
 def ask_for_timetable() -> tuple[str, Timetable]:

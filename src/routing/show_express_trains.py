@@ -6,10 +6,10 @@
 # Libraries
 from collections.abc import Sequence
 
-from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.city.ask_for_city import ask_for_train_list
 from src.common.common import suffix_s, diff_time_tuple, format_duration, segment_speed, speed_str
 from src.routing.show_trains import ask_for_train
-from src.routing.train import parse_trains, Train
+from src.routing.train import Train
 
 
 def average_speed(trains: Sequence[Train], start: str, end: str) -> tuple[int, float, float]:
@@ -27,14 +27,8 @@ def average_speed(trains: Sequence[Train], start: str, end: str) -> tuple[int, f
 
 def main() -> None:
     """ Main function """
-    city = ask_for_city()
-    line = ask_for_line(city, only_express=True)
-    direction = ask_for_direction(line, only_express=True)
-    date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line, {direction})
-    train_list = train_dict[direction][date_group.name]
-
     # Ask for an express train
+    train_list = ask_for_train_list(only_express=True)
     train_list_express = [train for train in train_list if train.is_express()]
     train = ask_for_train(train_list_express, with_speed=True)
 
@@ -55,7 +49,7 @@ def main() -> None:
     print("Train basic info:")
     train.pretty_print(with_speed=True)
 
-    route_base = line.direction_base_route[direction].stations
+    route_base = train.line.direction_base_route[train.direction].stations
     route_start_index = min(route_base.index(s) for s in train.skip_stations) - 1
     route_end_index = max(route_base.index(s) for s in train.skip_stations) + 1
     assert route_start_index >= 0 and route_end_index < len(route_base), (route_base, train.skip_stations)

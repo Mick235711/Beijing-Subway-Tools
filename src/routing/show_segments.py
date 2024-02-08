@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Print loop trains obtained from any city's timetable """
+""" Print trains segments obtained from any city's timetable """
 
 # Libraries
 import argparse
 
-from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.city.ask_for_city import ask_for_train_list
 from src.common.common import complete_pinyin, suffix_s
-from src.routing.train import parse_trains
 
 
 def main() -> None:
@@ -16,13 +15,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
     args = parser.parse_args()
-
-    city = ask_for_city()
-    line = ask_for_line(city, only_loop=True)
-    direction = ask_for_direction(line)
-    date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line, {direction})
-    train_list = train_dict[direction][date_group.name]
+    train_list = ask_for_train_list()
 
     # Reorganize into looping chains
     train_initial = [train for train in train_list if train.loop_prev is None]

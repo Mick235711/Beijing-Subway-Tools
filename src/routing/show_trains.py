@@ -8,9 +8,9 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.city.ask_for_city import ask_for_train_list
 from src.common.common import complete_pinyin
-from src.routing.train import parse_trains, Train
+from src.routing.train import Train
 
 
 def ask_for_train(train_list: Sequence[Train], *, with_speed: bool = False) -> Train:
@@ -38,13 +38,7 @@ def main() -> None:
     parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
     args = parser.parse_args()
 
-    city = ask_for_city()
-    line = ask_for_line(city)
-    direction = ask_for_direction(line)
-    date_group = ask_for_date_group(line)
-    train_dict = parse_trains(line, {direction})
-    train_list = train_dict[direction][date_group.name]
-    ask_for_train(train_list, with_speed=args.with_speed).pretty_print(with_speed=args.with_speed)
+    ask_for_train(ask_for_train_list(), with_speed=args.with_speed).pretty_print(with_speed=args.with_speed)
 
 
 # Call main
