@@ -30,7 +30,7 @@ This document describes the usage, parameter, and intended result of each tool i
 
 ### [`show_station_time.py`](/src/routing/show_station_time.py): Show time needed for trains to travel between two stations on a line
 
-### [`show_loop_trains.py`](/src/routing/show_loop_trains.py): Loop train analyzer
+### [`show_segments.py`](/src/routing/show_segments.py): Train segment analyzer
 
 ### [`show_express_trains.py`](/src/routing/show_express_trains.py): Express train analyzer
 
