@@ -82,7 +82,7 @@ class Train:
     def direction_repr(self) -> str:
         """ Get string representation for routing """
         return (f"{self.line.name} {self.direction} " + "+".join(x.name for x in self.routes) +
-                f" [{self.line.carriage_type.train_code(self.carriage_num)}]")
+                f" [{self.train_code()}]")
 
     def __repr__(self) -> str:
         """ Get string representation """

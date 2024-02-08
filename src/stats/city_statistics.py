@@ -29,6 +29,8 @@ def count_trains(trains: Iterable[Train]) -> dict[str, dict[str, list[Train]]]:
         result_dict[train.line.name][train.direction].append(train)
         index_dict[train.line.name] = train.line.index
     for name, direction_dict in result_dict.items():
+        for direction, train_list in direction_dict.items():
+            result_dict[name][direction] = list(set(train_list))
         result_dict[name] = dict(sorted(direction_dict.items(), key=lambda x: x[0]))
     return dict(sorted(result_dict.items(), key=lambda x: index_dict[x[0]]))
 
