@@ -101,6 +101,8 @@ def parse_args(
     if include_limit:
         parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
+    parser.add_argument("-f", "--full-only", action="store_true",
+                        help="Only include train that runs the full journey")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--include-lines", help="Include lines")
     group.add_argument("-e", "--exclude-lines", help="Exclude lines")
@@ -119,6 +121,9 @@ def parse_args(
         travel_date = ask_for_date()
         all_trains = get_all_trains(lines, train_dict, limit_date=travel_date)
 
+    if args.full_only:
+        all_trains = {k: [e for e in v if e[1].is_full()] for k, v in all_trains.items()}
+
     # Parse include/exclude lines
     if args.include_lines is not None:
         assert args.exclude_lines is None, args
@@ -134,8 +139,6 @@ def parse_args(
 
 def append_sort_args(parser: argparse.ArgumentParser) -> None:
     """ Append common sorting arguments like -s """
-    parser.add_argument("-f", "--full-only", action="store_true",
-                        help="Only include train that runs the full journey")
     parser.add_argument("-s", "--sort-by", help="Sort by these column(s)", default="")
     parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
     parser.add_argument("-t", "--table-format", help="Table format", default="simple")
@@ -143,15 +146,13 @@ def append_sort_args(parser: argparse.ArgumentParser) -> None:
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple], *,
-                  sort_index: list[int] | None = None, reverse: bool = False, full_only: bool = False,
+                  sort_index: list[int] | None = None, reverse: bool = False,
                   table_format: str = "simple") -> list[tuple]:
     """ Obtain data on lines """
     # Organize into lines
     line_dict: dict[str, tuple[Line, set[Train]]] = {}
     for train_list in all_trains.values():
         for date_group, train in train_list:
-            if full_only and not train.is_full():
-                continue
             if train.line.name not in line_dict:
                 line_dict[train.line.name] = (train.line, set())
             line_dict[train.line.name][1].add(train)
@@ -184,7 +185,7 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
     sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
     header = [(column if unit == "" else f"{column}\n({unit})")
               for column, unit in zip(sort_columns, sort_columns_unit)]
-    data = get_line_data(all_trains, header, data_callback, full_only=args.full_only,
+    data = get_line_data(all_trains, header, data_callback,
                          sort_index=sort_index, reverse=args.reverse, table_format=args.table_format)
     if args.output is not None:
         with open(args.output, "w", newline="") as fp:

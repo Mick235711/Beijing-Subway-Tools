@@ -4,19 +4,20 @@
 """ Print train with the highest speed """
 
 # Libraries
+import argparse
+
 from src.common.common import speed_str
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, parse_args, append_sort_args
+from src.stats.city_statistics import display_first, parse_args
 
 
 def highest_speed_train(
-    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5, full_only: bool = False
+    all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
+    *, limit_num: int = 5
 ) -> None:
     """ Print fastest/slowest N trains of the whole city """
-    print("Fastest/Slowest " + ("Full " if full_only else "") + "Trains:")
+    print("Fastest/Slowest " + ("Full " if args.full_only else "") + "Trains:")
     train_set = set(t for x in all_trains.values() for t in x)
-    if full_only:
-        train_set = set(filter(lambda x: x[1].is_full(), train_set))
 
     # Remove tied trains
     train_set_processed: dict[tuple[str, str, str, int], tuple[str, Train, int]] = {}
@@ -37,8 +38,8 @@ def highest_speed_train(
 
 def main() -> None:
     """ Main function """
-    all_trains, _, args = parse_args(append_sort_args)
-    highest_speed_train(all_trains, limit_num=args.limit_num, full_only=args.full_only)
+    all_trains, _, args = parse_args()
+    highest_speed_train(all_trains, args, limit_num=args.limit_num)
 
 
 # Call main

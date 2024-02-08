@@ -17,12 +17,12 @@ from src.stats.hour_trains import minute_trains
 
 
 def get_moving_average_data(
-    all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
-    moving_min: int = 60, full_only: bool = False, show_example: bool = False, include_edge: bool = False
+    all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line], *,
+    moving_min: int = 60, show_example: bool = False, include_edge: bool = False
 ) -> dict[str, tuple]:
     """ Get moving average data """
-    minute_dict = minute_trains(all_trains, full_only)
-    capacity_dict = minute_trains(all_trains, full_only, True)
+    minute_dict = minute_trains(all_trains)
+    capacity_dict = minute_trains(all_trains, use_capacity=True)
     result: dict[str, tuple] = {}
     for line_name, line_dict in minute_dict.items():
         avg_cnt, (
@@ -64,7 +64,7 @@ def get_moving_average_data(
     return result
 
 
-def count_train(station: str, trains: Sequence[Train], moving_min: int = 60,
+def count_train(station: str, trains: Sequence[Train], *, moving_min: int = 60,
                 start_time: TimeSpec | None = None, end_time: TimeSpec | None = None) -> dict[str, tuple[int, int]]:
     """ Count the trains as moving average of station-wise count/capacities """
     result_dict: dict[str, tuple[int, int]] = {}
@@ -88,15 +88,13 @@ def count_train(station: str, trains: Sequence[Train], moving_min: int = 60,
 
 
 def get_section_data(
-    all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line],
-    moving_min: int = 60, full_only: bool = False, show_example: bool = False, include_edge: bool = False
+    all_trains: dict[str, list[tuple[str, Train]]], lines: dict[str, Line], *,
+    moving_min: int = 60, show_example: bool = False, include_edge: bool = False
 ) -> dict[str, tuple]:
     """ Get sectional (station-wise) data """
     # Calculate line -> (date_group, direction, station) -> list of trains
     processed_dict: dict[str, dict[tuple[str, str, str], list[Train]]] = {}
     for date_group, train in set(x for y in all_trains.values() for x in y):
-        if full_only and not train.is_full():
-            continue
         if train.line.name not in processed_dict:
             processed_dict[train.line.name] = {}
         for station in train.stations:
@@ -118,9 +116,9 @@ def get_section_data(
             station = key[2]
             sorted_list = sorted(value, key=lambda t: t.stop_time(station))
             for time_str, (count_value, cap_value) in count_train(
-                station, value, moving_min,
-                None if include_edge else sorted_list[0].arrival_time[station],
-                None if include_edge else sorted_list[-1].arrival_time[station]
+                station, value, moving_min=moving_min,
+                start_time=None if include_edge else sorted_list[0].arrival_time[station],
+                end_time=None if include_edge else sorted_list[-1].arrival_time[station]
             ).items():
                 count_dict[key + (time_str,)] = count_value
                 cap_dict[key + (time_str,)] = cap_value
@@ -166,7 +164,8 @@ def main() -> None:
         output_table(
             all_trains, args,
             get_moving_average_data(
-                all_trains, lines, args.moving_average, args.full_only, args.show_example, args.include_edge
+                all_trains, lines, moving_min=args.moving_average,
+                show_example=args.show_example, include_edge=args.include_edge
             ), [
                 "Index", "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                 average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
@@ -180,7 +179,8 @@ def main() -> None:
         output_table(
             all_trains, args,
             get_section_data(
-                all_trains, lines, args.section, args.full_only, args.show_example, args.include_edge
+                all_trains, lines, moving_min=args.section,
+                show_example=args.show_example, include_edge=args.include_edge
             ), [
                 "Index", "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                 average_str + "Min Count", average_str + "Max Count",

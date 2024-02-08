@@ -14,15 +14,13 @@ from src.stats.city_statistics import display_first, divide_by_line, parse_args
 
 
 def hour_trains(
-    all_trains: dict[str, list[tuple[str, Train]]],
-    full_only: bool = False, use_capacity: bool = False
+    all_trains: dict[str, list[tuple[str, Train]]], *,
+    use_capacity: bool = False
 ) -> None:
     """ Print train number per hour """
     print(("Capacity" if use_capacity else "Train") + " Count by Hour:")
     hour_dict: dict[int, set[Train]] = {}
     for date_group, train in set(t for x in all_trains.values() for t in x):
-        if full_only and not train.is_full():
-            continue
         for arrival_time, arrival_day in train.arrival_time.values():
             hour = arrival_time.hour + (24 if arrival_day else 0)
             if hour not in hour_dict:
@@ -39,7 +37,7 @@ def hour_trains(
 
 
 def minute_trains(
-    all_trains: dict[str, list[tuple[str, Train]]],
+    all_trains: dict[str, list[tuple[str, Train]]], *,
     full_only: bool = False, use_capacity: bool = False
 ) -> dict[str, dict[str, int]]:
     """ Print train number & capacity per minute """
@@ -77,8 +75,6 @@ def main() -> None:
         group.add_argument("-o", "--output", help="Output path", default="../data.json")
         group.add_argument("--dump", help="Output path (dump everything)", default="../data.json")
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
-        parser.add_argument("-f", "--full-only", action="store_true",
-                            help="Only include train that runs the full journey")
 
     all_trains, _, args = parse_args(append_arg, include_limit=False)
     if args.by_minutes:
@@ -86,18 +82,18 @@ def main() -> None:
             base, ext = os.path.splitext(args.dump)
             for full_only in [True, False]:
                 for capacity in [True, False]:
-                    data = minute_trains(all_trains, full_only, capacity)
+                    data = minute_trains(all_trains, full_only=full_only, use_capacity=capacity)
                     filename = base + ('_full' if full_only else '') + ('_cap' if capacity else '') + ext
                     print(f"Writing to {filename}...")
                     with open(filename, "w", encoding="utf-8") as fp:
                         json.dump(data, fp, indent=4, ensure_ascii=False)
         else:
-            data = minute_trains(all_trains, args.full_only, args.capacity)
+            data = minute_trains(all_trains, full_only=args.full_only, use_capacity=args.capacity)
             print(f"Writing to {args.output}...")
             with open(args.output, "w", encoding="utf-8") as fp:
                 json.dump(data, fp, indent=4, ensure_ascii=False)
     else:
-        hour_trains(all_trains, args.full_only, args.capacity)
+        hour_trains(all_trains, use_capacity=args.capacity)
 
 
 # Call main
