@@ -5,19 +5,15 @@
 
 # Libraries
 import argparse
+from collections.abc import Sequence, Mapping
 
-from src.city.ask_for_city import ask_for_train_list
-from src.common.common import complete_pinyin, suffix_s
+from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
+from src.common.common import complete_pinyin, suffix_s, diff_time_tuple
+from src.routing.train import Train, parse_trains
 
 
-def main() -> None:
-    """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
-    args = parser.parse_args()
-    train_list = ask_for_train_list()
-
-    # Reorganize into looping chains
+def organize_loop(train_list: Sequence[Train]) -> list[list[Train]]:
+    """ Organize a timetable into train loops """
     train_initial = [train for train in train_list if train.loop_prev is None]
     visited = set(train_initial)
     loop_dict = [[train] for train in train_initial]
@@ -28,20 +24,91 @@ def main() -> None:
             visited.add(train)
             loop_dict[i].append(train)
     assert len(visited) == len(train_list), [train for train in train_list if train not in visited]
+    return loop_dict
 
+
+def organize_segment(direction_stations: Mapping[str, Sequence[str]],
+                     train_dict: Mapping[str, Sequence[Train]]) -> list[list[Train]]:
+    """ Organize a timetable into train segments """
+    associate: list[tuple[Train, Train]] = []
+    all_trains = [y for x in train_dict.values() for y in x]
+    for direction, stations in direction_stations.items():
+        for station in stations:
+            train_list = sorted([
+                x for x in train_dict[direction] if x.stations[-1] == station
+            ], key=lambda x: x.end_time_str())
+            other_train_list = sorted([
+                x for x in all_trains if x.direction != direction and x.stations[0] == station
+            ], key=lambda x: x.start_time_str())
+            i, j = 0, 0
+            initial_diff: int | None = None
+            while i < len(train_list) and j < len(other_train_list):
+                train = train_list[i]
+                other_train = other_train_list[j]
+                diff = diff_time_tuple(other_train.start_time(), train.end_time())
+                if diff <= 2:
+                    j += 1
+                elif diff >= 15:
+                    i += 1
+                elif initial_diff is None:
+                    initial_diff = diff
+                elif diff - initial_diff <= -10:
+                    j += 1
+                elif diff - initial_diff >= 10:
+                    i += 1
+                else:
+                    associate.append((train, other_train))
+                    i += 1
+                    j += 1
+
+    # Reassemble loop_dict
+    loop_dict: list[list[Train]] = []
+    associate = sorted(associate, key=lambda x: x[0].start_time_str())
+    for cur1, cur2 in associate:
+        for j, entry in enumerate(loop_dict):
+            if entry[-1] == cur1:
+                loop_dict[j].append(cur2)
+                break
+        else:
+            loop_dict.append([cur1, cur2])
+    return loop_dict
+
+
+def main() -> None:
+    """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
+    args = parser.parse_args()
+
+    city = ask_for_city()
+    line = ask_for_line(city)
+    is_loop = line.loop
+    if is_loop:
+        direction = ask_for_direction(line)
+        date_group = ask_for_date_group(line)
+        train_dict = parse_trains(line, {direction})
+        loop_dict = organize_loop(train_dict[direction][date_group.name])
+    else:
+        print("NOTE: Segment analysis for non-loop lines are imprecise.")
+        date_group = ask_for_date_group(line)
+        train_dict = parse_trains(line)
+        loop_dict = organize_segment(
+            line.directions, {direction: value[date_group.name] for direction, value in train_dict.items()})
+
+    loop_dict = sorted(loop_dict, key=lambda x: x[0].start_time_str())
     meta_information: dict[str, str] = {}
     for i, train_loop in enumerate(loop_dict):
         first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time_repr()}"
         last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time_repr()}"
         meta_information[f"{i + 1:>{len(str(len(loop_dict)))}}# {first_str} -> ... -> {last_str}"] = \
-            suffix_s("loop", len(train_loop))
+            suffix_s("loop" if is_loop else "segment", len(train_loop))
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[:result.find("#")].strip())
 
     # Print the loop
     for i, train in enumerate(loop_dict[train_index - 1]):
         duration_repr = train.duration_repr(with_speed=args.with_speed)
-        print(f"Loop #{i + 1}: {train.line_repr()} ({duration_repr})")
+        print(("Loop" if is_loop else "Segment") + f" #{i + 1}: {train.line_repr()} ({duration_repr})")
 
 
 # Call main

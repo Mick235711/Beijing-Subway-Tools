@@ -284,7 +284,7 @@ def ask_for_date_group(
     return line.date_groups[answer]
 
 
-def ask_for_train_list(only_express: bool = False) -> list[Train]:
+def ask_for_train_list(*, only_express: bool = False) -> list[Train]:
     """ Ask for a list of trains in a direction """
     city = ask_for_city()
     line = ask_for_line(city, only_express=only_express)
