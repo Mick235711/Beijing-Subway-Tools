@@ -409,3 +409,12 @@ def moving_average_dict(data: Mapping[T, int | float], moving_min: int,
 def arg_minmax(data: Mapping[T, int | float]) -> tuple[T, T]:
     """ Calculate argmin & argmax """
     return min(data.keys(), key=lambda x: data[x]), max(data.keys(), key=lambda x: data[x])
+
+
+def sequence_data(sequence: Sequence[T], *,
+                  key: Callable[[T], int | float]) -> tuple[int, float, int | float, int | float]:
+    """ Return common data for a sequence (len/sum/min/max) """
+    avg_cnt = sum(key(x) for x in sequence) / len(sequence)
+    min_cnt = min(key(x) for x in sequence)
+    max_cnt = max(key(x) for x in sequence)
+    return len(sequence), avg_cnt, min_cnt, max_cnt

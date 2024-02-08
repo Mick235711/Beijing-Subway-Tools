@@ -7,8 +7,7 @@
 import argparse
 
 from src.city.line import Line
-from src.routing.show_segments import get_all_segments, total_distance, total_duration, segment_str, \
-    segment_duration_str
+from src.routing.show_segments import get_all_segments, segment_str, segment_duration_str, sort_segment
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, parse_args
 
@@ -31,11 +30,7 @@ def longest_segment(
         all_segments += [(date_group, x) for y in segment_dict.values() for x in y]
 
     display_first(
-        sorted(all_segments, key=lambda x: {
-            "distance": total_distance(x[1]),
-            "duration": total_duration(x[1]),
-            "count": len(x[1])
-        }[sort_by], reverse=True),
+        sorted(all_segments, key=lambda x: sort_segment(x[1], sort_by=sort_by), reverse=True),
         lambda data: f"{segment_str(data[1])}: {data[0]} {data[1][0].line.name} " +
                      (f"{data[1][0].direction} " if data[1][0].line.loop else "") +
                      f"[{data[1][0].train_code()}] " + segment_duration_str(data[1]),

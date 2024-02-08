@@ -103,6 +103,15 @@ def segment_duration_str(segments: Sequence[Train]) -> str:
     return f"{first_str} -> ... -> {last_str}"
 
 
+def sort_segment(segments: Sequence[Train], *, sort_by: str = "distance") -> int:
+    """ Segment sort criteria """
+    return {
+        "distance": total_distance(segments),
+        "duration": total_duration(segments),
+        "count": len(segments)
+    }[sort_by]
+
+
 def get_segments(line: Line, date_group: DateGroup, direction: str | None = None) -> list[list[Train]]:
     """ Get all the segments for a line """
     if line.loop:
