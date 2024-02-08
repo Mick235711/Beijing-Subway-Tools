@@ -6,9 +6,12 @@
 # Libraries
 import argparse
 from collections.abc import Sequence, Mapping
+from datetime import date
 
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
-from src.common.common import complete_pinyin, suffix_s, diff_time_tuple
+from src.city.date_group import DateGroup
+from src.city.line import Line
+from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str
 from src.routing.train import Train, parse_trains
 
 
@@ -74,6 +77,53 @@ def organize_segment(direction_stations: Mapping[str, Sequence[str]],
     return loop_dict
 
 
+def total_duration(segments: Sequence[Train]) -> int:
+    """ Get total duration of segments """
+    return diff_time_tuple(segments[-1].end_time(), segments[0].start_time())
+
+
+def total_distance(segments: Sequence[Train]) -> int:
+    """ Get total distance of segments """
+    return sum(x.distance() for x in segments)
+
+
+def segment_str(segments: Sequence[Train], is_loop: bool = False) -> str:
+    """ String representation for segments """
+    return suffix_s("loop" if is_loop else "segment", len(segments)) + \
+        f", {format_duration(total_duration(segments))}, {distance_str(total_distance(segments))}"
+
+
+def get_segments(line: Line, date_group: DateGroup, direction: str | None = None) -> list[list[Train]]:
+    """ Get all the segments for a line """
+    if line.loop:
+        assert direction is not None, (line, date_group, direction)
+        train_dict = parse_trains(line, {direction})
+        loop_dict = organize_loop(train_dict[direction][date_group.name])
+    else:
+        print("NOTE: Segment analysis for non-loop lines are imprecise.")
+        train_dict = parse_trains(line)
+        loop_dict = organize_segment(
+            line.directions, {direction: value[date_group.name] for direction, value in train_dict.items()})
+    loop_dict = sorted(loop_dict, key=lambda x: x[0].start_time_str())
+    return loop_dict
+
+
+def get_all_segments(lines: dict[str, Line], cur_date: date) -> dict[str, list[list[Train]]]:
+    """ Get all segments in a city """
+    result: dict[str, list[list[Train]]] = {}
+    for name, line in lines.items():
+        result[name] = []
+        for date_group in line.date_groups.values():
+            if not date_group.covers(cur_date):
+                continue
+            if line.loop:
+                for direction in line.directions.keys():
+                    result[name] += get_segments(line, date_group, direction)
+            else:
+                result[name] += get_segments(line, date_group)
+    return result
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -83,30 +133,24 @@ def main() -> None:
     city = ask_for_city()
     line = ask_for_line(city)
     is_loop = line.loop
-    if is_loop:
-        direction = ask_for_direction(line)
-        date_group = ask_for_date_group(line)
-        train_dict = parse_trains(line, {direction})
-        loop_dict = organize_loop(train_dict[direction][date_group.name])
-    else:
-        print("NOTE: Segment analysis for non-loop lines are imprecise.")
-        date_group = ask_for_date_group(line)
-        train_dict = parse_trains(line)
-        loop_dict = organize_segment(
-            line.directions, {direction: value[date_group.name] for direction, value in train_dict.items()})
+    date_group = ask_for_date_group(line)
+    direction = ask_for_direction(line) if is_loop else None
+    loop_dict = get_segments(line, date_group, direction)
 
-    loop_dict = sorted(loop_dict, key=lambda x: x[0].start_time_str())
     meta_information: dict[str, str] = {}
     for i, train_loop in enumerate(loop_dict):
         first_str = f"{train_loop[0].stations[0]} {train_loop[0].start_time_repr()}"
         last_str = f"{train_loop[-1].stations[-1]} {train_loop[-1].end_time_repr()}"
-        meta_information[f"{i + 1:>{len(str(len(loop_dict)))}}# {first_str} -> ... -> {last_str}"] = \
-            suffix_s("loop" if is_loop else "segment", len(train_loop))
+        meta_information[
+            f"{i + 1:>{len(str(len(loop_dict)))}}# {first_str} -> ... -> {last_str}"
+        ] = segment_str(train_loop, is_loop)
     result = complete_pinyin("Please select a train:", meta_information)
     train_index = int(result[:result.find("#")].strip())
 
     # Print the loop
-    for i, train in enumerate(loop_dict[train_index - 1]):
+    result_loop = loop_dict[train_index - 1]
+    print("Total:", segment_str(result_loop, is_loop))
+    for i, train in enumerate(result_loop):
         duration_repr = train.duration_repr(with_speed=args.with_speed)
         print(("Loop" if is_loop else "Segment") + f" #{i + 1}: {train.line_repr()} ({duration_repr})")
 
