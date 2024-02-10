@@ -316,6 +316,21 @@
         ],
         "次渠": [
             {from: "17号线", to: "亦庄线", minutes: 1.5}
+        ],
+        "郭公庄": [
+            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "出城", minutes: 0},
+            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "进城", minutes: 0},
+            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "进城", minutes: 1},
+            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "出城", minutes: 1}
+            // 同向同台
+        ],
+        "首经贸": [
+            {from: "房山线", to: "10号线", minutes: 2},
+            {from: "10号线", to: "房山线", minutes: 0.5}
+            // 节点10->25
+        ],
+        "东管头南": [
+            {from: "16号线", to: "房山线", minutes: 2}
         ]
     },
     virtual_transfers: [
