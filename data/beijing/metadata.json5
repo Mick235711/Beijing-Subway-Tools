@@ -163,7 +163,11 @@
         ],
         "宋家庄": [
             {from: "5号线", to: "10号线", to_direction: "外环", minutes: 1},
-            {from: "5号线", to: "10号线", to_direction: "内环", minutes: 1.5}
+            {from: "5号线", to: "10号线", to_direction: "内环", minutes: 1.5},
+            {from: "5号线", to: "亦庄线", minutes: 1},
+            {from: "亦庄线", to: "5号线", minutes: 2},
+            {from: "亦庄线", to: "10号线", to_direction: "外环", minutes: 2},
+            {from: "亦庄线", to: "10号线", to_direction: "内环", minutes: 2.5},
         ],
         "慈寿寺": [
             {from: "6号线", to: "10号线", minutes: 1.5},
@@ -309,6 +313,9 @@
         "景风门": [
             {from: "14号线", to: "19号线", minutes: 2.5},
             {from: "19号线", to: "14号线", minutes: 3}
+        ],
+        "次渠": [
+            {from: "17号线", to: "亦庄线", minutes: 1.5}
         ]
     },
     virtual_transfers: [
