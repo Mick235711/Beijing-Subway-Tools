@@ -1,0 +1,45 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 亦庄线时刻表 新2版（工作日使用新1版）
+{
+    name: "亦庄线",
+    aliases: ["Yizhuang Line", "Line 24"],
+    index: 24,
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 80,
+    stations: [
+        {name: "亦庄火车站", aliases: ["Yizhuang Railway Station"]},
+        {name: "次渠", dist: 1334},
+        {name: "次渠南", dist: 1281},
+        {name: "经海路", dist: 2086},
+        {name: "同济南路", dist: 2265},
+        {name: "荣昌东街", dist: 2338},
+        {name: "荣京东街", dist: 1354},
+        {name: "万源街", dist: 1280},
+        {name: "亦庄文化园", dist: 1538},
+        {name: "亦庄桥", dist: 993},
+        {name: "旧宫", dist: 1982},
+        {name: "小红门", dist: 2366},
+        {name: "肖村", dist: 1275},
+        {name: "宋家庄", dist: 2631}
+    ],
+    train_routes: {
+        "进城": {
+            aliases: ["City-bound"],
+            "全程车": {},
+            "同济南路始发空车": {starts_with: "同济南路"}
+        },
+        "出城": {
+            aliases: ["Suburb-bound"],
+            reversed: true,
+            "全程车": {},
+            "荣昌东街小交路": {ends_with: "荣昌东街"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
