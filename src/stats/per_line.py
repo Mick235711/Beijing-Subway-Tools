@@ -49,7 +49,7 @@ def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
     return line_basic_data(line)[:-3] + (
         line.train_code(), line.train_capacity(), len(train_set),
         total_cap, train_distance,
-        f"{avg_dist:.2f} ({avg_dist * 1000 / total_distance * 100:.2f}%)",
+        avg_dist, avg_dist * 1000 / total_distance * 100,
         train_distance * total_cap
     )
 
@@ -68,9 +68,9 @@ def main() -> None:
     if args.data_from == "capacity":
         output_table(all_trains, args, get_capacity_data, [
             "Index", "Line", "Interval", "Distance", "Station", "Design Spd",
-            "Carriage", "Capacity", "Train\nCount", "Total Cap", "Car Dist", "Avg Car\nDist", "People Dist"
+            "Carriage", "Capacity", "Train\nCount", "Total Cap", "Car Dist", "Avg Car\nDist", "Avg Cover", "People Dist"
         ], [
-            "", "", "", "km", "", "km/h", "", "ppl", "", "w ppl", "w km", "", "y ppl km"
+            "", "", "", "km", "", "km/h", "", "ppl", "", "w ppl", "w km", "", "%", "y ppl km"
         ])
     elif args.data_from == "speed":
         output_table(all_trains, args, get_speed_data, [
