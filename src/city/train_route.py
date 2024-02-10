@@ -13,11 +13,12 @@ class TrainRoute:
     """ Represents a train route """
 
     def __init__(self, name: str, direction: str, stations: list[str],
-                 carriage_num: int = 0, loop: bool = False) -> None:
+                 carriage_num: int = 0, loop: bool = False, real_end: str | None = None) -> None:
         """ Constructor """
         self.name = name
         self.direction = direction
         self.stations = stations
+        self.real_end = real_end
         self.skip_stations: set[str] = set()
         self.carriage_num = carriage_num
         self.loop = loop
@@ -59,7 +60,7 @@ def parse_train_route(direction: str, base: list[str],
                       loop: bool = False) -> TrainRoute:
     """ Parse the train_routes field """
     route_loop = spec.get("loop", loop)
-    route = TrainRoute(name, direction, base, spec.get("carriage_num", carriage_num), route_loop)
+    route = TrainRoute(name, direction, base, spec.get("carriage_num", carriage_num), route_loop, spec.get("real_end"))
     if "stations" in spec:
         route.stations = spec["stations"]
         return route

@@ -33,7 +33,7 @@
             aliases: ["Suburb-bound"],
             reversed: true,
             "全程车": {},
-            "荣昌东街小交路": {ends_with: "荣昌东街"}
+            "荣昌东街小交路": {ends_with: "荣昌东街", real_end: "同济南路"}
         }
     },
     date_groups: {

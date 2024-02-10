@@ -10,7 +10,7 @@ from collections.abc import Sequence, Mapping
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
 from src.city.date_group import DateGroup
 from src.city.line import Line
-from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str
+from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
 from src.routing.train import Train, parse_trains
 from src.stats.city_statistics import count_trains
 
@@ -40,8 +40,9 @@ def organize_segment(direction_stations: Mapping[str, Sequence[str]],
         for direction, stations in direction_stations.items():
             for station in stations:
                 train_list = sorted([
-                    x for x in train_dict[direction] if x.stations[-1] == station and x.carriage_num == carriage_num
-                ], key=lambda x: x.end_time_str())
+                    x for x in train_dict[direction]
+                    if x.real_end_station() == station and x.carriage_num == carriage_num
+                ], key=lambda x: get_time_str(*x.real_end_time(train_dict[direction])))
                 other_train_list = sorted([
                     x for x in all_trains
                     if x.direction != direction and x.stations[0] == station and x.carriage_num == carriage_num

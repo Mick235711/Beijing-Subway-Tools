@@ -57,7 +57,7 @@ class Timetable:
 
         def route_stations(self) -> list[str]:
             """ Return the stations of this train """
-            return route_stations(self.train_route)
+            return route_stations(self.train_route)[0]
 
         def is_loop(self) -> bool:
             """ Return true if this train's route is loop """
@@ -141,29 +141,34 @@ class Timetable:
         return brace_dict
 
 
-def route_stations(routes: TrainRoute | list[TrainRoute]) -> list[str]:
+def route_stations(routes: TrainRoute | list[TrainRoute]) -> tuple[list[str], TrainRoute]:
     """ Return the stations of this route """
     if isinstance(routes, TrainRoute):
-        return routes.stations
+        return routes.stations, routes
     stations: list[str] = []
+    end_route: TrainRoute | None = None
     for route in routes:
         if not stations:
             stations = route.stations
+            end_route = route
             continue
         route_set = set(route.stations)
         new_stations: list[str] = []
-        for station in stations:
+        for i, station in enumerate(stations):
             if station in route_set:
+                if i == len(stations) - 1:
+                    end_route = route
                 new_stations.append(station)
         stations = new_stations[:]
-    return stations
+    assert end_route is not None, routes
+    return stations, end_route
 
 
 def route_skip_stations(routes: TrainRoute | list[TrainRoute]) -> set[str]:
     """ Return the skipped stations of this route """
     if isinstance(routes, TrainRoute):
         return routes.skip_stations
-    stations = route_stations(routes)
+    stations, _ = route_stations(routes)
     skipped: set[str] = set()
     for route in routes:
         skipped.update(route.skip_stations)

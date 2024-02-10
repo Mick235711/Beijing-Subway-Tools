@@ -4,10 +4,13 @@
 """ A class for a train """
 
 # Libraries
+from __future__ import annotations
+from collections.abc import Sequence
+
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
 from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
-    distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec
+    distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple
 from src.timetable.timetable import Timetable, route_stations, route_skip_stations
 
 
@@ -21,7 +24,8 @@ class Train:
         self.carriage_num = min(x.carriage_num for x in routes)
         self.routes = routes
         self.direction = self.routes[0].direction
-        self.stations = route_stations(self.routes)
+        self.stations, end_route = route_stations(self.routes)
+        self.real_end = end_route.real_end
         self.skip_stations = route_skip_stations(self.routes)
         self.arrival_time = arrival_time
         self.loop_prev: Train | None = None
@@ -58,6 +62,23 @@ class Train:
     def end_time_str(self) -> str:
         """ Train end time string """
         return get_time_str(*self.end_time())
+
+    def real_end_station(self) -> str:
+        """ Get real ending station"""
+        return self.real_end or self.stations[-1]
+
+    def real_end_time(self, trains: Sequence[Train]) -> TimeSpec:
+        """ Train real end time """
+        end_time = self.end_time()
+        if self.real_end is None:
+            return end_time
+
+        # Calculate the minimum time between two stations
+        time_list = [
+            diff_time_tuple(train.arrival_time[self.real_end], train.arrival_time[self.stations[-1]])
+            for train in trains if self.stations[-1] in train.arrival_time and self.real_end in train.arrival_time
+        ]
+        return add_min_tuple(end_time, min(time_list))
 
     def end_time_repr(self) -> str:
         """ Train end time representation """
