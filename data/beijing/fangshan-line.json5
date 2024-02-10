@@ -1,0 +1,53 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 9号线-房山线时刻表 新8版
+{
+    name: "房山线",
+    aliases: ["Fangshan Line", "Line 25"],
+    index: 25,
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 100,
+    stations: [
+        {name: "阎村东"},
+        {name: "苏庄", dist: 2200},
+        {name: "良乡南关", dist: 1331},
+        {name: "良乡大学城西", dist: 1333},
+        {name: "良乡大学城", dist: 1739},
+        {name: "良乡大学城北", dist: 1188},
+        {name: "广阳城", dist: 2003},
+        {name: "篱笆房", dist: 1474},
+        {name: "长阳", dist: 2150},
+        {name: "稻田", dist: 4042},
+        {name: "大葆台", dist: 6466},
+        {name: "郭公庄", dist: 1405},
+        {name: "白盆窑", dist: 1138},
+        {name: "花乡东桥", dist: 1668},
+        {name: "首经贸", dist: 1793, aliases: ["Capital University of Economics and Business"]},
+        {name: "东管头南", dist: 1137}
+    ],
+    train_routes: {
+        "进城": {
+            aliases: ["City-bound"],
+            "全程车": {},
+            "房-9跨线车": {ends_with: "郭公庄"},
+            "郭公庄小交路": {ends_with: "郭公庄"},
+            "篱笆房始发空车": {starts_with: "篱笆房"},
+            "苏庄出库车": {starts_with: "苏庄"}
+        },
+        "出城": {
+            aliases: ["Suburb-bound"],
+            reversed: true,
+            "全程车": {},
+            "房-9跨线车": {starts_with: "郭公庄"},
+            "郭公庄始发空车": {starts_with: "郭公庄"},
+            "篱笆房小交路": {ends_with: "篱笆房"},
+            "苏庄回库车": {ends_with: "苏庄"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
