@@ -12,7 +12,7 @@ from typing import Iterable, Any
 from src.city.ask_for_city import ask_for_timetable
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
-from src.common.common import get_time_str, diff_time, parse_brace, TimeSpec, suffix_s, add_min
+from src.common.common import get_time_str, diff_time, parse_brace, TimeSpec, suffix_s, add_min, average
 from src.routing.train import filter_route
 from src.timetable.timetable import Timetable
 
@@ -356,7 +356,7 @@ def validate_timetable(prev: Timetable, prev_station: str, current: Timetable, t
                         new_train.next_day, prev_train.next_day
                     ) for prev_train, new_train in deltas_train]
                     if len(deltas) > 1:
-                        delta_common = round(sum(deltas) / len(deltas))
+                        delta_common = round(average(deltas))
                     else:
                         delta_common = deltas[0]
 

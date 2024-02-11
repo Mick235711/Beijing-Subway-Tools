@@ -147,10 +147,10 @@ def ask_question(msg: str, func: Callable[[str], T], *args,
         else func(real_answer)
 
 
-def distance_str(distance: int) -> str:
+def distance_str(distance: int | float) -> str:
     """ Get proper distance string from a meter distance """
     if distance < 1000:
-        return f"{distance}m"
+        return f"{distance}m" if isinstance(distance, int) else f"{distance:.2f}m"
     return f"{distance / 1000:.2f}km"
 
 
@@ -374,6 +374,13 @@ def percentage_coverage(data: Sequence[tuple[Iterable[T], U]]) -> list[tuple[flo
     return sorted(result, key=lambda x: x[0], reverse=True)
 
 
+def average(data: Iterable[int | float]) -> float:
+    """ Calculate average """
+    data_list = list(data)
+    assert len(data_list) > 0, data_list
+    return sum(data_list) / len(data_list)
+
+
 def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_min: int,
                    include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average, return avg & min/max interval """
@@ -388,7 +395,7 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
     total_length = len(data) - (0 if include_edge else moving_min)
     for i in range(1 - moving_min if include_edge else 0, total_length):
         cur_slice = [key(x) for x in data[max(0, i):i + moving_min]]
-        moving_avg = sum(cur_slice) / len(cur_slice)
+        moving_avg = average(cur_slice)
         if cur_min is None or cur_min > moving_avg:
             cur_min = moving_avg
             cur_min_beg, cur_min_end = data[max(0, i)], data[min(len(data), i + moving_min) - 1]
@@ -397,7 +404,7 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
             cur_max_beg, cur_max_end = data[max(0, i)], data[min(len(data), i + moving_min) - 1]
         cur_sum.append(moving_avg)
     assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, data
-    return sum(cur_sum) / len(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
+    return average(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
 
 
 def moving_average_dict(data: Mapping[T, int | float], moving_min: int,

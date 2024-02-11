@@ -14,8 +14,8 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
-    percentage_coverage, percentage_str, suffix_s
-from src.routing.bfs import bfs, get_all_trains_single, Path, BFSResult
+    percentage_coverage, percentage_str, suffix_s, average, distance_str
+from src.routing.bfs import bfs, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.routing.train import Train, parse_all_trains
 
 
@@ -84,16 +84,16 @@ def calculate_shortest(
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
     exclude_edge: bool = False
-) -> dict[str, tuple[float, PathInfo, PathInfo,
+) -> dict[str, tuple[float, float, float, float, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
-    """ Calculate the average shortest time to each station """
+    """ Calculate the average shortest time to each station (return type: avg time, transfer, station, distance) """
     results = all_time_bfs(
         lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
         limit_start=limit_start, limit_start_day=limit_start_day,
         limit_end=limit_end, limit_end_day=limit_end_day,
         exclude_edge=exclude_edge
     )
-    result_dict: dict[str, tuple[float, PathInfo, PathInfo,
+    result_dict: dict[str, tuple[float, float, float, float, PathInfo, PathInfo,
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
@@ -101,7 +101,10 @@ def calculate_shortest(
             (station, (train.line, train.direction) if isinstance(train, Train) else None) for station, train in path[1]
         ), path) for path in times_paths])
         result_dict[station] = (
-            sum(times) / len(times),
+            average(times),
+            average(total_transfer(path) for _, path, _ in times_paths),
+            average(len(expand_path(path, result.station)) for _, path, result in times_paths),
+            average(result.total_distance(path) for _, path, result in times_paths),
             max(times_paths, key=lambda x: x[0]),
             min(times_paths, key=lambda x: x[0]),
             coverage
@@ -114,7 +117,7 @@ def shortest_in_city(
     limit_end: str | None = None,
     city_station: tuple[City, str, date] | None = None, *,
     exclude_edge: bool = False
-) -> tuple[City, str, dict[str, tuple[float, PathInfo, PathInfo,
+) -> tuple[City, str, dict[str, tuple[float, float, float, float, PathInfo, PathInfo,
            list[tuple[float, AbstractPath, list[PathInfo]]]]]]:
     """ Find the shortest path in the city """
     if city_station is None:
@@ -168,7 +171,9 @@ def main() -> None:
     city, _, result_dict = shortest_in_city(args.limit_start, args.limit_end, exclude_edge=args.exclude_edge)
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:
-        for i, (station, (avg_time, max_info, min_info, path_coverage)) in enumerate(result_dict.items()):
+        for i, (station, (
+            avg_time, avg_transfer, avg_station, avg_dist, max_info, min_info, path_coverage
+        )) in enumerate(result_dict.items()):
             if stations is not None and station not in stations:
                 continue
             if stations is None and args.limit_num <= i < len(result_dict) - args.limit_num:
@@ -177,7 +182,9 @@ def main() -> None:
                 continue
 
             print(f"#{i + 1}: {station}, " + suffix_s("minute", f"{avg_time:.2f}") +
-                  f" (min {min_info[0]} - max {max_info[0]})")
+                  f" (min {min_info[0]} - max {max_info[0]})" +
+                  f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
+                  distance_str(avg_dist) + ")")
             print("Percentage of each path:")
             for percent, path, examples in path_coverage:
                 print("    " + percentage_str(percent) + " " + path_shorthand(station, path), end="")
@@ -193,7 +200,7 @@ def main() -> None:
         return
 
     # sort and display first/last
-    result_list = [(avg_time, station) for station, (avg_time, _, _, _) in result_dict.items()]
+    result_list = [(data[0], station) for station, data in result_dict.items()]
     if stations is not None:
         for avg_time, station in result_list:
             if station not in stations:
