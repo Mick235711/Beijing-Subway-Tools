@@ -12,6 +12,7 @@ import pyjson5
 
 from src.city.carriage import Carriage, parse_carriage
 from src.city.line import Line, parse_line
+from src.city.through_train import ThroughSpec, parse_through_spec
 from src.city.transfer import Transfer, parse_transfer, parse_virtual_transfer
 
 METADATA_FILE = "metadata.json5"
@@ -31,6 +32,7 @@ class City:
         self.lines_processed: dict[str, Line] | None = None
         self.transfers: dict[str, Transfer] = {}
         self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
+        self.through_specs: list[ThroughSpec] = []
         self.carriages: dict[str, Carriage] | None = None
 
     def __repr__(self) -> str:
@@ -84,6 +86,10 @@ def parse_city(city_root: str) -> City:
         city.transfers = parse_transfer(city.lines(), city_dict["transfers"])
     if "virtual_transfers" in city_dict:
         city.virtual_transfers = parse_virtual_transfer(city.lines(), city_dict["virtual_transfers"])
+
+    if "through_trains" in city_dict:
+        city.through_specs = [spec for spec_dict in city_dict["through_trains"]
+                              for spec in parse_through_spec(city.lines(), spec_dict)]
     return city
 
 

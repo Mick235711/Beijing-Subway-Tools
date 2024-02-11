@@ -349,5 +349,8 @@
                 {from: "7号线", to: "19号线", minutes: 8.5}
             ]
         }
+    ],
+    through_trains: [
+        {lines: ["9号线", "房山线"], route: "房-9跨线车"}
     ]
 }

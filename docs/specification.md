@@ -118,6 +118,7 @@ This specification describes the key-values within `metadata.json5`.
 | city_aliases      | No       | array  | []      | Aliases (English) for the city                                                              |
 | transfers         | No       | object |         | A dictionary (station_name to array of sub-specifications) of station's transfer time data. |
 | virtual_transfers | No       | array  | []      | An array of object detailing a virtual transfer.                                            |
+| through_trains    | No       | array  | []      | An array of object detailing through trains.                                                |
 
 For each sub-specification, its structure must be
 ```json5
@@ -137,6 +138,17 @@ For a virtual transfer specification, each element of the array should be someth
 ```json5
 {from_station: "Station A", to_station: "Station B", times: [{ array of transfer specs }]}
 ```
+
+For a through train specification, each element of the array should follow the following format:
+(Note that either `route` or `routes` must be provided)
+
+| Key        | Required | Type   | Default                         | Value                                                                   |
+|------------|----------|--------|---------------------------------|-------------------------------------------------------------------------|
+| lines      | Yes      | array  |                                 | An array of line names that the through train runs on.                  |
+| direction  | No       | string | Automatically deduced           | The direction of the through train. Ignored if `directions` is present. |
+| directions | No       | array  | `[direction for line in lines]` | The direction (for each line) of the through train.                     |
+| route      | No       | string |                                 | The route of the through train. Ignored if `routes` is present.         |
+| routes     | No       | array  | `[route for line in lines]`     | The route (for each line) of the through train.                         |
 
 # Carriage Specification Format
 This specification describes the key-values within `carriage_types.json5`.
