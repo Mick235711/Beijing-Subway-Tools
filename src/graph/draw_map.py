@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+from typing import cast
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -29,6 +30,8 @@ def map_args() -> argparse.Namespace:
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
     parser.add_argument("-l", "--levels", help="Override default levels")
+    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
+                        default="time", help="Graph data source")
     parser.add_argument(
         "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
@@ -36,6 +39,16 @@ def map_args() -> argparse.Namespace:
         "-w", "--line-width", type=int, help="Override contour line width", default=5)
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     return parser.parse_args()
+
+
+def get_levels(kind: str = "time") -> list[int]:
+    """ Get corresponding default drawing levels """
+    return {
+        "time": [0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240],
+        "transfer": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "station": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100],
+        "distance": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 140, 160]
+    }[kind]
 
 
 def find_font_size(
@@ -190,12 +203,15 @@ def main() -> None:
         cmap = mpl.colormaps[args.color_map]
 
     if args.levels is None:
-        levels = [0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240]
+        levels = get_levels(args.data_source)
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
     city, start, result_dict_temp = shortest_in_city(args.limit_start, args.limit_end, exclude_edge=args.exclude_edge)
-    result_dict = {station: x[0] for station, x in result_dict_temp.items()}
+    data_index = ["time", "transfer", "station", "distance"].index(args.data_source)
+    result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
+        1000 if args.data_source == "distance" else 1
+    ) for station, x in result_dict_temp.items()}
     map_obj = ask_for_map(city)
 
     img = Image.open(map_obj.path)
