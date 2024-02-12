@@ -146,3 +146,35 @@ def parse_through_train(
 
             last_line = line
     return train_dict, result
+
+
+def reorganize_and_parse_train(
+    train_dict: dict[str, list[Train]], through_specs: Iterable[ThroughSpec]
+) -> tuple[dict[str, list[Train]], dict[ThroughSpec, list[ThroughTrain]]]:
+    """ Reorganize and parse into through trains """
+    # Reorganize (date_group -> trains) into (line -> direction -> date_group -> trains)
+    result: dict[str, dict[str, dict[str, set[Train]]]] = {}
+    for date_group, train_list in train_dict.items():
+        for train in train_list:
+            if train.line.name not in result:
+                result[train.line.name] = {}
+            if train.direction not in result[train.line.name]:
+                result[train.line.name][train.direction] = {}
+            if date_group not in result[train.line.name][train.direction]:
+                result[train.line.name][train.direction][date_group] = set()
+            result[train.line.name][train.direction][date_group].add(train)
+    train_dict_processed, through_dict = parse_through_train({
+        line: {direction: {date_group: list(train_set) for date_group, train_set in date_dict.items()}
+               for direction, date_dict in direction_dict.items()}
+        for line, direction_dict in result.items()
+    }, through_specs)
+
+    # Reorganize back
+    new_train_dict: dict[str, list[Train]] = {}
+    for line_dict in train_dict_processed.values():
+        for direction_dict in line_dict.values():
+            for date_group, train_list in direction_dict.items():
+                if date_group not in new_train_dict:
+                    new_train_dict[date_group] = []
+                new_train_dict[date_group] += train_list
+    return new_train_dict, through_dict

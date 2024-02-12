@@ -38,7 +38,7 @@ def highest_speed_train(
 
 def main() -> None:
     """ Main function """
-    all_trains, _, args = parse_args()
+    all_trains, _, _, args = parse_args()
     highest_speed_train(all_trains, args, limit_num=args.limit_num)
 
 

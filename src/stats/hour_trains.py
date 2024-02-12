@@ -76,7 +76,7 @@ def main() -> None:
         group.add_argument("--dump", help="Output path (dump everything)", default="../data.json")
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
 
-    all_trains, _, args = parse_args(append_arg, include_limit=False)
+    all_trains, _, _, args = parse_args(append_arg, include_limit=False)
     if args.by_minutes:
         if args.dump is not None:
             base, ext = os.path.splitext(args.dump)

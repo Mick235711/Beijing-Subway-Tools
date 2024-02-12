@@ -22,7 +22,7 @@ def max_train_station(
 
 def main() -> None:
     """ Main function """
-    all_trains, _, args = parse_args()
+    all_trains, _, _, args = parse_args()
     max_train_station(all_trains, limit_num=args.limit_num)
 
 

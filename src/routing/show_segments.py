@@ -5,11 +5,12 @@
 
 # Libraries
 import argparse
-from collections.abc import Sequence
+from collections.abc import Sequence, Iterable
 from typing import cast
 
 from src.city.ask_for_city import ask_for_through_train
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
@@ -112,7 +113,7 @@ def segment_repr(date_group: str, segment: Segment) -> str:
         return f"{segment_str(segment)}: {date_group} {first_through.spec.route_str()} " + \
             f"[{first_through.first_train().train_code()}] " + segment_duration_str(segment)
     assert isinstance(segment[0], Train), segment
-    return f"{segment_str(segment)}: {date_group} {segment[0].line.name} " + \
+    return f"{segment_str(segment, segment[0].line.loop)}: {date_group} {segment[0].line.name} " + \
         (f"{segment[0].direction} " if segment[0].line.loop else "") + \
         f"[{segment[0].train_code()}] " + segment_duration_str(segment)
 
@@ -133,18 +134,51 @@ def sort_segment(segments: Segment, *, sort_by: str = "distance") -> int:
     }[sort_by]
 
 
-def get_all_segments(lines: dict[str, Line], all_trains: Sequence[Train]) -> dict[str, list[Segment]]:
+def get_all_segments(
+    lines: dict[str, Line], all_trains: Sequence[Train], *,
+    with_through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+) -> dict[str, list[Segment]]:
     """ Get all segments in a city """
-    # Reorganize into loop and non-loop lines
     train_dict = count_trains(all_trains)
+    spec_dict: dict[str, list[ThroughSpec]] = {}
+    through_dict: dict[str, list[ThroughTrain]] = {}
+    exclude_lines: set[tuple[str, str]] = set()
+    if with_through_dict is not None:
+        for through_spec, through_list in with_through_dict.items():
+            key = through_spec.route_str()
+            if key not in spec_dict:
+                spec_dict[key] = []
+                through_dict[key] = []
+            spec_dict[key].append(through_spec)
+            through_dict[key] += through_list
+            for line_obj, direction, _, _ in through_spec.spec:
+                exclude_lines.add((line_obj.name, direction))
+
+    # Reorganize into loop and non-loop lines
     result: dict[str, list[Segment]] = {}
     for line, line_dict in train_dict.items():
+        new_dict: dict[str, list[Train]] = {}
+        for direction, train_list in line_dict.items():
+            if (line, direction) in exclude_lines:
+                continue
+            new_dict[direction] = train_list
+        if len(new_dict) == 0:
+            continue
+        line_dict = new_dict
         if lines[line].loop:
             result[line] = []
             for direction, train_list in line_dict.items():
                 result[line] += organize_loop(train_list)
         else:
             result[line] = list(organize_segment([train for trains in line_dict.values() for train in trains]))
+
+    if with_through_dict is not None:
+        for key, through_list in through_dict.items():
+            needed_trains: list[Train] = []
+            for spec in spec_dict[key]:
+                for line_obj, direction, _, _ in spec.spec:
+                    needed_trains += train_dict[line_obj.name][direction]
+            result[key] = list(parse_through_segments(through_list, needed_trains))
     return result
 
 

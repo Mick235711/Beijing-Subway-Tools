@@ -13,6 +13,7 @@ from typing import TypeVar, Any
 from tabulate import tabulate
 
 from src.city.ask_for_city import ask_for_city, ask_for_date
+from src.city.city import City
 from src.city.line import Line
 from src.routing.train import parse_all_trains, Train
 
@@ -97,7 +98,7 @@ def display_first(
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True
-) -> tuple[dict[str, list[tuple[str, Train]]], dict[str, Line], argparse.Namespace]:
+) -> tuple[dict[str, list[tuple[str, Train]]], City, dict[str, Line], argparse.Namespace]:
     """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
     if include_limit:
@@ -136,7 +137,7 @@ def parse_args(
         exclude_lines = [x.strip() for x in args.exclude_lines.split(",")]
         all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines] for k, v in all_trains.items()}
         lines = {k: v for k, v in lines.items() if v.name not in exclude_lines}
-    return all_trains, lines, args
+    return all_trains, city, lines, args
 
 
 def append_sort_args(parser: argparse.ArgumentParser) -> None:
