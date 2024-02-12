@@ -12,7 +12,7 @@ import pyjson5
 
 from src.city.carriage import Carriage, parse_carriage
 from src.city.line import Line, parse_line
-from src.city.through_train import ThroughSpec, parse_through_spec
+from src.city.through_spec import ThroughSpec, parse_through_spec
 from src.city.transfer import Transfer, parse_transfer, parse_virtual_transfer
 
 METADATA_FILE = "metadata.json5"
