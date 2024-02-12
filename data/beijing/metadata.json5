@@ -351,6 +351,6 @@
         }
     ],
     through_trains: [
-        {lines: ["9号线", "房山线"], route: "房-9跨线车"}
+        {lines: ["9号线", "房山线"], route: "房-9跨线车", date_group: "工作日"}
     ]
 }

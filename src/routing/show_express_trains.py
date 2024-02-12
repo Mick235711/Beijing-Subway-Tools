@@ -5,6 +5,7 @@
 
 # Libraries
 from collections.abc import Sequence
+from typing import cast
 
 from src.city.ask_for_city import ask_for_train_list
 from src.common.common import suffix_s, diff_time_tuple, format_duration, segment_speed, speed_str
@@ -30,7 +31,7 @@ def main() -> None:
     # Ask for an express train
     train_list = ask_for_train_list(only_express=True)
     train_list_express = [train for train in train_list if train.is_express()]
-    train = ask_for_train(train_list_express, with_speed=True)
+    train = cast(Train, ask_for_train(train_list_express, with_speed=True))
 
     # Find all the overtaken trains
     overtaken: list[Train] = []

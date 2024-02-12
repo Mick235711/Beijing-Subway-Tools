@@ -142,13 +142,15 @@ For a virtual transfer specification, each element of the array should be someth
 For a through train specification, each element of the array should follow the following format:
 (Note that either `route` or `routes` must be provided)
 
-| Key        | Required | Type   | Default                         | Value                                                                   |
-|------------|----------|--------|---------------------------------|-------------------------------------------------------------------------|
-| lines      | Yes      | array  |                                 | An array of line names that the through train runs on.                  |
-| direction  | No       | string | Automatically deduced           | The direction of the through train. Ignored if `directions` is present. |
-| directions | No       | array  | `[direction for line in lines]` | The direction (for each line) of the through train.                     |
-| route      | No       | string |                                 | The route of the through train. Ignored if `routes` is present.         |
-| routes     | No       | array  | `[route for line in lines]`     | The route (for each line) of the through train.                         |
+| Key         | Required | Type   | Default                          | Value                                                                                |
+|-------------|----------|--------|----------------------------------|--------------------------------------------------------------------------------------|
+| lines       | Yes      | array  |                                  | An array of line names that the through train runs on.                               |
+| direction   | No       | string | Automatically deduced            | The direction of the through train. Ignored if `directions` is present.              |
+| directions  | No       | array  | `[direction for line in lines]`  | The direction (for each line) of the through train.                                  |
+| route       | No       | string |                                  | The route of the through train. Ignored if `routes` is present.                      |
+| routes      | No       | array  | `[route for line in lines]`      | The route (for each line) of the through train.                                      |
+| date_group  | No       | string | All dates                        | The date group that this through train runs on. Ignored if `date_groups` is present. |
+| date_groups | No       | array  | `[date_group for line in lines]` | The date group (for each line) that this through train runs on.                      |
 
 # Carriage Specification Format
 This specification describes the key-values within `carriage_types.json5`.

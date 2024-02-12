@@ -5,16 +5,19 @@
 
 # Libraries
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from datetime import datetime, date, time
+from typing import cast
 
 from src.city.city import City, get_all_cities
 from src.city.date_group import DateGroup
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str, TimeSpec, \
     to_pinyin
 from src.graph.map import Map, get_all_maps
-from src.routing.train import Train, parse_trains
+from src.routing.through_train import ThroughTrain, parse_through_train
+from src.routing.train import Train, parse_trains, parse_all_trains
 from src.timetable.timetable import Timetable
 
 
@@ -51,7 +54,27 @@ def ask_for_line(city: City, *, message: str | None = None,
     if only_express:
         lines = {name: line for name, line in lines.items() if any(
             route.is_express() for route_dict in line.train_routes.values() for route in route_dict.values())}
-    return ask_for_line_in_station(set(lines.values()), message=message)
+    return cast(Line, ask_for_line_in_station(set(lines.values()), message=message))
+
+
+def ask_for_line_with_through(
+    lines: dict[str, Line], through_specs: Iterable[ThroughSpec], *,
+    message: str | None = None, only_loop: bool = False, only_express: bool = False
+) -> Line | list[ThroughSpec]:
+    """ Ask for a line in the city """
+    if only_loop:
+        lines = {name: line for name, line in lines.items() if line.loop}
+        payload = None
+    else:
+        payload = [spec for spec in through_specs]
+    if only_express:
+        lines = {name: line for name, line in lines.items() if any(
+            route.is_express() for route_dict in line.train_routes.values() for route in route_dict.values())}
+        if payload is not None:
+            payload = [spec for spec in payload if any(
+                x[3].is_express() for x in spec.spec
+            )]
+    return ask_for_line_in_station(set(lines.values()), message=message, payload=payload)
 
 
 def ask_for_station(
@@ -103,7 +126,9 @@ def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, 
     return result1, result2
 
 
-def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> Line:
+def ask_for_line_in_station(
+    lines: set[Line], *, message: str | None = None, payload: Iterable[ThroughSpec] | None = None
+) -> Line | list[ThroughSpec]:
     """ Ask for a line passing through a station """
     if len(lines) == 0:
         print("No lines present!")
@@ -120,11 +145,23 @@ def ask_for_line_in_station(lines: set[Line], *, message: str | None = None) -> 
         if len(line.aliases) > 0:
             aliases[name] = line.aliases
 
+    payload_dict: dict[str, list[ThroughSpec]] | None = None
+    if payload is not None:
+        payload_dict = {}
+        for spec in payload:
+            key = spec.route_str()
+            if key not in payload_dict:
+                payload_dict[key] = []
+                meta_information[key] = spec.line_str()
+            payload_dict[key].append(spec)
+
     # Ask
     if message is not None:
         answer = complete_pinyin(message, meta_information, aliases, sort=False)
     else:
         answer = complete_pinyin("Please select a line:", meta_information, aliases, sort=False)
+    if payload_dict is not None and answer in payload_dict:
+        return payload_dict[answer]
     return lines_dict[answer]
 
 
@@ -191,8 +228,6 @@ def ask_for_direction(
     only_express: bool = False, include_default: bool = True
 ) -> str:
     """ Ask for a line direction """
-    meta_information: dict[str, str] = {}
-    aliases: dict[str, list[str]] = {}
     if with_timetabled_station is None:
         directions = list(line.directions.keys())
     else:
@@ -201,31 +236,44 @@ def ask_for_direction(
     if only_express:
         directions = [direction_name for direction_name in directions if any(
             route.is_express() for route in line.train_routes[direction_name].values())]
+
+    direction_dict = {direction: (line.directions[direction], line.loop) for direction in directions}
+    if include_default and message is None:
+        viable = [direction for direction in directions if 0 < sum(
+            1 if direction in station_dict else 0 for station_dict in line.timetables().values()
+        ) < len(line.stations)]
+        if len(viable) > 0:
+            answer = ask_for_direction_from_list(
+                direction_dict, line.direction_aliases, message=f"Please select a direction (default: {viable[0]}):"
+            )
+            return viable[0] if answer == "" else answer
+    return ask_for_direction_from_list(direction_dict, line.direction_aliases, message=message, include_default=False)
+
+
+def ask_for_direction_from_list(
+    directions: dict[str, tuple[list[str], bool]], direction_aliases: dict[str, list[str]] | None = None,
+    *, message: str | None = None, include_default: bool = True
+) -> str:
+    """ Ask for a direction from a list """
     if len(directions) == 0:
         print("No directions present!")
         sys.exit(0)
     elif len(directions) == 1:
-        print(f"Direction default: {directions[0]}")
-        return directions[0]
-    for name in directions:
-        meta_information[name] = show_direction(line.directions[name], line.loop)
-        if name in line.direction_aliases:
-            aliases[name] = line.direction_aliases[name]
+        default = list(directions.keys())[0]
+        print(f"Direction default: {default}")
+        return default
+
+    meta_information: dict[str, str] = {}
+    aliases: dict[str, list[str]] = {}
+    for name, (stations, is_loop) in directions.items():
+        meta_information[name] = show_direction(stations, is_loop)
+        if direction_aliases is not None and name in direction_aliases:
+            aliases[name] = direction_aliases[name]
 
     # Ask
-    if message is not None:
-        return complete_pinyin(message, meta_information, aliases)
-
-    viable = [direction for direction in directions if 0 < sum(
-        1 if direction in station_dict else 0 for station_dict in line.timetables().values()
-    ) < len(line.stations)]
-    if len(viable) == 0:
-        include_default = False
-    answer = complete_pinyin(
-        "Please select a direction" + (f" (default: {viable[0]}):" if include_default else ":"),
-        meta_information, aliases, allow_empty=include_default
+    return complete_pinyin(
+        message or "Please select a direction:", meta_information, aliases, allow_empty=include_default
     )
-    return viable[0] if answer == "" else answer
 
 
 def ask_for_date_group(
@@ -292,6 +340,30 @@ def ask_for_train_list(*, only_express: bool = False) -> list[Train]:
     date_group = ask_for_date_group(line)
     train_dict = parse_trains(line, {direction})
     return train_dict[direction][date_group.name]
+
+
+def ask_for_through_train(*, only_express: bool = False) -> list[Train] | list[ThroughTrain]:
+    """ Ask for a list of train or through train """
+    city = ask_for_city()
+    train_dict = parse_all_trains(list(city.lines().values()))
+    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
+    line = ask_for_line_with_through(city.lines(), through_dict.keys(), only_express=only_express)
+    if isinstance(line, Line):
+        direction = ask_for_direction(line, only_express=only_express)
+        date_group = ask_for_date_group(line)
+        return train_dict[line.name][direction][date_group.name]
+
+    cur_date = ask_for_date()
+    candidate = [route for route in line if route.covers(cur_date)]
+    if only_express:
+        candidate = [route for route in candidate if any(
+            x[3].is_express() for x in route.spec)]
+    direction = ask_for_direction_from_list(
+        {route.direction_str(): (route.stations, False) for route in candidate},
+        include_default=False
+    )
+    through_spec = {route.direction_str(): route for route in line}[direction]
+    return through_dict[through_spec]
 
 
 def ask_for_timetable() -> tuple[str, Timetable]:

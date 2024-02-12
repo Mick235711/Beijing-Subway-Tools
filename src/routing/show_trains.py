@@ -8,12 +8,15 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from src.city.ask_for_city import ask_for_train_list
+from src.city.ask_for_city import ask_for_through_train
 from src.common.common import complete_pinyin
+from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
 
 
-def ask_for_train(train_list: Sequence[Train], *, with_speed: bool = False) -> Train:
+def ask_for_train(
+    train_list: Sequence[Train | ThroughTrain], *, with_speed: bool = False
+) -> Train | ThroughTrain:
     """ Ask for a train """
     if len(train_list) == 0:
         print("No trains found!")
@@ -38,7 +41,8 @@ def main() -> None:
     parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
     args = parser.parse_args()
 
-    ask_for_train(ask_for_train_list(), with_speed=args.with_speed).pretty_print(with_speed=args.with_speed)
+    train_list = ask_for_through_train()
+    ask_for_train(train_list, with_speed=args.with_speed).pretty_print(with_speed=args.with_speed)
 
 
 # Call main
