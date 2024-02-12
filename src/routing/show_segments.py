@@ -193,6 +193,7 @@ def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
+    parser.add_argument("-f", "--find-train", action="store_true", help="Find a train in the segment")
     args = parser.parse_args()
 
     city, train_dict, line_spec, train_list = ask_for_through_train(ignore_direction=True)
@@ -213,11 +214,20 @@ def main() -> None:
 
     meta_information: dict[str, str] = {}
     for i, train_loop in enumerate(loop_dict):
-        meta_information[
-            f"{i + 1:>{len(str(len(loop_dict)))}}# {segment_duration_str(train_loop)}"
-        ] = segment_str(train_loop, is_loop)
+        if args.find_train:
+            for j, train in enumerate(train_loop):
+                meta_information[
+                    f"[{i + 1}-{j + 1}] {train.line_repr()}"
+                ] = train.duration_repr(with_speed=args.with_speed)
+        else:
+            meta_information[
+                f"{i + 1:>{len(str(len(loop_dict)))}}# {segment_duration_str(train_loop)}"
+            ] = segment_str(train_loop, is_loop)
     result = complete_pinyin("Please select a train:", meta_information)
-    train_index = int(result[:result.find("#")].strip())
+    if args.find_train:
+        train_index = int(result[1:result.find("-")].strip())
+    else:
+        train_index = int(result[:result.find("#")].strip())
 
     # Print the loop
     result_loop = loop_dict[train_index - 1]
