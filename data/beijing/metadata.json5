@@ -194,7 +194,9 @@
         ],
         // 参考：https://www.bilibili.com/video/BV1bY411n73i/
         "金安桥": [
-            {from: "6号线", to: "11号线", minutes: 3}
+            {from: "6号线", to: "11号线", minutes: 3},
+            {from: "6号线", to: "S1线", minutes: 2},
+            {from: "11号线", to: "S1线", minutes: 4},
         ],
         "东直门": [
             // 2->13调整时间，按1.5倍算
@@ -338,6 +340,10 @@
             {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "进城", minutes: 1},
             {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "出城", minutes: 1}
             // 同向同台
+        ],
+        // 参考：https://www.bilibili.com/video/BV1rq4y1i73c/
+        "苹果园": [
+            {from: "6号线", to: "S1线", minutes: 5}
         ]
     },
     virtual_transfers: [
