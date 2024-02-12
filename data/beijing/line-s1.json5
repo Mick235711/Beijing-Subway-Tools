@@ -1,0 +1,183 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// S1线时刻表 新4版
+{
+    name: "S1线",
+    aliases: ["Line S1", "Mentougou Line", "Maglev"],
+    index: 26,
+    carriage_num: 6,
+    carriage_type: "M",
+    design_speed: 100,
+    stations: [
+        {name: "石厂"},
+        {name: "小园", dist: 1297},
+        {name: "栗园庄", dist: 1266},
+        {name: "上岸", dist: 1044},
+        {name: "桥户营", dist: 1065},
+        {name: "四道桥", dist: 834},
+        {name: "金安桥", dist: 2736},
+        {name: "苹果园", dist: 1419}
+    ],
+    train_routes: {
+        "进城": {
+            aliases: ["City-bound"],
+            "全程车": {}
+        },
+        "出城": {
+            aliases: ["Suburb-bound"],
+            reversed: true,
+            "全程车": {}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+        "石厂": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:24", delta: [10, 10, 10, 9, 8, 8, 8, 7, 5, 5, 4, 6, 6, 4, [2, [6, 5, 5, 5]]]},
+                        {first_train: "07:51", delta: [5, 6, [5, [5]], 6, 5, 5, 6, 6, 6, [43, [10]], 8]},
+                        {first_train: "16:26", delta: [8, 7, 5, 9, 6, 6, 5, 7, [23, [6]], 7, 7, 8, 8, [16, [10]]]},
+                        {first_train: "22:57", delta: [9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:24", delta: [11, 11, [104, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "小园": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:26", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [6, 5, 5, 5, 5, 5]]]},
+                        {first_train: "08:46", delta: [6, 6, 6, [43, [10]], 8, 8, 7, 7, 7, 7, [27, [6]]]},
+                        {first_train: "19:47", delta: [7, 8, 8, 9, [16, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:26", delta: [11, 11, 11, [102, [10]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "栗园庄": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [5, 5, 6, 5, 5, 5]]]},
+                        {first_train: "08:48", delta: [6, 6, 6, [43, [10]], 8, 8, 8, 7, 7, 7, [27, [6]]]},
+                        {first_train: "19:50", delta: [7, 8, 8, 9, [16, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [11, 11, 11, 9, [102, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "上岸": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [5, 6, 5, 5, 5, 5]]]},
+                        {first_train: "08:50", delta: [6, 6, 6, [43, [10]], 8, 8, 8, 7, 7, 7, [27, [6]]]},
+                        {first_train: "19:52", delta: [7, 8, 8, 9, [16, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [11, 11, 11, [102, [10]], 9]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "桥户营": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:34", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [5, 5, 5, 5, 6, 5]]]},
+                        {first_train: "08:53", delta: [6, 6, 6, [43, [10]], 8, 8, 7, 7, 7, 7, [27, [6]]]},
+                        {first_train: "19:54", delta: [7, 8, 8, [17, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:34", delta: [11, 11, [104, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "四道桥": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:36", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [5, 5, 5, 5, 6, 5]]]},
+                        {first_train: "08:55", delta: [6, 6, 6, [43, [10]], 8, 8, 7, 7, 7, 7, [27, [6]]]},
+                        {first_train: "19:56", delta: [7, 8, 8, [17, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:36", delta: [11, 11, [104, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "金安桥": {
+            "进城": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:40", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [5, 5, 5, 6, 5, 5]]]},
+                        {first_train: "08:59", delta: [6, 6, 6, [43, [10]], 8, 8, 8, 7, 7, 7, [27, [6]]]},
+                        {first_train: "20:01", delta: [7, 8, 8, 9, [16, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:40", delta: [11, 11, [104, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "苹果园": {
+            "进城": {
+                // 以+2min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:42", delta: [10, 10, 10, 9, 8, 8, 8, 7, [4, [5, 5, 5, 6, 5, 5]]]},
+                        {first_train: "09:01", delta: [6, 6, 6, [43, [10]], 8, 8, 8, 7, 7, 7, [27, [6]]]},
+                        {first_train: "20:03", delta: [7, 8, 8, 9, [16, [10]], 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:42", delta: [11, 11, [104, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        }
+    }
+}
