@@ -8,7 +8,7 @@ from collections.abc import Iterable
 
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import format_duration, distance_str, speed_str, segment_speed, diff_time_tuple
+from src.common.common import format_duration, distance_str, speed_str, segment_speed, diff_time_tuple, TimeSpec
 from src.routing.train import Train
 
 
@@ -18,16 +18,27 @@ class ThroughTrain:
     def __init__(self, spec: ThroughSpec, trains: dict[str, Train]) -> None:
         """ Constructor """
         self.spec = spec
+        self.stations = self.spec.stations
         self.trains = trains  # line -> train
+        self.carriage_num = self.first_train().carriage_num
+        assert all(self.carriage_num == train.carriage_num for train in self.trains.values()), trains
 
     def __repr__(self) -> str:
         """ String representation """
         return "<" + " => ".join(self.trains[line.name].line_repr() for line, _, _, _ in self.spec.spec) + ">"
 
+    def first_train(self) -> Train:
+        """ Return first train """
+        return self.trains[self.spec.spec[0][0].name]
+
+    def last_train(self) -> Train:
+        """ Return last train """
+        return self.trains[self.spec.spec[-1][0].name]
+
     def line_repr(self) -> str:
         """ One-line short representation """
-        first_train = self.trains[self.spec.spec[0][0].name]
-        last_train = self.trains[self.spec.spec[-1][0].name]
+        first_train = self.first_train()
+        last_train = self.last_train()
         base = f"{first_train.stations[0]} {first_train.start_time_repr()} -> "
         if last_train.loop_next is not None:
             base += f"{last_train.loop_next.stations[0]} {last_train.loop_next.start_time_repr()} (loop)"
@@ -50,10 +61,7 @@ class ThroughTrain:
 
     def duration(self) -> int:
         """ Total duration """
-        return diff_time_tuple(
-            self.trains[self.spec.spec[-1][0].name].end_time(),
-            self.trains[self.spec.spec[0][0].name].start_time()
-        )
+        return diff_time_tuple(self.last_train().end_time(), self.first_train().start_time())
 
     def distance(self) -> int:
         """ Total distance covered """
@@ -69,6 +77,38 @@ class ThroughTrain:
         if with_speed:
             base += f", {speed_str(self.speed())}"
         return base
+
+    def start_time(self) -> TimeSpec:
+        """ Train start time """
+        return self.first_train().start_time()
+
+    def start_time_str(self) -> str:
+        """ Train start time string """
+        return self.first_train().start_time_str()
+
+    def start_time_repr(self) -> str:
+        """ Train start time representation """
+        return self.first_train().start_time_repr()
+
+    def end_time(self) -> TimeSpec:
+        """ Train end time """
+        return self.last_train().end_time()
+
+    def end_time_str(self) -> str:
+        """ Train end time string """
+        return self.last_train().end_time_str()
+
+    def end_time_repr(self) -> str:
+        """ Train end time representation """
+        return self.last_train().end_time_repr()
+
+    def real_end_station(self) -> str:
+        """ Get real ending station"""
+        return self.last_train().real_end_station()
+
+    def real_end_time(self, trains: Iterable[Train]) -> TimeSpec:
+        """ Train real end time """
+        return self.last_train().real_end_time(trains)
 
 
 def parse_through_train(

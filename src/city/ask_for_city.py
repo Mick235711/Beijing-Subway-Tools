@@ -342,28 +342,48 @@ def ask_for_train_list(*, only_express: bool = False) -> list[Train]:
     return train_dict[direction][date_group.name]
 
 
-def ask_for_through_train(*, only_express: bool = False) -> list[Train] | list[ThroughTrain]:
+def ask_for_through_train(
+    *, only_express: bool = False, ignore_direction: bool = False
+) -> tuple[
+    City, dict[str, dict[str, dict[str, list[Train]]]],
+    Line | list[ThroughSpec], list[Train] | list[ThroughTrain]
+]:
     """ Ask for a list of train or through train """
     city = ask_for_city()
     train_dict = parse_all_trains(list(city.lines().values()))
     train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
     line = ask_for_line_with_through(city.lines(), through_dict.keys(), only_express=only_express)
     if isinstance(line, Line):
+        if ignore_direction:
+            date_group = ask_for_date_group(line)
+            return city, train_dict, line, [
+                train for direction in train_dict[line.name].keys()
+                for train in train_dict[line.name][direction][date_group.name]
+            ]
         direction = ask_for_direction(line, only_express=only_express)
         date_group = ask_for_date_group(line)
-        return train_dict[line.name][direction][date_group.name]
+        return city, train_dict, line, train_dict[line.name][direction][date_group.name]
 
     cur_date = ask_for_date()
     candidate = [route for route in line if route.covers(cur_date)]
     if only_express:
         candidate = [route for route in candidate if any(
             x[3].is_express() for x in route.spec)]
+    if ignore_direction:
+        direction = ask_for_direction_from_list(
+            {route.route_str(): (route.stations, False) for route in candidate},
+            include_default=False
+        )
+        return city, train_dict, line, [
+            train for through_spec, trains in through_dict.items() if through_spec.route_str() == direction
+            for train in trains
+        ]
     direction = ask_for_direction_from_list(
         {route.direction_str(): (route.stations, False) for route in candidate},
         include_default=False
     )
     through_spec = {route.direction_str(): route for route in line}[direction]
-    return through_dict[through_spec]
+    return city, train_dict, line, through_dict[through_spec]
 
 
 def ask_for_timetable() -> tuple[str, Timetable]:

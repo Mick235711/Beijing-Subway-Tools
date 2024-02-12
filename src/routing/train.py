@@ -5,7 +5,7 @@
 
 # Libraries
 from __future__ import annotations
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
@@ -63,11 +63,15 @@ class Train:
         """ Train end time string """
         return get_time_str(*self.end_time())
 
+    def end_time_repr(self) -> str:
+        """ Train end time representation """
+        return get_time_repr(*self.end_time())
+
     def real_end_station(self) -> str:
         """ Get real ending station"""
         return self.real_end or self.stations[-1]
 
-    def real_end_time(self, trains: Sequence[Train]) -> TimeSpec:
+    def real_end_time(self, trains: Iterable[Train]) -> TimeSpec:
         """ Train real end time """
         end_time = self.end_time()
         if self.real_end is None:
@@ -76,13 +80,10 @@ class Train:
         # Calculate the minimum time between two stations
         time_list = [
             diff_time_tuple(train.arrival_time[self.real_end], train.arrival_time[self.stations[-1]])
-            for train in trains if self.stations[-1] in train.arrival_time and self.real_end in train.arrival_time
+            for train in trains if train.line == self.line and train.direction == self.direction and
+            self.stations[-1] in train.arrival_time and self.real_end in train.arrival_time
         ]
         return add_min_tuple(end_time, min(time_list))
-
-    def end_time_repr(self) -> str:
-        """ Train end time representation """
-        return get_time_repr(*self.end_time())
 
     def stop_time(self, station: str) -> str:
         """ Train stop time """

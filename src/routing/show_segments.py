@@ -5,17 +5,21 @@
 
 # Libraries
 import argparse
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence
+from typing import cast
 
-from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date_group
-from src.city.date_group import DateGroup
+from src.city.ask_for_city import ask_for_through_train
 from src.city.line import Line
 from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
-from src.routing.train import Train, parse_trains
+from src.routing.through_train import ThroughTrain
+from src.routing.train import Train
 from src.stats.city_statistics import count_trains
 
 
-def organize_loop(train_list: Sequence[Train]) -> list[list[Train]]:
+Segment = Sequence[Train | ThroughTrain]
+
+
+def organize_loop(train_list: Sequence[Train]) -> Sequence[Segment]:
     """ Organize a timetable into train loops """
     train_initial = [train for train in train_list if train.loop_prev is None]
     visited = set(train_initial)
@@ -30,46 +34,50 @@ def organize_loop(train_list: Sequence[Train]) -> list[list[Train]]:
     return loop_dict
 
 
-def organize_segment(direction_stations: Mapping[str, Sequence[str]],
-                     train_dict: Mapping[str, Sequence[Train]]) -> list[list[Train]]:
+def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Segment]:
     """ Organize a timetable into train segments """
-    associate: list[tuple[Train, Train]] = []
-    all_trains = [y for x in train_dict.values() for y in x]
+    associate: list[tuple[Train | ThroughTrain, Train | ThroughTrain]] = []
     all_carriage_num = set(train.carriage_num for train in all_trains)
     for carriage_num in all_carriage_num:
-        for direction, stations in direction_stations.items():
-            for station in stations:
-                train_list = sorted([
-                    x for x in train_dict[direction]
-                    if x.real_end_station() == station and x.carriage_num == carriage_num
-                ], key=lambda x: get_time_str(*x.real_end_time(train_dict[direction])))
-                other_train_list = sorted([
-                    x for x in all_trains
-                    if x.direction != direction and x.stations[0] == station and x.carriage_num == carriage_num
-                ], key=lambda x: x.start_time_str())
-                i, j = 0, 0
-                initial_diff: int | None = None
-                while i < len(train_list) and j < len(other_train_list):
-                    train = train_list[i]
-                    other_train = other_train_list[j]
-                    diff = diff_time_tuple(other_train.start_time(), train.end_time())
-                    if diff <= 2:
-                        j += 1
-                    elif diff >= 15:
-                        i += 1
-                    elif initial_diff is None:
-                        initial_diff = diff
-                    elif diff - initial_diff <= -10:
-                        j += 1
-                    elif diff - initial_diff >= 10:
-                        i += 1
-                    else:
-                        associate.append((train, other_train))
-                        i += 1
-                        j += 1
+        end_station_dict: dict[str, list[Train | ThroughTrain]] = {}
+        for train in all_trains:
+            if train.carriage_num != carriage_num:
+                continue
+            end_station = train.real_end_station()
+            if end_station not in end_station_dict:
+                end_station_dict[end_station] = []
+            end_station_dict[end_station].append(train)
+        for end_station, train_list in end_station_dict.items():
+            train_list = sorted(train_list, key=lambda x: get_time_str(*x.real_end_time(
+                train for train in all_trains if isinstance(train, Train)
+            )))
+            other_train_list = sorted([
+                x for x in all_trains
+                if x.stations[0] == end_station and x.carriage_num == carriage_num
+            ], key=lambda x: x.start_time_str())
+            i, j = 0, 0
+            initial_diff: int | None = None
+            while i < len(train_list) and j < len(other_train_list):
+                train = train_list[i]
+                other_train = other_train_list[j]
+                diff = diff_time_tuple(other_train.start_time(), train.end_time())
+                if diff <= 2:
+                    j += 1
+                elif diff >= 15:
+                    i += 1
+                elif initial_diff is None:
+                    initial_diff = diff
+                elif diff - initial_diff <= -10:
+                    j += 1
+                elif diff - initial_diff >= 10:
+                    i += 1
+                else:
+                    associate.append((train, other_train))
+                    i += 1
+                    j += 1
 
     # Reassemble loop_dict
-    loop_dict: list[list[Train]] = []
+    loop_dict: list[list[Train | ThroughTrain]] = []
     associate = sorted(associate, key=lambda x: x[0].start_time_str())
     for cur1, cur2 in associate:
         for j, entry in enumerate(loop_dict):
@@ -81,30 +89,42 @@ def organize_segment(direction_stations: Mapping[str, Sequence[str]],
     return loop_dict
 
 
-def total_duration(segments: Sequence[Train]) -> int:
+def total_duration(segments: Segment) -> int:
     """ Get total duration of segments """
     return diff_time_tuple(segments[-1].end_time(), segments[0].start_time())
 
 
-def total_distance(segments: Sequence[Train]) -> int:
+def total_distance(segments: Segment) -> int:
     """ Get total distance of segments """
     return sum(x.distance() for x in segments)
 
 
-def segment_str(segments: Sequence[Train], is_loop: bool = False) -> str:
+def segment_str(segments: Segment, is_loop: bool = False) -> str:
     """ String representation for segments """
     return suffix_s("loop" if is_loop else "segment", len(segments)) + \
         f", {format_duration(total_duration(segments))}, {distance_str(total_distance(segments))}"
 
 
-def segment_duration_str(segments: Sequence[Train]) -> str:
+def segment_repr(date_group: str, segment: Segment) -> str:
+    """ Long string representation for segment data """
+    if any(isinstance(x, ThroughTrain) for x in segment):
+        first_through = [x for x in segment if isinstance(x, ThroughTrain)][0]
+        return f"{segment_str(segment)}: {date_group} {first_through.spec.route_str()} " + \
+            f"[{first_through.first_train().train_code()}] " + segment_duration_str(segment)
+    assert isinstance(segment[0], Train), segment
+    return f"{segment_str(segment)}: {date_group} {segment[0].line.name} " + \
+        (f"{segment[0].direction} " if segment[0].line.loop else "") + \
+        f"[{segment[0].train_code()}] " + segment_duration_str(segment)
+
+
+def segment_duration_str(segments: Segment) -> str:
     """ String representation for the duration of segments """
     first_str = f"{segments[0].stations[0]} {segments[0].start_time_repr()}"
     last_str = f"{segments[-1].stations[-1]} {segments[-1].end_time_repr()}"
     return f"{first_str} -> ... -> {last_str}"
 
 
-def sort_segment(segments: Sequence[Train], *, sort_by: str = "distance") -> int:
+def sort_segment(segments: Segment, *, sort_by: str = "distance") -> int:
     """ Segment sort criteria """
     return {
         "distance": total_distance(segments),
@@ -113,34 +133,26 @@ def sort_segment(segments: Sequence[Train], *, sort_by: str = "distance") -> int
     }[sort_by]
 
 
-def get_segments(line: Line, date_group: DateGroup, direction: str | None = None) -> list[list[Train]]:
-    """ Get all the segments for a line """
-    if line.loop:
-        assert direction is not None, (line, date_group, direction)
-        train_dict = parse_trains(line, {direction})
-        loop_dict = organize_loop(train_dict[direction][date_group.name])
-    else:
-        print("NOTE: Segment analysis for non-loop lines are imprecise.")
-        train_dict = parse_trains(line)
-        loop_dict = organize_segment(
-            line.directions, {direction: value[date_group.name] for direction, value in train_dict.items()})
-    loop_dict = sorted(loop_dict, key=lambda x: x[0].start_time_str())
-    return loop_dict
-
-
-def get_all_segments(lines: dict[str, Line], all_trains: Sequence[Train]) -> dict[str, list[list[Train]]]:
+def get_all_segments(lines: dict[str, Line], all_trains: Sequence[Train]) -> dict[str, list[Segment]]:
     """ Get all segments in a city """
     # Reorganize into loop and non-loop lines
     train_dict = count_trains(all_trains)
-    result: dict[str, list[list[Train]]] = {}
+    result: dict[str, list[Segment]] = {}
     for line, line_dict in train_dict.items():
         if lines[line].loop:
             result[line] = []
             for direction, train_list in line_dict.items():
                 result[line] += organize_loop(train_list)
         else:
-            result[line] = organize_segment(lines[line].directions, line_dict)
+            result[line] = list(organize_segment([train for trains in line_dict.values() for train in trains]))
     return result
+
+
+def parse_through_segments(
+    through_list: Sequence[ThroughTrain], all_trains: Sequence[Train]
+) -> Sequence[Segment]:
+    """ Parse through train segments """
+    return organize_segment(list(through_list) + list(all_trains))
 
 
 def main() -> None:
@@ -149,12 +161,21 @@ def main() -> None:
     parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
     args = parser.parse_args()
 
-    city = ask_for_city()
-    line = ask_for_line(city)
-    is_loop = line.loop
-    date_group = ask_for_date_group(line)
-    direction = ask_for_direction(line) if is_loop else None
-    loop_dict = get_segments(line, date_group, direction)
+    city, train_dict, line_spec, train_list = ask_for_through_train(ignore_direction=True)
+    if isinstance(line_spec, Line):
+        is_loop = line_spec.loop
+        if not is_loop:
+            print("NOTE: Segment analysis for non-loop lines are imprecise.")
+        loop_dict = get_all_segments(city.lines(), cast(list[Train], train_list))[line_spec.name]
+    else:
+        is_loop = False
+
+        # Get regular segments for all lines involved
+        regular_list: list[Train] = []
+        specs = list(set(item for spec in line_spec for item in spec.spec))
+        for line, direction, date_group, _ in specs:
+            regular_list += [train for train in train_dict[line.name][direction][date_group.name]]
+        loop_dict = list(parse_through_segments(cast(list[ThroughTrain], train_list), regular_list))
 
     meta_information: dict[str, str] = {}
     for i, train_loop in enumerate(loop_dict):
