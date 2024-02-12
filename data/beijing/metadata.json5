@@ -331,6 +331,13 @@
         ],
         "东管头南": [
             {from: "16号线", to: "房山线", minutes: 2}
+        ],
+        "阎村东": [
+            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "出城", minutes: 0},
+            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "进城", minutes: 0},
+            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "进城", minutes: 1},
+            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "出城", minutes: 1}
+            // 同向同台
         ]
     },
     virtual_transfers: [
