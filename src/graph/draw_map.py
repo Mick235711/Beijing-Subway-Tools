@@ -16,7 +16,7 @@ from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map
 from src.graph.map import Map
-from src.routing.avg_shortest_time import shortest_in_city
+from src.bfs.avg_shortest_time import shortest_in_city
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 200000000

@@ -19,9 +19,9 @@ This document describes the usage, parameter, and intended result of each tool i
 
 # [`routing/`](/src/routing): Shortest Path & Loop/Express Train Analyze
 ## Shortest Path Related
-### [`shortest_path.py`](/src/routing/shortest_path.py): Find the shortest path between two stations
+### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
 
-### [`avg_shortest_time.py`](/src/routing/avg_shortest_time.py): Calculate the average time needed between two stations
+### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
 
 ## Analyze Related
 ### [`show_trains.py`](/src/routing/show_trains.py): Show all trains calculated in a line

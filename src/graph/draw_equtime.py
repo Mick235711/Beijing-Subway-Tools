@@ -13,7 +13,7 @@ from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_city, ask_for_date
 from src.graph.map import Map
-from src.routing.avg_shortest_time import shortest_in_city
+from src.bfs.avg_shortest_time import shortest_in_city
 from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, get_levels
 
 # reset max pixel

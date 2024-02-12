@@ -10,7 +10,7 @@ from math import floor, ceil
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import add_min
-from src.routing.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index
+from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index
 from src.routing.train import Train
 
 

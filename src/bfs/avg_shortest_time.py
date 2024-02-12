@@ -15,7 +15,7 @@ from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str
-from src.routing.bfs import bfs, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
+from src.bfs.bfs import bfs, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.routing.train import Train, parse_all_trains
 
 

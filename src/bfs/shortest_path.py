@@ -12,8 +12,8 @@ from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_da
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import get_time_str, TimeSpec
-from src.routing.avg_shortest_time import all_time_bfs
-from src.routing.k_shortest_path import k_shortest_path
+from src.bfs.avg_shortest_time import all_time_bfs
+from src.bfs.k_shortest_path import k_shortest_path
 from src.routing.train import Train, parse_all_trains
 
 
