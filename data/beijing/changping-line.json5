@@ -1,0 +1,54 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 昌平线时刻表 新11版
+{
+    name: "昌平线",
+    aliases: ["Changping Line", "Line 27"],
+    index: 27,
+    carriage_num: 6,
+    carriage_type: "B",
+    design_speed: 100,
+    stations: [
+        {name: "昌平西山口"},
+        {name: "十三陵景区", dist: 1213, aliases: ["Ming Tombs"]},
+        {name: "昌平", dist: 3508},
+        {name: "昌平东关", dist: 2433},
+        {name: "北邵洼", dist: 1683},
+        {name: "南邵", dist: 1958},
+        {name: "沙河高教园", dist: 5357},
+        {name: "沙河", dist: 1964},
+        {name: "巩华城", dist: 2025},
+        {name: "朱辛庄", dist: 3799},
+        {name: "生命科学园", dist: 2367},
+        {name: "西二旗", dist: 5440},
+        {name: "清河站", dist: 1545, aliases: ["Qinghe Railway Station"]},
+        {name: "清河小营桥", dist: 2810},
+        {name: "学知园", dist: 2366},
+        {name: "六道口", dist: 1683},
+        {name: "学院桥", dist: 1312},
+        {name: "西土城", dist: 1481}
+    ],
+    train_routes: {
+        "进城": {
+            aliases: ["City-bound"],
+            "全程车": {},
+            "昌平东关始发空车": {starts_with: "昌平东关"},
+            "沙河高教园始发空车": {starts_with: "沙河高教园"},
+            "沙河始发空车": {starts_with: "沙河"},
+            "朱辛庄回库车": {ends_with: "朱辛庄"}
+        },
+        "出城": {
+            aliases: ["Suburb-bound"],
+            reversed: true,
+            "全程车": {},
+            "沙河高教园小交路": {ends_with: "沙河高教园"},
+            "沙河小交路": {ends_with: "沙河"},
+            "朱辛庄出库车": {starts_with: "朱辛庄"}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
