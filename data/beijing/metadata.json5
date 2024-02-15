@@ -368,6 +368,9 @@
         // 参考：https://www.bilibili.com/video/BV1Uj411P72p/
         "六道口": [
             {from: "15号线", to: "昌平线", minutes: 2.5}
+        ],
+        "巴沟": [
+            {from: "10号线", to: "西郊线", minutes: 2.5}
         ]
     },
     virtual_transfers: [
