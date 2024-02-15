@@ -344,6 +344,30 @@
         // 参考：https://www.bilibili.com/video/BV1rq4y1i73c/
         "苹果园": [
             {from: "6号线", to: "S1线", minutes: 5}
+        ],
+        "朱辛庄": [
+            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "进城", minutes: 0},
+            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "出城", minutes: 0},
+            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "出城", minutes: 1},
+            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "进城", minutes: 1}
+            // 同向同台
+        ],
+        "西二旗": [
+            {from: "13号线", from_direction: "西行", to: "昌平线", minutes: 0.5},
+            {from: "13号线", from_direction: "东行", to: "昌平线", to_direction: "出城", minutes: 1},
+            {from: "13号线", from_direction: "东行", to: "昌平线", to_direction: "进城", minutes: 2}
+        ],
+        "清河站": [
+            {from: "13号线", to: "昌平线", minutes: 1}
+            // 共用站厅
+        ],
+        // 参考：https://www.bilibili.com/video/BV1TR4y1B7St/
+        "西土城": [
+            {from: "10号线", to: "昌平线", minutes: 2.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1Uj411P72p/
+        "六道口": [
+            {from: "15号线", to: "昌平线", minutes: 2.5}
         ]
     },
     virtual_transfers: [
