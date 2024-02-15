@@ -69,16 +69,16 @@ def to_pinyin(text: str) -> list[str]:
     """ Change Chinese characters into pinyin (return all possible pinyin), capitalize the first letter """
     result = pinyin(text, heteronym=True, style=Style.NORMAL)
     i, j = 0, 0
-    while i < len(result):
+    while i < len(result) and j < len(text):
         entry = result[i]
         if not is_chinese(text[j]):
             assert len(entry) == 1, (entry, result, text)
-            assert text[j:].startswith(entry[0]), (entry, result, text)
             j += len(entry[0])
             continue
         if text[j] in PINYIN_DICT:
             result[i].append(PINYIN_DICT[text[j]])
         i += 1
+        j += 1
     return ["".join(entry).capitalize() for entry in itertools.product(*result)]
 
 
