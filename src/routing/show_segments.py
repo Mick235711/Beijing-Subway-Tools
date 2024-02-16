@@ -177,6 +177,8 @@ def get_all_segments(
             needed_trains: list[Train] = []
             for spec in spec_dict[key]:
                 for line_obj, direction, _, _ in spec.spec:
+                    if line_obj.name not in train_dict or direction not in train_dict[line_obj.name]:
+                        continue
                     needed_trains += train_dict[line_obj.name][direction]
             result[key] = list(parse_through_segments(through_list, needed_trains))
     return result
