@@ -36,7 +36,7 @@ def all_time_bfs(
     # Loop through first train to last train
     all_trains = get_all_trains_single(lines, train_dict, start_station, start_date)
     all_arrival = [train.arrival_time[start_station] for train in all_trains]
-    all_minutes = list(set(to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival))
+    all_minutes = list(sorted(set(to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival)))
     results: dict[str, list[PathInfo]] = {}
     limit_start_num = 0 if limit_start is None else to_minutes(limit_start, limit_start_day)
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
