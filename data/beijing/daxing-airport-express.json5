@@ -1,0 +1,104 @@
+// 数据截止2023/12/01，八通线，大兴线完全并入1号线和4号线描述
+// 大兴机场线时刻表 第2版
+{
+    name: "大兴机场线",
+    aliases: ["Daxing Airport Express", "DAE", "Line 35"],
+    index: 35,
+    carriage_num: 7, // 7+1D, 1D为行李车不载客
+    carriage_type: "D",
+    design_speed: 160,
+    stations: [
+        {name: "大兴机场", aliases: ["Daxing Airport", "Daxing International Airport", "PKX"]},
+        {name: "大兴新城", dist: 25303},
+        {name: "草桥", dist: 13028}
+    ],
+    must_include: ["大兴机场", "大兴新城"],
+    train_routes: {
+        "进城": {
+            aliases: ["City-bound"],
+            "8节编组": {},
+            "4节编组": {carriage_num: 4}
+        },
+        "出城": {
+            aliases: ["Suburb-bound"],
+            reversed: true,
+            "8节编组": {},
+            "4节编组": {carriage_num: 4}
+        }
+    },
+    date_groups: {
+        "全日": {aliases: ["All Days"]}
+    },
+    timetable: {
+        "大兴机场": {
+            "进城": {
+                // 根据官方时刻表，调整+2min
+                "全日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, [35, [9, 10, 9]], 14, 16]}
+                    ],
+                    filters: [
+                        {plan: "4节编组", first_train: "06:00", skip_trains: 2, until: "22:21"}
+                    ]
+                }
+            },
+            "出城": {
+                // 以+12min计算
+                "全日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [9, 10, [35, [9, 10, 9]], 10]}
+                    ],
+                    filters: [
+                        {plan: "4节编组", first_train: "06:19", skip_trains: 2, until: "22:39"}
+                    ]
+                }
+            }
+        },
+        "大兴新城": {
+            "进城": {
+                "全日": {
+                    schedule: [
+                        {first_train: "06:12", delta: [10, [35, [9, 10, 9]], 15, 15]}
+                    ],
+                    filters: [
+                        {plan: "4节编组", first_train: "06:12", skip_trains: 2, until: "22:33"}
+                    ]
+                }
+            },
+            "出城": {
+                "全日": {
+                    schedule: [
+                        {first_train: "05:48", delta: [9, 10, [35, [9, 10, 9]], 10]}
+                    ],
+                    filters: [
+                        {plan: "4节编组", first_train: "06:07", skip_trains: 2, until: "22:27"}
+                    ]
+                }
+            }
+        },
+        "草桥": {
+            "进城": {
+                // 以+7min计算
+                "全日": {
+                    schedule: [
+                        {first_train: "06:19", delta: [10, [35, [9, 10, 9]], 15, 15]}
+                    ],
+                    filters: [
+                        {plan: "4节编组", first_train: "06:19", skip_trains: 2, until: "22:40"}
+                    ]
+                }
+            },
+            "出城": {
+                // 根据官方时刻表，调整+2min
+                "全日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [10, [35, [9, 10, 9]], 9, 10]}
+                    ],
+                    filters: [
+                        {plan: "4节编组", first_train: "06:00", skip_trains: 2, until: "22:20"}
+                    ]
+                }
+            }
+        }
+    }
+}
