@@ -59,7 +59,8 @@ def ask_for_line(city: City, *, message: str | None = None,
 
 def ask_for_line_with_through(
     lines: dict[str, Line], through_specs: Iterable[ThroughSpec], *,
-    message: str | None = None, only_loop: bool = False, only_express: bool = False
+    message: str | None = None, only_loop: bool = False, only_express: bool = False,
+    exclude_end_circle: bool = False
 ) -> Line | list[ThroughSpec]:
     """ Ask for a line in the city """
     if only_loop:
@@ -74,6 +75,8 @@ def ask_for_line_with_through(
             payload = [spec for spec in payload if any(
                 x[3].is_express() for x in spec.spec
             )]
+    if exclude_end_circle:
+        lines = {name: line for name, line in lines.items() if len(line.end_circle_spec) == 0}
     return ask_for_line_in_station(set(lines.values()), message=message, payload=payload)
 
 
@@ -343,7 +346,7 @@ def ask_for_train_list(*, only_express: bool = False) -> list[Train]:
 
 
 def ask_for_through_train(
-    *, only_express: bool = False, ignore_direction: bool = False
+    *, only_express: bool = False, ignore_direction: bool = False, exclude_end_circle: bool = False
 ) -> tuple[
     City, dict[str, dict[str, dict[str, list[Train]]]],
     Line | list[ThroughSpec], list[Train] | list[ThroughTrain]
@@ -352,7 +355,9 @@ def ask_for_through_train(
     city = ask_for_city()
     train_dict = parse_all_trains(list(city.lines().values()))
     train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
-    line = ask_for_line_with_through(city.lines(), through_dict.keys(), only_express=only_express)
+    line = ask_for_line_with_through(
+        city.lines(), through_dict.keys(), only_express=only_express, exclude_end_circle=exclude_end_circle
+    )
     if isinstance(line, Line):
         if ignore_direction:
             date_group = ask_for_date_group(line)
