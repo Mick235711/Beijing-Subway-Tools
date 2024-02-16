@@ -297,7 +297,13 @@ def bfs(
             cur_time, cur_day, prev_line, prev_direction,
             exclude_tuple=exclude_tuple, exclude_edge=exclude_edge
         ):
-            next_stations = list(next_train.arrival_time_virtual(next_train_start).items())[1:]
+            next_train_virtual = next_train.arrival_time_virtual(next_train_start)
+            if len(next_train.line.must_include) != 0 and next_train_start not in next_train.line.must_include:
+                next_stations = [
+                    (st, next_train_virtual[st]) for st in next_train.line.must_include if st in next_train_virtual
+                ]
+            else:
+                next_stations = list(next_train_virtual.items())[1:]
             for next_station, (next_time, next_day) in next_stations:
                 if next_station in next_train.skip_stations:
                     continue

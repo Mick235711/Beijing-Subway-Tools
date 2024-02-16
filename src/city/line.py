@@ -29,6 +29,7 @@ class Line:
         self.carriage_type = carriage_type
         self.design_speed = design_speed
         self.stations: list[str] = []
+        self.must_include: set[str] = set()
         self.station_dists: list[int] = []
         self.station_aliases: dict[str, list[str]] = {}
         self.directions: dict[str, list[str]] = {}
@@ -169,6 +170,10 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
         else:
             assert max(0, len(line.stations) - 1) == len(line.station_dists), line_dict
         assert all(x in line.stations for x in line.station_aliases.keys()), line_dict
+
+    if "must_include" in line_dict:
+        line.must_include = set(line_dict["must_include"])
+        assert all(x in line.stations for x in line.must_include), (line_dict, line.stations, line.must_include)
 
     # populate directions and routes
     for direction, value in line_dict["train_routes"].items():
