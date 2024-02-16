@@ -314,7 +314,10 @@
         ],
         // 参考：https://www.bilibili.com/video/BV13m4y1S7XH/
         "草桥": [
-            {from: "10号线", to: "19号线", minutes: 4.5}
+            {from: "10号线", to: "19号线", minutes: 4.5},
+            // 大兴机场线参考：https://www.bilibili.com/video/BV18s4y167cu/
+            {from: "10号线", to: "大兴机场线", minutes: 6},
+            {from: "19号线", to: "大兴机场线", minutes: 2}
         ],
         // 参考：https://www.bilibili.com/video/BV13Y411f7Tb/
         "景风门": [
