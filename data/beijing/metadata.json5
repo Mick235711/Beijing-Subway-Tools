@@ -201,7 +201,12 @@
         "东直门": [
             // 2->13调整时间，按1.5倍算
             {from: "2号线", to: "13号线", minutes: 6.5},
-            {from: "13号线", to: "2号线", minutes: 5}
+            {from: "13号线", to: "2号线", minutes: 5},
+
+            // 首都机场线参考：https://www.bilibili.com/video/BV1Tp4y1G7hc/
+            {from: "2号线", to: "首都机场线", minutes: 3},
+            {from: "13号线", to: "首都机场线", minutes: 2.5},
+            {from: "首都机场线", to: "13号线", minutes: 3.5}
         ],
         "立水桥": [
             {from: "5号线", from_direction: "南行", to: "13号线", minutes: 2},
@@ -371,6 +376,14 @@
         ],
         "巴沟": [
             {from: "10号线", to: "西郊线", minutes: 2.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1qj411r7Lo/
+        "北新桥": [
+            {from: "5号线", to: "首都机场线", minutes: 2.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1Xm4y1W743/
+        "三元桥": [
+            {from: "10号线", to: "首都机场线", minutes: 1.5}
         ]
     },
     virtual_transfers: [
