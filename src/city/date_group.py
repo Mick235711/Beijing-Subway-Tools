@@ -99,7 +99,7 @@ def parse_date_group(name: str, spec: dict[str, Any]) -> DateGroup:
     """ Parse the date_groups field """
     if "dates" in spec:
         return DateGroup(name, spec.get("aliases"), dates=set(spec["dates"]))
-    weekday = set(spec["weekday"])
+    weekday = set(spec.get("weekday", [1, 2, 3, 4, 5, 6, 7]))
     return DateGroup(name, spec.get("aliases"), weekday=weekday,
                      start_date=spec.get("from"), end_date=spec.get("until"))
 

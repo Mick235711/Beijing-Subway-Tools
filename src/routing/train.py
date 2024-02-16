@@ -343,7 +343,7 @@ def parse_trains_stations(
     # Construct trains
     trains: dict[int, list[Train]] = {}
     for station in stations:
-        assert station in processed_dict, processed_dict
+        assert station in processed_dict, (station, processed_dict)
         for route_id, timetable_trains_temp in processed_dict[station].items():
             timetable_trains = sorted(timetable_trains_temp, key=lambda x: x.sort_key_str())
             if route_id not in trains:

@@ -73,6 +73,7 @@ def to_pinyin(text: str) -> list[str]:
         entry = result[i]
         if not is_chinese(text[j]):
             assert len(entry) == 1, (entry, result, text)
+            i += 1
             j += len(entry[0])
             continue
         if text[j] in PINYIN_DICT:

@@ -11,8 +11,8 @@ import pyjson5
 
 from src.city.carriage import Carriage
 from src.city.date_group import DateGroup, parse_date_group
-from src.city.train_route import TrainRoute, parse_train_route
-from src.common.common import distance_str
+from src.city.train_route import TrainRoute, parse_train_route, route_dist
+from src.common.common import distance_str, average
 from src.timetable.timetable import Timetable, parse_timetable
 
 
@@ -41,6 +41,7 @@ class Line:
         self.loop = False
         self.loop_last_segment = 0
         self.loop_start_route: dict[str, TrainRoute] = {}
+        self.end_circle_spec: dict[str, int] = {}  # Store end_circle split dists
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -54,6 +55,24 @@ class Line:
         """ Return the distance of this direction """
         if self.direction_stations(direction) == self.stations:
             return self.station_dists
+        if direction in self.end_circle_spec:
+            assert not self.loop, self
+            i = 0
+            dir_stations = self.direction_stations(direction)
+            base_station = self.stations[:]
+            base_dist = self.station_dists[:]
+            if dir_stations[0] != self.stations[0]:
+                # Assume the reversed direction
+                assert dir_stations[0] == self.stations[-1], (self.stations, dir_stations)
+                base_station = list(reversed(base_station))
+                base_dist = list(reversed(base_dist))
+            assert len(base_station) == len(dir_stations), (base_station, dir_stations)
+            while i < len(dir_stations) and base_station[i] == dir_stations[i]:
+                i += 1
+            assert 0 < i < len(dir_stations), (i, base_station, dir_stations)
+            return base_dist[:i - 1] + [
+                self.end_circle_spec[direction]
+            ] + list(reversed(base_dist[i:]))
         base = list(reversed(self.station_dists))
         if self.loop:
             base = base[1:] + [base[0]]
@@ -77,9 +96,15 @@ class Line:
             f", {len(self.stations)} stations, " + distance_str(self.total_distance()) + \
             (", loop" if self.loop else "")
 
-    def total_distance(self) -> int:
+    def total_distance(self) -> float:
         """ Total distance of this line """
-        return sum(self.station_dists)
+        return average(
+            route_dist(
+                self.direction_stations(direction), self.direction_dists(direction),
+                self.direction_stations(direction), self.loop
+            )
+            for direction in self.directions.keys()
+        )
 
     def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
         """ Get timetables """
@@ -152,6 +177,14 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
         else:
             line.directions[direction] = line.stations
 
+        if "end_circle" in value and value["end_circle"]:
+            line.end_circle_spec[direction] = value["end_circle_split_dist"]
+            end_circle_start = value["end_circle_start"]
+            end_index = line.directions[direction].index(end_circle_start)
+            line.directions[direction] = line.directions[direction][:end_index + 1] + list(reversed(
+                line.directions[direction][end_index + 1:]
+            ))
+
         if "aliases" in value:
             line.direction_aliases[direction] = value["aliases"]
 
@@ -159,7 +192,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
         if direction not in line.train_routes:
             line.train_routes[direction] = {}
         for route_name, route_value in value.items():
-            if route_name in ["reversed", "aliases"]:
+            if route_name in ["reversed", "aliases"] or route_name.startswith("end_circle"):
                 continue
             route = parse_train_route(
                 direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop)

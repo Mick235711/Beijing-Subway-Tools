@@ -42,14 +42,17 @@ This specification describes the key-values within `<line x>.json5`.
 A train route refers to a regularly scheduled train visiting several predetermined stations in order. Common train routing includes "Full route", "Short turn on Station X",
 "Clockwise", "Branch A", etc. The routing for a line is specified under `train_routes.<direction>.<routing_name>`.
 
-| Key          | Required | Type   | Default           | Value                                                                                        |
-|--------------|----------|--------|-------------------|----------------------------------------------------------------------------------------------|
-| starts_with  | No       | string | The first station | Specify that those trains starts at this station.                                            |
-| ends_with    | No       | string | The last station  | Specify that those trains ends at this station.                                              |
-| skip         | No       | array  | []                | Specify that those station will be skipped.                                                  |
-| stations     | No       | array  |                   | Specify the stations that this route stops at. If present, all other attributes are ignored. |
-| real_end     | No       | string | The last station  | Specify that this route actually runs (without passenger) to another station.                |
-| carriage_num | No       | int    | Same as line      | Specify that this route use fewer carriages.                                                 |
+| Key                   | Required              | Type   | Default           | Value                                                                                        |
+|-----------------------|-----------------------|--------|-------------------|----------------------------------------------------------------------------------------------|
+| starts_with           | No                    | string | The first station | Specify that those trains starts at this station.                                            |
+| ends_with             | No                    | string | The last station  | Specify that those trains ends at this station.                                              |
+| skip                  | No                    | array  | []                | Specify that those station will be skipped.                                                  |
+| stations              | No                    | array  |                   | Specify the stations that this route stops at. If present, all other attributes are ignored. |
+| real_end              | No                    | string | The last station  | Specify that this route actually runs (without passenger) to another station.                |
+| carriage_num          | No                    | int    | Same as line      | Specify that this route use fewer carriages.                                                 |
+| end_circle            | No                    | bool   | false             | Specify that this direction ends in itself.                                                  |
+| end_circle_split_dist | if end_circle is true | int    |                   | Specify the distance of split (see a-new-line docs).                                         |
+| end_circle_start      | if end_circle is true | string |                   | Specify the split station (see a-new-line docs).                                             |
 
 ## Date Group Specification Format
 A date group is a couple of dates where trains are scheduled the same, such as Weekdays, Saturdays, etc.
