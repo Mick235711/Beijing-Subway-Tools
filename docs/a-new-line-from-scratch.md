@@ -281,6 +281,13 @@ Of course, filling manually like introduced in the ["First Station"](#31-first-s
 However, since manual filling will not include any kind of validation, this method is generally not recommended.
 
 ### 3.3. Last Station
+The last station in each direction is another special case, since most lines will not actually publish any timetable for the last
+station in each direction, as you cannot board the train here. If this is the case, then the recommended practice is to
+find out the time needed between the second-to-last station and the last station from the opposite direction (usually by observing the first train's
+required time or use [`src/routing/show_station_time.py`](tools.md#show_station_timepy-show-time-needed-for-trains-to-travel-between-two-stations-on-a-line)).
+
+Then, you can simply guess the last station's timetable by using the method in ["Fill By Relative Time Delta"](#321-fill-by-relative-time-delta),
+entering the minutes and directly save without any modification. It is a rough guess, but without any data we cannot really do better.
 
 ### 3.4. Special Cases
 #### 3.4.1. Loop Lines
