@@ -212,21 +212,82 @@ After filling out the first station's timetable, the following stations are easi
 In general, there are three viable approaches to fill an intermediate station's timetable.
 
 #### 3.2.1. Fill By Relative Time Delta
+In general, we know that trains usually need a constant time between two stations. Therefore, different train's arriving time difference between two stations
+is usually the same. For example, if one train need 2 minutes to travel from Station A to Station B, then the next train will usually also need 2 minutes to travel from Station A to Station B.
+
+In this case, we can call [`src/timetable/timetable_from_prev.py`](tools.md#timetable_from_prevpy-create-next-timetable-from-previous-stations-timetable) to fill the timetable following this principle.
+You need to first enter the last station and the corresponding filling direction and date group (note on tips for [Answering Prompts](tools.md#answering-prompts)),
+and then the program will prompt for the minutes required between last and this station.
+This time difference can usually be obtained by noticing the first train's arriving time difference between two stations.
+
+The program will then enter the timetable modification mode. The last station's timetable will be displayed, with the same
+minute number added to each train. Since it is possible that some trains runs faster, or simply the time required between two
+stations is not a whole minute number, the resulting timetable is usually different from the real one.
+Therefore, you need to input modification lines.
+
+As a concrete example: (*Italic* means the input from the user)
+<pre>
+City default: <北京: 24 lines>
+? Please select a line: <i>5号线</i>
+? Please select a direction: <i>南行</i>
+? Please select a station (default: 宋家庄): <i>惠新西街南口</i>
+? Please select a date group: <i>工作日</i>
+? What is the running time (in minutes) to next station? <i>3</i>
+Current Timetable:
+05| 22 27 31 35 39 43 47 51 55
+06| 00 04 09 13 17 21 25 29 33 37 41 46 50 54 57 59
+07| 02 04 06 08 10 13 15 17 19 21 23 25 27 29 31 33 35 37 39 42 44 46 48 50 53 55 57 59
+08| 01 03 06 08 10 12 14 16 18 20 22 24 26 28 30 32 35 37 39 41 43 46 48 50 52 54 57 59
+09| 01 03 05 08 10 12 14 16 18 20 22 24 26 28 30 32 34 37 39 41 43 45 47 50 53 57
+10| 01 05 09 13 17 21 25 29 33 37 41 45 50 54 59
+11| 04 10 16 22 28 34 40 46 52 58
+12| 04 10 16 22 28 34 40 46 52 58
+13| 04 10 16 22 28 34 40 46 52 58
+14| 04 10 16 22 28 34 40 46 52 58
+15| 04 10 16 22 28 33 38 42 47 51 55
+16| 00 04 09 13 17 22 26 30 34 38 42 46 51 55 59
+17| 03 07 09 11 13 15 18 20 22 24 26 28 30 32 34 36 38 40 42 44 47 49 51 53 55 57
+18| 00 02 04 06 08 11 13 15 17 19 21 23 25 27 29 31 33 35 37 40 42 44 46 48 51 53 55 57
+19| 00 04 07 11 14 18 21 25 28 32 35 39 42 46 50 54 58
+20| 02 06 10 14 18 23 27 32 37 42 47 52 57
+21| 02 08 13 20 27 33 39 45 50 57
+22| 03 08 14 22 30 38 46 (53)
+23| (00) (07) (14) (21) (28) (36) (44) (52)
+00| (00)
+
+() = <[南行] 大屯路东始发空车: 大屯路东 -> 雍和宫 -> 崇文门 -> 宋家庄>
+? Enter a modification (or ok):
+</pre>
+
+There are many possible prompts. The most common ones are:
+- Directly enter a single hour's specification line. For example, `05|11 (22) 33` will delete all previous trains in the 05 line, and then insert those three trains.
+- Add/minute minutes. For example, `05|+2` will add 2 minutes to all trains in the 05 line.
+- Segmented addition/subtraction. For example, `05|+1[:5]` will add 1 minute to the first 5 trains in the 05 line. Other Python slice syntax such as step is also supported.
+
+After each modification, the then-current timetable will be shown again. When the timetable matches the real one, you can simply
+enter `ok` or an empty prompt to finish modifying. The specification will then be outputted.
 
 #### 3.2.2. Fill By OCR
+If you feel confident on OCR result (i.e., the time taken to correct the mis-identification is acceptable), then you can also use OCR to fill the timetable.
+Specifically, we can use the `-v` and `-e` flag for [`src/timetable/input_to_timetable.py`](tools.md#input_to_timetablepy-parse-text-input-into-timetable-description).
+In this case, we no longer need to do most of the processing for the timetable text: you don't need to add pipe symbols,
+and you don't need to add braces. The program will automatically detect the routes from the last station's timetable and fill accordingly.
+
+If you specify `-v -e`, then after sending the EOF the program will ask for the last station and direction/date group.
+Some common error cases are handled, see the above file name link for more information.
 
 #### 3.2.3. Fill Manually
+Of course, filling manually like introduced in the ["First Station"](#31-first-station) section is also a viable option.
+However, since manual filling will not include any kind of validation, this method is generally not recommended.
 
 ### 3.3. Last Station
 
 ### 3.4. Special Cases
-#### 3.4.1. Short-Distance Trains
+#### 3.4.1. Loop Lines
 
-#### 3.4.2. Loop Lines
+#### 3.4.2. Express/Rapid Service
 
-#### 3.4.3. Express/Rapid Service
-
-#### 3.4.4. When the Timetable is Wrong
+#### 3.4.3. When the Timetable is Wrong
 
 ## 4. Fill the Transfer Times
 
