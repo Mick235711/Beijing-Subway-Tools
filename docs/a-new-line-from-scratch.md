@@ -329,8 +329,79 @@ it will be assumed that you cannot board/disembark on those stations.
 After specifying a direction for a rapid service, you may additionally want to run [`src/routing/show_express_trains.py`](tools.md#show_express_trainspy-express-train-analyzer) to analyze the specified express service.
 
 ## 4. Fill the Transfer Times
+After specifying all the directions (and validated that all the trains behave as expected), it is time to integrate
+the line into the whole network.
+
+By default, it is assumed that you can transfer between all the stations with the same name in different lines.
+If scenarios like the Pudian Road station in Shanghai Metro exists (where both line have a station with the same name,
+but you cannot transfer between them), it is advisable to name them differently (e.g. "Pudian Road (Line 4)").
+
+To specify the transfers, you need to append the transfer times to the `transfers` field in the city metadata file:
+```json5
+{
+    transfers: {
+        "Station A": [
+            {from: "Line 1", to: "Line 2", minutes: 3.5},
+            {from: "Line 2", to: "Line 1", minutes: 0.5},
+            // The transfer from 1 to 2 only takes 1 minute if happen before 6:30am or after 8:30pm
+            {
+                from: "Line 1", to: "Line 2", minutes: 1,
+                apply_time: [{end: "06:30"}, {start: "20:30"}]
+            }
+        ],
+        // ...
+    },
+    // Record possible transfer between differently named stations
+    virtual_transfers: [
+        {
+            // AAA is on Line 1/2, BBB is on Line 3
+            from_station: "Station AAA", to_station: "Station BBB",
+            times: [
+                {from: "Line 1", to: "Line 3", minutes: 11},
+                {from: "Line 2", to: "Line 3", minutes: 10}
+            ]
+        },
+        // ...
+    ]
+}
+```
+If you only provide the minutes required for transfer from A to B, it is assumed that the reverse direction (B to A) will cost the same duration.
+You can also specify directions if the platform for different direction is not on the same level (e.g. non-island platform, cross-platform transfers, etc.).
+
+Since we don't really care about fares in this project, if the transfer requires exiting the gates and re-entering,
+we still consider it as a valid transfer (albeit a long one). Also notice that since timetables are only specified in minutes,
+a 3.1-minute transfer has the same effect as a 3.9-minute transfer. As a result, it is recommended to stick to whole minutes or .5 minutes.
+
+After specifying all the transfers, you should be able to run [`src/bfs/shortest_path.py`](tools.md#shortest_pathpy-find-the-shortest-path-between-two-stations)
+to find routes using the new lines.
+
+Transfer time data can come from various sources. For Beijing Subway, I used the following sources:
+- Transfer Time Data Collection (stations opened before 2021): [here](http://www.ditiezu.com/forum.php?mod=viewthread&tid=71145)
+- Bilibili POVs (as documented in the metadata files)
 
 ## 5. Chart on Maps
+Finally, to finalize the addition, you need to chart your new line on a map to enable drawing equ-time images.
+To do this for a new city, put a high-resolution image of the official route map under `data/<city>/maps/`,
+and then create a new JSON5 file starting with `map_`, containing the follows:
+```json5
+{
+    name: "Official Map",
+    path: "maps/<your-map>.png",
+    radius: 34, // radius of the station circle in pixels
+    transfer_radius: 57, // radius of the transfer station circle in pixels
+    coordinates: {
+        // Note: these are the upper-left corner coordinates, not the center coordinates!
+        // (0, 0) should be at the upper-left of the entire image
+        "Station 1": {x: 2577, y: 8157},
+        "Station 2": {x: 2886, y: 8157},
+        // ...
+    }
+}
+```
+The equ-time visualization works by drawing white circles on station coordinates, and then filling in the average minute number.
+
+After specifying all the coordinates of the new stations, you should be able to run [`src/graph/draw_map.py`](tools.md#draw_mappy-draw-equ-time-map-originating-from-a-station)
+to draw new versions of the equ-time map.
 
 ## 6. Advanced Topics
 ### 6.1. Branch
@@ -341,6 +412,4 @@ After specifying a direction for a rapid service, you may additionally want to r
 
 ### 6.4. Multi-Carriage-Number Trains
 
-### 6.5. Virtual Transfer
-
-### 6.6. Wrong Timetable
+### 6.5. Wrong Timetable

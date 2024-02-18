@@ -18,12 +18,6 @@ This document describes the usage, parameter, and intended result of each tool i
 ### [`timetable_from_prev.py`](/src/timetable/timetable_from_prev.py): Create next timetable from previous station's timetable
 
 # [`routing/`](/src/routing): Shortest Path & Loop/Express Train Analyze
-## Shortest Path Related
-### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
-
-### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
-
-## Analyze Related
 ### [`show_trains.py`](/src/routing/show_trains.py): Show all trains calculated in a line
 
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
@@ -33,6 +27,11 @@ This document describes the usage, parameter, and intended result of each tool i
 ### [`show_segments.py`](/src/routing/show_segments.py): Train segment analyzer
 
 ### [`show_express_trains.py`](/src/routing/show_express_trains.py): Express train analyzer
+
+# [`bfs/`](/src/bfs): Shortest Path Related Tools
+### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
+
+### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
 
 # [`stats/`](/src/stats): Statistics of a city and its lines
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
