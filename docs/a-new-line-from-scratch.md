@@ -405,11 +405,72 @@ to draw new versions of the equ-time map.
 
 ## 6. Advanced Topics
 ### 6.1. Branch
+Unfortunately, this is currently not implemented since Beijing does not have branch lines. PRs are welcome :)
 
 ### 6.2. Single-Direction Service
+Occasionally, a line will only run in one direction at the end:
+```
+Normal line:
+A -> B -> C -> D -> E -> F
+F -> E -> D -> C -> B -> A
+
+Some lines:
+A -> B -> C
+           \
+            >
+             D
+             |
+             v
+             E
+             |
+             v
+             F
+            /
+           <
+A <- B <- C
+```
+In other words, D to F only have train services in one direction. This is most common in bus routes, but sometimes also seen
+in metro lines. One example is Beijing's Capital Airport Express (`Sanyuan Qiao -> T3 -> T2 -> Sanyuan Qiao`), another is Seoul Metro's Line 6.
+
+To specify such a line, please record the main direction as `D -> E -> F -> C -> B -> A` (i.e. treat the last half as normal),
+and then in the reverse direction, specify:
+```json5
+{
+    "Direction 2": {
+        aliases: ["XXX"],
+        reversed: true,
+        "全程车": {},
+        end_circle: true,
+        end_circle_split_dist: 18322, // distance from C to D, since you don't really specify this in station_dist
+        end_circle_start: "Station C"
+    }
+}
+```
+Notice that currently you still need to specify timetable for both direction for D-F. Simply copy the same timetable specification for both direction should suffice.
 
 ### 6.3. Through Train
+In advanced cases, a line may have a through train that runs from one line to another:
+```
+Line 1: A -> B -> C -> D -> E
+Line 2: F -> G -> C -> H -> I
+Through Train: A -> B -> C -> H -> I
+```
+In mainland China, both Beijing (9 + Fangshan) and Chongqing (4 + Circle + 5) have those kind of services.
+
+To specify such a service, you need to add a `through_trains` field in the city metadata file:
+```json5
+{
+    through_trains: [
+        {lines: ["Line 1", "Line 2"], route: "Through", date_group: "Some Date Group"}
+    ]
+}
+```
+The current implementation requires you to single out the through train in all participiate lines by assigning a special routes to them.
+(Route name can be different, as you can use `routes` with an array of route names instead of `route`)
 
 ### 6.4. Multi-Carriage-Number Trains
+Occasionally, a line will have trains with different carriage numbers. For example, Beijing Subway's Line 3/12 has both 4-carriage and 8-carriage trains.
+You can specify this simply by add a `carriage` field under the corresponding routes.
 
 ### 6.5. Wrong Timetable
+TODO

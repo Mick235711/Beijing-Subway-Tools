@@ -71,7 +71,7 @@
   - [ ] 单独附加分钟数（例如到A站出发+0min，到B站出发+3min）
 - [ ] 换乘系数（avg shortest）：两站之间每分钟最短时间路径的换乘次数/距离平均（顺便也添加上最短/长时间/距离）
 - 完善文档
-  - [ ] create a new line
+  - [x] create a new line
   - [ ] tools
 - [ ] 中文文档
 - [ ] 开通日期（optional，毕竟有换乘，wb东管头南有统计）
