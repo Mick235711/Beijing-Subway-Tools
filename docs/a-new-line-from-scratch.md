@@ -192,11 +192,12 @@ The program will then ask for the route name associated with each kind of braces
 Then, the program will output the JSON5 description of the timetable, which you can copy and paste into the line metadata file.
 Notice that the `timetable` dictionary is structured like follows:
 ```json5
+{
     timetable: {
         "Station A": {
             "Direction 1 (such as 东行)": {
                 "Date Group 1 (such as 工作日)": {
-/* Outputted specs here, schedule/filter should be the keys */
+                    /* Outputted specs here, schedule/filter should be the keys */
                 }
                 // Other date groups
             }
@@ -204,6 +205,7 @@ Notice that the `timetable` dictionary is structured like follows:
         }
         // Other stations
     }
+}
 ```
 See [`line1.json5`](../data/beijing/line1.json5) for an example.
 
@@ -227,7 +229,7 @@ Therefore, you need to input modification lines.
 
 As a concrete example: (*Italic* means the input from the user)
 <pre>
-City default: <北京: 24 lines>
+City default: &lt;北京: 24 lines&gt;
 ? Please select a line: <i>5号线</i>
 ? Please select a direction: <i>南行</i>
 ? Please select a station (default: 宋家庄): <i>惠新西街南口</i>
@@ -289,12 +291,42 @@ required time or use [`src/routing/show_station_time.py`](tools.md#show_station_
 Then, you can simply guess the last station's timetable by using the method in ["Fill By Relative Time Delta"](#321-fill-by-relative-time-delta),
 entering the minutes and directly save without any modification. It is a rough guess, but without any data we cannot really do better.
 
+When you finished specifying a direction, please make sure to run [`src/routing/show_trains.py`](tools.md#show_trainspy-show-all-trains-calculated-in-a-line)
+to validate the direction's timetable. Please enter a few trains to see if there are any irregularities.
+
 ### 3.4. Special Cases
 #### 3.4.1. Loop Lines
+As mentioned before, for loop lines, you need to add `loop: true`, and append `loop_last_segment` and `dist` fields.
+After doing this, specify as normal, and the trains will be automatically ended at the start station to complete the loop.
+
+However, a small detail is that you will need to choose a split. In other words, even if it is a loop line, you still need
+to specify a starting station. In this case, some sectional routes will seem strange, but are perfectly valid:
+```json5
+{
+    // Assume the line is A -> B -> C -> D -> A
+    train_routes: {
+        "外环": {
+            aliases: ["Counter-clockwise"],
+            "全程车": {}, // A -> B -> C -> D -> A
+            "回库车": {ends_with: "Station D"}
+            // duplicate for normal line, but actually represents A -> B -> C -> D and then stop trains
+            // starts_with A is the same principle
+        }
+    }
+}
+```
+
+After specifying a direction for a loop line, you may additionally want to run [`src/routing/show_segments.py`](tools.md#show_segmentspy-train-segment-analyzer) to validate the loop line's timetable.
 
 #### 3.4.2. Express/Rapid Service
+Occasionally, you may need to specify that a rapid train will skip a few stations to obtain higher speed.
+To do this, you can specify [the `skip` field](specification.md#routing-specification-format) in the route.
 
-#### 3.4.3. When the Timetable is Wrong
+However, notice that you still need to specify the timetable as usual for skipped stations. The only difference is that
+the time recorded for those stations will then be regarded as "passing time" instead of "stopping time". In other words,
+it will be assumed that you cannot board/disembark on those stations.
+
+After specifying a direction for a rapid service, you may additionally want to run [`src/routing/show_express_trains.py`](tools.md#show_express_trainspy-express-train-analyzer) to analyze the specified express service.
 
 ## 4. Fill the Transfer Times
 
@@ -310,3 +342,5 @@ entering the minutes and directly save without any modification. It is a rough g
 ### 6.4. Multi-Carriage-Number Trains
 
 ### 6.5. Virtual Transfer
+
+### 6.6. Wrong Timetable
