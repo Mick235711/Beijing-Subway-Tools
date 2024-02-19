@@ -13,7 +13,7 @@ def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--empty", action="store_true",
-                        help="Store empty timetable")
+                        help="Show empty timetable")
     args = parser.parse_args()
 
     _, timetable = ask_for_timetable()

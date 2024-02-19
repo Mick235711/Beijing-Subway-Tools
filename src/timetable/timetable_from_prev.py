@@ -137,7 +137,7 @@ def main() -> None:
     parser.add_argument("-b", "--break", type=int, default=15, dest="break_entries",
                         help="Entry break")
     parser.add_argument("-e", "--empty", action="store_true",
-                        help="Store empty timetable")
+                        help="Show empty timetable")
     parser.add_argument("-d", "--do-not-remove", action="store_true",
                         help="Don't remove soon-to-be-end trains")
     args = parser.parse_args()
