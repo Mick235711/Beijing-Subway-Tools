@@ -5,10 +5,29 @@ using the tools provided.
 
 This document describes the usage, parameter, and intended result of each tool in detail.
 
-# General
-### Answering Prompts
-
+# Genera
 ### General Structure
+Due to the design of relative imports, please run all the program from the **root** directory of the project.
+For example:
+```shell
+$ python3 src/timetable/print_timetable.py  # Correct
+$ cd src/timetable; python3 print_timetable.py  # Wrong
+```
+Also, a lot of the program files are support files and cannot be run.
+Only those documented below are intended to be run directly from command line.
+
+All the runnable program utilize `argparse` to parse their arguments, so passing `-h` or `--help` will
+show the help message of the program.
+
+### Answering Prompts
+Most of the programs in this project will ask for information such as city, line and starting station.
+Those prompts will be handled by `questionary`.
+Notice that both Chinese and English auto-complete are supported,
+and you can always press TAB to get a list of possible answers.
+
+Regarding Pinyin inputs, all possible tones/readings are supported:
+![](complete.gif)
+Notice that also, directional verbs can be completed from East/West/etc.
 
 # [`timetable/`](/src/timetable): Creating and Modifying Timetables
 ### [`print_timetable.py`](/src/timetable/print_timetable.py): Print any station's timetable
