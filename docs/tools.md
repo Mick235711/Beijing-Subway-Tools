@@ -245,14 +245,266 @@ Current Timetable:
 
 # [`routing/`](/src/routing): Train Storing & Loop/Express Train Analyze
 ### [`show_trains.py`](/src/routing/show_trains.py): Show all trains calculated in a line
+```
+usage: show_trains.py [-h] [-s]
+
+options:
+  -h, --help        show this help message and exit
+  -s, --with-speed  Display segment speeds
+```
+Show all trains passing through a station, in a specific line, direction and date group.
+If `-s` is specified, segment speed (travel speed) is also shown in the train display.
+
+Example Usage:
+<pre>
+City default: &lt;北京: 24 lines&gt;
+? Please select a line: <i>5号线</i>
+? Please select a direction: <i>北行</i>
+? Please select a date group: <i>工作日</i>
+? Please select a train: <i>37# 5号线 北行 全程车 [6B] 宋家庄 07:28 -> 天通苑北 08:20</i>
+5号线 北行 全程车 [6B] 宋家庄 07:28 -> 天通苑北 08:20 (52min, 27.06km, 31.22km/h)
+
+宋家庄 07:28
+(3min, 1.67km, 33.40km/h)
+刘家窑 07:31       (+3min, +1.67km)
+(2min, 905m, 27.15km/h)
+蒲黄榆 07:33       (+5min, +2.58km)
+(3min, 1.90km, 38.00km/h)
+天坛东门 07:36     (+8min, +4.47km)
+(2min, 1.18km, 35.49km/h)
+磁器口 07:38       (+10min, +5.66km)
+(2min, 877m, 26.31km/h)
+崇文门 07:40       (+12min, +6.54km)
+(2min, 822m, 24.66km/h)
+东单 07:42         (+14min, +7.36km)
+(3min, 945m, 18.90km/h)
+灯市口 07:45       (+17min, +8.30km)
+(2min, 848m, 25.44km/h)
+东四 07:47         (+19min, +9.15km)
+(2min, 1.02km, 30.51km/h)
+张自忠路 07:49     (+21min, +10.17km)
+(2min, 791m, 23.73km/h)
+北新桥 07:51       (+23min, +10.96km)
+(1min, 866m, 51.96km/h)
+雍和宫 07:52       (+24min, +11.82km)
+(3min, 1.15km, 23.02km/h)
+和平里北街 07:55   (+27min, +12.97km)
+(2min, 1.06km, 31.77km/h)
+和平西桥 07:57     (+29min, +14.03km)
+(2min, 1.03km, 30.78km/h)
+惠新西街南口 07:59 (+31min, +15.06km)
+(2min, 1.12km, 33.63km/h)
+惠新西街北口 08:01 (+33min, +16.18km)
+(3min, 1.84km, 36.76km/h)
+大屯路东 08:04     (+36min, +18.02km)
+(4min, 2.96km, 44.34km/h)
+北苑路北 08:08     (+40min, +20.98km)
+(2min, 1.33km, 39.90km/h)
+立水桥南 08:10     (+42min, +22.30km)
+(3min, 1.31km, 26.12km/h)
+立水桥 08:13       (+45min, +23.61km)
+(3min, 1.54km, 30.88km/h)
+天通苑南 08:16     (+48min, +25.16km)
+(2min, 964m, 28.92km/h)
+天通苑 08:18       (+50min, +26.12km)
+(2min, 941m, 28.23km/h)
+天通苑北 08:20     (+52min, +27.06km)
+</pre>
 
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
+(This program has no command-line arguments.)
+
+Show the first/last train for a station. Display are for each line and direction.
+
+Example Usage:
+<pre>
+City default: &lt;北京: 24 lines&gt;
+? Please select a station: <i>北新桥</i>
+
+5号线:
+    南行 - 工作日:
+      First Train: 05:28 (天通苑北 04:59 -> 北新桥 05:28 -> 宋家庄 05:50)
+  Last Full Train: 22:52 (天通苑北 22:24 -> 北新桥 22:52 -> 宋家庄 23:14)
+       Last Train: 00:06 (+1) (大屯路东 23:52 -> 北新桥 00:06 (+1) -> 宋家庄 00:28 (+1))
+    南行 - 双休日:
+      First Train: 05:28 (天通苑北 04:59 -> 北新桥 05:28 -> 宋家庄 05:50)
+  Last Full Train: 22:52 (天通苑北 22:23 -> 北新桥 22:52 -> 宋家庄 23:14)
+       Last Train: 00:06 (+1) (大屯路东 23:52 -> 北新桥 00:06 (+1) -> 宋家庄 00:28 (+1))
+    北行 - 工作日:
+      First Train: 05:41 (宋家庄 05:19 -> 北新桥 05:41 -> 天通苑北 06:10)
+  Last Full Train: 22:17 (宋家庄 21:55 -> 北新桥 22:17 -> 天通苑北 22:46)
+       Last Train: 23:32 (宋家庄 23:10 -> 北新桥 23:32 -> 大屯路东 23:46)
+    北行 - 双休日:
+      First Train: 05:41 (宋家庄 05:19 -> 北新桥 05:41 -> 天通苑北 06:10)
+  Last Full Train: 22:17 (宋家庄 21:55 -> 北新桥 22:17 -> 天通苑北 22:46)
+       Last Train: 23:32 (宋家庄 23:10 -> 北新桥 23:32 -> 大屯路东 23:46)
+
+首都机场线:
+    进城 - 全日:
+      First Train: 07:05 (3号航站楼 06:22 -> 北新桥 07:05)
+       Last Train: 23:38 (3号航站楼 22:52 -> 北新桥 23:38)
+    出城 - 全日:
+      First Train: 05:56 (北新桥 05:56 -> 2号航站楼 06:36)
+       Last Train: 22:26 (北新桥 22:26 -> 2号航站楼 23:10)
+</pre>
 
 ### [`show_station_time.py`](/src/routing/show_station_time.py): Show time needed for trains to travel between two stations on a line
+(This program has no command-line arguments.)
+
+Show the time needed between two stations in a line. This is intended to show the different time needed to travel
+between the same station pair by all trains in a line, so the time will be displayed similar to a timetable.
+Each entry represents that the corresponding train needs this much time to travel.
+
+Example Usage:
+<pre>
+City default: &lt;北京: 24 lines&gt;
+? Please select a line: <i>6号线</i>
+? Please select a starting station: <i>金安桥</i>
+? Please select an ending station: <i>潞城</i>
+? Please select a date group: <i>工作日</i>
+05| 86 86 86 86 86 86 86
+06| 86 86 86 85 85 85 85 85 87 79 85 87 79
+07| 87 87 79 87 87 79 87 87 79 85 87 86 85 85 86 85 85 85
+08| 85 86 85 86 85 85 85 86 85 85 85 85
+09| 85 85 85 85 85 85 85 85 85 85 85 85 85
+10| 85 85 85 85 85 85 85 85 85
+11| 85 85 85 85 85 85 85 85 85
+12| 85 85 85 85 85 85 85 85 85
+13| 85 85 85 85 85 85 85 85
+14| 85 85 85 85 85 85 85 85 85
+15| 85 85 85 85 85 85 85 85
+16| 85 85 85 85 86 85 85 85 85 85 85 85 85 85 85 85 85
+17| 85 85 85 85 85 85 86 84 85 85 85 84 85 85 85 84 85 85
+18| 85 85 84 85 85 85 84 85 85 85 84 85 85 85 85 85
+19| 85 85 85 85 85 85 85 85 85 85
+20| 85 85 85 85 85 85 85 85 85
+21| 85 85 85 85 85 85 85 85 85 85
+22| 85 85 85 85 86
+23|
+</pre>
 
 ### [`show_segments.py`](/src/routing/show_segments.py): Train segment analyzer
+```
+usage: show_segments.py [-h] [-s] [-f]
+
+options:
+  -h, --help        show this help message and exit
+  -s, --with-speed  Display segment speeds
+  -f, --find-train  Find a train in the segment
+```
+
+This is the train segment analyzer, who tries to chain together different trains to form a trace of a real-life carriage
+in a day. It will display all segments that a carriage travels throughout a scheduling day.
+
+**NOTE: Segment analysis for non-loop lines are imprecise.**
+
+Similar to `show_trains.py`, `-s` cause segment speeds to be displayed. If `-f` is specified, then you will be able to find
+a specific carriage simply by typing the start/end time of one segment.
+
+Example Usage:
+<pre>
+City default: &lt;北京: 24 lines&gt;
+? Please select a line: <i>2号线</i>
+? Please select a date group: <i>工作日</i>
+? Please select a train: <i>4# 积水潭 16:54 -> ... -> 西直门 23:36</i>
+Total: 9 loops, 6h42min, 205.10km
+Loop #1: 2号线 内环 积水潭出库车 [6B-] 积水潭 16:54 -> 积水潭 17:38 (loop) (44min, 23.00km, 31.36km/h)
+Loop #2: 2号线 内环 环行 [6B-] 积水潭 17:38 -> 积水潭 18:22 (loop) (44min, 23.00km, 31.36km/h)
+Loop #3: 2号线 内环 环行 [6B-] 积水潭 18:22 -> 积水潭 19:06 (loop) (44min, 23.00km, 31.36km/h)
+Loop #4: 2号线 内环 环行 [6B-] 积水潭 19:06 -> 积水潭 19:50 (loop) (44min, 23.00km, 31.36km/h)
+Loop #5: 2号线 内环 环行 [6B-] 积水潭 19:50 -> 积水潭 20:38 (loop) (48min, 23.00km, 28.75km/h)
+Loop #6: 2号线 内环 环行 [6B-] 积水潭 20:38 -> 积水潭 21:23 (loop) (45min, 23.00km, 30.67km/h)
+Loop #7: 2号线 内环 环行 [6B-] 积水潭 21:23 -> 积水潭 22:10 (loop) (47min, 23.00km, 29.36km/h)
+Loop #8: 2号线 内环 环行 [6B-] 积水潭 22:10 -> 积水潭 22:55 (loop) (45min, 23.00km, 30.67km/h)
+Loop #9: 2号线 内环 西直门回库车 [6B-] 积水潭 22:55 -> 西直门 23:36 (41min, 21.10km, 30.88km/h)
+</pre>
 
 ### [`show_express_trains.py`](/src/routing/show_express_trains.py): Express train analyzer
+(This program has no command-line arguments.)
+
+This is the express train analyzer, who tries to calculate useful information on express trains.
+For example, it will output what normal train is overrun by this express train, and more.
+
+Example Usage:
+<pre>
+City default: &lt;北京: 24 lines&gt;
+Line default: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt;
+? Please select a direction: <i>西行</i>
+? Please select a date group: <i>工作日</i>
+? Please select a train: <i>2# 6号线 西行 进城快车1 [8B] 潞城 17:37 -> 金安桥 18:58</i>
+Train basic info:
+6号线 西行 进城快车1 [8B] 潞城 17:37 -> 金安桥 18:58 (1h21min, 52.93km, 39.21km/h)
+
+潞城 17:37
+(2min, 1.19km, 35.82km/h)
+东夏园 17:39     (+2min, +1.19km)
+(2min, 1.35km, 40.41km/h)
+郝家府 17:41     (+4min, +2.54km)
+北运河东 17:43   (passing)
+北运河西 17:45   (passing)
+通州北关 17:49   (passing)
+物资学院路 17:52 (passing)
+草房 17:54       (passing)
+常营 17:56       (passing)
+黄渠 17:58       (passing)
+褡裢坡 18:00     (passing)
+(22min, 18.71km, 51.03km/h)
+青年路 18:03     (+26min, +21.25km)
+(3min, 1.28km, 25.66km/h)
+十里堡 18:06     (+29min, +22.54km)
+(2min, 2.04km, 61.11km/h)
+金台路 18:08     (+31min, +24.57km)
+(3min, 1.45km, 29.00km/h)
+呼家楼 18:11     (+34min, +26.02km)
+(2min, 846m, 25.38km/h)
+东大桥 18:13     (+36min, +26.87km)
+(3min, 1.67km, 33.38km/h)
+朝阳门 18:16     (+39min, +28.54km)
+(2min, 1.40km, 42.00km/h)
+东四 18:18       (+41min, +29.94km)
+(4min, 1.94km, 29.05km/h)
+南锣鼓巷 18:22   (+45min, +31.87km)
+(2min, 1.35km, 40.47km/h)
+北海北 18:24     (+47min, +33.22km)
+(2min, 1.32km, 39.66km/h)
+平安里 18:26     (+49min, +34.55km)
+(3min, 1.44km, 28.88km/h)
+车公庄 18:29     (+52min, +35.99km)
+(2min, 887m, 26.61km/h)
+车公庄西 18:31   (+54min, +36.88km)
+(2min, 888m, 26.64km/h)
+二里沟 18:33     (+56min, +37.76km)
+(2min, 777m, 23.31km/h)
+白石桥南 18:35   (+58min, +38.54km)
+(2min, 1.17km, 35.01km/h)
+花园桥 18:37     (+1h, +39.71km)
+(2min, 1.43km, 42.93km/h)
+慈寿寺 18:39     (+1h2min, +41.14km)
+(3min, 1.51km, 30.18km/h)
+海淀五路居 18:42 (+1h5min, +42.65km)
+(3min, 2.14km, 42.80km/h)
+田村 18:45       (+1h8min, +44.79km)
+(3min, 2.28km, 45.52km/h)
+廖公庄 18:48     (+1h11min, +47.06km)
+(3min, 1.79km, 35.88km/h)
+西黄村 18:51     (+1h14min, +48.86km)
+(2min, 1.79km, 53.76km/h)
+杨庄 18:53       (+1h16min, +50.65km)
+(2min, 839m, 25.17km/h)
+苹果园 18:55     (+1h18min, +51.49km)
+(3min, 1.44km, 28.76km/h)
+金安桥 18:58     (+1h21min, +52.93km)
+
+Express segment: 6号线 西行 进城快车1 [8B] 郝家府 17:41 -> 青年路 18:03 (9 stations, 22min, 18.71km)
+Skip 8 stations
+Segment speed: 22min, 51.03km/h
+
+This train overtakes 1 train.
+Overtake #1: 6号线 西行 全程车 [8B] 郝家府 17:37 -> 青年路 18:05 (9 stations, 28min, 18.71km)
+Overtaken train's average segment speed: 28min, 40.09km/h
+
+Average over all 223 trains, segment speed: 26.38min, 42.67km/h
+</pre>
 
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
