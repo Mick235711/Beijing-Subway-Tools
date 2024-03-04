@@ -202,7 +202,7 @@ def main() -> None:
     if isinstance(line_spec, Line):
         is_loop = line_spec.loop
         if not is_loop:
-            print("NOTE: Segment analysis for non-loop lines are imprecise.")
+            print("NOTE: Segment analysis for non-loop lines is imprecise.")
         loop_dict = get_all_segments(city.lines(), cast(list[Train], train_list))[line_spec.name]
     else:
         is_loop = False

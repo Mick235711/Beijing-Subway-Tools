@@ -7,14 +7,14 @@ This document describes the usage, parameter, and intended result of each tool i
 
 # Genera
 ### General Structure
-Due to the design of relative imports, please run all the program from the **root** directory of the project.
-For example: (You may need to prepend `export PYTHONPATH=.`)
+Due to the design of relative imports, please run all the programs from the **root** directory of the project.
+For example, (You may need to prepend `export PYTHONPATH=.`)
 ```shell
 $ python3 src/timetable/print_timetable.py  # Correct
 $ cd src/timetable; python3 print_timetable.py  # Wrong
 ```
 Also, a lot of the program files are support files and cannot be run.
-Only those documented below are intended to be run directly from command line.
+Only those documented below are intended to be run directly from the command line.
 
 All the runnable program utilize `argparse` to parse their arguments, so passing `-h` or `--help` will
 show the help message of the program.
@@ -160,7 +160,7 @@ See [here](a-new-line-from-scratch.md#321-fill-by-relative-time-delta) for a det
 - `-b` determines the threshold of number of entries to break two consecutive `schedule` specification (defaults to 15).
 - `-l N` will append `4 * N` spaces before each line. (Default behavior is to not prepend spaces; `-l 5` is recommended for storing timetable specs)
 - `-e` will show empty timetable in modification mode
-- By default, trains that ends at the previous station specified will be automatically removed. Specify `-d` to disable this behavior.
+- By default, trains that end at the previous station specified will be automatically removed. Specify `-d` to disable this behavior.
 
 Example Usage:
 <pre>
@@ -257,6 +257,7 @@ If `-s` is specified, segment speed (travel speed) is also shown in the train di
 
 Example Usage:
 <pre>
+$ python3 src/routing/show_trains.py -s
 City default: &lt;北京: 24 lines&gt;
 ? Please select a line: <i>5号线</i>
 ? Please select a direction: <i>北行</i>
@@ -314,10 +315,11 @@ City default: &lt;北京: 24 lines&gt;
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
 (This program has no command-line arguments.)
 
-Show the first/last train for a station. Display are for each line and direction.
+Show the first/last train for a station. Displays are for each line and direction.
 
 Example Usage:
 <pre>
+$ python3 src/routing/show_first_train.py
 City default: &lt;北京: 24 lines&gt;
 ? Please select a station: <i>北新桥</i>
 
@@ -357,6 +359,7 @@ Each entry represents that the corresponding train needs this much time to trave
 
 Example Usage:
 <pre>
+$ python3 src/routing/show_station_time.py
 City default: &lt;北京: 24 lines&gt;
 ? Please select a line: <i>6号线</i>
 ? Please select a starting station: <i>金安桥</i>
@@ -396,13 +399,14 @@ options:
 This is the train segment analyzer, who tries to chain together different trains to form a trace of a real-life carriage
 in a day. It will display all segments that a carriage travels throughout a scheduling day.
 
-**NOTE: Segment analysis for non-loop lines are imprecise.**
+**NOTE: Segment analysis for non-loop lines is imprecise.**
 
 Similar to `show_trains.py`, `-s` cause segment speeds to be displayed. If `-f` is specified, then you will be able to find
 a specific carriage simply by typing the start/end time of one segment.
 
 Example Usage:
 <pre>
+$ python3 src/routing/show_segments.py -s
 City default: &lt;北京: 24 lines&gt;
 ? Please select a line: <i>2号线</i>
 ? Please select a date group: <i>工作日</i>
@@ -427,6 +431,7 @@ For example, it will output what normal train is overrun by this express train, 
 
 Example Usage:
 <pre>
+$ python3 src/routing/show_express_trains.py
 City default: &lt;北京: 24 lines&gt;
 Line default: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt;
 ? Please select a direction: <i>西行</i>
@@ -508,8 +513,229 @@ Average over all 223 trains, segment speed: 26.38min, 42.67km/h
 
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
+```
+usage: shortest_path.py [-h] [-k NUM_PATH] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  -k NUM_PATH, --num-path NUM_PATH
+                        Show first k path
+  --exclude-edge        Exclude edge case in transfer
+```
+Use BFS and Yen's algorithm to find the shortest K routes (in terms of time spent) between two stations.
+The argument `-k` specifies the number of routes to be found.
+
+**NOTE: Larger `-k` value will result in longer computation time.**
+
+`--exclude-edge` is a common flag that is present in most of the program below too.
+When specified, it will assume a "slower" person and round up the transfer time.
+In this mode, you can no longer have a 0-minute waiting time (i.e., after transfer just enough time to board).
+
+Example Usage:
+<pre>
+$ python3 src/bfs/shortest_path.py -k 5
+City default: &lt;北京: 24 lines&gt;
+? Please select a starting station: <i>燕山</i>
+? Please select an ending station: <i>俸伯</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-03-04</i>
+? Please enter the travel time (hh:mm or first or last): <i>12:00</i>
+Found 1-th shortest path!
+Found 2-th shortest path!
+Found 3-th shortest path!
+Found 4-th shortest path!
+Found 5-th shortest path!
+
+Shortest Path #1:
+12:00 -> 15:03
+Total time: 3h3min, total distance: 103.48km, 55 stations, 4 transfers.
+
+燕房线 进城 全程车 [4B] 燕山 12:00 -> 阎村东 12:23 (8 stations, 23min, 13.25km)
+Transfer at 阎村东: 燕房线 -> 房山线, 0 minutes
+Waiting time: 4 minutes
+房山线 进城 全程车 [6B] 阎村东 12:27 -> 首经贸 13:09 (14 stations, 42min, 29.93km)
+Transfer at 首经贸: 房山线 -> 10号线, 2 minutes
+Waiting time: 3 minutes
+10号线 外环 环行 [6B] 首经贸 13:14 -> 十里河 13:39 (10 stations, 25min, 13.79km)
+Transfer at 十里河: 10号线 -> 14号线, 3 minutes
+Waiting time: 5 minutes
+14号线 东北行 全程车 [6A] 十里河 13:47 -> 望京 14:19 (12 stations, 32min, 17.83km)
+Transfer at 望京: 14号线 -> 15号线, 2.5 minutes
+Waiting time: 3.5 minutes
+15号线 东行 全程车 [6B] 望京 14:25 -> 俸伯 15:03 (11 stations, 38min, 28.67km)
+
+Shortest Path #2:
+12:00 -> 15:03
+Total time: 3h3min, total distance: 103.23km, 57 stations, 4 transfers.
+
+燕房线 进城 全程车 [4B] 燕山 12:00 -> 阎村东 12:23 (8 stations, 23min, 13.25km)
+Transfer at 阎村东: 燕房线 -> 房山线, 0 minutes
+Waiting time: 4 minutes
+房山线 进城 全程车 [6B] 阎村东 12:27 -> 首经贸 13:09 (14 stations, 42min, 29.93km)
+Transfer at 首经贸: 房山线 -> 10号线, 2 minutes
+Waiting time: 3 minutes
+10号线 外环 环行 [6B] 首经贸 13:14 -> 芍药居 14:04 (22 stations, 50min, 27.46km)
+Transfer at 芍药居: 10号线 -> 13号线, 3 minutes
+Waiting time: 5 minutes
+13号线 西行 全程车 [6B-] 芍药居 14:12 -> 望京西 14:15 (1 station, 3min, 2.15km)
+Transfer at 望京西: 13号线 -> 15号线, 5 minutes
+Waiting time: 2 minutes
+15号线 东行 全程车 [6B] 望京西 14:22 -> 俸伯 15:03 (12 stations, 41min, 30.43km)
+
+Shortest Path #3:
+12:00 -> 15:03
+Total time: 3h3min, total distance: 105.11km, 58 stations, 4 transfers.
+
+燕房线 进城 全程车 [4B] 燕山 12:00 -> 阎村东 12:23 (8 stations, 23min, 13.25km)
+Transfer at 阎村东: 燕房线 -> 房山线, 0 minutes
+Waiting time: 4 minutes
+房山线 进城 全程车 [6B] 阎村东 12:27 -> 首经贸 13:09 (14 stations, 42min, 29.93km)
+Transfer at 首经贸: 房山线 -> 10号线, 2 minutes
+Waiting time: 1 minute
+10号线 内环 环行 [6B] 首经贸 13:12 -> 芍药居 14:06 (23 stations, 54min, 29.34km)
+Transfer at 芍药居: 10号线 -> 13号线, 3 minutes
+Waiting time: 3 minutes
+13号线 西行 全程车 [6B-] 芍药居 14:12 -> 望京西 14:15 (1 station, 3min, 2.15km)
+Transfer at 望京西: 13号线 -> 15号线, 5 minutes
+Waiting time: 2 minutes
+15号线 东行 全程车 [6B] 望京西 14:22 -> 俸伯 15:03 (12 stations, 41min, 30.43km)
+
+Shortest Path #4:
+12:00 -> 15:03
+Total time: 3h3min, total distance: 104.02km, 59 stations, 4 transfers.
+
+燕房线 进城 全程车 [4B] 燕山 12:00 -> 阎村东 12:23 (8 stations, 23min, 13.25km)
+Transfer at 阎村东: 燕房线 -> 房山线, 0 minutes
+Waiting time: 4 minutes
+房山线 进城 全程车 [6B] 阎村东 12:27 -> 首经贸 13:09 (14 stations, 42min, 29.93km)
+Transfer at 首经贸: 房山线 -> 10号线, 2 minutes
+Waiting time: 3 minutes
+10号线 外环 环行 [6B] 首经贸 13:14 -> 宋家庄 13:31 (7 stations, 17min, 9.26km)
+Transfer at 宋家庄: 10号线 -> 5号线, 1 minute
+5号线 北行 全程车 [6B] 宋家庄 13:32 -> 大屯路东 14:08 (16 stations, 36min, 18.02km)
+Transfer at 大屯路东: 5号线 -> 15号线, 4.5 minutes
+Waiting time: 3.5 minutes
+15号线 东行 全程车 [6B] 大屯路东 14:16 -> 俸伯 15:03 (14 stations, 47min, 33.56km)
+
+Shortest Path #5:
+12:00 -> 15:03
+Total time: 3h3min, total distance: 105.94km, 59 stations, 4 transfers.
+
+燕房线 进城 全程车 [4B] 燕山 12:00 -> 阎村东 12:23 (8 stations, 23min, 13.25km)
+Transfer at 阎村东: 燕房线 -> 房山线, 0 minutes
+Waiting time: 4 minutes
+房山线 进城 全程车 [6B] 阎村东 12:27 -> 郭公庄 13:02 (11 stations, 35min, 25.33km)
+Transfer at 郭公庄: 房山线 -> 9号线, 0 minutes
+9号线 北行 全程车 [6B] 郭公庄 13:02 -> 七里庄 13:13 (5 stations, 11min, 6.03km)
+Transfer at 七里庄: 9号线 -> 14号线, 0.5 minutes
+Waiting time: 5.5 minutes
+14号线 东北行 全程车 [6A] 七里庄 13:19 -> 望京 14:19 (24 stations, 1h, 32.65km)
+Transfer at 望京: 14号线 -> 15号线, 2.5 minutes
+Waiting time: 3.5 minutes
+15号线 东行 全程车 [6B] 望京 14:25 -> 俸伯 15:03 (11 stations, 38min, 28.67km)
+</pre>
+(Notice that you can also enter `first` or `last` in the time field to calculate the earliest/latest arrival routes.)
+
+When determining the shortest route, the following criteria are considered in this order:
+- Total time spent
+- Total transfer times
+- Total station traveled
+- Total distance traveled
 
 ### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
+```
+usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  -s LIMIT_START, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e LIMIT_END, --limit-end LIMIT_END
+                        Limit end time of the search
+  -v, --verbose         Increase verbosity
+  -p, --show-path       Show detailed path
+  -n LIMIT_NUM, --limit-num LIMIT_NUM
+                        Limit number of output
+  -t TO_STATION, --to-station TO_STATION
+                        Only show average time to specified stations
+  --exclude-edge        Exclude edge case in transfer
+```
+Find the average shortest time (shortest time average over every minute in a day), starting from a station.
+
+**NOTE: This essentially runs BFS for ~500 times, so expect the results to take a few minutes to generate.**
+
+There are a lot of flags:
+- `-s` and `-e` can specify the start and end time of the search (e.g. `-s 06:00` averages from 6am to end of day.)
+- `-n` and `-t` can limit the result. If `-n` is specified, then the nearest and farthest N stations are displayed.  If `-t` is specified, then only the specified stations are displayed.
+- `-v` and `-p` enable verbose output. `-v` will show the detailed path percentage of each station, and `-p` (implies `-v`) will add the max/min path display.
+
+Example Usage:
+<pre>
+$ python3 src/bfs/avg_shortest_time.py -p -t 俸伯,3号航站楼
+City default: &lt;北京: 24 lines&gt;
+? Please select a station: <i>天安门西</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-03-04</i>
+Calculating 天安门西 from 24:03: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 582/582 [04:53<00:00,  1.98it/s]
+#271: 3号航站楼, 49.12 minutes (min 40 - max 68) (avg: transfer = 2.00, station = 9.00, distance = 28.74km)
+Percentage of each path:
+    100.00% 天安门西 --- 1号线 (东行) --> 建国门 --- 2号线 (外环) --> 东直门 --- 首都机场线 (出城) --> 3号航站楼 [Example: 05:14 -> 06:22]
+
+Maximum time path:
+    05:14 -> 06:22
+    Total time: 1h8min, total distance: 28.74km, 9 stations, 2 transfers.
+
+    Waiting time: 5 minutes
+    1号线 东行 复兴门始发空车 [6B-] 天安门西 05:19 -> 建国门 05:27 (4 stations, 8min, 3.81km)
+    Transfer at 建国门: 1号线 -> 2号线, 1 minute (special time)
+    Waiting time: 4 minutes
+    2号线 外环 西直门出库车 [6B-] 建国门 05:32 -> 东直门 05:39 (3 stations, 7min, 3.59km)
+    Transfer at 东直门: 2号线 -> 首都机场线, 3 minutes
+    Waiting time: 18 minutes
+    首都机场线 出城 全程车 [4L] 东直门 06:00 -> 3号航站楼 06:22 (2 stations, 22min, 21.34km)
+
+Minimum time path:
+    10:09 -> 10:49
+    Total time: 40min, total distance: 28.74km, 9 stations, 2 transfers.
+
+    1号线 东行 四惠回库车 [6B-] 天安门西 10:09 -> 建国门 10:17 (4 stations, 8min, 3.81km)
+    Transfer at 建国门: 1号线 -> 2号线, 1 minute (special time)
+    2号线 外环 积水潭回库车 [6B-] 建国门 10:18 -> 东直门 10:25 (3 stations, 7min, 3.59km)
+    Transfer at 东直门: 2号线 -> 首都机场线, 3 minutes
+    首都机场线 出城 全程车 [4L] 东直门 10:28 -> 3号航站楼 10:49 (2 stations, 21min, 21.34km)
+
+#366: 俸伯, 86.97 minutes (min 78 - max 100) (avg: transfer = 2.18, station = 25.65, distance = 46.90km)
+Percentage of each path:
+    66.41% 天安门西 --- 1号线 (东行) --> 大望路 --- 14号线 (东北行) --> 望京 --- 15号线 (东行) --> 俸伯 [Example: 05:20 -> 06:55]
+    17.55% 天安门西 --- 1号线 (东行) --> 建国门 --- 2号线 (外环) --> 东直门 --- 13号线 (西行) --> 望京西 --- 15号线 (东行) --> 俸伯 [Example: 05:48 -> 07:16]
+    14.04% 天安门西 --- 1号线 (东行) --> 东单 --- 5号线 (北行) --> 大屯路东 --- 15号线 (东行) --> 俸伯 [Example: 05:14 -> 06:48]
+    1.99% 天安门西 --- 1号线 (东行) --> 王府井 --- 8号线 (北行) --> 奥林匹克公园 --- 15号线 (东行) --> 俸伯 [Example: 06:25 -> 07:49]
+
+Maximum time path:
+    22:33 -> 00:13 (+1)
+    Total time: 1h40min, total distance: 47.64km, 26 stations, 2 transfers.
+
+    Waiting time: 6 minutes
+    1号线 东行 全程车 [6B-] 天安门西 22:39 -> 大望路 22:55 (7 stations, 16min, 7.36km)
+    Transfer at 大望路: 1号线 -> 14号线, 5.5 minutes
+    Waiting time: 5.5 minutes
+    14号线 东北行 九龙山始发空车 [6A] 大望路 23:06 -> 望京 23:27 (8 stations, 21min, 11.60km)
+    Transfer at 望京: 14号线 -> 15号线, 2.5 minutes
+    Waiting time: 5.5 minutes
+    15号线 东行 全程车 [6B] 望京 23:35 -> 俸伯 00:13 (+1) (11 stations, 38min, 28.67km)
+
+Minimum time path:
+    09:23 -> 10:41
+    Total time: 1h18min, total distance: 44.00km, 23 stations, 3 transfers.
+
+    1号线 东行 全程车 [6B-] 天安门西 09:23 -> 建国门 09:31 (4 stations, 8min, 3.81km)
+    Transfer at 建国门: 1号线 -> 2号线, 1 minute (special time)
+    Waiting time: 1 minute
+    2号线 外环 环行 [6B-] 建国门 09:33 -> 东直门 09:40 (3 stations, 7min, 3.59km)
+    Transfer at 东直门: 2号线 -> 13号线, 6.5 minutes
+    Waiting time: 0.5 minutes
+    13号线 西行 全程车 [6B-] 东直门 09:47 -> 望京西 09:57 (4 stations, 10min, 6.17km)
+    Transfer at 望京西: 13号线 -> 15号线, 5 minutes
+    15号线 东行 全程车 [6B] 望京西 10:02 -> 俸伯 10:41 (12 stations, 39min, 30.43km)
+</pre>
 
 # [`stats/`](/src/stats): Statistics of a city and its lines
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
