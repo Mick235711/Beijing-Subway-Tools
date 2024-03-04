@@ -1225,5 +1225,114 @@ Calculating 大兴机场线: 100%|███████████████�
 
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time map originating from a station
+```
+usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  -s LIMIT_START, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e LIMIT_END, --limit-end LIMIT_END
+                        Limit end time of the search
+  -c COLOR_MAP, --color-map COLOR_MAP
+                        Override default colormap
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  -l LEVELS, --levels LEVELS
+                        Override default levels
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  -n LABEL_NUM, --label-num LABEL_NUM
+                        Override # of label for each contour
+  --dpi DPI             DPI of output image
+  -w LINE_WIDTH, --line-width LINE_WIDTH
+                        Override contour line width
+  --exclude-edge        Exclude edge case in transfer
+```
+
+Draw an equ-time graph originating from the specified station.
+
+An example output (outputted by the command in example usage) is shown below:
+![An example of equ-time graph](example-graph.png)
+Notice that in every station's circle, the number represents the average number of minutes needed to travel here.
+
+**NOTE: This requires several minutes to compute.**
+
+There are a lot of options to customize the graph:
+- `-s`, `-e`, and `--exclude-edge` have the same meaning as in [the statistics section](#common-arguments).
+- `-o` specifies the output graph path.
+- `-l` let you override the default contour levels. (For example: `-l 1,10,25` only draw contours at those three minutes.)
+- `--dpi` let you override the default DPI of the output image.
+- `-d` let you choose the data source.
+- `-n` let you specify how many times the minute texts should be drawn on contour lines.
+- `-w` let you override the default contour line width.
+- `-c` let you override the default color map. (Must be a name that is [builtin to Matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html).)
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_map.py -n 3 -o ./docs/example-graph.png
+City default: &lt;北京: 24 lines&gt;
+? Please select a station: <i>天安门西</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-03-04</i>
+Calculating 天安门西 from 24:03: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 582/582 [05:10<00:00,  1.88it/s]
+Map default: &lt;Official Map: /Users/mick/Documents/Subway/Beijing Subway/Beijing-Subway-Tools/data/beijing/maps/official.png&gt;
+Drawing stations done!
+Drawing levels: [10, 20, 30, 40, 50, 60, 75, 90, 105]
+Recalculated min/max: 10.00 - 104.40
+Drawing contours done! Saving...
+</pre>
 
 ### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time map from two stations
+```
+usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  -s LIMIT_START, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e LIMIT_END, --limit-end LIMIT_END
+                        Limit end time of the search
+  -c COLOR_MAP, --color-map COLOR_MAP
+                        Override default colormap
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  -l LEVELS, --levels LEVELS
+                        Override default levels
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  -n LABEL_NUM, --label-num LABEL_NUM
+                        Override # of label for each contour
+  --dpi DPI             DPI of output image
+  -w LINE_WIDTH, --line-width LINE_WIDTH
+                        Override contour line width
+  --exclude-edge        Exclude edge case in transfer
+```
+
+Draw an equ-time graph originating from the specified station.
+
+An example output (outputted by the command in example usage) is shown below:
+![An example of equ-time graph for two stations](example-2.png)
+Notice that in every station's circle,
+the number represents the average difference number of minutes needed to travel here,
+originating from two stations.
+Negative value represents nearer to the first station, and positive value represents nearer to the second station.
+
+The options allowed are the same as those specified [above](#draw_mappy-draw-equ-time-map-originating-from-a-station).
+
+**NOTE: This requires 5~10 minutes to compute.**
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_equtime.py -n 3 -o ./docs/example-2.png
+City default: &lt;北京: 24 lines&gt;
+? Please select a starting station: <i>大兴机场</i>
+? Please select an ending station: <i>2号航站楼</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-03-04</i>
+Calculating 大兴机场 from 23:00: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 147/147 [01:13<00:00,  2.00it/s]
+Calculating 2号航站楼 from 23:10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 107/107 [00:54<00:00,  1.95it/s]
+Map default: &lt;Official Map: /Users/mick/Documents/Subway/Beijing Subway/Beijing-Subway-Tools/data/beijing/maps/official.png&gt;
+Drawing stations done!
+Drawing levels: [-75, -60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 75]
+Recalculated min/max: -61.85 - 46.47
+Drawing contours done! Saving...
+</pre>
