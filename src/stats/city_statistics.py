@@ -15,6 +15,7 @@ from tabulate import tabulate
 from src.city.ask_for_city import ask_for_city, ask_for_date
 from src.city.city import City
 from src.city.line import Line
+from src.common.common import parse_time, diff_time_tuple
 from src.routing.train import parse_all_trains, Train
 
 
@@ -97,7 +98,7 @@ def display_first(
 
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
-    include_limit: bool = True
+    include_limit: bool = True, include_passing_limit: bool = True
 ) -> tuple[dict[str, list[tuple[str, Train]]], City, dict[str, Line], argparse.Namespace]:
     """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
@@ -106,6 +107,9 @@ def parse_args(
     parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
     parser.add_argument("-f", "--full-only", action="store_true",
                         help="Only include train that runs the full journey")
+    if include_passing_limit:
+        parser.add_argument("-s", "--limit-start", help="Limit earliest passing time of the trains")
+        parser.add_argument("-e", "--limit-end", help="Limit latest passing time of the trains")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--include-lines", help="Include lines")
     group.add_argument("-x", "--exclude-lines", help="Exclude lines")
@@ -137,12 +141,23 @@ def parse_args(
         exclude_lines = [x.strip() for x in args.exclude_lines.split(",")]
         all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines] for k, v in all_trains.items()}
         lines = {k: v for k, v in lines.items() if v.name not in exclude_lines}
+
+    # Parse start/end limit time
+    if include_passing_limit:
+        if args.limit_start is not None:
+            ls_tuple = parse_time(args.limit_start)
+            all_trains = {k: [e for e in v if diff_time_tuple(e[1].arrival_time[k], ls_tuple) >= 0]
+                          for k, v in all_trains.items()}
+        if args.limit_end is not None:
+            le_tuple = parse_time(args.limit_end)
+            all_trains = {k: [e for e in v if diff_time_tuple(e[1].arrival_time[k], le_tuple) <= 0]
+                          for k, v in all_trains.items()}
     return all_trains, city, lines, args
 
 
 def append_sort_args(parser: argparse.ArgumentParser) -> None:
     """ Append common sorting arguments like -s """
-    parser.add_argument("-s", "--sort-by", help="Sort by these column(s)", default="")
+    parser.add_argument("-b", "--sort-by", help="Sort by these column(s)", default="")
     parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
     parser.add_argument("-t", "--table-format", help="Table format", default="simple")
 
