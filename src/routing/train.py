@@ -85,14 +85,19 @@ class Train:
         ]
         return add_min_tuple(end_time, min(time_list))
 
-    def stop_time(self, station: str) -> str:
-        """ Train stop time """
+    def stop_time_repr(self, station: str) -> str:
+        """ Train stop time representation """
         assert station in self.stations and station in self.arrival_time, station
         return get_time_repr(*self.arrival_time[station])
 
+    def stop_time_str(self, station: str) -> str:
+        """ Train stop time string """
+        assert station in self.stations and station in self.arrival_time, station
+        return get_time_str(*self.arrival_time[station])
+
     def show_with(self, station: str) -> str:
         """ String representation with stop time on station """
-        base = f"{station} {self.stop_time(station)}"
+        base = f"{station} {self.stop_time_repr(station)}"
         if self.stations[0] != station:
             base = f"{self.stations[0]} {self.start_time_repr()} -> " + base
         if self.loop_next is not None:
@@ -160,10 +165,10 @@ class Train:
         arrival_keys = list(self.arrival_time.keys())
         if end_station not in arrival_keys or arrival_keys.index(end_station) < arrival_keys.index(start_station):
             assert self.loop_next is not None, self
-            center = f" -> {end_station} {self.loop_next.stop_time(end_station)}"
+            center = f" -> {end_station} {self.loop_next.stop_time_repr(end_station)}"
         else:
-            center = f" -> {end_station} {self.stop_time(end_station)}"
-        return f"{self.direction_repr()} {start_station} {self.stop_time(start_station)}" + \
+            center = f" -> {end_station} {self.stop_time_repr(end_station)}"
+        return f"{self.direction_repr()} {start_station} {self.stop_time_repr(start_station)}" + \
             center + f" ({self.two_station_duration_repr(start_station, end_station)})"
 
     def two_station_interval(self, start_station: str, end_station: str) -> list[str]:

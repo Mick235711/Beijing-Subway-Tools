@@ -11,6 +11,7 @@ from pathlib import Path
 import pyjson5
 
 from src.city.carriage import Carriage, parse_carriage
+from src.city.date_group import DateGroup
 from src.city.line import Line, parse_line
 from src.city.through_spec import ThroughSpec, parse_through_spec
 from src.city.transfer import Transfer, parse_transfer, parse_virtual_transfer
@@ -52,12 +53,12 @@ class City:
             self.lines_processed[line.name] = line
         return self.lines_processed
 
-    def all_date_groups(self) -> set[str]:
+    def all_date_groups(self) -> dict[str, DateGroup]:
         """ Get all possible date groups """
-        all_groups: set[str] = set()
+        all_groups: dict[str, DateGroup] = {}
         for line in self.lines().values():
             for date_group in line.date_groups.values():
-                all_groups.add(date_group.name)
+                all_groups[date_group.name] = date_group
         return all_groups
 
 

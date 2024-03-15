@@ -82,11 +82,15 @@ class TimeInterval:
             for date_group, start, end in self.time_intervals
         ) + ">"
 
-    def covers(self, cur_date: date, cur_time: time, cur_day: bool = False) -> bool:
+    def covers(self, cur_date: date | DateGroup, cur_time: time, cur_day: bool = False) -> bool:
         """ Determine if the given date and time is within this interval """
         for date_group, start, end in self.time_intervals:
-            if date_group is not None and not date_group.covers(cur_date):
-                continue
+            if date_group is not None:
+                if isinstance(cur_date, date):
+                    if not date_group.covers(cur_date):
+                        continue
+                elif date_group != cur_date:
+                    continue
             if start is not None and diff_time_tuple((cur_time, cur_day), start) < 0:
                 continue
             if end is not None and diff_time_tuple((cur_time, cur_day), end) > 0:

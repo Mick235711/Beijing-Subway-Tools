@@ -7,7 +7,7 @@
 from datetime import date, time
 from typing import Any
 
-from src.city.date_group import TimeInterval, parse_time_interval
+from src.city.date_group import TimeInterval, parse_time_interval, DateGroup
 from src.city.line import Line
 
 
@@ -53,7 +53,7 @@ class Transfer:
 
     def get_transfer_time(
         self, from_line: Line, from_direction: str, to_line: Line, to_direction: str,
-        cur_date: date, cur_time: time, cur_day: bool = False
+        cur_date: date | DateGroup, cur_time: time, cur_day: bool = False
     ) -> tuple[float, bool]:
         """ Retrieve transfer time (returns true if special) """
         key = (from_line.name, from_direction, to_line.name, to_direction)

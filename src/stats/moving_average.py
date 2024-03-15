@@ -114,7 +114,7 @@ def get_section_data(
         cap_dict: dict[tuple[str, str, str, str], int] = {}
         for key, value in processed_line.items():
             station = key[2]
-            sorted_list = sorted(value, key=lambda t: t.stop_time(station))
+            sorted_list = sorted(value, key=lambda t: t.stop_time_str(station))
             for time_str, (count_value, cap_value) in count_train(
                 station, value, moving_min=moving_min,
                 start_time=None if include_edge else sorted_list[0].arrival_time[station],

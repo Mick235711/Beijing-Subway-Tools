@@ -27,15 +27,15 @@ def main() -> None:
                 filtered_full = [train for train in filtered_list if train.routes == [base_route]]
                 first_train, first_full = filtered_list[0], filtered_full[0]
                 last_train, last_full = filtered_list[-1], filtered_full[-1]
-                print(f"      First Train: {first_train.stop_time(station)} " +
+                print(f"      First Train: {first_train.stop_time_repr(station)} " +
                       f"({first_train.show_with(station)})")
                 if first_train != first_full:
-                    print(f" First Full Train: {first_full.stop_time(station)} " +
+                    print(f" First Full Train: {first_full.stop_time_repr(station)} " +
                           f"({first_full.show_with(station)})")
                 if last_train != last_full:
-                    print(f"  Last Full Train: {last_full.stop_time(station)} " +
+                    print(f"  Last Full Train: {last_full.stop_time_repr(station)} " +
                           f"({last_full.show_with(station)})")
-                print(f"       Last Train: {last_train.stop_time(station)} " +
+                print(f"       Last Train: {last_train.stop_time_repr(station)} " +
                       f"({last_train.show_with(station)})")
 
 
