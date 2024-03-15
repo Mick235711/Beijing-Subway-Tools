@@ -5,7 +5,7 @@ using the tools provided.
 
 This document describes the usage, parameter, and intended result of each tool in detail.
 
-# Genera
+# General
 ### General Structure
 Due to the design of relative imports, please run all the programs from the **root** directory of the project.
 For example, (You may need to prepend `export PYTHONPATH=.`)
