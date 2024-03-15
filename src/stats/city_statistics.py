@@ -108,7 +108,7 @@ def parse_args(
                         help="Only include train that runs the full journey")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--include-lines", help="Include lines")
-    group.add_argument("-e", "--exclude-lines", help="Exclude lines")
+    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
     if more_args is not None:
         more_args(parser)
     args = parser.parse_args()

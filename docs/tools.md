@@ -748,7 +748,7 @@ In all the programs in this section, the following arguments are supported:
 
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
 ```
-usage: max_train_station.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -e EXCLUDE_LINES] [-c]
+usage: max_train_station.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-c]
 
 options:
   -h, --help            show this help message and exit
@@ -758,7 +758,7 @@ options:
   -f, --full-only       Only include train that runs the full journey
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
-  -e EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   -c, --capacity        Output capacity data
 ```
@@ -816,7 +816,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`hour_trains.py`](/src/stats/hour_trains.py): Trains count for each hour
 ```
-usage: hour_trains.py [-h] [-a] [-f] [-i INCLUDE_LINES | -e EXCLUDE_LINES] [-m] [-o OUTPUT | --dump DUMP] [-c]
+usage: hour_trains.py [-h] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-m] [-o OUTPUT | --dump DUMP] [-c]
 
 options:
   -h, --help            show this help message and exit
@@ -824,7 +824,7 @@ options:
   -f, --full-only       Only include train that runs the full journey
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
-  -e EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   -m, --by-minutes      Output data by minutes
   -o OUTPUT, --output OUTPUT
@@ -869,7 +869,7 @@ Train Count by Hour:
 
 ### [`first_last_time.py`](/src/stats/first_last_time.py): Earliest/Latest first/last trains
 ```
-usage: first_last_time.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -e EXCLUDE_LINES]
+usage: first_last_time.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
 
 options:
   -h, --help            show this help message and exit
@@ -879,7 +879,7 @@ options:
   -f, --full-only       Only include train that runs the full journey
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
-  -e EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
 ```
 
@@ -1022,7 +1022,7 @@ Earliest -> Latest Last Trains:
 
 ### [`highest_speed.py`](/src/stats/highest_speed.py): Highest/Lowest/Average travel speed of each line
 ```
-usage: highest_speed.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -e EXCLUDE_LINES]
+usage: highest_speed.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
 
 options:
   -h, --help            show this help message and exit
@@ -1032,7 +1032,7 @@ options:
   -f, --full-only       Only include train that runs the full journey
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
-  -e EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
 ```
 
@@ -1089,7 +1089,7 @@ Fastest/Slowest Trains:
 
 ### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
 ```
-usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -e EXCLUDE_LINES] [-s SORT_BY] [-r] [-t TABLE_FORMAT] [-d {speed,capacity,distance,duration,count}] [-o OUTPUT]
+usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-s SORT_BY] [-r] [-t TABLE_FORMAT] [-d {speed,capacity,distance,duration,count}] [-o OUTPUT]
 
 options:
   -h, --help            show this help message and exit
@@ -1099,7 +1099,7 @@ options:
   -f, --full-only       Only include train that runs the full journey
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
-  -e EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   -s SORT_BY, --sort-by SORT_BY
                         Sort by these column(s)
@@ -1154,7 +1154,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`moving_average.py`](/src/stats/moving_average.py): Moving average statistics of trains
 ```
-usage: moving_average.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -e EXCLUDE_LINES] [-s SORT_BY] [-r] [-t TABLE_FORMAT] (-m MOVING_AVERAGE | --section SECTION) [--show-example] [--include-edge]
+usage: moving_average.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-s SORT_BY] [-r] [-t TABLE_FORMAT] (-m MOVING_AVERAGE | --section SECTION) [--show-example] [--include-edge]
                          [-o OUTPUT]
 
 options:
@@ -1165,7 +1165,7 @@ options:
   -f, --full-only       Only include train that runs the full journey
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
-  -e EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   -s SORT_BY, --sort-by SORT_BY
                         Sort by these column(s)
