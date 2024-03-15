@@ -12,7 +12,22 @@ from src.city.date_group import DateGroup
 from src.city.transfer import Transfer, TransferSpec
 from src.common.common import suffix_s, diff_time_tuple, average
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, divide_by_line, parse_args
+from src.stats.city_statistics import display_first, parse_args
+
+
+def key_list_str(
+    result_key: tuple[str, str, TransferSpec], values: list[float], criteria: float, percentage: bool
+) -> str:
+    """ Obtain string representation """
+    base = result_key[0] + (
+        f" -> {result_key[1]} (virtual)" if result_key[0] != result_key[1] else ""
+    )
+    base += f" / {result_key[2][0]} ({result_key[2][1]}) -> {result_key[2][2]} ({result_key[2][3]}): "
+    base += "Average = " + suffix_s("minute", f"{criteria:.2f}")\
+        if not percentage else f"Percentage = {criteria * 100:.2f}%"
+    base += ", max = " + suffix_s("minute", f"{max(values):.2f}")
+    base += ", min = " + suffix_s("minute", f"{min(values):.2f}")
+    return base
 
 
 def avg_waiting_time(
@@ -73,18 +88,15 @@ def avg_waiting_time(
                 ) - transfer_time)
 
     # Print results
+    criteria = [(k, v, average(v)) for k, v in results.items()]
+    satisfied = min_waiting is not None or max_waiting is not None
+    if satisfied:
+        criteria = [(k, v, len([
+            x for x in v if (min_waiting is None or min_waiting <= x) and (max_waiting is None or max_waiting >= x)
+        ]) / len(v)) for k, v in results.items()]
     display_first(
-        sorted(results.items(), key=lambda x: average(x[1]), reverse=True),
-        lambda key_list: key_list[0][0] + (
-            f" -> {key_list[0][1]} (virtual)" if key_list[0][0] != key_list[0][1] else ""
-        ) + f" / {key_list[0][2][0]} ({key_list[0][2][1]}) -> {key_list[0][2][2]} ({key_list[0][2][3]})" +
-        ": Average = " + suffix_s(
-            "minute", f"{average(key_list[1]):.2f}"
-        ) + ", max = " + suffix_s(
-            "minute", f"{max(key_list[1]):.2f}"
-        ) + ", min = " + suffix_s(
-            "minute", f"{min(key_list[1]):.2f}"
-        ), limit_num=limit_num
+        sorted(criteria, key=lambda x: x[2], reverse=True),
+        lambda key_list: key_list_str(*key_list, satisfied), limit_num=limit_num
     )
 
 
