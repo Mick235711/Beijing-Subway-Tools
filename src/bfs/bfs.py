@@ -200,7 +200,7 @@ def find_next_train(
         diff_min = diff_time_tuple((next_time, next_day), train.arrival_time[new_station])
         if diff_min > 0:
             continue
-        if exclude_edge and diff_min == 0:
+        if exclude_edge and diff_min == 0 and transfer_time != 0:
             continue
         if exclude_tuple is not None and (train.line, train.direction) in exclude_tuple:
             continue
@@ -298,7 +298,10 @@ def bfs(
             exclude_tuple=exclude_tuple, exclude_edge=exclude_edge
         ):
             next_train_virtual = next_train.arrival_time_virtual(next_train_start)
-            if len(next_train.line.must_include) != 0 and next_train_start not in next_train.line.must_include:
+            if len(next_train.line.must_include) != 0 and next_train_start not in next_train.line.must_include and not (
+                station == start_station and initial_line_direction is not None and
+                initial_line_direction[0] == next_train.line
+            ):
                 next_stations = [
                     (st, next_train_virtual[st]) for st in next_train.line.must_include if st in next_train_virtual
                 ]
