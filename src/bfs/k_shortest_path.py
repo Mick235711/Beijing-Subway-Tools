@@ -9,7 +9,7 @@ from math import floor, ceil
 
 from src.city.line import Line
 from src.city.transfer import Transfer
-from src.common.common import add_min
+from src.common.common import add_min, diff_time_tuple
 from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index
 from src.routing.train import Train
 
@@ -50,7 +50,10 @@ def merge_path(path1: Path, path2: Path) -> Path:
         return path1 + path2
     if path2[0][1].line == path1[-1][1].line:
         assert path2[0][1].direction == path1[-1][1].direction, (path1, path2)
-        return path1 + path2[1:]
+        assert diff_time_tuple(
+            path2[0][1].arrival_time[path2[0][0]], path1[-1][1].arrival_time_virtual(path1[-1][0])[path2[0][0]]
+        ) >= 0, (path1, path2)
+        return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
     return path1 + path2
 
 
