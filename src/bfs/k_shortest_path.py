@@ -52,7 +52,9 @@ def merge_path(path1: Path, path2: Path) -> Path:
         assert path2[0][1].direction == path1[-1][1].direction, (path1, path2)
         assert diff_time_tuple(
             path2[0][1].arrival_time[path2[0][0]], path1[-1][1].arrival_time_virtual(path1[-1][0])[path2[0][0]]
-        ) >= 0, (path1, path2)
+        ) == 0, (path1, path2)
+        if path2[0][1] == path1[-1][1].loop_next:
+            return path1 + path2[1:]
         return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
     return path1 + path2
 
@@ -143,6 +145,7 @@ def k_shortest_path(
             new_result.initial_time = start_time
             new_result.initial_day = start_day
             final_path = merge_path(limit_path(pk_path, station, end_station), new_path)
+            print(f"{final_path} = Limit {pk_path} to {station} and concat {new_path}")
 
             # Fix path
             fixed_path = [final_path[0]]
@@ -182,6 +185,7 @@ def k_shortest_path(
                     break
             if not found:
                 candidate.append(new_candidate)
+                print(f"===> {new_candidate[1]}")
 
         # Select the shortest candidate and add to the result
         if len(candidate) == 0:
