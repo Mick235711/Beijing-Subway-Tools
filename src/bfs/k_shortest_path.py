@@ -145,7 +145,6 @@ def k_shortest_path(
             new_result.initial_time = start_time
             new_result.initial_day = start_day
             final_path = merge_path(limit_path(pk_path, station, end_station), new_path)
-            print(f"{final_path} = Limit {pk_path} to {station} and concat {new_path}")
 
             # Fix path
             fixed_path = [final_path[0]]
@@ -185,7 +184,6 @@ def k_shortest_path(
                     break
             if not found:
                 candidate.append(new_candidate)
-                print(f"===> {new_candidate[1]}")
 
         # Select the shortest candidate and add to the result
         if len(candidate) == 0:
