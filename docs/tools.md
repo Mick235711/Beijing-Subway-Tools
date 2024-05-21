@@ -1322,7 +1322,7 @@ Longest/Shortest Train Segments:
 </pre>
 
 # [`graph/`](/src/graph): Draw equ-time graphs
-### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time map originating from a station
+### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
 usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
 
@@ -1380,7 +1380,69 @@ Recalculated min/max: 10.00 - 104.40
 Drawing contours done! Saving...
 </pre>
 
-### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time map from two stations
+### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
+```
+usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  -s LIMIT_START, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e LIMIT_END, --limit-end LIMIT_END
+                        Limit end time of the search
+  -c COLOR_MAP, --color-map COLOR_MAP
+                        Override default colormap
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  -l LEVELS, --levels LEVELS
+                        Override default levels
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  -n LABEL_NUM, --label-num LABEL_NUM
+                        Override # of label for each contour
+  --dpi DPI             DPI of output image
+  -w LINE_WIDTH, --line-width LINE_WIDTH
+                        Override contour line width
+  --exclude-edge        Exclude edge case in transfer
+```
+
+Draw an average time graph originating from the specified stations.
+In other words, the number in each station's circle represents the average time needed to reach the given stations.
+
+**NOTE: This requires several minutes per station specified to compute.**
+
+All the options are the same as those specified [above](#draw_mappy-draw-equ-time-maps-originating-from-a-station).
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_avg.py -n 3 -o ../avg-working.png
+City default: &lt;北京: 24 lines&gt;
+? Please select a station (empty to stop): <i>国贸</i>
+? Please select a station (empty to stop): <i>中关村</i>
+? Please select a station (empty to stop): <i>望京东</i>
+? Please select a station (empty to stop): <i>清河站</i>
+? Please select a station (empty to stop): <i>丰台科技园</i>
+? Please select a station (empty to stop): <i>丽泽商务区</i>
+? Please select a station (empty to stop): <i>荣昌东街</i>
+? Please select a station (empty to stop): <i>复兴门</i>
+? Please select a station (empty to stop):
+? Please enter the travel date (yyyy-mm-dd): <i>2024-05-21</i>
+Calculating 国贸 from 24:16: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 768/768 [06:03<00:00,  2.11it/s]
+Calculating 中关村 from 23:58: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 522/522 [04:35<00:00,  1.89it/s]
+Calculating 望京东 from 23:38: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 377/377 [03:43<00:00,  1.68it/s]
+Calculating 清河站 from 24:12: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 692/692 [06:21<00:00,  1.81it/s]
+Calculating 丰台科技园 from 23:48: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 478/478 [04:25<00:00,  1.80it/s]
+Calculating 丽泽商务区 from 23:41: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 430/430 [03:56<00:00,  1.82it/s]
+Calculating 荣昌东街 from 23:40: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 285/285 [02:33<00:00,  1.86it/s]
+Calculating 复兴门 from 23:58: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 699/699 [06:20<00:00,  1.84it/s]
+Map default: &lt;Official Map: /Users/mick/Documents/Subway/Beijing Subway/Beijing-Subway-Tools/data/beijing/maps/official.png&gt;
+Drawing stations done!
+Drawing levels: [10, 20, 30, 40, 50, 60, 75, 90, 105, 120]
+Recalculated min/max: 10.00 - 108.07
+Drawing contours done! Saving...
+</pre>
+
+### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time maps from two stations
 ```
 usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
 
@@ -1415,7 +1477,7 @@ the number represents the average difference number of minutes needed to travel 
 originating from two stations.
 Negative value represents nearer to the first station, and positive value represents nearer to the second station.
 
-The options allowed are the same as those specified [above](#draw_mappy-draw-equ-time-map-originating-from-a-station).
+The options allowed are the same as those specified [above](#draw_mappy-draw-equ-time-maps-originating-from-a-station).
 
 **NOTE: This requires 5~10 minutes to compute.**
 
