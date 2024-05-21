@@ -50,11 +50,9 @@ def merge_path(path1: Path, path2: Path) -> Path:
         return path1 + path2
     if path2[0][1].line == path1[-1][1].line:
         assert path2[0][1].direction == path1[-1][1].direction, (path1, path2)
-        assert diff_time_tuple(
-            path2[0][1].arrival_time[path2[0][0]], path1[-1][1].arrival_time_virtual(path1[-1][0])[path2[0][0]]
-        ) == 0, (path1, path2)
         if path2[0][1] == path1[-1][1].loop_next:
             return path1 + path2[1:]
+        assert path1[-1][0] in path2[0][1].arrival_time, (path1, path2)
         return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
     return path1 + path2
 

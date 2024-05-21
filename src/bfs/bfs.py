@@ -157,13 +157,14 @@ def get_all_trains(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     virtual_dict: dict[tuple[str, str], Transfer],
-    station: str, cur_date: date
+    station: str, cur_date: date, *, add_virtual: bool = True
 ) -> list[tuple[str, Train]]:
     """ Get all trains passing through a station and its virtual transfers """
     all_passing = [(station, x) for x in get_all_trains_single(lines, train_dict, station, cur_date)]
-    for (from_station, to_station), transfer in virtual_dict.items():
-        if from_station == station:
-            all_passing += [(to_station, x) for x in get_all_trains_single(lines, train_dict, to_station, cur_date)]
+    if add_virtual:
+        for (from_station, to_station), transfer in virtual_dict.items():
+            if from_station == station:
+                all_passing += [(to_station, x) for x in get_all_trains_single(lines, train_dict, to_station, cur_date)]
     return sorted(all_passing, key=lambda st: get_time_str(*st[1].arrival_time[st[0]]))
 
 
@@ -180,7 +181,10 @@ def find_next_train(
     """ Find all possible next trains """
     # Find one for each line/direction/routes pair
     result: dict[tuple[str, str, frozenset[TrainRoute]], tuple[str, Train]] = {}
-    for new_station, train in get_all_trains(lines, train_dict, virtual_dict, station, cur_date):
+    for new_station, train in get_all_trains(
+        lines, train_dict, virtual_dict, station, cur_date,
+        add_virtual=(cur_line is not None and cur_direction is not None)
+    ):
         # calculate the least time for this line/direction
         if new_station != station:
             assert cur_line is not None and cur_direction is not None, train

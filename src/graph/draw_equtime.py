@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Draw an subway map with equal time markings """
+""" Draw a subway map with equal time markings """
 
 # Libraries
 from typing import cast

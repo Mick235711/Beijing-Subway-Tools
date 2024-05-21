@@ -9,7 +9,7 @@ from datetime import date, time
 
 from tqdm import tqdm
 
-from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date
+from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_station_list
 from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
@@ -136,6 +136,47 @@ def shortest_in_city(
         limit_end=le_time, limit_end_day=le_day,
         exclude_edge=exclude_edge
     )
+
+
+def avg_shortest_in_city(
+    limit_start: str | None = None,
+    limit_end: str | None = None,
+    *,
+    exclude_edge: bool = False
+) -> tuple[City, list[str], dict[str, tuple[float, float, float, float]]]:
+    """ Find the shortest path to several different stations """
+    city = ask_for_city()
+    stations = [x[0] for x in ask_for_station_list(city)]
+    start_date = ask_for_date()
+    result_dict: dict[str, tuple[float, float, float, float]] = {}
+    len_dict: dict[str, int] = {}
+    for station in stations:
+        _, _, result = shortest_in_city(
+            limit_start, limit_end, (city, station, start_date), exclude_edge=exclude_edge
+        )
+        if station not in len_dict:
+            len_dict[station] = 0
+        len_dict[station] += 1
+        for station2, data in result.items():
+            if station2 not in result_dict:
+                result_dict[station2] = (0.0, 0.0, 0.0, 0.0)
+            if station2 not in len_dict:
+                len_dict[station2] = 0
+            result_dict[station2] = (
+                result_dict[station2][0] + data[0],
+                result_dict[station2][1] + data[1],
+                result_dict[station2][2] + data[2],
+                result_dict[station2][3] + data[3]
+            )
+            len_dict[station2] += 1
+    for station, station_data in result_dict.items():
+        result_dict[station] = (
+            station_data[0] / len_dict[station],
+            station_data[1] / len_dict[station],
+            station_data[2] / len_dict[station],
+            station_data[3] / len_dict[station]
+        )
+    return city, stations, result_dict
 
 
 def path_shorthand(end_station: str, path: AbstractPath) -> str:

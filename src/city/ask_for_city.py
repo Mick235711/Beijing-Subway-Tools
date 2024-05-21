@@ -82,7 +82,7 @@ def ask_for_line_with_through(
 
 def ask_for_station(
     city: City, *,
-    exclude: set[str] | None = None, message: str | None = None
+    exclude: set[str] | None = None, message: str | None = None, allow_empty: bool = False
 ) -> tuple[str, set[Line]]:
     """ Ask for a station in the city """
     # First compute all the stations
@@ -114,11 +114,9 @@ def ask_for_station(
     aliases = dict(sorted(aliases.items(), key=lambda x: to_pinyin(x[0])[0]))
 
     # Ask
-    if message is not None:
-        station = complete_pinyin(message, meta_information, aliases, sort=False)
-    else:
-        station = complete_pinyin("Please select a station:", meta_information, aliases, sort=False)
-    return station, station_lines[station]
+    real_message = message or "Please select a station:"
+    station = complete_pinyin(real_message, meta_information, aliases, sort=False, allow_empty=allow_empty)
+    return station, station_lines[station] if station != "" else set()
 
 
 def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
@@ -127,6 +125,17 @@ def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, 
     result2 = ask_for_station(
         city, message="Please select an ending station:", exclude={result1[0]})
     return result1, result2
+
+
+def ask_for_station_list(city: City) -> list[tuple[str, set[Line]]]:
+    """ Ask for a list of stations in the city """
+    result: list[tuple[str, set[Line]]] = []
+    while True:
+        station = ask_for_station(city, message="Please add a station (empty to stop):", allow_empty=True)
+        if station[0] == "":
+            break
+        result.append(station)
+    return result
 
 
 def ask_for_line_in_station(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Draw an subway map """
+""" Draw a subway map """
 
 # Libraries
 import argparse
