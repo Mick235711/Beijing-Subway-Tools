@@ -30,6 +30,7 @@ def map_args() -> argparse.Namespace:
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
     parser.add_argument("-l", "--levels", help="Override default levels")
+    parser.add_argument("-f", "--focus", help="Add focus on a specific contour", type=int)
     parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
                         default="time", help="Graph data source")
     parser.add_argument(
@@ -100,7 +101,7 @@ def draw_contours(
     colormap: Colormap,
     map_obj: Map, avg_shortest: dict[str, float],
     *, levels: int | list[int] | None = None,
-    label_num: int = 1,
+    label_num: int = 1, focus_contour: int | None = None,
     **kwargs
 ) -> None:
     """ Draw contours on the whole map """
@@ -149,10 +150,12 @@ def draw_contours(
             30,  # min(list(map(abs, list(filter(lambda f: f != 0, levels))))),
             vmin=min0, vmax=max0
         ) if have_minus else LogNorm(min0, max0)
+        if focus_contour is not None and focus_contour not in levels:
+            print(f"Warning: The specified focus contour {focus_contour} is not in the levels list! (Ignoring spec)")
     else:
         norm = None
     cs = ax.contour(X, Y, Z, norm=norm, colors=([
-        ((0.0, 0.0, 0.0, 0.8) if f == 0 else (0.0, 0.0, 0.0, 0.2))
+        ((0.0, 0.0, 0.0, 0.8) if focus_contour is not None and f == focus_contour else (0.0, 0.0, 0.0, 0.2))
         for f in levels
     ]) if isinstance(levels, list) else [
         (0.0, 0.0, 0.0, 0.2)
@@ -225,7 +228,7 @@ def main() -> None:
         img, cmap, map_obj, result_dict,
         dpi=args.dpi, output=args.output,
         levels=levels, label_num=args.label_num,
-        linewidths=args.line_width
+        linewidths=args.line_width, focus_contour=args.focus
     )
 
 

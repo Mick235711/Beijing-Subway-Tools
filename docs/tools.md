@@ -1338,6 +1338,8 @@ options:
                         Output path
   -l LEVELS, --levels LEVELS
                         Override default levels
+  -f FOCUS, --focus FOCUS
+                        Add focus on a specific contour
   -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
                         Graph data source
   -n LABEL_NUM, --label-num LABEL_NUM
@@ -1360,6 +1362,7 @@ There are a lot of options to customize the graph:
 - `-s`, `-e`, and `--exclude-edge` have the same meaning as in [the statistics section](#common-arguments).
 - `-o` specifies the output graph path.
 - `-l` let you override the default contour levels. (For example: `-l 1,10,25` only draw contours at those three minutes.)
+- `-f` let you add focus (make bolder) on a specific contour line.
 - `--dpi` let you override the default DPI of the output image.
 - `-d` let you choose the data source.
 - `-n` let you specify how many times the minute texts should be drawn on contour lines.
@@ -1396,6 +1399,8 @@ options:
                         Output path
   -l LEVELS, --levels LEVELS
                         Override default levels
+  -f FOCUS, --focus FOCUS
+                        Add focus on a specific contour
   -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
                         Graph data source
   -n LABEL_NUM, --label-num LABEL_NUM
@@ -1458,6 +1463,8 @@ options:
                         Output path
   -l LEVELS, --levels LEVELS
                         Override default levels
+  -f FOCUS, --focus FOCUS
+                        Add focus on a specific contour
   -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
                         Graph data source
   -n LABEL_NUM, --label-num LABEL_NUM

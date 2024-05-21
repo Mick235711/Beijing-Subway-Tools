@@ -60,7 +60,7 @@ def main() -> None:
         img, cmap, map_obj, result_dict,
         dpi=args.dpi, output=args.output,
         levels=levels, label_num=args.label_num,
-        linewidths=args.line_width
+        linewidths=args.line_width, focus_contour=args.focus
     )
 
 
