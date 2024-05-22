@@ -16,7 +16,7 @@ from src.graph.draw_map import get_levels, draw_all_station, draw_contour_wrap, 
 from src.bfs.avg_shortest_time import avg_shortest_in_city
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 200000000
+Image.MAX_IMAGE_PIXELS = 300000000
 
 
 def main() -> None:

@@ -19,7 +19,7 @@ from src.graph.map import Map
 from src.bfs.avg_shortest_time import shortest_in_city
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 200000000
+Image.MAX_IMAGE_PIXELS = 300000000
 
 
 def map_args() -> argparse.Namespace:
@@ -71,8 +71,11 @@ def draw_station(
     map_obj: Map, text: str, *args, **kwargs
 ) -> None:
     """ Draw circle & text onto station position """
+    if station not in map_obj.coordinates:
+        print(f"Warning: {station} ignored since no coordinates are specified!")
+        return
     x, y, r = map_obj.coordinates[station]
-    draw.ellipse([(x, y), (x + 2 * r, y + 2 * r)], outline="black", fill="white")
+    draw.ellipse([(x, y), (x + 2 * r, y + 2 * r)], fill="white")
     font_size = find_font_size(draw, text, 2 * r)
     kwargs["font_size"] = font_size
     kwargs["anchor"] = "mm"
@@ -110,6 +113,8 @@ def draw_contours(
     y: list[float] = []
     z: list[float] = []
     for station, shortest in avg_shortest.items():
+        if station not in map_obj.coordinates:
+            continue
         station_x, station_y, station_r = map_obj.coordinates[station]
         x.append(station_x + station_r)
         y.append(station_y + station_r)
