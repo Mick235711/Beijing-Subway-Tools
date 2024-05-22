@@ -1,0 +1,8 @@
+{
+    name: "Real Distance Map",
+    path: "maps/real-distance.png",
+    radius: 35,
+    transfer_radius: 64,
+    coordinates: {
+    }
+}
