@@ -1324,7 +1324,7 @@ Longest/Shortest Train Segments:
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
-usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
 
 options:
   -h, --help            show this help message and exit
@@ -1385,7 +1385,7 @@ Drawing contours done! Saving...
 
 ### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
 ```
-usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
 
 options:
   -h, --help            show this help message and exit
@@ -1449,7 +1449,7 @@ Drawing contours done! Saving...
 
 ### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time maps from two stations
 ```
-usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
 
 options:
   -h, --help            show this help message and exit

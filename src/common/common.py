@@ -426,3 +426,15 @@ def sequence_data(sequence: Sequence[T], *,
     min_cnt = min(key(x) for x in sequence)
     max_cnt = max(key(x) for x in sequence)
     return len(sequence), avg_cnt, min_cnt, max_cnt
+
+
+def parse_comma(field: str | None, default: str | None = None) -> set[str]:
+    """ Parse comma-separated argument values """
+    if default is not None and field is None:
+        field = default
+    if field is None:
+        return set()
+    elif "," in field:
+        return set(x.strip() for x in field.split(","))
+    else:
+        return {field.strip()}

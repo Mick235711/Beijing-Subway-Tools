@@ -15,6 +15,7 @@ from matplotlib.colors import LinearSegmentedColormap, Colormap, LogNorm, SymLog
 from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map
+from src.common.common import parse_comma
 from src.graph.map import Map
 from src.bfs.avg_shortest_time import shortest_in_city
 
@@ -30,7 +31,7 @@ def map_args() -> argparse.Namespace:
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
     parser.add_argument("-l", "--levels", help="Override default levels")
-    parser.add_argument("-f", "--focus", help="Add focus on a specific contour", type=int)
+    parser.add_argument("-f", "--focus", help="Add focus on a specific contour")
     parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
                         default="time", help="Graph data source")
     parser.add_argument(
@@ -104,8 +105,8 @@ def draw_contours(
     colormap: Colormap,
     map_obj: Map, avg_shortest: dict[str, float],
     *, levels: int | list[int] | None = None,
-    label_num: int = 1, focus_contour: int | None = None,
-    **kwargs
+    label_num: int = 1, focus_contour: int | set[int] | None = None,
+    line_width: list[int] | None = None
 ) -> None:
     """ Draw contours on the whole map """
     # Construct x, y, z
@@ -140,8 +141,16 @@ def draw_contours(
             levels = sorted(x for x in list(set(processed_levels)) if x != 0)
         print("Drawing levels:", levels)
 
+    kwargs = {}
     if levels is not None:
         kwargs["levels"] = levels
+
+    regularize_focus: set[int] = set()
+    if focus_contour is not None:
+        if isinstance(focus_contour, int):
+            regularize_focus.add(focus_contour)
+        else:
+            regularize_focus = focus_contour
 
     if isinstance(levels, list):
         have_minus = any(level < 0 for level in levels)
@@ -155,16 +164,18 @@ def draw_contours(
             30,  # min(list(map(abs, list(filter(lambda f: f != 0, levels))))),
             vmin=min0, vmax=max0
         ) if have_minus else LogNorm(min0, max0)
-        if focus_contour is not None and focus_contour not in levels:
-            print(f"Warning: The specified focus contour {focus_contour} is not in the levels list! (Ignoring spec)")
+        for reg_focus in regularize_focus:
+            if reg_focus not in levels:
+                print(f"Warning: The specified focus contour ({reg_focus}) is not in the levels list! (Ignoring spec)")
     else:
         norm = None
+
     cs = ax.contour(X, Y, Z, norm=norm, colors=([
-        ((0.0, 0.0, 0.0, 0.8) if focus_contour is not None and f == focus_contour else (0.0, 0.0, 0.0, 0.2))
+        ((0.0, 0.0, 0.0, 0.8) if f in regularize_focus else (0.0, 0.0, 0.0, 0.2))
         for f in levels
     ]) if isinstance(levels, list) else [
         (0.0, 0.0, 0.0, 0.2)
-    ], origin="upper", linestyles="solid", **kwargs)
+    ], origin="upper", linestyles="solid", linewidths=line_width, **kwargs)
 
     for _ in range(label_num):
         labels = ax.clabel(cs, inline=True, fontsize=32)
@@ -172,22 +183,29 @@ def draw_contours(
             label.set_alpha(0.8)
 
     # Draw contour filled
-    del kwargs["linewidths"]
     ax.contourf(X, Y, Z, norm=norm,
                 cmap=colormap, origin="upper", extend="both", alpha=0.1, **kwargs)
 
 
 def draw_contour_wrap(
-    img: Image.Image, *args, dpi: int, output: str, **kwargs
+    img: Image.Image, cmd_args: argparse.Namespace, *args,
+    default_contours: str | None = None,
+    levels: int | list[int] | None = None
 ) -> None:
     """ Draw contour in the current figure """
+    dpi = cmd_args.dpi
+    output = cmd_args.output
     fig = plt.figure(
         figsize=(img.size[0] / dpi, img.size[1] / dpi), frameon=False)
     ax = plt.Axes(fig, (0., 0., 1., 1.))
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(img, aspect="equal")
-    draw_contours(ax, img.size, *args, **kwargs)
+    draw_contours(
+        ax, img.size, *args,
+        label_num=cmd_args.label_num, line_width=cmd_args.line_width, levels=levels,
+        focus_contour=set(int(x) for x in parse_comma(cmd_args.focus, default_contours)),
+    )
     print("Drawing contours done! Saving...")
     fig.savefig(output, dpi=dpi)
 
@@ -229,12 +247,7 @@ def main() -> None:
     print("Drawing stations done!")
 
     # Draw contours
-    draw_contour_wrap(
-        img, cmap, map_obj, result_dict,
-        dpi=args.dpi, output=args.output,
-        levels=levels, label_num=args.label_num,
-        linewidths=args.line_width, focus_contour=args.focus
-    )
+    draw_contour_wrap(img, args, cmap, map_obj, result_dict, levels=levels)
 
 
 # Call main

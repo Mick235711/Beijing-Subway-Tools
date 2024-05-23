@@ -14,7 +14,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
-    percentage_coverage, percentage_str, suffix_s, average, distance_str
+    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma
 from src.bfs.bfs import bfs, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.routing.train import Train, parse_all_trains
 
@@ -204,13 +204,7 @@ def main() -> None:
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     args = parser.parse_args()
 
-    stations: set[str] | None = None
-    if args.to_station is not None:
-        if "," in args.to_station:
-            stations = set(x.strip() for x in args.to_station.split(","))
-        else:
-            stations = {args.to_station.strip()}
-
+    stations = parse_comma(args.to_station)
     city, _, result_dict = shortest_in_city(args.limit_start, args.limit_end, exclude_edge=args.exclude_edge)
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:
