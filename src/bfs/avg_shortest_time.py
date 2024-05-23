@@ -211,9 +211,9 @@ def main() -> None:
         for i, (station, (
             avg_time, avg_transfer, avg_station, avg_dist, max_info, min_info, path_coverage
         )) in enumerate(result_dict.items()):
-            if stations is not None and station not in stations:
+            if len(stations) > 0 and station not in stations:
                 continue
-            if stations is None and args.limit_num <= i < len(result_dict) - args.limit_num:
+            if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
                 if i == args.limit_num:
                     print("...")
                 continue
