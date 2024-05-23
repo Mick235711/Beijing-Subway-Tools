@@ -13,7 +13,7 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer, TransferSpec
 from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
-    distance_str, get_time_repr
+    distance_str, get_time_repr, from_minutes
 from src.routing.train import Train
 
 
@@ -353,3 +353,16 @@ def bfs(
                         in_queue.add(next_station)
                         queue.append(next_station)
     return results
+
+
+def bfs_wrap(lines: dict[str, Line],
+             train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+             transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
+             start_date: date, start_station: str, minute: int,
+             *_, **kwargs) -> tuple[time, bool, dict[str, BFSResult]]:
+    """ Wrap around the bfs() method """
+    cur_time, cur_day = from_minutes(minute)
+    return cur_time, cur_day, bfs(
+        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station, cur_time, cur_day,
+        **kwargs
+    )

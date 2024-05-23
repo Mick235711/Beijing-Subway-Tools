@@ -6,6 +6,8 @@
 # Libraries
 import argparse
 from datetime import date, time
+from functools import partial
+import multiprocessing as mp
 
 from tqdm import tqdm
 
@@ -15,11 +17,11 @@ from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma
-from src.bfs.bfs import bfs, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
+from src.bfs.bfs import bfs_wrap, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.routing.train import Train, parse_all_trains
 
 
-AbstractPath = list[tuple[str, tuple[Line, str] | None]]
+AbstractPath = list[tuple[str, tuple[str, str] | None]]
 PathInfo = tuple[int, Path, BFSResult]
 
 
@@ -40,11 +42,21 @@ def all_time_bfs(
     results: dict[str, list[PathInfo]] = {}
     limit_start_num = 0 if limit_start is None else to_minutes(limit_start, limit_start_day)
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
-    for i, minute in enumerate(bar := tqdm(list(x for x in all_minutes if limit_start_num <= x <= limit_end_num))):
-        cur_time, cur_day = from_minutes(minute)
-        bar.set_description(f"Calculating {start_station} from " + get_time_str(cur_time, cur_day))
-        bfs_result = bfs(lines, train_dict, transfer_dict, virtual_dict,
-                         start_date, start_station, cur_time, cur_day, exclude_edge=exclude_edge)
+    all_list = list(x for x in all_minutes if limit_start_num <= x <= limit_end_num)
+
+    with tqdm(desc=f"Calculating {start_station}", total=len(all_list)) as bar:
+        with mp.Pool() as pool:
+            multi_result = []
+            for elem in pool.imap_unordered(
+                partial(
+                    bfs_wrap, lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
+                    exclude_edge=exclude_edge
+                ), all_list, chunksize=50
+            ):
+                bar.update()
+                multi_result.append(elem)
+
+    for cur_time, cur_day, bfs_result in multi_result:
         for station, single_result in bfs_result.items():
             if station not in results:
                 results[station] = []
@@ -98,7 +110,8 @@ def calculate_shortest(
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
         coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([(list(
-            (station, (train.line, train.direction) if isinstance(train, Train) else None) for station, train in path[1]
+            (station, (train.line.name, train.direction) if isinstance(train, Train) else None)
+            for station, train in path[1]
         ), path) for path in times_paths])
         result_dict[station] = (
             average(times),
@@ -186,7 +199,7 @@ def path_shorthand(end_station: str, path: AbstractPath) -> str:
         if line_direction is None:
             result += f"{station} --- (virtual) --> "
         else:
-            result += f"{station} --- {line_direction[0].name} ({line_direction[1]}) --> "
+            result += f"{station} --- {line_direction[0]} ({line_direction[1]}) --> "
     return result + end_station
 
 
