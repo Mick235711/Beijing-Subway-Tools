@@ -130,7 +130,7 @@ def draw_contours(
     if isinstance(levels, list):
         max_value = max(abs(v) for v in avg_shortest.values())
         min_value = min(list(avg_shortest.values()))
-        processed_levels = [level for level in levels if min(min_value, 0) <= level <= max_value]
+        processed_levels = [level for level in levels if min_value <= level <= max_value]
         processed_levels.append(min(level for level in levels if level > max_value))
 
         have_minus = any(level < 0 for level in levels)
@@ -139,7 +139,7 @@ def draw_contours(
             levels = sorted(list(set(levels)))
         else:
             levels = sorted(x for x in list(set(processed_levels)) if x != 0)
-        print("Drawing levels:", levels)
+        print("Drawing levels:", levels, f"(min = {min_value:.2f}, max = {max_value:.2f})")
 
     kwargs = {}
     if levels is not None:
