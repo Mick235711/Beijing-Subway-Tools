@@ -33,7 +33,7 @@ def key_list_str(
 def avg_waiting_time(
     all_trains: dict[str, list[tuple[str, Train]]], city: City,
     *, limit_num: int = 5, min_waiting: int | None = None, max_waiting: int | None = None,
-    exclude_edge: bool = False
+    exclude_edge: bool = False, show_all: bool = False
 ) -> None:
     """ Print the average waiting time for each transfer station """
     lines = city.lines()
@@ -67,6 +67,11 @@ def avg_waiting_time(
             if station1 not in lines[from_l].stations:
                 station1, station2 = station2, station1
                 assert station1 in lines[from_l].stations, (station1, station2, transfer_spec, transfer_key)
+            if not show_all:
+                if station1 == lines[from_l].direction_stations(from_d)[0]:
+                    continue
+                if station2 == lines[to_l].direction_stations(to_d)[-1]:
+                    continue
             train_list1 = full_dict[station1][(from_l, from_d)]
             train_list2 = full_dict[station2][(to_l, to_d)]
             cur_index = 0  # Index into train_list2
@@ -95,7 +100,7 @@ def avg_waiting_time(
             x for x in v if (min_waiting is None or min_waiting <= x) and (max_waiting is None or max_waiting >= x)
         ]) / len(v)) for k, v in results.items()]
     display_first(
-        sorted(criteria, key=lambda x: x[2], reverse=True),
+        sorted(criteria, key=lambda x: x[2], reverse=satisfied),
         lambda key_list: key_list_str(*key_list, satisfied), limit_num=limit_num
     )
 
@@ -106,9 +111,11 @@ def main() -> None:
         """ Append more arguments """
         parser.add_argument("--min", type=int, help="Minimum waiting time")
         parser.add_argument("--max", type=int, help="Maximum waiting time")
+        parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
 
     all_trains, city, _, args = parse_args(append_arg)
-    avg_waiting_time(all_trains, city, limit_num=args.limit_num, min_waiting=args.min, max_waiting=args.max)
+    avg_waiting_time(all_trains, city, limit_num=args.limit_num,
+                     min_waiting=args.min, max_waiting=args.max, show_all=args.show_all)
 
 
 # Call main

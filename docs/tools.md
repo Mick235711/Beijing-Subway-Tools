@@ -821,7 +821,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`transfer_waiting.py`](/src/stats/max_train_station.py): Average waiting time for each transfer station
 ```
-usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX]
+usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--show-all]
 
 options:
   -h, --help            show this help message and exit
@@ -839,57 +839,60 @@ options:
                         Exclude lines
   --min MIN             Minimum waiting time
   --max MAX             Maximum waiting time
+  --show-all            Show all results (including impossible cases)
 ```
 
 Show the average waiting time after you finish transfer.
 If `--min` and `--max` are specified, odds of satisfying the given bound are shown.
+By default, impossible cases (those that require getting off the train at the first station, for example) are not considered.
+If you want to see all results, use `--show-all`.
 
 Example Usage:
 <pre>
 $ python3 src/stats/transfer_waiting.py -n 20
 City default: &lt;北京: 24 lines&gt;
-? Please enter the travel date (yyyy-mm-dd): <i>2024-03-04</i>
-#1: 三元桥 / 10号线 (内环) -> 首都机场线 (进城): Average = 8.58 minutes, max = 107.50 minutes, min = 0.50 minutes
-#2: 东直门 / 2号线 (内环) -> 首都机场线 (进城): Average = 8.29 minutes, max = 104.00 minutes, min = 1.00 minutes
-#3: 北新桥 / 5号线 (南行) -> 首都机场线 (进城): Average = 8.18 minutes, max = 94.50 minutes, min = 0.50 minutes
-#4: 阎村东 / 燕房线 (出城) -> 房山线 (出城): Average = 7.31 minutes, max = 88.00 minutes, min = 1.00 minutes
-#5: 东直门 / 2号线 (外环) -> 首都机场线 (进城): Average = 7.25 minutes, max = 95.00 minutes, min = 1.00 minutes
-#6: 东直门 / 13号线 (东行) -> 首都机场线 (进城): Average = 7.17 minutes, max = 92.50 minutes, min = 0.50 minutes
-#7: 东直门 / 13号线 (西行) -> 首都机场线 (进城): Average = 6.89 minutes, max = 84.50 minutes, min = 0.50 minutes
-#8: 北新桥 / 5号线 (北行) -> 首都机场线 (进城): Average = 6.73 minutes, max = 81.50 minutes, min = 0.50 minutes
-#9: 巴沟 / 10号线 (内环) -> 西郊线 (进城): Average = 6.67 minutes, max = 100.50 minutes, min = 0.50 minutes
-#10: 三元桥 / 10号线 (外环) -> 首都机场线 (进城): Average = 6.41 minutes, max = 61.50 minutes, min = 0.50 minutes
-#11: 丰台南路 / 9号线 (北行) -> 16号线 (南行): Average = 6.18 minutes, max = 78.00 minutes, min = 1.00 minutes
-#12: 草桥 / 19号线 (北行) -> 大兴机场线 (进城): Average = 5.97 minutes, max = 42.00 minutes, min = 1.00 minutes
-#13: 巴沟 / 10号线 (外环) -> 西郊线 (进城): Average = 5.85 minutes, max = 88.50 minutes, min = 0.50 minutes
-#14: 草桥 / 10号线 (内环) -> 大兴机场线 (进城): Average = 5.83 minutes, max = 53.00 minutes, min = 1.00 minutes
-#15: 草桥 / 10号线 (外环) -> 大兴机场线 (进城): Average = 5.78 minutes, max = 49.00 minutes, min = 1.00 minutes
-#16: 东直门 / 2号线 (内环) -> 首都机场线 (出城): Average = 5.72 minutes, max = 43.00 minutes, min = 1.00 minutes
-#17: 三元桥 / 10号线 (内环) -> 首都机场线 (出城): Average = 5.67 minutes, max = 56.50 minutes, min = 0.50 minutes
-#18: 东直门 / 2号线 (外环) -> 首都机场线 (出城): Average = 5.42 minutes, max = 34.00 minutes, min = 1.00 minutes
-#19: 金安桥 / 6号线 (西行) -> 11号线 (南行): Average = 5.32 minutes, max = 65.00 minutes, min = 1.00 minutes
-#20: 草桥 / 10号线 (外环) -> 大兴机场线 (出城): Average = 5.31 minutes, max = 11.00 minutes, min = 1.00 minutes
+? Please enter the travel date (yyyy-mm-dd): <i>2024-05-27</i>
+#1: 平安里 / 19号线 (北行) -> 4号线 (南行): Average = 1.48 minutes, max = 4.50 minutes, min = 0.50 minutes
+#2: 西单 / 1号线 (东行) -> 4号线 (南行): Average = 1.51 minutes, max = 12.50 minutes, min = 0.50 minutes
+#3: 西单 / 4号线 (北行) -> 1号线 (东行): Average = 1.52 minutes, max = 6.50 minutes, min = 0.50 minutes
+#4: 北京南站 / 14号线 (西南行) -> 4号线 (南行): Average = 1.54 minutes, max = 10.50 minutes, min = 0.50 minutes
+#5: 平安里 / 19号线 (南行) -> 4号线 (南行): Average = 1.59 minutes, max = 9.50 minutes, min = 0.50 minutes
+#6: 西单 / 4号线 (北行) -> 1号线 (西行): Average = 1.62 minutes, max = 5.50 minutes, min = 0.50 minutes
+#7: 七里庄 / 14号线 (西南行) -> 9号线 (南行): Average = 1.64 minutes, max = 12.50 minutes, min = 0.50 minutes
+#8: 大望路 / 14号线 (东北行) -> 1号线 (西行): Average = 1.64 minutes, max = 6.50 minutes, min = 0.50 minutes
+#9: 平安里 / 6号线 (西行) -> 4号线 (北行): Average = 1.68 minutes, max = 5.50 minutes, min = 0.50 minutes
+#10: 西单 / 1号线 (西行) -> 4号线 (北行): Average = 1.69 minutes, max = 7.50 minutes, min = 0.50 minutes
+#11: 平安里 / 6号线 (东行) -> 4号线 (南行): Average = 1.69 minutes, max = 12.50 minutes, min = 0.50 minutes
+#12: 王府井 / 8号线 (北行) -> 1号线 (东行): Average = 1.70 minutes, max = 7.50 minutes, min = 0.50 minutes
+#13: 复兴门 / 2号线 (外环) -> 1号线 (西行): Average = 1.71 minutes, max = 5.50 minutes, min = 0.50 minutes
+#14: 建国门 / 2号线 (内环) -> 1号线 (西行): Average = 1.71 minutes, max = 5.50 minutes, min = 0.50 minutes
+#15: 新宫 / 19号线 (南行) -> 4号线 (南行): Average = 1.74 minutes, max = 7.50 minutes, min = 0.50 minutes
+#16: 角门西 / 10号线 (内环) -> 4号线 (北行): Average = 1.75 minutes, max = 6.50 minutes, min = 0.50 minutes
+#17: 平安里 / 6号线 (西行) -> 4号线 (南行): Average = 1.76 minutes, max = 10.50 minutes, min = 0.50 minutes
+#18: 建国门 / 2号线 (外环) -> 1号线 (东行): Average = 1.76 minutes, max = 10.50 minutes, min = 0.50 minutes
+#19: 平安里 / 6号线 (东行) -> 4号线 (北行): Average = 1.76 minutes, max = 6.50 minutes, min = 0.50 minutes
+#20: 菜市口 / 7号线 (东行) -> 4号线 (南行): Average = 1.77 minutes, max = 10.50 minutes, min = 0.50 minutes
 ...
-#773: 平安里 / 6号线 (东行) -> 4号线 (北行): Average = 1.76 minutes, max = 6.50 minutes, min = 0.50 minutes
-#774: 建国门 / 2号线 (外环) -> 1号线 (东行): Average = 1.76 minutes, max = 10.50 minutes, min = 0.50 minutes
-#775: 平安里 / 6号线 (西行) -> 4号线 (南行): Average = 1.76 minutes, max = 10.50 minutes, min = 0.50 minutes
-#776: 角门西 / 10号线 (内环) -> 4号线 (北行): Average = 1.75 minutes, max = 6.50 minutes, min = 0.50 minutes
-#777: 新宫 / 19号线 (南行) -> 4号线 (南行): Average = 1.74 minutes, max = 7.50 minutes, min = 0.50 minutes
-#778: 建国门 / 2号线 (内环) -> 1号线 (西行): Average = 1.71 minutes, max = 5.50 minutes, min = 0.50 minutes
-#779: 复兴门 / 2号线 (外环) -> 1号线 (西行): Average = 1.71 minutes, max = 5.50 minutes, min = 0.50 minutes
-#780: 王府井 / 8号线 (北行) -> 1号线 (东行): Average = 1.70 minutes, max = 7.50 minutes, min = 0.50 minutes
-#781: 平安里 / 6号线 (东行) -> 4号线 (南行): Average = 1.69 minutes, max = 12.50 minutes, min = 0.50 minutes
-#782: 西单 / 1号线 (西行) -> 4号线 (北行): Average = 1.69 minutes, max = 7.50 minutes, min = 0.50 minutes
-#783: 平安里 / 6号线 (西行) -> 4号线 (北行): Average = 1.68 minutes, max = 5.50 minutes, min = 0.50 minutes
-#784: 大望路 / 14号线 (东北行) -> 1号线 (西行): Average = 1.64 minutes, max = 6.50 minutes, min = 0.50 minutes
-#785: 七里庄 / 14号线 (西南行) -> 9号线 (南行): Average = 1.64 minutes, max = 12.50 minutes, min = 0.50 minutes
-#786: 西单 / 4号线 (北行) -> 1号线 (西行): Average = 1.62 minutes, max = 5.50 minutes, min = 0.50 minutes
-#787: 巴沟 / 西郊线 (出城) -> 10号线 (内环): Average = 1.60 minutes, max = 5.50 minutes, min = 0.50 minutes
-#788: 平安里 / 19号线 (南行) -> 4号线 (南行): Average = 1.59 minutes, max = 9.50 minutes, min = 0.50 minutes
-#789: 北京南站 / 14号线 (西南行) -> 4号线 (南行): Average = 1.54 minutes, max = 10.50 minutes, min = 0.50 minutes
-#790: 西单 / 4号线 (北行) -> 1号线 (东行): Average = 1.52 minutes, max = 6.50 minutes, min = 0.50 minutes
-#791: 西单 / 1号线 (东行) -> 4号线 (南行): Average = 1.51 minutes, max = 12.50 minutes, min = 0.50 minutes
-#792: 平安里 / 19号线 (北行) -> 4号线 (南行): Average = 1.48 minutes, max = 4.50 minutes, min = 0.50 minutes
+#639: 北新桥 / 5号线 (南行) -> 首都机场线 (出城): Average = 4.84 minutes, max = 25.50 minutes, min = 0.50 minutes
+#640: 丰台站 / 10号线 (外环) -> 16号线 (南行): Average = 4.90 minutes, max = 63.50 minutes, min = 0.50 minutes
+#641: 金安桥 / 6号线 (西行) -> S1线 (出城): Average = 4.92 minutes, max = 50.00 minutes, min = 1.00 minutes
+#642: 次渠 / 亦庄线 (进城) -> 17号线 (南行): Average = 4.93 minutes, max = 49.50 minutes, min = 0.50 minutes
+#643: 苹果园 / 6号线 (西行) -> S1线 (出城): Average = 4.98 minutes, max = 47.00 minutes, min = 1.00 minutes
+#644: 草桥 / 19号线 (南行) -> 大兴机场线 (出城): Average = 5.05 minutes, max = 10.00 minutes, min = 1.00 minutes
+#645: 草桥 / 19号线 (北行) -> 大兴机场线 (出城): Average = 5.17 minutes, max = 10.00 minutes, min = 1.00 minutes
+#646: 次渠 / 17号线 (北行) -> 亦庄线 (出城): Average = 5.18 minutes, max = 57.50 minutes, min = 0.50 minutes
+#647: 草桥 / 10号线 (内环) -> 大兴机场线 (出城): Average = 5.28 minutes, max = 15.00 minutes, min = 1.00 minutes
+#648: 草桥 / 10号线 (外环) -> 大兴机场线 (出城): Average = 5.31 minutes, max = 11.00 minutes, min = 1.00 minutes
+#649: 金安桥 / 6号线 (西行) -> 11号线 (南行): Average = 5.32 minutes, max = 65.00 minutes, min = 1.00 minutes
+#650: 东直门 / 2号线 (外环) -> 首都机场线 (出城): Average = 5.42 minutes, max = 34.00 minutes, min = 1.00 minutes
+#651: 三元桥 / 10号线 (内环) -> 首都机场线 (出城): Average = 5.67 minutes, max = 56.50 minutes, min = 0.50 minutes
+#652: 东直门 / 2号线 (内环) -> 首都机场线 (出城): Average = 5.72 minutes, max = 43.00 minutes, min = 1.00 minutes
+#653: 丰台南路 / 9号线 (北行) -> 16号线 (南行): Average = 6.18 minutes, max = 78.00 minutes, min = 1.00 minutes
+#654: 三元桥 / 10号线 (外环) -> 首都机场线 (进城): Average = 6.41 minutes, max = 61.50 minutes, min = 0.50 minutes
+#655: 东直门 / 13号线 (东行) -> 首都机场线 (进城): Average = 7.17 minutes, max = 92.50 minutes, min = 0.50 minutes
+#656: 东直门 / 2号线 (外环) -> 首都机场线 (进城): Average = 7.25 minutes, max = 95.00 minutes, min = 1.00 minutes
+#657: 东直门 / 2号线 (内环) -> 首都机场线 (进城): Average = 8.29 minutes, max = 104.00 minutes, min = 1.00 minutes
+#658: 三元桥 / 10号线 (内环) -> 首都机场线 (进城): Average = 8.58 minutes, max = 107.50 minutes, min = 0.50 minutes
 </pre>
 
 ### [`hour_trains.py`](/src/stats/hour_trains.py): Trains count for each hour
