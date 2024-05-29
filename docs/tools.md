@@ -1389,6 +1389,7 @@ Drawing contours done! Saving...
 ### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
 ```
 usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH] [--exclude-edge]
+                   [--strategy {avg,min,max}]
 
 options:
   -h, --help            show this help message and exit
@@ -1412,6 +1413,8 @@ options:
   -w LINE_WIDTH, --line-width LINE_WIDTH
                         Override contour line width
   --exclude-edge        Exclude edge case in transfer
+  --strategy {avg,min,max}
+                        Strategy for combining station data
 ```
 
 Draw an average time graph originating from the specified stations.

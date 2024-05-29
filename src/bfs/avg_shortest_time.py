@@ -155,7 +155,8 @@ def avg_shortest_in_city(
     limit_start: str | None = None,
     limit_end: str | None = None,
     *,
-    exclude_edge: bool = False
+    exclude_edge: bool = False,
+    strategy: str = 'avg'
 ) -> tuple[City, list[str], dict[str, tuple[float, float, float, float]]]:
     """ Find the shortest path to several different stations """
     city = ask_for_city()
@@ -172,23 +173,44 @@ def avg_shortest_in_city(
         len_dict[station] += 1
         for station2, data in result.items():
             if station2 not in result_dict:
-                result_dict[station2] = (0.0, 0.0, 0.0, 0.0)
+                if strategy == 'avg':
+                    result_dict[station2] = (0.0, 0.0, 0.0, 0.0)
+                else:
+                    result_dict[station2] = (data[0], data[1], data[2], data[3])
             if station2 not in len_dict:
                 len_dict[station2] = 0
-            result_dict[station2] = (
-                result_dict[station2][0] + data[0],
-                result_dict[station2][1] + data[1],
-                result_dict[station2][2] + data[2],
-                result_dict[station2][3] + data[3]
-            )
+            if strategy == 'avg':
+                result_dict[station2] = (
+                    result_dict[station2][0] + data[0],
+                    result_dict[station2][1] + data[1],
+                    result_dict[station2][2] + data[2],
+                    result_dict[station2][3] + data[3]
+                )
+            elif strategy == 'min':
+                result_dict[station2] = (
+                    min(result_dict[station2][0], data[0]),
+                    min(result_dict[station2][1], data[1]),
+                    min(result_dict[station2][2], data[2]),
+                    min(result_dict[station2][3], data[3])
+                )
+            elif strategy == 'max':
+                result_dict[station2] = (
+                    max(result_dict[station2][0], data[0]),
+                    max(result_dict[station2][1], data[1]),
+                    max(result_dict[station2][2], data[2]),
+                    max(result_dict[station2][3], data[3])
+                )
+            else:
+                assert False, f"Unknown strategy: {strategy}"
             len_dict[station2] += 1
-    for station, station_data in result_dict.items():
-        result_dict[station] = (
-            station_data[0] / len_dict[station],
-            station_data[1] / len_dict[station],
-            station_data[2] / len_dict[station],
-            station_data[3] / len_dict[station]
-        )
+    if strategy == 'avg':
+        for station, station_data in result_dict.items():
+            result_dict[station] = (
+                station_data[0] / len_dict[station],
+                station_data[1] / len_dict[station],
+                station_data[2] / len_dict[station],
+                station_data[3] / len_dict[station]
+            )
     return city, stations, result_dict
 
 

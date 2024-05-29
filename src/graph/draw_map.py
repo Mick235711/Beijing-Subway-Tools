@@ -5,7 +5,8 @@
 
 # Libraries
 import argparse
-from typing import cast
+from typing import cast, Any
+from collections.abc import Callable
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -23,7 +24,7 @@ from src.bfs.avg_shortest_time import shortest_in_city
 Image.MAX_IMAGE_PIXELS = 300000000
 
 
-def map_args() -> argparse.Namespace:
+def map_args(more_args: Callable[[argparse.ArgumentParser], Any] | None = None) -> argparse.Namespace:
     """ Parse arguments """
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
@@ -40,6 +41,8 @@ def map_args() -> argparse.Namespace:
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=5)
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    if more_args is not None:
+        more_args(parser)
     return parser.parse_args()
 
 
@@ -242,7 +245,7 @@ def main() -> None:
 
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)
-    result_dict[start] = 0
+    result_dict[start] = 0.0
     draw_all_station(draw, (0.0, 0.0, 0.0), map_obj, result_dict)
     print("Drawing stations done!")
 
