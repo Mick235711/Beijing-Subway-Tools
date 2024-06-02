@@ -99,7 +99,7 @@ def display_first(
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True, include_passing_limit: bool = True
-) -> tuple[dict[str, list[tuple[str, Train]]], City, dict[str, Line], argparse.Namespace]:
+) -> tuple[dict[str, list[tuple[str, Train]]], argparse.Namespace, City, dict[str, Line]]:
     """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
     if include_limit:
@@ -152,7 +152,7 @@ def parse_args(
             le_tuple = parse_time(args.limit_end)
             all_trains = {k: [e for e in v if diff_time_tuple(e[1].arrival_time[k], le_tuple) <= 0]
                           for k, v in all_trains.items()}
-    return all_trains, city, lines, args
+    return all_trains, args, city, lines
 
 
 def append_sort_args(parser: argparse.ArgumentParser) -> None:

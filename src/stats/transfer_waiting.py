@@ -113,7 +113,7 @@ def main() -> None:
         parser.add_argument("--max", type=int, help="Maximum waiting time")
         parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
 
-    all_trains, city, _, args = parse_args(append_arg)
+    all_trains, args, city, _ = parse_args(append_arg)
     avg_waiting_time(all_trains, city, limit_num=args.limit_num,
                      min_waiting=args.min, max_waiting=args.max, show_all=args.show_all)
 

@@ -49,7 +49,7 @@ def main() -> None:
             "distance", "duration", "count"
         ], default="distance", help="Sort by distance/duration/count")
 
-    all_trains, city, lines, args = parse_args(append_arg)
+    all_trains, args, city, lines = parse_args(append_arg)
     longest_segment(all_trains, lines, city.through_specs, args, limit_num=args.limit_num, sort_by=args.sort_by)
 
 

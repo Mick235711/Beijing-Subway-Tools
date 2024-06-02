@@ -33,7 +33,7 @@ def main() -> None:
         """ Append more arguments """
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
 
-    all_trains, _, _, args = parse_args(append_arg)
+    all_trains, args, *_ = parse_args(append_arg)
     max_train_station(all_trains, limit_num=args.limit_num, use_capacity=args.capacity)
 
 

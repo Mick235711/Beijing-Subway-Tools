@@ -64,7 +64,7 @@ def main() -> None:
         ], default="speed", help="Choose data source")
         parser.add_argument("-o", "--output", help="Output CSV file")
 
-    all_trains, _, _, args = parse_args(append_arg)
+    all_trains, args, *_ = parse_args(append_arg)
     if args.data_from == "capacity":
         output_table(all_trains, args, get_capacity_data, [
             "Index", "Line", "Interval", "Distance", "Station", "Design Spd",

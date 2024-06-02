@@ -158,7 +158,7 @@ def main() -> None:
         parser.add_argument("--include-edge", action="store_true", help="Include edge in moving average")
         parser.add_argument("-o", "--output", help="Output CSV file")
 
-    all_trains, _, lines, args = parse_args(append_arg)
+    all_trains, args, _, lines = parse_args(append_arg)
     if args.moving_average:
         average_str = f"{args.moving_average}-min Avg\n"
         output_table(
