@@ -18,7 +18,7 @@ class ThroughTrain:
     def __init__(self, spec: ThroughSpec, trains: dict[str, Train]) -> None:
         """ Constructor """
         self.spec = spec
-        self.stations = self.spec.stations
+        self.stations = self.spec.stations()
         self.trains = trains  # line -> train
         self.carriage_num = self.first_train().carriage_num
         assert all(self.carriage_num == train.carriage_num for train in self.trains.values()), trains

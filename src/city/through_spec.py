@@ -21,14 +21,16 @@ class ThroughSpec:
         # list of (line, direction, date_group, route)
         self.spec = spec
 
-        # Calculate stations
-        self.stations: list[str] = []
-        for _, _, _, route in spec:
-            if len(self.stations) == 0:
-                self.stations = route.stations
+    def stations(self) -> list[str]:
+        """ Calculate stations for this through route """
+        stations: list[str] = []
+        for _, _, _, route in self.spec:
+            if len(stations) == 0:
+                stations = route.stations[:]
             else:
-                assert self.stations[-1] == route.stations[0], (self.stations, route, spec)
-                self.stations.extend(route.stations[1:])
+                assert stations[-1] == route.stations[0], (stations, route, self.spec)
+                stations.extend(route.stations[1:])
+        return stations
 
     def __repr__(self) -> str:
         """ String representation """
