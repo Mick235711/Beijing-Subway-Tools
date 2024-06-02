@@ -6,23 +6,30 @@
 # Libraries
 import argparse
 
+from src.city.through_spec import ThroughSpec
 from src.common.common import speed_str
+from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, parse_args
+from src.stats.city_statistics import display_first, parse_args_through
 
 
 def highest_speed_train(
-    all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
-    *, limit_num: int = 5
+    date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
+    args: argparse.Namespace, *, limit_num: int = 5
 ) -> None:
     """ Print fastest/slowest N trains of the whole city """
     print("Fastest/Slowest " + ("Full " if args.full_only else "") + "Trains:")
-    train_set = set(t for x in all_trains.values() for t in x)
 
     # Remove tied trains
-    train_set_processed: dict[tuple[str, str, str, int], tuple[str, Train, int]] = {}
-    for date_group, train in train_set:
-        key = (train.line.name, train.direction, date_group, train.duration())
+    train_set_processed: dict[tuple[str, str, str, int], tuple[str, Train | ThroughTrain, int]] = {}
+    for date_group, train in get_train_set(date_group_dict, through_dict):
+        if isinstance(train, Train):
+            line_name = train.line.name
+            direction_name = train.direction
+        else:
+            line_name = train.spec.route_str()
+            direction_name = train.spec.direction_str()
+        key = (line_name, direction_name, date_group, train.duration())
         if key not in train_set_processed:
             train_set_processed[key] = (date_group, train, 1)
         else:
@@ -38,8 +45,8 @@ def highest_speed_train(
 
 def main() -> None:
     """ Main function """
-    all_trains, args, *_ = parse_args()
-    highest_speed_train(all_trains, args, limit_num=args.limit_num)
+    date_group_dict, through_dict, args, *_ = parse_args_through()
+    highest_speed_train(date_group_dict, through_dict, args, limit_num=args.limit_num)
 
 
 # Call main

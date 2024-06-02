@@ -198,3 +198,17 @@ def reorganize_and_parse_train(
                     new_train_dict[date_group] = []
                 new_train_dict[date_group] += train_list
     return new_train_dict, through_dict
+
+
+def get_train_set(
+    date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]]
+) -> list[tuple[str, Train | ThroughTrain]]:
+    """ Get a single combined train set """
+    all_trains: list[tuple[str, Train | ThroughTrain]] = []
+    for date_group, train_list in date_group_dict.items():
+        for single_train in train_list:
+            all_trains.append((date_group, single_train))
+    for through_trains in through_dict.values():
+        for through_train in through_trains:
+            all_trains.append((through_train.spec.spec[0][2].name, through_train))
+    return all_trains

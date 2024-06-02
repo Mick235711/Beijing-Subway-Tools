@@ -8,7 +8,7 @@ import argparse
 
 from src.city.through_spec import ThroughSpec
 from src.common.common import suffix_s
-from src.routing.through_train import ThroughTrain
+from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, divide_by_line, parse_args_through
 
@@ -19,23 +19,13 @@ def max_train_station(
 ) -> None:
     """ Print max/min # of trains for each station """
     all_trains: dict[str, list[Train | ThroughTrain]] = {}
-    for _, trains in date_group_dict.items():
-        for train in trains:
-            for station in train.stations:
-                if station in train.skip_stations:
-                    continue
-                if station not in all_trains:
-                    all_trains[station] = []
-                all_trains[station].append(train)
-
-    for spec, through_trains in through_dict.items():
-        for through_train in through_trains:
-            for station in through_train.stations:
-                if station in through_train.skip_stations:
-                    continue
-                if station not in all_trains:
-                    all_trains[station] = []
-                all_trains[station].append(through_train)
+    for _, train in get_train_set(date_group_dict, through_dict):
+        for station in train.stations:
+            if station in train.skip_stations:
+                continue
+            if station not in all_trains:
+                all_trains[station] = []
+            all_trains[station].append(train)
 
     display_first(
         sorted(all_trains.items(), key=lambda x: (

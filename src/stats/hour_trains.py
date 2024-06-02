@@ -11,7 +11,7 @@ import sys
 
 from src.city.through_spec import ThroughSpec
 from src.common.common import add_min_tuple, get_time_str, suffix_s
-from src.routing.through_train import ThroughTrain
+from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
 from src.stats.city_statistics import display_first, divide_by_line, parse_args, parse_args_through
 
@@ -23,15 +23,8 @@ def hour_trains(
     """ Print train number per hour """
     print(("Capacity" if use_capacity else "Train") + " Count by Hour:")
     hour_dict: dict[int, set[Train | ThroughTrain]] = {}
-    all_trains: list[Train | ThroughTrain] = []
-    for train_list in date_group_dict.values():
-        for single_train in train_list:
-            all_trains.append(single_train)
-    for through_trains in through_dict.values():
-        for through_train in through_trains:
-            all_trains.append(through_train)
 
-    for train in all_trains:
+    for _, train in get_train_set(date_group_dict, through_dict):
         if isinstance(train, Train):
             arrival_times = train.arrival_time
         else:
