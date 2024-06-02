@@ -42,6 +42,19 @@ class ThroughTrain:
         """ Return last train """
         return self.trains[self.spec.spec[-1][0].name]
 
+    def arrival_times(self) -> dict[str, TimeSpec]:
+        """ Return the cumulative arrival times """
+        first = True
+        arrival_times: dict[str, TimeSpec] = {}
+        for line, _, _, _ in self.spec.spec:
+            train = self.trains[line.name]
+            if first:
+                arrival_times = train.arrival_time
+                first = False
+            else:
+                arrival_times.update({k: v for k, v in train.arrival_time.items() if k != train.stations[0]})
+        return arrival_times
+
     def line_repr(self) -> str:
         """ One-line short representation """
         first_train = self.first_train()

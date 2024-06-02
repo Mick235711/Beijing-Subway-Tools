@@ -7,25 +7,41 @@
 import argparse
 import json
 import os
+import sys
 
+from src.city.through_spec import ThroughSpec
 from src.common.common import add_min_tuple, get_time_str, suffix_s
+from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, divide_by_line, parse_args
+from src.stats.city_statistics import display_first, divide_by_line, parse_args, parse_args_through
 
 
 def hour_trains(
-    all_trains: dict[str, list[tuple[str, Train]]], *,
-    use_capacity: bool = False
+    date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
+    *, use_capacity: bool = False
 ) -> None:
     """ Print train number per hour """
     print(("Capacity" if use_capacity else "Train") + " Count by Hour:")
-    hour_dict: dict[int, set[Train]] = {}
-    for date_group, train in set(t for x in all_trains.values() for t in x):
-        for arrival_time, arrival_day in train.arrival_time.values():
+    hour_dict: dict[int, set[Train | ThroughTrain]] = {}
+    all_trains: list[Train | ThroughTrain] = []
+    for train_list in date_group_dict.values():
+        for single_train in train_list:
+            all_trains.append(single_train)
+    for through_trains in through_dict.values():
+        for through_train in through_trains:
+            all_trains.append(through_train)
+
+    for train in all_trains:
+        if isinstance(train, Train):
+            arrival_times = train.arrival_time
+        else:
+            arrival_times = train.arrival_times()
+        for arrival_time, arrival_day in arrival_times.values():
             hour = arrival_time.hour + (24 if arrival_day else 0)
             if hour not in hour_dict:
                 hour_dict[hour] = set()
             hour_dict[hour].add(train)
+
     display_first(
         sorted(hour_dict.items(), key=lambda x: x[0]),
         lambda data: f"{data[0]:02}:00 - {data[0]:02}:59: " +
@@ -76,8 +92,8 @@ def main() -> None:
         group.add_argument("--dump", help="Output path (dump everything)", default="../data.json")
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
 
-    all_trains, args, *_ = parse_args(append_arg, include_limit=False)
-    if args.by_minutes:
+    if "-m" in sys.argv:  # Sorry, cannot use args.by_minutes here
+        all_trains, args, *_ = parse_args(append_arg, include_limit=False)
         if args.dump is not None:
             base, ext = os.path.splitext(args.dump)
             for full_only in [True, False]:
@@ -93,7 +109,8 @@ def main() -> None:
             with open(args.output, "w", encoding="utf-8") as fp:
                 json.dump(data, fp, indent=4, ensure_ascii=False)
     else:
-        hour_trains(all_trains, use_capacity=args.capacity)
+        date_group_dict, through_dict, args, *_ = parse_args_through(append_arg, include_limit=False)
+        hour_trains(date_group_dict, through_dict, use_capacity=args.capacity)
 
 
 # Call main
