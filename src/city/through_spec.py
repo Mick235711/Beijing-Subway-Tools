@@ -32,6 +32,13 @@ class ThroughSpec:
                 stations.extend(route.stations[1:])
         return stations
 
+    def skip_stations(self) -> set[str]:
+        """ Calculate skip stations for this through route """
+        stations: set[str] = set()
+        for _, _, _, route in self.spec:
+            stations.update(route.skip_stations)
+        return stations
+
     def __repr__(self) -> str:
         """ String representation """
         return "<" + " => ".join(
@@ -60,6 +67,10 @@ class ThroughSpec:
     def line_str(self) -> str:
         """ String representation for lines """
         return " + ".join(line.name for line, _, _, _ in self.spec)
+
+    def line_index(self) -> tuple[int, ...]:
+        """ Get the index of the route for sorting """
+        return (len(self.spec), ) + tuple(line.index for line, _, _, _ in self.spec)
 
     def covers(self, cur_date: date) -> bool:
         """ Determine if the given date is covered """

@@ -6,23 +6,45 @@
 # Libraries
 import argparse
 
+from src.city.through_spec import ThroughSpec
 from src.common.common import suffix_s
+from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, divide_by_line, parse_args
+from src.stats.city_statistics import display_first, divide_by_line, parse_args_through
 
 
 def max_train_station(
-    all_trains: dict[str, list[tuple[str, Train]]], *, limit_num: int = 5, use_capacity: bool = False
+    date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
+    *, limit_num: int = 5, use_capacity: bool = False
 ) -> None:
     """ Print max/min # of trains for each station """
+    all_trains: dict[str, list[Train | ThroughTrain]] = {}
+    for _, trains in date_group_dict.items():
+        for train in trains:
+            for station in train.stations:
+                if station in train.skip_stations:
+                    continue
+                if station not in all_trains:
+                    all_trains[station] = []
+                all_trains[station].append(train)
+
+    for spec, through_trains in through_dict.items():
+        for through_train in through_trains:
+            for station in through_train.stations:
+                if station in through_train.skip_stations:
+                    continue
+                if station not in all_trains:
+                    all_trains[station] = []
+                all_trains[station].append(through_train)
+
     display_first(
         sorted(all_trains.items(), key=lambda x: (
-            sum(t.train_capacity() for _, t in x[1]) if use_capacity else len(x[1])
+            sum(t.train_capacity() for t in x[1]) if use_capacity else len(x[1])
         ), reverse=True),
         lambda station_trains: f"{station_trains[0]}: " + (
-            suffix_s("people", sum(t.train_capacity() for _, t in station_trains[1])) if use_capacity else
+            suffix_s("people", sum(t.train_capacity() for t in station_trains[1])) if use_capacity else
             suffix_s("train", len(station_trains[1]))
-        ) + f" ({divide_by_line([x[1] for x in station_trains[1]], use_capacity=use_capacity)})",
+        ) + f" ({divide_by_line(station_trains[1], use_capacity=use_capacity)})",
         limit_num=limit_num
     )
 
@@ -33,8 +55,8 @@ def main() -> None:
         """ Append more arguments """
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
 
-    all_trains, args, *_ = parse_args(append_arg)
-    max_train_station(all_trains, limit_num=args.limit_num, use_capacity=args.capacity)
+    date_group_dict, through_dict, args, *_ = parse_args_through(append_arg)
+    max_train_station(date_group_dict, through_dict, limit_num=args.limit_num, use_capacity=args.capacity)
 
 
 # Call main

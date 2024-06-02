@@ -21,17 +21,29 @@ from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
 
-def count_trains(trains: Iterable[Train]) -> dict[str, dict[str, list[Train]]]:
+T = TypeVar("T")
+
+
+def count_trains(trains: Iterable[T]) -> dict[str, dict[str, list[T]]]:
     """ Reorganize trains into line -> direction -> train """
-    result_dict: dict[str, dict[str, list[Train]]] = {}
-    index_dict: dict[str, int] = {}
+    result_dict: dict[str, dict[str, list[T]]] = {}
+    index_dict: dict[str, tuple[int, ...]] = {}
     for train in trains:
-        if train.line.name not in result_dict:
-            result_dict[train.line.name] = {}
-        if train.direction not in result_dict[train.line.name]:
-            result_dict[train.line.name][train.direction] = []
-        result_dict[train.line.name][train.direction].append(train)
-        index_dict[train.line.name] = train.line.index
+        if isinstance(train, Train):
+            line_name = train.line.name
+            direction_name = train.direction
+            line_index: tuple[int, ...] = (1, train.line.index)
+        else:
+            assert isinstance(train, ThroughTrain), train
+            line_name = train.spec.route_str()
+            direction_name = train.spec.direction_str()
+            line_index = train.spec.line_index()
+        if line_name not in result_dict:
+            result_dict[line_name] = {}
+        if direction_name not in result_dict[line_name]:
+            result_dict[line_name][direction_name] = []
+        result_dict[line_name][direction_name].append(train)
+        index_dict[line_name] = line_index
     for name, direction_dict in result_dict.items():
         for direction, train_list in direction_dict.items():
             result_dict[name][direction] = list(set(train_list))
@@ -60,7 +72,7 @@ def get_all_trains(
     return dict(sorted(list(all_trains.items()), key=lambda x: len(x[1]), reverse=True))
 
 
-def divide_by_line(trains: Iterable[Train], use_capacity: bool = False) -> str:
+def divide_by_line(trains: Iterable[Train | ThroughTrain], use_capacity: bool = False) -> str:
     """ Divide train number by line """
     res = ""
     first = True
@@ -78,9 +90,6 @@ def divide_by_line(trains: Iterable[Train], use_capacity: bool = False) -> str:
             res += ", ".join(f"{direction} {len(sub_trains)}" for direction, sub_trains in new_line_dict.items())
         res += ")"
     return res
-
-
-T = TypeVar("T")
 
 
 def display_first(

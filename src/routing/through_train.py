@@ -19,13 +19,20 @@ class ThroughTrain:
         """ Constructor """
         self.spec = spec
         self.stations = self.spec.stations()
+        self.skip_stations = self.spec.skip_stations()
         self.trains = trains  # line -> train
+        self.carriage_type = self.first_train().line.carriage_type
         self.carriage_num = self.first_train().carriage_num
-        assert all(self.carriage_num == train.carriage_num for train in self.trains.values()), trains
+        assert all(self.carriage_num == train.carriage_num and
+                   self.carriage_type == train.line.carriage_type for train in self.trains.values()), trains
 
     def __repr__(self) -> str:
         """ String representation """
         return "<" + " => ".join(self.trains[line.name].line_repr() for line, _, _, _ in self.spec.spec) + ">"
+
+    def train_capacity(self) -> int:
+        """ Capacity for this line """
+        return self.carriage_type.train_capacity(self.carriage_num)
 
     def first_train(self) -> Train:
         """ Return first train """
