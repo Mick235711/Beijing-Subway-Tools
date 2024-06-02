@@ -15,7 +15,9 @@ from tabulate import tabulate
 from src.city.ask_for_city import ask_for_city, ask_for_date
 from src.city.city import City
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.common.common import parse_time, diff_time_tuple
+from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
 
@@ -153,6 +155,24 @@ def parse_args(
             all_trains = {k: [e for e in v if diff_time_tuple(e[1].arrival_time[k], le_tuple) <= 0]
                           for k, v in all_trains.items()}
     return all_trains, args, city, lines
+
+
+def parse_args_through(
+    more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
+    include_limit: bool = True, include_passing_limit: bool = True
+) -> tuple[dict[str, list[Train]], dict[ThroughSpec, list[ThroughTrain]], argparse.Namespace, City, dict[str, Line]]:
+    """ Parse arguments for all statistics files (with through train split out) """
+    all_trains, args, city, lines = parse_args(
+        more_args, include_limit=include_limit, include_passing_limit=include_passing_limit)
+
+    date_group_dict: dict[str, list[Train]] = {}
+    for train_tuple_list in all_trains.values():
+        for date_group, train in train_tuple_list:
+            if date_group not in date_group_dict:
+                date_group_dict[date_group] = []
+            date_group_dict[date_group].append(train)
+    date_group_dict, through_dict = reorganize_and_parse_train(date_group_dict, city.through_specs)
+    return date_group_dict, through_dict, args, city, lines
 
 
 def append_sort_args(parser: argparse.ArgumentParser) -> None:
