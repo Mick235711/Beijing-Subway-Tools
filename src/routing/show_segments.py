@@ -11,6 +11,7 @@ from typing import cast
 from src.city.ask_for_city import ask_for_through_train
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
+from src.city.train_route import route_dist
 from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
@@ -45,6 +46,16 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
             if train.carriage_num != carriage_num:
                 continue
             end_station = train.real_end_station()
+            if isinstance(train, Train) and train.direction in train.line.end_circle_spec:
+                # find the next train directly
+                next_trains = [
+                    t for t in all_trains
+                    if isinstance(t, Train) and t.line.name == train.line.name and t.direction != train.direction
+                    and t.arrival_time[end_station] == train.arrival_time[end_station]
+                ]
+                assert len(next_trains) == 1, (train, next_trains)
+                associate.append((train, next_trains[0]))
+                continue
             if end_station not in end_station_dict:
                 end_station_dict[end_station] = []
             end_station_dict[end_station].append(train)
@@ -97,7 +108,15 @@ def total_duration(segments: Segment) -> int:
 
 def total_distance(segments: Segment) -> int:
     """ Get total distance of segments """
-    return sum(x.distance() for x in segments)
+    result = 0
+    for index, train in enumerate(segments):
+        last = segments[index - 1]
+        if index > 0 and isinstance(last, Train) and isinstance(train, Train) and\
+                last.direction in last.line.end_circle_spec:
+            result += train.distance(last.real_end_station())
+        else:
+            result += train.distance()
+    return result
 
 
 def segment_str(segments: Segment, is_loop: bool = False) -> str:

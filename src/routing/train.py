@@ -188,12 +188,14 @@ class Train:
             end_time, end_day = self.loop_next.start_time()
         return diff_time(end_time, start_time, end_day, start_day)
 
-    def distance(self) -> int:
+    def distance(self, start_station: str | None = None) -> int:
         """ Total distance covered """
+        assert start_station is None or start_station in self.stations, (self, start_station)
+        index = 0 if start_station is None else self.stations.index(start_station)
         return route_dist(
-            self.line.direction_stations(self.direction),
-            self.line.direction_dists(self.direction),
-            self.stations, self.loop_next is not None
+            self.line.direction_stations(self.direction)[index:],
+            self.line.direction_dists(self.direction)[index:],
+            self.stations[index:], self.loop_next is not None
         )
 
     def is_full(self) -> bool:
