@@ -152,6 +152,9 @@ def main() -> None:
         parser.add_argument("-o", "--output", help="Output CSV file")
 
     all_trains, args, _, lines = parse_args(append_arg)
+    if args.split_mode != "none":
+        print("Error: Split mode is not yet supported!")
+        return
     if args.moving_average:
         average_str = f"{args.moving_average}-min Avg\n"
         output_table(

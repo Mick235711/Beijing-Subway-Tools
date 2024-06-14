@@ -113,3 +113,15 @@ def route_dist(stations: list[str], station_dists: list[int], route: list[str],
     if len(stations) == len(station_dists) and loop:
         res += stations_dist(stations, station_dists, route[-1], stations[0])
     return res
+
+
+def route_dist_list(stations: list[str], station_dists: list[int], route: list[str],
+                    loop: bool = False) -> list[int]:
+    """ Compute distance list for a route """
+    assert 0 <= len(stations) - len(station_dists) <= 1, (stations, station_dists)
+    res: list[int] = []
+    for i in range(1, len(route)):
+        res.append(stations_dist(stations, station_dists, route[i - 1], route[i]))
+    if len(stations) == len(station_dists) and loop:
+        res.append(stations_dist(stations, station_dists, route[-1], stations[0]))
+    return res

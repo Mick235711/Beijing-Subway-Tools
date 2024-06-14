@@ -16,7 +16,7 @@ from src.city.ask_for_city import ask_for_city, ask_for_date
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.city.train_route import TrainRoute
+from src.city.train_route import TrainRoute, route_dist, route_dist_list
 from src.common.common import parse_time, diff_time_tuple
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
@@ -199,7 +199,7 @@ basic_headers = {
         ["", "", "", "km", "", "km/h"]
     ),
     "all": (
-        ["Index", "Line", "Interval", "Dir", "Route", "Distance", "Station", "Design Spd"],
+        ["Index", "Line", "Dir", "Route", "Interval", "Distance", "Station", "Design Spd"],
         ["", "", "", "", "", "km", "", "km/h"]
     )
 }
@@ -225,7 +225,7 @@ def sorted_direction_str(line: Line, stations: list[str]) -> str:
     return f"{start} - {end}"
 
 
-def line_basic_data(line: Line, *, use_route: str | None = None,
+def line_basic_data(line: Line, *, use_route: str | TrainRoute | None = None,
                     use_direction: str | None = None, use_capacity: bool = False) -> tuple:
     """ Get line basic data """
     if use_route is None:
@@ -233,6 +233,22 @@ def line_basic_data(line: Line, *, use_route: str | None = None,
         stations = line.direction_stations(use_direction)
         total_stations = len(stations) - (0 if line.loop else 1)
         station_dists = line.direction_dists(use_direction)
+        direction_str = line.direction_str(use_direction)
+    elif isinstance(use_route, TrainRoute):
+        total_distance = route_dist(
+            line.direction_stations(use_route.direction), line.direction_dists(use_route.direction),
+            use_route.stations, use_route.loop
+        )
+        stations = use_route.stations
+        total_stations = len(stations) - (0 if use_route.loop else 1)
+        station_dists = route_dist_list(
+            line.direction_stations(use_route.direction), line.direction_dists(use_route.direction),
+            use_route.stations, use_route.loop
+        )
+        if use_route.loop:
+            direction_str = f"{stations[0]} -> {line.direction_stations(use_route.direction)[0]}"
+        else:
+            direction_str = f"{stations[0]} -> {stations[-1]}"
     else:
         index = use_route.find("-")
         start = use_route[:index].strip()
@@ -248,9 +264,9 @@ def line_basic_data(line: Line, *, use_route: str | None = None,
         total_stations = len(stations)
         station_dists = line.direction_dists(direction)
         station_dists = station_dists[stations.index(start):stations.index(end) + 1]
+        direction_str = sorted_direction_str(line, stations)
     data = (
-        line.index, line.name,
-        line.direction_str(use_direction) if use_route is None else sorted_direction_str(line, stations),
+        line.index, line.name, direction_str,
         total_distance / 1000, len(stations), line.design_speed, f"{total_distance / (total_stations * 1000):.2f}",
         min(station_dists) / 1000, max(station_dists) / 1000
     )
@@ -302,6 +318,28 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
                 data.append(basic_data + data_callback(train_set))
             continue
 
+        if split_mode == "all":
+            for direction, (sub_index, sub_train_set) in split_dir(train_set).items():
+                route_dict: dict[TrainRoute, set[Train]] = {}
+                for train in sub_train_set:
+                    for route in train.routes:
+                        if route not in route_dict:
+                            route_dict[route] = set()
+                        route_dict[route].add(train)
+
+                for route, trains in route_dict.items():
+                    basic_data = line_basic_data(line, use_route=route, use_capacity=use_capacity)
+                    base = ((basic_data[0], sub_index),) + basic_data[1:2] + (
+                        direction, route.name
+                    ) + basic_data[2:]
+                    if isinstance(data_callback, dict):
+                        data.append(base + data_callback[line_name])
+                    else:
+                        data.append(base + data_callback(trains))
+                    if not use_capacity:
+                        data[-1] = ((data[-1][0][0], data[-1][0][1], -data[-1][-4]),) + data[-1][1:]
+            continue
+
         for direction, (sub_index, sub_train_set) in split_dir(train_set, split_mode == "route").items():
             if split_mode == "route":
                 basic_data = line_basic_data(line, use_route=direction, use_capacity=use_capacity)
@@ -328,13 +366,18 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     if split_mode != "none":
         # Revert the sub_index and first two elements
         last: int | None = None
+        last_dir: str | None = None
         for i in range(len(data)):
             newer = data[i][0][0]
-            if last is None or newer != last or data[i][0][1] == 1:
+            newer_dir = data[i][2]
+            if last is None or newer != last or (split_mode == "direction" and data[i][0][1] == 1):
                 data[i] = (data[i][0][0],) + data[i][1:]
+            elif split_mode == "all" and newer_dir == last_dir:
+                data[i] = ("", "", "") + data[i][3:]
             else:
                 data[i] = ("", "") + data[i][2:]
             last = newer
+            last_dir = newer_dir
     print(tabulate(
         data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
     ))
