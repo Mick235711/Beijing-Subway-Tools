@@ -11,7 +11,6 @@ from typing import cast
 from src.city.ask_for_city import ask_for_through_train
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.city.train_route import route_dist
 from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
@@ -32,7 +31,10 @@ def organize_loop(train_list: Sequence[Train]) -> Sequence[Segment]:
             train = train.loop_next
             visited.add(train)
             loop_dict[i].append(train)
-    assert len(visited) == len(train_list), (visited, train_list)
+    assert len(visited) == len(train_list), (
+        [train for train in train_list if train not in visited],
+        [train for train in visited if train not in train_list]
+    )
     return loop_dict
 
 

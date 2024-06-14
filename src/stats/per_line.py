@@ -80,6 +80,9 @@ def main() -> None:
             "", "", "", "km", "", "km/h", "km", "km", "km", "", "km/h", "km/h", "km/h"
         ])
     else:
+        if args.full_only:
+            print("Error: segment data requires all train present to be calculated.")
+            return
         header = {"distance": "Dist", "duration": "Dura", "count": "Seg\nCount"}[args.data_from]
         unit = {"distance": "km", "duration": "min", "count": ""}[args.data_from]
         output_table(all_trains, args, lambda line, ts: get_segment_data(line, ts, sort_by=args.data_from), [
