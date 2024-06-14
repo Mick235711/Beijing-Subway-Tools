@@ -1109,7 +1109,8 @@ Earliest -> Latest Last Trains:
 
 ### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
 ```
-usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r] [-t TABLE_FORMAT] [-d {speed,capacity,distance,duration,count}] [-o OUTPUT]
+usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r] [-t TABLE_FORMAT] [--split {none,direction,route,all}]
+                   [-d {speed,capacity,distance,duration,count}] [-o OUTPUT]
 
 options:
   -h, --help            show this help message and exit
@@ -1130,6 +1131,8 @@ options:
   -r, --reverse         Reverse sorting
   -t TABLE_FORMAT, --table-format TABLE_FORMAT
                         Table format
+  --split {none,direction,route,all}
+                        Split mode
   -d {speed,capacity,distance,duration,count}, --data-from {speed,capacity,distance,duration,count}
                         Choose data source
   -o OUTPUT, --output OUTPUT
@@ -1141,6 +1144,7 @@ Show per-line statistics in a formatted table.
 - `-b` specifies the sort column. This is specified by the first line of header (excluding units). Also, `-r` reverses the sorting.
 - `-d` specifies the data source.
 - `-o` can export the table to a CSV file.
+- `--split` can split the table by `none`, `direction`, `route`, or `all`.
 
 Example Usage:
 <pre>
@@ -1178,8 +1182,8 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`moving_average.py`](/src/stats/moving_average.py): Moving average statistics of trains
 ```
-usage: moving_average.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r] [-t TABLE_FORMAT] (-m MOVING_AVERAGE | --section SECTION)
-                         [--show-example] [--include-edge] [-o OUTPUT]
+usage: moving_average.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r] [-t TABLE_FORMAT] [--split {none,direction,route,all}]
+                         (-m MOVING_AVERAGE | --section SECTION) [--show-example] [--include-edge] [-o OUTPUT]
 
 options:
   -h, --help            show this help message and exit
@@ -1200,6 +1204,8 @@ options:
   -r, --reverse         Reverse sorting
   -t TABLE_FORMAT, --table-format TABLE_FORMAT
                         Table format
+  --split {none,direction,route,all}
+                        Split mode
   -m MOVING_AVERAGE, --moving-average MOVING_AVERAGE
                         Calculate moving average capacity
   --section SECTION     Show cross-sectional (station-wise) capacity data
@@ -1210,7 +1216,7 @@ options:
 ```
 
 Show the moving average statistics. (Statistics averaged over a moving window)
-- `-b`, `-r`, `-t` and `-o` are the same as those described [earlier](#per_linepy-statistics-of-each-line).
+- `-b`, `-r`, `-t`, `-o` and `--split` are the same as those described [earlier](#per_linepy-statistics-of-each-line).
 - `-m` and `--section` determines the moving average method. `-m` averages the data over the moving window, while `--section` averages the data over cross-station flow.
 - `--include-edge`, if specified, includes the two edges in moving-edge calculation.
 
