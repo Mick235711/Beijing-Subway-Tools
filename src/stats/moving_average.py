@@ -12,7 +12,7 @@ from tqdm import tqdm
 from src.city.line import Line
 from src.common.common import moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, diff_time_tuple
 from src.routing.train import Train
-from src.stats.city_statistics import parse_args, append_sort_args, output_table
+from src.stats.city_statistics import parse_args, append_table_args, output_table
 from src.stats.hour_trains import minute_trains
 
 
@@ -126,11 +126,7 @@ def get_section_data(
         # Calculate min/max
         min_cnt_key, max_cnt_key = arg_minmax(count_dict)
         min_cap_cnt_key, max_cap_cnt_key = arg_minmax(cap_dict)
-        line = lines[line_name]
         result[line_name] = (
-            line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
-            line.total_distance() / 1000, len(line.stations), line.design_speed,
-            line.train_code(), line.train_capacity(),
             f"{count_dict[min_cnt_key]}" +
             (f"\n[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
             f"{count_dict[max_cnt_key]}" +
@@ -149,7 +145,7 @@ def main() -> None:
     """ Main function """
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
-        append_sort_args(parser)
+        append_table_args(parser)
         group = parser.add_mutually_exclusive_group(required=True)
         group.add_argument("-m", "--moving-average", type=int, help="Calculate moving average capacity")
         group.add_argument("--section", type=int,
@@ -167,11 +163,10 @@ def main() -> None:
                 all_trains, lines, moving_min=args.moving_average,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                "Index", "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                 average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
                 average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
             ], [
-                "", "", "", "km", "", "km/h", "", "ppl", "", "", "", "", "", ""
+                "", "", "", "", "", ""
             ]
         )
     elif args.section:
@@ -182,11 +177,10 @@ def main() -> None:
                 all_trains, lines, moving_min=args.section,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                "Index", "Line", "Interval", "Distance", "Station", "Design Spd", "Carriage", "Capacity",
                 average_str + "Min Count", average_str + "Max Count",
                 average_str + "Min Cap", average_str + "Max Cap"
             ], [
-                "", "", "", "km", "", "km/h", "", "ppl", "", "", "", ""
+                "", "", "", ""
             ]
         )
 

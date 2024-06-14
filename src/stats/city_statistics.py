@@ -184,17 +184,46 @@ def parse_args_through(
     return date_group_dict, through_dict, args, city, lines
 
 
-def append_sort_args(parser: argparse.ArgumentParser) -> None:
-    """ Append common sorting arguments like -s """
+def append_table_args(parser: argparse.ArgumentParser) -> None:
+    """ Append common sorting/table arguments like -s """
     parser.add_argument("-b", "--sort-by", help="Sort by these column(s)", default="")
     parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
     parser.add_argument("-t", "--table-format", help="Table format", default="simple")
+    parser.add_argument("--split", choices=[
+        "none", "direction", "route", "all"
+    ], default="none", help="Split mode")
+
+
+basic_headers = {
+    "none": (
+        ["Index", "Line", "Interval", "Distance", "Station", "Design Spd"],
+        ["", "", "", "km", "", "km/h"]
+    )
+}
+capacity_headers = {
+    False: (["Avg Dist", "Min Dist", "Max Dist"], ["km", "km", "km"]),
+    True: (["Carriage", "Capacity"], ["", "ppl"])
+}
+
+
+def line_basic_data(line: Line, *, use_capacity: bool = False) -> tuple:
+    """ Get line basic data """
+    total_distance = line.total_distance()
+    total_stations = len(line.stations) - (0 if line.loop else 1)
+    data = (
+        line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
+        total_distance / 1000, len(line.stations), line.design_speed,
+        total_distance / (total_stations * 1000), min(line.station_dists) / 1000, max(line.station_dists) / 1000
+    )
+    if use_capacity:
+        return line_basic_data(line)[:-3] + (line.train_code(), line.train_capacity())
+    return data
 
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple], *,
                   sort_index: list[int] | None = None, reverse: bool = False,
-                  table_format: str = "simple") -> list[tuple]:
+                  table_format: str = "simple", use_capacity: bool = False) -> list[tuple]:
     """ Obtain data on lines """
     # Organize into lines
     line_dict: dict[str, tuple[Line, set[Train]]] = {}
@@ -207,10 +236,11 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     # Obtain data for each line
     data: list[tuple] = []
     for line_name, (line, train_set) in line_dict.items():
+        basic_data = line_basic_data(line, use_capacity=use_capacity)
         if isinstance(data_callback, dict):
-            data.append(data_callback[line_name])
+            data.append(basic_data + data_callback[line_name])
         else:
-            data.append(data_callback(line, train_set))
+            data.append(basic_data + data_callback(line, train_set))
     if isinstance(data_callback, dict) and "Total" in data_callback:
         data.append(data_callback["Total"])
 
@@ -226,14 +256,23 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
 
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
                  data_callback: Callable[[Line, set[Train]], tuple] | dict[str, tuple],
-                 sort_columns: Sequence[str], sort_columns_unit: Sequence[str]) -> None:
+                 sort_columns: Sequence[str], sort_columns_unit: Sequence[str], *,
+                 use_capacity: bool = False) -> None:
     """ Output data as table """
+    split_mode = vars(args).get("split_mode", "none")
     sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
     sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
+
+    # Append basic and capacity headers
+    sort_columns_list = basic_headers[split_mode][0] + capacity_headers[use_capacity][0] + list(sort_columns)
+    sort_columns_unit_list = basic_headers[split_mode][1] + capacity_headers[use_capacity][1] + list(sort_columns_unit)
     header = [(column if unit == "" else f"{column}\n({unit})")
-              for column, unit in zip(sort_columns, sort_columns_unit)]
-    data = get_line_data(all_trains, header, data_callback,
-                         sort_index=sort_index, reverse=args.reverse, table_format=args.table_format)
+              for column, unit in zip(sort_columns_list, sort_columns_unit_list)]
+
+    data = get_line_data(
+        all_trains, header, data_callback,
+        sort_index=sort_index, reverse=args.reverse, table_format=args.table_format, use_capacity=use_capacity
+    )
     if args.output is not None:
         with open(args.output, "w", newline="") as fp:
             writer = csv.writer(fp)
