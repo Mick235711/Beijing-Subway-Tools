@@ -51,9 +51,6 @@ def get_moving_average_data(
             continue
         line = lines[line_name]
         result[line_name] = (
-            line.index, line.name, f"{line.stations[0]} - {line.stations[-1]}",
-            line.total_distance() / 1000, len(line.stations), line.design_speed,
-            line.train_code(), line.train_capacity(),
             avg_cnt,
             f"{min_cnt:.2f}" + (f"\n[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),
             f"{max_cnt:.2f}" + (f"\n[{max_cnt_beg} - {max_cnt_end}]" if show_example else ""),

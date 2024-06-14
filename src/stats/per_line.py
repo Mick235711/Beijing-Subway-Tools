@@ -6,15 +6,15 @@
 # Libraries
 import argparse
 
-from src.city.line import Line
 from src.common.common import sequence_data
 from src.routing.show_segments import get_all_segments, sort_segment
 from src.routing.train import Train
-from src.stats.city_statistics import parse_args, append_table_args, output_table, line_basic_data
+from src.stats.city_statistics import parse_args, append_table_args, output_table
 
 
-def get_segment_data(line: Line, train_set: set[Train], *, sort_by: str = "distance") -> tuple:
+def get_segment_data(train_set: set[Train], *, sort_by: str = "distance") -> tuple:
     """ Get avg/min/max segment/chain data """
+    line = list(train_set)[0].line
     segments = get_all_segments({line.name: line}, list(train_set))[line.name]
     return sequence_data(
         segments, key=lambda x: (
@@ -23,14 +23,15 @@ def get_segment_data(line: Line, train_set: set[Train], *, sort_by: str = "dista
     )
 
 
-def get_speed_data(_: Line, train_set: set[Train]) -> tuple:
+def get_speed_data(train_set: set[Train]) -> tuple:
     """ Get avg/min/max speed data """
     return sequence_data(list(train_set), key=lambda x: x.speed())
 
 
-def get_capacity_data(line: Line, train_set: set[Train]) -> tuple:
+def get_capacity_data(train_set: set[Train]) -> tuple:
     """ Get capacity data """
     # Populate
+    line = list(train_set)[0].line
     total_distance = line.total_distance()
     train_distance = sum(train.distance() for train in train_set) / 10000
     total_cap = line.train_capacity() * len(train_set) / 10000
@@ -65,12 +66,12 @@ def main() -> None:
             "", "km/h", "km/h", "km/h"
         ])
     else:
-        if args.full_only or args.split_mode not in ["none", "direction"]:
+        if args.full_only or args.split != "none":
             print("Error: segment data requires all train present to be calculated.")
             return
         header = {"distance": "Dist", "duration": "Dura", "count": "Seg\nCount"}[args.data_from]
         unit = {"distance": "km", "duration": "min", "count": ""}[args.data_from]
-        output_table(all_trains, args, lambda line, ts: get_segment_data(line, ts, sort_by=args.data_from), [
+        output_table(all_trains, args, lambda ts: get_segment_data(ts, sort_by=args.data_from), [
             "Chain\nCount", "Avg " + header, "Min " + header, "Max " + header
         ], [
             "", unit, unit, unit

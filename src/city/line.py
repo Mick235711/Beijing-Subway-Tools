@@ -48,13 +48,13 @@ class Line:
         """ Get string representation """
         return f"<{self.name}: {self.line_str()}>"
 
-    def direction_stations(self, direction: str) -> list[str]:
+    def direction_stations(self, direction: str | None = None) -> list[str]:
         """ Returns the base route's station for this direction """
-        return self.direction_base_route[direction].stations
+        return self.stations if direction is None else self.direction_base_route[direction].stations
 
-    def direction_dists(self, direction: str) -> list[int]:
+    def direction_dists(self, direction: str | None) -> list[int]:
         """ Return the distance of this direction """
-        if self.direction_stations(direction) == self.stations:
+        if direction is None or self.direction_stations(direction) == self.stations:
             return self.station_dists
         if direction in self.end_circle_spec:
             assert not self.loop, self
@@ -91,21 +91,28 @@ class Line:
         """ Formal name for a train """
         return self.carriage_type.train_formal_name(self.carriage_num)
 
+    def direction_str(self, direction: str | None = None) -> str:
+        """ Get the string representation of a direction """
+        stations = self.direction_stations(direction)
+        return f"{stations[0]} - {stations[-1]}"
+
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
-        return f"[{self.train_code()}] {self.stations[0]} - {self.stations[-1]}" + \
+        return f"[{self.train_code()}] {self.direction_str()}" + \
             f", {len(self.stations)} stations, " + distance_str(self.total_distance()) + \
             (", loop" if self.loop else "")
 
-    def total_distance(self) -> float:
+    def total_distance(self, direction: str | None = None) -> float:
         """ Total distance of this line """
-        return average(
-            route_dist(
+        data = {
+            direction: route_dist(
                 self.direction_stations(direction), self.direction_dists(direction),
                 self.direction_stations(direction), self.loop
-            )
-            for direction in self.directions.keys()
-        )
+            ) for direction in self.directions.keys()
+        }
+        if direction is not None:
+            return data[direction]
+        return average(data.values())
 
     def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
         """ Get timetables """
