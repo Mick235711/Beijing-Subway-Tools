@@ -142,11 +142,7 @@ class Train:
 
     def two_station_dist(self, start_station: str, end_station: str) -> int:
         """ Distance between two stations """
-        return stations_dist(
-            self.line.direction_stations(self.direction),
-            self.line.direction_dists(self.direction),
-            start_station, end_station
-        )
+        return self.line.two_station_dist(self.direction, start_station, end_station)
 
     def two_station_duration_repr(self, start_station: str, end_station: str) -> str:
         """ One-line short duration string for two stations """

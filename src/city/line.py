@@ -11,7 +11,7 @@ import pyjson5
 
 from src.city.carriage import Carriage
 from src.city.date_group import DateGroup, parse_date_group
-from src.city.train_route import TrainRoute, parse_train_route, route_dist
+from src.city.train_route import TrainRoute, parse_train_route, route_dist, stations_dist
 from src.common.common import distance_str, average
 from src.timetable.timetable import Timetable, parse_timetable
 
@@ -94,7 +94,7 @@ class Line:
     def direction_str(self, direction: str | None = None) -> str:
         """ Get the string representation of a direction """
         stations = self.direction_stations(direction)
-        return f"{stations[0]} - {stations[-1]}"
+        return f"{stations[0]} " + ("-" if direction is None else "->") + f" {stations[-1]}"
 
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
@@ -113,6 +113,14 @@ class Line:
         if direction is not None:
             return data[direction]
         return average(data.values())
+
+    def two_station_dist(self, direction: str, start_station: str, end_station: str) -> int:
+        """ Distance between two stations """
+        return stations_dist(
+            self.direction_stations(direction),
+            self.direction_dists(direction),
+            start_station, end_station
+        )
 
     def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
         """ Get timetables """
