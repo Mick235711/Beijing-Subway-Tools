@@ -49,7 +49,6 @@ def get_moving_average_data(
                 f"{max_cap_cnt:.2f}" + (f"\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]" if show_example else "")
             )
             continue
-        line = lines[line_name]
         result[line_name] = (
             avg_cnt,
             f"{min_cnt:.2f}" + (f"\n[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),

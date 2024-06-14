@@ -5,7 +5,7 @@
 
 # Libraries
 import argparse
-from collections.abc import Sequence, Iterable
+from collections.abc import Sequence
 from typing import cast
 
 from src.city.ask_for_city import ask_for_through_train

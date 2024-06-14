@@ -187,7 +187,10 @@ class Train:
     def distance(self, start_station: str | None = None) -> int:
         """ Total distance covered """
         assert start_station is None or start_station in self.stations, (self, start_station)
-        index = 0 if start_station is None else self.stations.index(start_station)
+        if start_station is None:
+            index = 0
+        else:
+            index = self.stations.index(start_station)
         return route_dist(
             self.line.direction_stations(self.direction)[index:],
             self.line.direction_dists(self.direction)[index:],
