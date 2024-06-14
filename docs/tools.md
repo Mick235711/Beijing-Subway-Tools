@@ -1151,6 +1151,7 @@ Example Usage:
 $ python3 src/stats/per_line.py -f
 City default: &lt;北京: 24 lines&gt;
 ? Please enter the travel date (yyyy-mm-dd): <i>2024-03-04</i>
+Calculating 大兴机场线: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 24/24 [00:00<00:00, 62.01it/s]
   Index        Line               Interval    Distance    Station    Design Spd    Avg Dist    Min Dist    Max Dist    Train    Avg Speed    Min Speed    Max Speed
                                                   (km)                   (km/h)        (km)        (km)        (km)    Count       (km/h)       (km/h)       (km/h)
 -------  ----------  ---------------------  ----------  ---------  ------------  ----------  ----------  ----------  -------  -----------  -----------  -----------

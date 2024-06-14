@@ -393,7 +393,7 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
     cur_max_beg: T | None = None
     cur_max_end: T | None = None
     cur_sum: list[float] = []
-    total_length = len(data) - (0 if include_edge else moving_min)
+    total_length = max(1, len(data) - (0 if include_edge else moving_min))
     for i in range(1 - moving_min if include_edge else 0, total_length):
         cur_slice = [key(x) for x in data[max(0, i):i + moving_min]]
         moving_avg = average(cur_slice)
@@ -404,7 +404,8 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
             cur_max = moving_avg
             cur_max_beg, cur_max_end = data[max(0, i)], data[min(len(data), i + moving_min) - 1]
         cur_sum.append(moving_avg)
-    assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, data
+    assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, \
+        {x: key(x) for x in data}
     return average(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
 
 

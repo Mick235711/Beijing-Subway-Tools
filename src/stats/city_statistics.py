@@ -11,6 +11,7 @@ from datetime import date
 from typing import TypeVar, Any
 
 from tabulate import tabulate
+from tqdm import tqdm
 
 from src.city.ask_for_city import ask_for_city, ask_for_date
 from src.city.city import City
@@ -70,6 +71,23 @@ def get_all_trains(
                         if station not in all_trains:
                             all_trains[station] = []
                         all_trains[station].append((date_group, train))
+    return dict(sorted(list(all_trains.items()), key=lambda x: len(x[1]), reverse=True))
+
+
+def get_all_trains_from_set(
+    lines: dict[str, Line], train_set: Iterable[tuple[str, Train]], *, limit_date: date | None = None
+) -> dict[str, list[tuple[str, Train]]]:
+    """ Organize into station -> trains """
+    all_trains: dict[str, list[tuple[str, Train]]] = {}
+    for date_group, train in train_set:
+        if limit_date is not None and not lines[train.line.name].date_groups[date_group].covers(limit_date):
+            continue
+        for station in train.stations:
+            if station in train.skip_stations:
+                continue
+            if station not in all_trains:
+                all_trains[station] = []
+            all_trains[station].append((date_group, train))
     return dict(sorted(list(all_trains.items()), key=lambda x: len(x[1]), reverse=True))
 
 
@@ -275,67 +293,66 @@ def line_basic_data(line: Line, *, use_route: str | TrainRoute | None = None,
     return data
 
 
-def split_dir(train_set: set[Train], use_route: bool = False) -> dict[str, tuple[int, set[Train]]]:
+def split_dir(
+    train_set: set[tuple[str, Train]], use_route: bool = False
+) -> dict[str, tuple[int, set[tuple[str, Train]]]]:
     """ Split train_set into several smaller sets """
-    result: dict[str, tuple[int, set[Train]]] = {}
+    result: dict[str, tuple[int, set[tuple[str, Train]]]] = {}
     if use_route:
         iter_set = set(
-            (sorted_direction_str(train.line, route.stations), train) for train in train_set for route in train.routes
+            (sorted_direction_str(train.line, route.stations), date_group, train)
+            for date_group, train in train_set for route in train.routes
         )
     else:
-        iter_set = set((train.direction, train) for train in train_set)
+        iter_set = set((train.direction, date_group, train) for date_group, train in train_set)
     index = 0
-    for key, train in iter_set:
+    for key, date_group, train in iter_set:
         if key not in result:
             index += 1
             result[key] = (index, set())
-        result[key][1].add(train)
+        result[key][1].add((date_group, train))
     return result
 
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
-                  data_callback: Callable[[set[Train]], tuple] | dict[str, tuple], *,
+                  data_callback: Callable[[set[tuple[str, Train]]], tuple], *,
                   sort_index: list[int] | None = None, reverse: bool = False,
                   table_format: str = "simple",
                   split_mode: str = "none", use_capacity: bool = False) -> list[tuple]:
     """ Obtain data on lines """
     # Organize into lines
-    line_dict: dict[str, tuple[Line, set[Train]]] = {}
+    line_dict: dict[str, tuple[Line, set[tuple[str, Train]]]] = {}
     for train_list in all_trains.values():
         for date_group, train in train_list:
             if train.line.name not in line_dict:
                 line_dict[train.line.name] = (train.line, set())
-            line_dict[train.line.name][1].add(train)
+            line_dict[train.line.name][1].add((date_group, train))
 
     # Obtain data for each line
     data: list[tuple] = []
-    for line_name, (line, train_set) in line_dict.items():
+    for line_name in (bar := tqdm(sorted(list(line_dict.keys()), key=lambda x: line_dict[x][0].index))):
+        bar.set_description(f"Calculating {line_name}")
+        line, train_set = line_dict[line_name]
         if split_mode == "none":
             basic_data = line_basic_data(line, use_capacity=use_capacity)
-            if isinstance(data_callback, dict):
-                data.append(basic_data + data_callback[line_name])
-            else:
-                data.append(basic_data + data_callback(train_set))
+            data.append(basic_data + data_callback(train_set))
             continue
 
         if split_mode == "all":
             for direction, (sub_index, sub_train_set) in split_dir(train_set).items():
-                route_dict: dict[TrainRoute, set[Train]] = {}
-                for train in sub_train_set:
+                route_dict: dict[TrainRoute, set[tuple[str, Train]]] = {}
+                for date_group, train in sub_train_set:
                     for route in train.routes:
                         if route not in route_dict:
                             route_dict[route] = set()
-                        route_dict[route].add(train)
+                        route_dict[route].add((date_group, train))
 
                 for route, trains in route_dict.items():
                     basic_data = line_basic_data(line, use_route=route, use_capacity=use_capacity)
                     base = ((basic_data[0], sub_index),) + basic_data[1:2] + (
                         direction, route.name
                     ) + basic_data[2:]
-                    if isinstance(data_callback, dict):
-                        data.append(base + data_callback[line_name])
-                    else:
-                        data.append(base + data_callback(trains))
+                    data.append(base + data_callback(trains))
                     if not use_capacity:
                         data[-1] = ((data[-1][0][0], data[-1][0][1], -data[-1][-4]),) + data[-1][1:]
             continue
@@ -350,14 +367,11 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
                 base = base + (direction,) + basic_data[3:]
             else:
                 base = base + basic_data[3:]
-            if isinstance(data_callback, dict):
-                data.append(base + data_callback[line_name])
-            else:
-                data.append(base + data_callback(sub_train_set))
+            data.append(base + data_callback(sub_train_set))
             if split_mode == "route" and not use_capacity:
                 data[-1] = ((data[-1][0][0], -data[-1][-4]),) + data[-1][1:]
-    if isinstance(data_callback, dict) and "Total" in data_callback:
-        data.append(data_callback["Total"])
+
+    # TODO: Total
 
     max_value = max(line.index for line, _ in line_dict.values()) + 1
     data = sorted(data, key=lambda x: tuple(
@@ -385,7 +399,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
 
 
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
-                 data_callback: Callable[[set[Train]], tuple] | dict[str, tuple],
+                 data_callback: Callable[[set[tuple[str, Train]]], tuple],
                  sort_columns: Sequence[str], sort_columns_unit: Sequence[str], *,
                  use_capacity: bool = False) -> None:
     """ Output data as table """

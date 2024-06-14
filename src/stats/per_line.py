@@ -12,8 +12,9 @@ from src.routing.train import Train
 from src.stats.city_statistics import parse_args, append_table_args, output_table
 
 
-def get_segment_data(train_set: set[Train], *, sort_by: str = "distance") -> tuple:
+def get_segment_data(train_date_set: set[tuple[str, Train]], *, sort_by: str = "distance") -> tuple:
     """ Get avg/min/max segment/chain data """
+    train_set = set(x[1] for x in train_date_set)
     line = list(train_set)[0].line
     segments = get_all_segments({line.name: line}, list(train_set))[line.name]
     return sequence_data(
@@ -23,14 +24,16 @@ def get_segment_data(train_set: set[Train], *, sort_by: str = "distance") -> tup
     )
 
 
-def get_speed_data(train_set: set[Train]) -> tuple:
+def get_speed_data(train_date_set: set[tuple[str, Train]]) -> tuple:
     """ Get avg/min/max speed data """
+    train_set = set(x[1] for x in train_date_set)
     return sequence_data(list(train_set), key=lambda x: x.speed())
 
 
-def get_capacity_data(train_set: set[Train]) -> tuple:
+def get_capacity_data(train_date_set: set[tuple[str, Train]]) -> tuple:
     """ Get capacity data """
     # Populate
+    train_set = set(x[1] for x in train_date_set)
     line = list(train_set)[0].line
     total_distance = line.total_distance()
     train_distance = sum(train.distance() for train in train_set) / 10000
@@ -58,7 +61,7 @@ def main() -> None:
             "Train\nCount", "Total Cap", "Car Dist", "Avg Car\nDist", "Avg Cover", "People Dist"
         ], [
             "", "w ppl", "w km", "", "%", "y ppl km"
-        ])
+        ], use_capacity=True)
     elif args.data_from == "speed":
         output_table(all_trains, args, get_speed_data, [
             "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"

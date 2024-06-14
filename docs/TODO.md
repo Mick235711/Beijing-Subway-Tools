@@ -105,4 +105,3 @@
 - 虚拟换乘允许单行程内出现多次
 - 多线程时进度条卡住
 - BFS并不真正考虑直通车，使用0分钟换乘模拟 (Hard to fix)
-- Split Mode中暂时不支持moving_average
