@@ -375,7 +375,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     max_value = max(line.index for line, _ in line_dict.values()) + 1
     real_sort = sort_index or [0]
     data = sorted(data, key=lambda x: tuple(
-        max_value if x[s] == "" else try_numerical(x[s]) for s in real_sort
+        max_value if x[s] == "" else try_numerical(x[0][:2] if s == 0 else x[s]) for s in real_sort
     ), reverse=reverse)
     if split_mode != "none":
         # Revert the sub_index and first two elements
@@ -384,7 +384,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
         for i in range(len(data)):
             newer = data[i][0][0]
             newer_dir = data[i][2]
-            if real_sort != [0] or last is None or newer != last or (split_mode == "direction" and data[i][0][1] == 1):
+            if real_sort[0] != 0 or last is None or newer != last or (split_mode == "direction" and data[i][0][1] == 1):
                 data[i] = (data[i][0][0],) + data[i][1:]
             elif split_mode == "all" and newer_dir == last_dir:
                 data[i] = ("", "", "") + data[i][3:]
