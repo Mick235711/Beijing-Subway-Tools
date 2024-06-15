@@ -4,6 +4,8 @@
 """ Provide common functions used in the whole project """
 
 # Libraries
+from __future__ import annotations
+
 import itertools
 from collections.abc import Iterable, Callable, Sequence, Mapping
 from datetime import datetime, date, time, timedelta
@@ -449,3 +451,47 @@ def parse_comma(field: str | None, default: str | None = None) -> set[str]:
         return set(x.strip() for x in field.split(","))
     else:
         return {field.strip()}
+
+
+class Reverser:
+    """ Reverse the comparison order """
+
+    def __init__(self, obj: Any) -> None:
+        """ Constructor """
+        self.obj = obj
+
+    def __lt__(self, other: Reverser) -> bool:
+        """ Less than """
+        return self.obj > other.obj
+
+    def __le__(self, other: Reverser) -> bool:
+        """ Less or equal """
+        return self.obj >= other.obj
+
+    def __gt__(self, other: Reverser) -> bool:
+        """ Greater than """
+        return self.obj < other.obj
+
+    def __ge__(self, other: Reverser) -> bool:
+        """ Greater or equal """
+        return self.obj <= other.obj
+
+    def __eq__(self, other: Any) -> bool:
+        """ Equal """
+        if not isinstance(other, Reverser):
+            return False
+        return self.obj == other.obj
+
+    def __ne__(self, other: Any) -> bool:
+        """ Not equal """
+        if not isinstance(other, Reverser):
+            return True
+        return self.obj != other.obj
+
+    def __str__(self) -> str:
+        """ String representation """
+        return f"Reverser({self.obj!s})"
+
+    def __repr__(self) -> str:
+        """ String representation """
+        return f"Reverser({self.obj!r})"

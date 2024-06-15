@@ -18,7 +18,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute, route_dist, route_dist_list
-from src.common.common import parse_time, diff_time_tuple, try_numerical
+from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
@@ -230,7 +230,7 @@ capacity_headers = {
 def append_table_args(parser: argparse.ArgumentParser) -> None:
     """ Append common sorting/table arguments like -s """
     parser.add_argument("-b", "--sort-by", help="Sort by these column(s)", default="")
-    parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
+    parser.add_argument("-r", "--reverse", nargs="?", const="all", help="Reverse sorting")
     parser.add_argument("-t", "--table-format", help="Table format", default="simple")
     parser.add_argument("--split", choices=list(basic_headers.keys()), default="none", help="Split mode")
 
@@ -316,7 +316,7 @@ def split_dir(
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[set[tuple[str, Train]]], tuple], *,
-                  sort_index: list[int] | None = None, reverse: bool = False,
+                  sort_index: list[int] | None = None, reverse: str | None = None,
                   table_format: str = "simple",
                   split_mode: str = "none", use_capacity: bool = False) -> list[tuple]:
     """ Obtain data on lines """
@@ -330,6 +330,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
 
     # Obtain data for each line
     data: list[tuple] = []
+    have_multi = False
     for line_name in (bar := tqdm(sorted(list(line_dict.keys()), key=lambda x: line_dict[x][0].index))):
         bar.set_description(f"Calculating {line_name}")
         line, train_set = line_dict[line_name]
@@ -354,6 +355,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
                     ) + basic_data[2:]
                     data.append(base + data_callback(trains))
                     data[-1] = ((data[-1][0][0], data[-1][0][1], -data[-1][len(base)]),) + data[-1][1:]
+                    have_multi = True
             continue
 
         for direction, (sub_index, sub_train_set) in split_dir(train_set, split_mode == "route").items():
@@ -369,14 +371,21 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
             data.append(base + data_callback(sub_train_set))
             if split_mode == "route":
                 data[-1] = ((data[-1][0][0], -data[-1][len(base)]),) + data[-1][1:]
+                have_multi = True
 
     # TODO: Total
 
     max_value = max(line.index for line, _ in line_dict.values()) + 1
     real_sort = sort_index or [0]
+    if reverse is None or reverse == "all":
+        reverse_index = set()
+    else:
+        reverse_index = set(int(x.strip()) for x in reverse.strip().split(","))
     data = sorted(data, key=lambda x: tuple(
-        max_value if x[s] == "" else try_numerical(x[0][:2] if s == 0 else x[s]) for s in real_sort
-    ), reverse=reverse)
+        (lambda y: Reverser(y) if index in reverse_index else y)
+        (max_value if x[s] == "" else try_numerical(x[0][:2] if s == 0 and have_multi else x[s]))
+        for index, s in enumerate(real_sort)
+    ), reverse=(reverse is not None and reverse == "all"))
     if split_mode != "none":
         # Revert the sub_index and first two elements
         last: int | None = None
