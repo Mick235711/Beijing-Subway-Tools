@@ -353,8 +353,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
                         direction, route.name
                     ) + basic_data[2:]
                     data.append(base + data_callback(trains))
-                    if not use_capacity:
-                        data[-1] = ((data[-1][0][0], data[-1][0][1], -data[-1][-4]),) + data[-1][1:]
+                    data[-1] = ((data[-1][0][0], data[-1][0][1], -data[-1][len(base)]),) + data[-1][1:]
             continue
 
         for direction, (sub_index, sub_train_set) in split_dir(train_set, split_mode == "route").items():
@@ -368,8 +367,8 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
             else:
                 base = base + basic_data[3:]
             data.append(base + data_callback(sub_train_set))
-            if split_mode == "route" and not use_capacity:
-                data[-1] = ((data[-1][0][0], -data[-1][-4]),) + data[-1][1:]
+            if split_mode == "route":
+                data[-1] = ((data[-1][0][0], -data[-1][len(base)]),) + data[-1][1:]
 
     # TODO: Total
 

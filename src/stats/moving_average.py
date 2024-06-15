@@ -7,7 +7,8 @@
 import argparse
 from collections.abc import Sequence
 
-from src.common.common import moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, diff_time_tuple
+from src.common.common import moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, diff_time_tuple, \
+    average
 from src.routing.train import Train
 from src.stats.city_statistics import parse_args, append_table_args, output_table, get_all_trains_from_set
 from src.stats.hour_trains import minute_trains
@@ -111,6 +112,7 @@ def get_section_data(
     min_cnt_key, max_cnt_key = arg_minmax(count_dict)
     min_cap_cnt_key, max_cap_cnt_key = arg_minmax(cap_dict)
     return (
+        average(count_dict.values()),
         f"{count_dict[min_cnt_key]}" +
         (f"\n[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
         f"{count_dict[max_cnt_key]}" +
@@ -160,10 +162,10 @@ def main() -> None:
                 ts, moving_min=args.section,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                average_str + "Min Count", average_str + "Max Count",
+                average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
                 average_str + "Min Cap", average_str + "Max Cap"
             ], [
-                "", "", "", ""
+                "", "", "", "", ""
             ], use_capacity=True
         )
 
