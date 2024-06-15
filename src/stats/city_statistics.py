@@ -18,7 +18,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute, route_dist, route_dist_list
-from src.common.common import parse_time, diff_time_tuple
+from src.common.common import parse_time, diff_time_tuple, try_numerical
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
@@ -373,8 +373,9 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     # TODO: Total
 
     max_value = max(line.index for line, _ in line_dict.values()) + 1
+    real_sort = sort_index or [0]
     data = sorted(data, key=lambda x: tuple(
-        max_value if x[s] == "" else x[s] for s in (sort_index or [0])
+        max_value if x[s] == "" else try_numerical(x[s]) for s in real_sort
     ), reverse=reverse)
     if split_mode != "none":
         # Revert the sub_index and first two elements
@@ -383,7 +384,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
         for i in range(len(data)):
             newer = data[i][0][0]
             newer_dir = data[i][2]
-            if last is None or newer != last or (split_mode == "direction" and data[i][0][1] == 1):
+            if real_sort != [0] or last is None or newer != last or (split_mode == "direction" and data[i][0][1] == 1):
                 data[i] = (data[i][0][0],) + data[i][1:]
             elif split_mode == "all" and newer_dir == last_dir:
                 data[i] = ("", "", "") + data[i][3:]
@@ -403,12 +404,12 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
                  use_capacity: bool = False) -> None:
     """ Output data as table """
     split_mode = vars(args).get("split", "none")
-    sort_columns_key = [x.replace("\n", " ") for x in sort_columns]
-    sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
 
     # Append basic and capacity headers
     sort_columns_list = basic_headers[split_mode][0] + capacity_headers[use_capacity][0] + list(sort_columns)
     sort_columns_unit_list = basic_headers[split_mode][1] + capacity_headers[use_capacity][1] + list(sort_columns_unit)
+    sort_columns_key = [x.replace("\n", " ") for x in sort_columns_list]
+    sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
     header = [(column if unit == "" else f"{column}\n({unit})")
               for column, unit in zip(sort_columns_list, sort_columns_unit_list)]
 

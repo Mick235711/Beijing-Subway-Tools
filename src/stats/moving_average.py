@@ -148,7 +148,7 @@ def main() -> None:
                 ts, moving_min=args.moving_average,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
+                average_str + "Avg Count", average_str + "Min Count", average_str + "Max Count",
                 average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
             ], [
                 "", "", "", "", "", ""
@@ -162,7 +162,7 @@ def main() -> None:
                 ts, moving_min=args.section,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                average_str + "Train Count", average_str + "Min Count", average_str + "Max Count",
+                average_str + "Avg Count", average_str + "Min Count", average_str + "Max Count",
                 average_str + "Min Cap", average_str + "Max Cap"
             ], [
                 "", "", "", "", ""

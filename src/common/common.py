@@ -382,6 +382,16 @@ def average(data: Iterable[int | float]) -> float:
     return sum(data_list) / len(data_list)
 
 
+def try_numerical(test_str: Any) -> Any:
+    """ Try to turn the string into numerical """
+    if not isinstance(test_str, str):
+        return test_str
+    try:
+        return float(test_str)
+    except ValueError:
+        return test_str
+
+
 def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_min: int,
                    include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average, return avg & min/max interval """
