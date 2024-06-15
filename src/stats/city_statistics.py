@@ -233,6 +233,9 @@ def append_table_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-r", "--reverse", nargs="?", const="all", help="Reverse sorting")
     parser.add_argument("-t", "--table-format", help="Table format", default="simple")
     parser.add_argument("--split", choices=list(basic_headers.keys()), default="none", help="Split mode")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--show", help="Only show these column(s)", default="")
+    group.add_argument("--hide", help="Hide these column(s)", default="")
 
 
 def sorted_direction_str(line: Line, stations: list[str]) -> str:
@@ -316,8 +319,8 @@ def split_dir(
 
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[set[tuple[str, Train]]], tuple], *,
-                  sort_index: list[int] | None = None, reverse: str | None = None,
-                  table_format: str = "simple",
+                  sort_index: Iterable[int] | None = None, reverse: str | None = None,
+                  table_format: str = "simple", show_set: set[int] | None = None, hide_set: set[int] | None = None,
                   split_mode: str = "none", use_capacity: bool = False) -> list[tuple]:
     """ Obtain data on lines """
     # Organize into lines
@@ -376,7 +379,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
     # TODO: Total
 
     max_value = max(line.index for line, _ in line_dict.values()) + 1
-    real_sort = sort_index or [0]
+    real_sort = list(sort_index or [0])
     if reverse is None or reverse == "all":
         reverse_index = set()
     else:
@@ -401,6 +404,16 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
                 data[i] = ("", "") + data[i][2:]
             last = newer
             last_dir = newer_dir
+
+    # Process show/hide
+    if show_set is not None and len(show_set) > 0:
+        # Ignore hide
+        data = [tuple(d for i, d in enumerate(row) if i in show_set) for row in data]
+        header = [header[i] for i in show_set]
+    elif hide_set is not None and len(hide_set) > 0:
+        data = [tuple(d for i, d in enumerate(row) if i not in hide_set) for row in data]
+        header = [header[i] for i in range(len(header)) if i not in hide_set]
+
     print(tabulate(
         data, headers=header, tablefmt=table_format, stralign="right", numalign="decimal", floatfmt=".2f"
     ))
@@ -409,7 +422,7 @@ def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequen
 
 def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.Namespace,
                  data_callback: Callable[[set[tuple[str, Train]]], tuple],
-                 sort_columns: Sequence[str], sort_columns_unit: Sequence[str], *,
+                 sort_columns: Iterable[str], sort_columns_unit: Iterable[str], *,
                  use_capacity: bool = False) -> None:
     """ Output data as table """
     split_mode = vars(args).get("split", "none")
@@ -419,13 +432,16 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
     sort_columns_unit_list = basic_headers[split_mode][1] + capacity_headers[use_capacity][1] + list(sort_columns_unit)
     sort_columns_key = [x.replace("\n", " ") for x in sort_columns_list]
     sort_index = [0] if args.sort_by == "" else [sort_columns_key.index(s.strip()) for s in args.sort_by.split(",")]
+    show_set = set() if args.show == "" else set(sort_columns_key.index(s.strip()) for s in args.show.split(","))
+    hide_set = set() if args.hide == "" else set(sort_columns_key.index(s.strip()) for s in args.hide.split(","))
     header = [(column if unit == "" else f"{column}\n({unit})")
               for column, unit in zip(sort_columns_list, sort_columns_unit_list)]
 
     data = get_line_data(
         all_trains, header, data_callback,
         sort_index=sort_index, reverse=args.reverse, table_format=args.table_format,
-        split_mode=split_mode, use_capacity=use_capacity
+        split_mode=split_mode, use_capacity=use_capacity,
+        show_set=show_set, hide_set=hide_set
     )
     if args.output is not None:
         with open(args.output, "w", newline="") as fp:

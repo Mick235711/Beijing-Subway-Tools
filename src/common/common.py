@@ -389,7 +389,12 @@ def try_numerical(test_str: Any) -> Any:
     if not isinstance(test_str, str):
         return test_str
     try:
-        return float(test_str)
+        test_str2 = test_str[:]
+        if "(" in test_str and ")" in test_str:
+            test_str2 = test_str2[:test_str2.index("(")].strip()
+        if "[" in test_str and "]" in test_str:
+            test_str2 = test_str2[:test_str2.index("[")].strip()
+        return float(test_str2)
     except ValueError:
         return test_str
 

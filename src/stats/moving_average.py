@@ -16,7 +16,7 @@ from src.stats.hour_trains import minute_trains
 
 def get_moving_average_data(
     train_date_set: set[tuple[str, Train]], *,
-    moving_min: int = 60, show_example: bool = False, include_edge: bool = False
+    moving_min: int = 60, show_example: str | None = None, include_edge: bool = False
 ) -> tuple:
     """ Get moving average data """
     line = list(train_date_set)[0][1].line
@@ -36,13 +36,14 @@ def get_moving_average_data(
         max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt
     ) = moving_average_dict(line_cap_dict, moving_min, include_edge)
 
+    separator = "\n" if show_example == "newline" else " "
     return (
         avg_cnt,
-        f"{min_cnt:.2f}" + (f"\n[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),
-        f"{max_cnt:.2f}" + (f"\n[{max_cnt_beg} - {max_cnt_end}]" if show_example else ""),
+        f"{min_cnt:.2f}" + (f"{separator}[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),
+        f"{max_cnt:.2f}" + (f"{separator}[{max_cnt_beg} - {max_cnt_end}]" if show_example else ""),
         avg_cap_cnt,
-        f"{min_cap_cnt:.2f}" + (f"\n[{min_cap_cnt_beg} - {min_cap_cnt_end}]" if show_example else ""),
-        f"{max_cap_cnt:.2f}" + (f"\n[{max_cap_cnt_beg} - {max_cap_cnt_end}]" if show_example else "")
+        f"{min_cap_cnt:.2f}" + (f"{separator}[{min_cap_cnt_beg} - {min_cap_cnt_end}]" if show_example else ""),
+        f"{max_cap_cnt:.2f}" + (f"{separator}[{max_cap_cnt_beg} - {max_cap_cnt_end}]" if show_example else "")
     )
 
 
@@ -76,7 +77,7 @@ def count_train(station: str, trains: Sequence[Train], *, moving_min: int = 60,
 
 def get_section_data(
     train_date_set: set[tuple[str, Train]], *,
-    moving_min: int = 60, show_example: bool = False, include_edge: bool = False
+    moving_min: int = 60, show_example: str | None = None, include_edge: bool = False
 ) -> tuple:
     """ Get sectional (station-wise) data """
     # Calculate line -> (date_group, direction, station) -> list of trains
@@ -111,17 +112,18 @@ def get_section_data(
     # Calculate min/max
     min_cnt_key, max_cnt_key = arg_minmax(count_dict)
     min_cap_cnt_key, max_cap_cnt_key = arg_minmax(cap_dict)
+    separator = "\n" if show_example == "newline" else " "
     return (
         average(count_dict.values()),
         f"{count_dict[min_cnt_key]}" +
-        (f"\n[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
+        (f"{separator}[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
         f"{count_dict[max_cnt_key]}" +
-        (f"\n[{max_cnt_key[2]} {max_cnt_key[1]} {max_cnt_key[0]} {max_cnt_key[3]}]" if show_example else ""),
-        f"{cap_dict[min_cap_cnt_key]}\n" +
-        (f"[{min_cap_cnt_key[2]} {min_cap_cnt_key[1]} {min_cap_cnt_key[0]} {min_cap_cnt_key[3]}]"
+        (f"{separator}[{max_cnt_key[2]} {max_cnt_key[1]} {max_cnt_key[0]} {max_cnt_key[3]}]" if show_example else ""),
+        f"{cap_dict[min_cap_cnt_key]}" +
+        (f"{separator}[{min_cap_cnt_key[2]} {min_cap_cnt_key[1]} {min_cap_cnt_key[0]} {min_cap_cnt_key[3]}]"
          if show_example else ""),
-        f"{cap_dict[max_cap_cnt_key]}\n" +
-        (f"[{max_cap_cnt_key[2]} {max_cap_cnt_key[1]} {max_cap_cnt_key[0]} {max_cap_cnt_key[3]}]"
+        f"{cap_dict[max_cap_cnt_key]}" +
+        (f"{separator}[{max_cap_cnt_key[2]} {max_cap_cnt_key[1]} {max_cap_cnt_key[0]} {max_cap_cnt_key[3]}]"
          if show_example else "")
     )
 
@@ -135,13 +137,15 @@ def main() -> None:
         group.add_argument("-m", "--moving-average", type=int, help="Calculate moving average capacity")
         group.add_argument("--section", type=int,
                            help="Show cross-sectional (station-wise) capacity data")
-        parser.add_argument("--show-example", action="store_true", help="Show example")
+        parser.add_argument("--show-example", nargs="?", choices=["newline", "oneline"],
+                            const="newline", help="Show example")
         parser.add_argument("--include-edge", action="store_true", help="Include edge in moving average")
         parser.add_argument("-o", "--output", help="Output CSV file")
 
     all_trains, args, _, lines = parse_args(append_arg)
+    separator = "\n" if args.show_example is None else " "
     if args.moving_average:
-        average_str = f"{args.moving_average}-min Avg\n"
+        average_str = f"{args.moving_average}-min Avg{separator}"
         output_table(
             all_trains, args,
             lambda ts: get_moving_average_data(
@@ -155,7 +159,7 @@ def main() -> None:
             ], use_capacity=True
         )
     elif args.section:
-        average_str = f"{args.section}-min\n"
+        average_str = f"{args.section}-min{separator}"
         output_table(
             all_trains, args,
             lambda ts: get_section_data(
