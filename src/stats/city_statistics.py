@@ -300,8 +300,8 @@ def split_dir(
     result: dict[str, tuple[int, set[tuple[str, Train]]]] = {}
     if use_route:
         iter_set = set(
-            (sorted_direction_str(train.line, route.stations), date_group, train)
-            for date_group, train in train_set for route in train.routes
+            (sorted_direction_str(train.line, train.stations), date_group, train)
+            for date_group, train in train_set
         )
     else:
         iter_set = set((train.direction, date_group, train) for date_group, train in train_set)
