@@ -140,6 +140,9 @@ def parse_through_train(
         result[through_spec] = []
         last_line: Line | None = None
         for line, direction, date_group, route in through_spec.spec:
+            if line.name not in train_dict or direction not in train_dict[line.name] or\
+                    date_group.name not in train_dict[line.name][direction]:
+                continue
             train_list = train_dict[line.name][direction][date_group.name]
             candidate_list, other_list = [], []
             for train in train_list:
