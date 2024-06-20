@@ -69,6 +69,7 @@
 - [x] 画图contour强调选项-f
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）
 - [ ] 某线某一时刻上线列车列表及位置
+  - [ ] 对接[beijing-subway-schedule](https://github.com/BoyInTheSun/beijing-subway-schedule)项目
 - [ ] 平均间隔，高峰平均间隔，平均全程车占比，高峰全程车占比
 - [x] --reverse支持索引
 - [x] --show和--hide显示/隐藏列
@@ -101,6 +102,7 @@
 - [ ] 反转整个图，BFS创造单终点最短路（即到某站的最短时间）
 - [ ] 忽略某条线/某站/某个换乘
 - [ ] 某条线延长N站（输入站名，运行时间，如果不存在可以输入坐标）
+- [ ] 运行图输出（[参考](https://www.zhihu.com/question/27281523/answer/36034502)）
 
 ## Known Bugs
 - 本质上时刻表上的最短路是NP-Hard（因为不满足最优子结构），所以BFS其实不成立
