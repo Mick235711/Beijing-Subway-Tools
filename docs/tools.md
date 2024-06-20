@@ -312,6 +312,82 @@ City default: &lt;北京: 24 lines&gt;
 天通苑北 08:20     (+52min, +27.06km)
 </pre>
 
+### [`export_trains.py`](/src/routing/export_trains.py): Export all trains calculated in a line to a JSON file
+```
+usage: export_trains.py [-h] [--indent INDENT] [-o OUTPUT] [--all-lines] [--all-directions] [--all-date-groups]
+
+options:
+  -h, --help            show this help message and exit
+  --indent INDENT       Indentation level before each line
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  --all-lines           Export all lines
+  --all-directions      Export all directions of a line
+  --all-date-groups     Export all date groups
+```
+Export all trains recorded into a JSON file.
+The format is similar to those mandated in the
+[beijing_subway_schedule](https://github.com/BoyInTheSun/beijing-subway-schedule) README.
+- `--indent` will append `N` spaces before each line and also indent the JSON output (not passing this will cause all output be in one line).
+- `-o` specifies the output file. (Not passing this result in the output being directly printed.)
+- `--all-*` will output date for all lines, directions or date groups.
+
+Notice that `--all-directions` will be the default if `--all-lines` is passed.
+
+Example Usage:
+<pre>
+$ python3 src/routing/export_trains.py --indent 4
+City default: &lt;北京: 24 lines&gt;
+? Please select a line: <i>1号线</i>
+? Please select a direction: <i>东行</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-06-20</i>
+{
+    "0": [
+        ["古城", "04:57"],
+        ["八角游乐园", "05:00"],
+        ["八宝山", "05:03"],
+        ["玉泉路", "05:06"],
+        ["五棵松", "05:08"],
+        ["万寿路", "05:11"],
+        ["公主坟", "05:13"],
+        ["军事博物馆", "05:16"],
+        ["木樨地", "05:18"],
+        ["南礼士路", "05:20"],
+        ["复兴门", "05:22"],
+        ["西单", "05:25"],
+        ["天安门西", "05:27"],
+        ["天安门东", "05:29"],
+        ["王府井", "05:31"],
+        ["东单", "05:33"],
+        ["建国门", "05:35"],
+        ["永安里", "05:38"],
+        ["国贸", "05:40"],
+        ["大望路", "05:42"],
+        ["四惠", "05:45"],
+        ["四惠东", "05:48"],
+        ["高碑店", "05:51"],
+        ["传媒大学", "05:54"],
+        ["双桥", "05:57"],
+        ["管庄", "05:59"],
+        ["八里桥", "06:02"],
+        ["通州北苑", "06:05"],
+        ["果园", "06:08"],
+        ["九棵树", "06:10"],
+        ["梨园", "06:12"],
+        ["临河里", "06:14"],
+        ["土桥", "06:16"],
+        ["花庄", "06:19"],
+        ["环球度假区", "06:22"]
+    ],
+    "1": [
+        ["土桥", "04:59"],
+        ["花庄", "05:02"],
+        ["环球度假区", "05:05"]
+    ],
+    ...
+}
+</pre>
+
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
 (This program has no command-line arguments.)
 
