@@ -60,7 +60,7 @@ def main() -> None:
 
     # line -> direction -> date_group -> train_key -> list of (station, arrival_time)
     result: dict[str, dict[str, dict[str, dict[str, list[NoIndent]]]]] = {}
-    for line in lines:
+    for line in sorted(lines, key=lambda single_line: single_line.index):
         assert line.name in train_dict, (train_dict.keys(), line)
         if line.name not in result:
             result[line.name] = {}
