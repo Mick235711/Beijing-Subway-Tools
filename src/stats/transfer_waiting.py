@@ -78,10 +78,10 @@ def avg_waiting_time(
             for date_group, train in train_list1:
                 transfer_time, _ = transfer_spec.get_transfer_time(
                     lines[from_l], from_d, lines[to_l], to_d, date_group, *train.arrival_time[station1])
-                minutes = (ceil if exclude_edge else floor)(transfer_time)
+                minutes = (floor if exclude_edge else ceil)(transfer_time)
                 while cur_index < len(train_list2) and diff_time_tuple(
                     train_list2[cur_index][1].arrival_time[station2], train.arrival_time[station1]
-                ) < minutes + (0 if exclude_edge else 1):
+                ) < minutes + (1 if exclude_edge else 0):
                     cur_index += 1
                 if cur_index == len(train_list2):
                     break
@@ -112,9 +112,10 @@ def main() -> None:
         parser.add_argument("--min", type=int, help="Minimum waiting time")
         parser.add_argument("--max", type=int, help="Maximum waiting time")
         parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
+        parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
 
     all_trains, args, city, _ = parse_args(append_arg)
-    avg_waiting_time(all_trains, city, limit_num=args.limit_num,
+    avg_waiting_time(all_trains, city, limit_num=args.limit_num, exclude_edge=args.exclude_edge,
                      min_waiting=args.min, max_waiting=args.max, show_all=args.show_all)
 
 
