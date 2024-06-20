@@ -69,7 +69,7 @@
 - [x] 画图contour强调选项-f
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）
 - [ ] 某线某一时刻上线列车列表及位置
-  - [ ] 对接[beijing-subway-schedule](https://github.com/BoyInTheSun/beijing-subway-schedule)项目
+  - [x] 对接[beijing-subway-schedule](https://github.com/BoyInTheSun/beijing-subway-schedule)项目
 - [ ] 平均间隔，高峰平均间隔，平均全程车占比，高峰全程车占比
 - [x] --reverse支持索引
 - [x] --show和--hide显示/隐藏列

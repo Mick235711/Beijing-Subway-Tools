@@ -7,7 +7,10 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterable, Callable, Sequence, Mapping
+import json
+import re
+from _ctypes import PyObj_FromPtr  # type: ignore
+from collections.abc import Iterable, Callable, Sequence, Mapping, Iterator
 from datetime import datetime, date, time, timedelta
 from typing import TypeVar, Any
 
@@ -500,3 +503,51 @@ class Reverser:
     def __repr__(self) -> str:
         """ String representation """
         return f"Reverser({self.obj!r})"
+
+
+# json.dump[s] utility to not expand inner arrays
+# Credit: https://stackoverflow.com/a/42721412/6593187
+class NoIndent:
+    """ Value wrapper """
+    def __init__(self, value: list | tuple) -> None:
+        if not isinstance(value, (list, tuple)):
+            raise TypeError('Only lists and tuples can be wrapped')
+        self.value = value
+
+
+class InnerArrayEncoder(json.JSONEncoder):
+    """ Encoder to make inner array show on one line """
+    FORMAT_SPEC = '@@{}@@'  # Unique string pattern of NoIndent object ids.
+    regex = re.compile(FORMAT_SPEC.format(r'(\d+)'))  # compile(r'@@(\d+)@@')
+
+    def __init__(self, **kwargs) -> None:
+        # Keyword arguments to ignore when encoding NoIndent wrapped values.
+        ignore = {'cls', 'indent'}
+
+        # Save copy of any keyword argument values needed for use here.
+        self._kwargs = {k: v for k, v in kwargs.items() if k not in ignore}
+        super(InnerArrayEncoder, self).__init__(**kwargs)
+
+    def default(self, obj: Any) -> str:
+        """ Default serializer """
+        return (self.FORMAT_SPEC.format(id(obj)) if isinstance(obj, NoIndent)
+                else super(InnerArrayEncoder, self).default(obj))
+
+    def iterencode(self, obj: Any, **kwargs) -> Iterator[str]:  # type: ignore
+        """ Encode an item """
+        format_spec = self.FORMAT_SPEC  # Local var to expedite access.
+
+        # Replace any marked-up NoIndent wrapped values in the JSON repr
+        # with the json.dumps() of the corresponding wrapped Python object.
+        for encoded in super(InnerArrayEncoder, self).iterencode(obj, **kwargs):
+            match = self.regex.search(encoded)
+            if match:
+                encoded_id = int(match.group(1))
+                no_indent = PyObj_FromPtr(encoded_id)
+                json_repr = json.dumps(no_indent.value, **self._kwargs)
+                # Replace the matched id string with json formatted representation
+                # of the corresponding Python object.
+                encoded = encoded.replace(
+                    '"{}"'.format(format_spec.format(encoded_id)), json_repr)
+
+            yield encoded

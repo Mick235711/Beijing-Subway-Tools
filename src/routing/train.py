@@ -409,7 +409,7 @@ def parse_trains(
 
 
 def parse_all_trains(
-    lines: list[Line],
+    lines: Iterable[Line],
 ) -> dict[str, dict[str, dict[str, list[Train]]]]:
     """ Parse all trains from timetables """
     result: dict[str, dict[str, dict[str, list[Train]]]] = {}
