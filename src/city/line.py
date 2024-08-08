@@ -42,6 +42,7 @@ class Line:
         self.loop = False
         self.loop_last_segment = 0
         self.loop_start_route: dict[str, TrainRoute] = {}
+        self.end_circle_start: str | None = None
         self.end_circle_spec: dict[str, int] = {}  # Store end_circle split dists
 
     def __repr__(self) -> str:
@@ -200,6 +201,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
         if "end_circle" in value and value["end_circle"]:
             line.end_circle_spec[direction] = value["end_circle_split_dist"]
             end_circle_start = value["end_circle_start"]
+            line.end_circle_start = end_circle_start
             end_index = line.directions[direction].index(end_circle_start)
             line.directions[direction] = line.directions[direction][:end_index + 1] + list(reversed(
                 line.directions[direction][end_index + 1:]
