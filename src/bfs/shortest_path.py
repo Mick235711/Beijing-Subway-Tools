@@ -9,10 +9,11 @@ import sys
 from datetime import date, time
 
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
+from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import get_time_str, TimeSpec
-from src.bfs.avg_shortest_time import all_time_bfs
+from src.bfs.avg_shortest_time import all_time_bfs, shortest_path_args
 from src.bfs.k_shortest_path import k_shortest_path
 from src.dist_graph.adaptor import get_dist_graph, to_trains
 from src.dist_graph.shortest_path import shortest_path
@@ -37,20 +38,11 @@ def find_last_train(
     return max_result[2].initial_time, max_result[2].initial_day
 
 
-def main() -> None:
-    """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
-                        default="time", help="Shortest path criteria")
-    parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-i", "--include-lines", help="Include lines")
-    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
-    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
-    parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
-    parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
-    args = parser.parse_args()
-
+def ask_for_shortest_path(
+    args: argparse.Namespace
+) -> tuple[City, tuple[str, set[Line]], tuple[str, set[Line]],
+           dict[str, dict[str, dict[str, list[Train]]]], date, time, bool]:
+    """ Ask information for shortest path computation """
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
     lines = city.lines()
@@ -84,6 +76,21 @@ def main() -> None:
     start_day = start_time < time(3, 30)
     if start_day:
         print("Warning: assuming next day!")
+    return city, start, end, train_dict, start_date, start_time, start_day
+
+
+def main() -> None:
+    """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
+                        default="time", help="Shortest path criteria")
+    parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+    shortest_path_args(parser, True)
+    args = parser.parse_args()
+    city, start, end, train_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
+    lines = city.lines()
+    virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
+
     if args.data_source == "time":
         if args.exclude_single:
             print("Warning: --exclude-single ignored in time mode.")

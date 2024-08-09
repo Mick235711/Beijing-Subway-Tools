@@ -229,6 +229,17 @@ def path_shorthand(end_station: str, path: AbstractPath) -> str:
     return result + end_station
 
 
+def shortest_path_args(parser: argparse.ArgumentParser, have_single: bool = False) -> None:
+    """ Add the shortest path arguments like --include-lines """
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--include-lines", help="Include lines")
+    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
+    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+    parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    if have_single:
+        parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -240,11 +251,7 @@ def main() -> None:
     group2 = parser.add_mutually_exclusive_group()
     group2.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     group2.add_argument("-t", "--to-station", help="Only show average time to specified stations")
-    group3 = parser.add_mutually_exclusive_group()
-    group3.add_argument("-i", "--include-lines", help="Include lines")
-    group3.add_argument("-x", "--exclude-lines", help="Exclude lines")
-    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
-    parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    shortest_path_args(parser)
     args = parser.parse_args()
 
     stations = parse_comma(args.to_station)

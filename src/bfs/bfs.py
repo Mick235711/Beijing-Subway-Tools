@@ -28,13 +28,15 @@ class BFSResult:
     def __init__(self, station: str, start_date: date,
                  initial_time: time, initial_day: bool,
                  arrival_time: time, arrival_day: bool,
-                 prev_station: str | None = None, prev_train: Train | VTSpec | None = None) -> None:
+                 prev_station: str | None = None, prev_train: Train | VTSpec | None = None,
+                 *, force_next_day: bool = False) -> None:
         """ Constructor """
         self.station = station
         self.start_date = start_date
         self.initial_time, self.initial_day = initial_time, initial_day
         self.arrival_time, self.arrival_day = arrival_time, arrival_day
         self.prev_station, self.prev_train = prev_station, prev_train
+        self.force_next_day = force_next_day
 
     def shortest_path(self, results: dict[str, BFSResult]) -> Path:
         """ Return the shortest path """
@@ -52,8 +54,9 @@ class BFSResult:
     def total_duration(self) -> int:
         """ Get total duration """
         result = diff_time(self.arrival_time, self.initial_time, self.arrival_day, self.initial_day)
-        if result < 0:
+        if self.force_next_day:
             result += 24 * 60
+        assert result >= 0, self
         return result
 
     def total_distance(self, path: Path) -> int:
@@ -129,6 +132,7 @@ class BFSResult:
 
                 total_waiting = diff_time(start_time, last_time, start_day, last_day)
                 if total_waiting < 0:
+                    assert self.force_next_day, self
                     total_waiting += 24 * 60
                     cur_date += timedelta(days=1)
                 if station in last_train.line.stations:

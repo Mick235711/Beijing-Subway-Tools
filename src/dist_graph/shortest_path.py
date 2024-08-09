@@ -10,6 +10,7 @@ from src.city.line import Line
 
 Graph = dict[str, dict[str, tuple[int, Line | None]]]  # None = virtual transfer (length = 0)
 Path = list[tuple[str, Line | None]]
+AugmentedPath = list[tuple[str, tuple[Line, str] | None]]
 
 
 def get_path(parents: dict[str, tuple[str, Line | None] | None], station: str) -> Path:

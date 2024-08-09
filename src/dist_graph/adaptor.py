@@ -11,8 +11,8 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import add_min_tuple, get_time_str, diff_time_tuple
-from src.dist_graph.shortest_path import Graph, Path
 from src.bfs.bfs import BFSResult, Path as BFSPath
+from src.dist_graph.shortest_path import Graph, Path, AugmentedPath
 from src.routing.train import Train
 
 
@@ -31,9 +31,17 @@ def add_double_edge(graph: Graph, station1: str, station2: str, dist: int, line:
 
 def remove_edge(graph: Graph, from_station: str, to_station: str) -> None:
     """ Remove an edge from the graph """
-    assert from_station in graph, list(graph.keys())
-    assert to_station in graph[from_station], graph[from_station]
+    assert from_station in graph, (list(graph.keys()), from_station)
+    assert to_station in graph[from_station], (graph[from_station], from_station, to_station)
     del graph[from_station][to_station]
+    if len(graph[from_station]) == 0:
+        del graph[from_station]
+
+
+def remove_double_edge(graph: Graph, station1: str, station2: str) -> None:
+    """ Remove a double-direction edge from the graph """
+    remove_edge(graph, station1, station2)
+    remove_edge(graph, station2, station1)
 
 
 def copy_graph(graph: Graph) -> Graph:
@@ -89,14 +97,15 @@ def get_dist_graph(
     return graph
 
 
-def simplify_path(path: Path) -> Path:
+def simplify_path(path: Path, end_station: str) -> AugmentedPath:
     """ Simplify paths such that lines are collapsed """
-    new_path: Path = []
+    new_path: AugmentedPath = []
     last_line: Line | None = None
-    for station, line in path:
+    for i, (station, line) in enumerate(path):
         if last_line is not None and line == last_line:
             continue
-        new_path.append((station, line))
+        next_station = end_station if i == len(path) - 1 else path[i + 1][0]
+        new_path.append((station, None if line is None else (line, line.determine_direction(station, next_station))))
         last_line = line
     return new_path
 
@@ -110,15 +119,16 @@ def to_trains(
     """ Query timetable to resolve paths back to possible trains """
     start_date = cur_date
     start_tuple = (cur_time, cur_day)
-    path = simplify_path(path)
+    new_path = simplify_path(path, end_station)
     cur_tuple = (cur_time, cur_day)
-    final_path: BFSPath = []
-    for i, (station, line) in enumerate(path):
-        next_station = end_station if i == len(path) - 1 else path[i + 1][0]
-        if line is None:
+    final_new_path: BFSPath = []
+    force_next_day = False
+    for i, (station, line_direction) in enumerate(new_path):
+        next_station = end_station if i == len(new_path) - 1 else new_path[i + 1][0]
+        if line_direction is None:
             # Virtual transfer
             transfer = virtual_dict[(station, next_station)]
-            if i == 0 or i == len(path) - 1 or path[i - 1][1] is None or path[i + 1][1] is None:
+            if i == 0 or i == len(new_path) - 1 or new_path[i - 1][1] is None or new_path[i + 1][1] is None:
                 # Select the smallest virtual transfer time
                 from_line_name, from_direction, to_line_name, to_direction = min(
                     list(transfer.transfer_time.keys()),
@@ -127,17 +137,13 @@ def to_trains(
                 from_line = lines[from_line_name]
                 to_line = lines[to_line_name]
             else:
-                from_line = path[i - 1][1]  # type: ignore
-                from_direction = from_line.determine_direction(path[i - 1][0], station)
-                to_line = path[i + 1][1]  # type: ignore
-                to_direction = to_line.determine_direction(
-                    next_station, end_station if i == len(path) - 2 else path[i + 2][0]
-                )
+                from_line, from_direction = new_path[i - 1][1]  # type: ignore
+                to_line, to_direction = new_path[i + 1][1]  # type: ignore
             transfer_time, is_special = transfer.get_transfer_time(
                 from_line, from_direction, to_line, to_direction,
                 cur_date, cur_tuple[0], cur_tuple[1]
             )
-            final_path.append((
+            final_new_path.append((
                 station, (station, next_station, (
                     from_line.name, from_direction, to_line.name, to_direction
                 ), transfer_time, is_special)
@@ -146,7 +152,7 @@ def to_trains(
             continue
 
         # Normal line, find a suitable train
-        direction = line.determine_direction(station, next_station)
+        line, direction = line_direction
         next_date = cur_date + timedelta(days=1)
         cur_candidates: list[Train] = []
         next_candidates: list[Train] = []
@@ -156,38 +162,38 @@ def to_trains(
                  and next_station in train.arrival_time_virtual(station).keys()],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )
+            if line.date_groups[date_group].covers(next_date):
+                if len(trains) == 0:
+                    continue
+                next_candidates.append(trains[0])
             if line.date_groups[date_group].covers(cur_date):
                 trains = [train for train in trains if diff_time_tuple(train.arrival_time[station], cur_tuple) >= 0]
                 if len(trains) == 0:
                     continue
                 cur_candidates.append(trains[0])
-            elif line.date_groups[date_group].covers(next_date):
-                if len(trains) == 0:
-                    continue
-                next_candidates.append(trains[0])
-        assert len(cur_candidates) <= 1, (cur_candidates, station, line, direction)
+        assert len(cur_candidates) <= 1, (cur_candidates, station, line_direction, direction, cur_tuple)
         if len(cur_candidates) > 0:
             candidate = cur_candidates[0]
         else:
-            assert len(next_candidates) == 1, (next_candidates, station, line, direction)
+            assert len(next_candidates) == 1, (next_candidates, station, line_direction, direction, cur_tuple)
             candidate = next_candidates[0]
             cur_date = next_date
-        final_path.append((station, candidate))
+            force_next_day = True
+        final_new_path.append((station, candidate))
 
         # Try to find a transfer time
         cur_tuple = candidate.arrival_time_virtual(station)[next_station]
-        if i == len(path) - 1 or path[i + 1][1] is None:
+        if i == len(new_path) - 1 or new_path[i + 1][1] is None:
             continue
         transfer = transfer_dict[next_station]
         transfer_time, is_special = transfer.get_transfer_time(
             line, direction,
-            path[i + 1][1], path[i + 1][1].determine_direction(  # type: ignore
-                next_station, end_station if i == len(path) - 2 else path[i + 2][0]
-            ),
+            new_path[i + 1][1][0], new_path[i + 1][1][1],  # type: ignore
             cur_date, cur_tuple[0], cur_tuple[1]
         )
         cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time))
 
     return BFSResult(
-        end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1]
-    ), final_path
+        end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1],
+        force_next_day=force_next_day
+    ), final_new_path

@@ -18,7 +18,7 @@ from scipy.interpolate import griddata  # type: ignore
 from src.city.ask_for_city import ask_for_map
 from src.common.common import parse_comma
 from src.graph.map import Map
-from src.bfs.avg_shortest_time import shortest_in_city
+from src.bfs.avg_shortest_time import shortest_in_city, shortest_path_args
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
@@ -40,11 +40,7 @@ def map_args(more_args: Callable[[argparse.ArgumentParser], Any] | None = None) 
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=5)
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-i", "--include-lines", help="Include lines")
-    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
-    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
-    parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    shortest_path_args(parser)
     if more_args is not None:
         more_args(parser)
     return parser.parse_args()
