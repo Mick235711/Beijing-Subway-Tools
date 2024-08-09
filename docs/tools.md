@@ -828,6 +828,156 @@ Minimum time path:
     15号线 东行 全程车 [6B] 望京西 10:02 -> 俸伯 10:41 (12 stations, 39min, 30.43km)
 </pre>
 
+# [`dist_graph/`](/src/dist_graph): Algorithms on the pure-distance graphs
+### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
+```
+usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-edge        Exclude edge case in transfer
+```
+
+Show the longest possible path in the network (i.e., the longest path that does not have duplicate edges).
+Notice that duplicate nodes are allowed.
+
+Example Usage:
+<pre>
+$ python3 src/dist_graph/longest_path.py
+City default: &lt;北京: 24 lines&gt;
+? Please select a starting station: <i>燕山</i>
+? Please select an ending station: <i>俸伯</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-08-07</i>
+? Please enter the travel time (hh:mm or first or last): <i>first</i>
+Odd nodes in simplified graph:
+西直门 (5)
+复兴门 (5)
+东直门 (5)
+慈寿寺 (3)
+金台路 (3)
+国家图书馆 (5)
+西二旗 (3)
+清河站 (3)
+六道口 (3)
+西土城 (3)
+公主坟 (3)
+牡丹园 (3)
+太平桥 (3)
+牛街 (3)
+三元桥 (3)
+北新桥 (3)
+立水桥 (3)
+北京西站 (3)
+广安门内 (3)
+七里庄 (3)
+丰台南路 (3)
+郭公庄 (3)
+东管头南 (3)
+望京 (3)
+十里河 (5)
+永定门外 (3)
+Calculating shortest paths... Done!
+Calculating best matching... Done!
+丰台南路 <-> 郭公庄 (3116), 西土城 <-> 六道口 (2793), 东直门 <-> 北新桥 (1622), 太平桥 <-> 复兴门 (0), 十里河 <-> 永定门外 (5248), 七里庄 <-> 东管头南 (4342), 金台路 <-> 三元桥 (5902), 广安门内 <-> 牛街 (0), 牡丹园 <-> 西直门 (5269), 公主坟 <-> 北京西站 (2570), 立水桥 <-> 望京 (10477), 国家图书馆 <-> 慈寿寺 (3694), 西二旗 <-> 清河站 (1545)
+
+Longest Route Possible:
+05:27 -> 21:14
+Total time: 15h47min, total distance: 482.09km, 303 stations, 29 transfers.
+
+Waiting time: 2 minutes
+燕房线 进城 全程车 [4B] 燕山 05:29 -> 阎村东 05:52 (8 stations, 23min, 13.25km)
+Transfer at 阎村东: 燕房线 -> 房山线, 0 minutes
+Waiting time: 3 minutes
+房山线 进城 全程车 [6B] 阎村东 05:55 -> 东管头南 06:39 (15 stations, 44min, 31.07km)
+Transfer at 东管头南: 房山线 -> 16号线, 2 minutes
+16号线 北行 全程车 [8A] 东管头南 06:41 -> 西苑 07:15 (11 stations, 34min, 19.06km)
+Transfer at 西苑: 16号线 -> 4号线, 3.5 minutes
+Waiting time: 1.5 minutes
+4号线 南行 全程车 [6B] 西苑 07:20 -> 新宫 08:11 (22 stations, 51min, 27.49km)
+Transfer at 新宫: 4号线 -> 19号线, 1.5 minutes
+Waiting time: 1.5 minutes
+19号线 北行 全程车 [8A] 新宫 08:14 -> 积水潭 08:37 (7 stations, 23min, 17.47km)
+Transfer at 积水潭: 19号线 -> 2号线, 3 minutes
+Waiting time: 1 minute
+2号线 内环 环行 [6B-] 积水潭 08:41 -> 西直门 09:21 (17 stations, 40min, 21.10km)
+Transfer at 西直门: 2号线 -> 13号线, 6 minutes
+Waiting time: 1 minute
+13号线 东行 全程车 [6B-] 西直门 09:28 -> 清河站 09:46 (5 stations, 18min, 11.76km)
+Transfer at 清河站: 13号线 -> 昌平线, 1 minute
+昌平线 进城 全程车 [6B] 清河站 09:47 -> 六道口 09:58 (3 stations, 11min, 6.86km)
+Transfer at 六道口: 昌平线 -> 15号线, 2.5 minutes
+Waiting time: 6.5 minutes
+15号线 东行 全程车 [6B] 六道口 10:07 -> 大屯路东 10:17 (4 stations, 10min, 5.64km)
+Transfer at 大屯路东: 15号线 -> 5号线, 4.5 minutes
+Waiting time: 3.5 minutes
+5号线 南行 全程车 [6B] 大屯路东 10:25 -> 宋家庄 11:01 (16 stations, 36min, 18.02km)
+Transfer at 宋家庄: 5号线 -> 亦庄线, 1 minute
+Waiting time: 3 minutes
+亦庄线 出城 全程车 [6B] 宋家庄 11:05 -> 次渠 11:37 (12 stations, 32min, 21.39km)
+Transfer at 次渠: 亦庄线 -> 17号线, 1.5 minutes
+Waiting time: 4.5 minutes
+17号线 北行 全程车 [8A] 次渠 11:43 -> 十里河 12:02 (5 stations, 19min, 13.65km)
+Transfer at 十里河: 17号线 -> 10号线, 2.5 minutes
+Waiting time: 4.5 minutes
+10号线 内环 环行 [6B] 十里河 12:09 -> 丰台站 12:36 (11 stations, 27min, 15.51km)
+Transfer at 丰台站: 10号线 -> 16号线, 2.5 minutes
+Waiting time: 5.5 minutes
+16号线 南行 全程车 [8A] 丰台站 12:44 -> 丰台南路 12:46 (1 station, 2min, 1.42km)
+Transfer at 丰台南路: 16号线 -> 9号线, 1 minute
+Waiting time: 3 minutes
+9号线 北行 全程车 [6B] 丰台南路 12:50 -> 北京西站 13:04 (5 stations, 14min, 7.17km)
+Transfer at 北京西站: 9号线 -> 7号线, 1 minute
+Waiting time: 6 minutes
+7号线 东行 全程车 [8B] 北京西站 13:11 -> 花庄 14:17 (28 stations, 1h6min, 37.64km)
+Transfer at 花庄: 7号线 -> 1号线, 1 minute
+Waiting time: 6 minutes
+1号线 西行 全程车 [6B-] 花庄 14:24 -> 军事博物馆 15:27 (26 stations, 1h3min, 35.04km)
+Transfer at 军事博物馆: 1号线 -> 9号线, 2.5 minutes
+Waiting time: 2.5 minutes
+9号线 北行 全程车 [6B] 军事博物馆 15:32 -> 白石桥南 15:37 (2 stations, 5min, 2.96km)
+Transfer at 白石桥南: 9号线 -> 6号线, 0.5 minutes
+Waiting time: 3.5 minutes
+6号线 东行 全程车 [8B] 白石桥南 15:41 -> 南锣鼓巷 15:54 (6 stations, 13min, 6.67km)
+Transfer at 南锣鼓巷: 6号线 -> 8号线, 1.5 minutes
+Waiting time: 2.5 minutes
+8号线 南行 全程车 [6B] 南锣鼓巷 15:58 -> 永定门外 16:16 (7 stations, 18min, 8.70km)
+Transfer at 永定门外: 8号线 -> 14号线, 2.5 minutes
+Waiting time: 2.5 minutes
+14号线 西南行 全程车 [6A] 永定门外 16:21 -> 西局 16:38 (7 stations, 17min, 8.73km)
+Transfer at 西局: 14号线 -> 10号线, 0.5 minutes
+Waiting time: 1.5 minutes
+10号线 内环 宋家庄出库车 [6B] 西局 16:40 -> 三元桥 17:32 (22 stations, 52min, 28.68km)
+Transfer at 三元桥: 10号线 -> 首都机场线, 1.5 minutes
+Waiting time: 2.5 minutes
+首都机场线 进城 全程车 [4L] 三元桥 17:36 -> 东直门 17:41 (1 station, 5min, 3.02km)
+Transfer at 东直门: 首都机场线 -> 13号线, 3.5 minutes
+Waiting time: 3.5 minutes
+13号线 西行 全程车 [6B-] 东直门 17:48 -> 西二旗 18:27 (10 stations, 39min, 27.10km)
+Transfer at 西二旗: 13号线 -> 昌平线, 0.5 minutes
+Waiting time: 1.5 minutes
+昌平线 出城 沙河高教园小交路 [6B] 西二旗 18:29 -> 朱辛庄 18:38 (2 stations, 9min, 7.81km)
+Transfer at 朱辛庄: 昌平线 -> 8号线, 1 minute
+Waiting time: 2 minutes
+8号线 南行 全程车 [6B] 朱辛庄 18:41 -> 南锣鼓巷 19:25 (17 stations, 44min, 26.07km)
+Transfer at 南锣鼓巷: 8号线 -> 6号线, 1.5 minutes
+Waiting time: 1.5 minutes
+6号线 东行 全程车 [8B] 南锣鼓巷 19:28 -> 呼家楼 19:38 (4 stations, 10min, 5.85km)
+Transfer at 呼家楼: 6号线 -> 10号线, 0.5 minutes
+Waiting time: 3.5 minutes
+10号线 内环 环行 [6B] 呼家楼 19:42 -> 十里河 19:55 (6 stations, 13min, 6.46km)
+Transfer at 十里河: 10号线 -> 14号线, 3 minutes
+Waiting time: 1 minute
+14号线 东北行 全程车 [6A] 十里河 19:59 -> 望京 20:31 (12 stations, 32min, 17.83km)
+Transfer at 望京: 14号线 -> 15号线, 2.5 minutes
+Waiting time: 2.5 minutes
+15号线 东行 全程车 [6B] 望京 20:36 -> 俸伯 21:14 (11 stations, 38min, 28.67km)
+</pre>
+
 # [`stats/`](/src/stats): Statistics of a city and its lines
 ### Common Arguments
 In all the programs in this section, the following arguments are supported:
