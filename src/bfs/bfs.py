@@ -6,7 +6,7 @@
 # Libraries
 from __future__ import annotations
 
-from datetime import date, time
+from datetime import date, time, timedelta
 from math import floor, ceil
 
 from src.city.line import Line
@@ -28,7 +28,7 @@ class BFSResult:
     def __init__(self, station: str, start_date: date,
                  initial_time: time, initial_day: bool,
                  arrival_time: time, arrival_day: bool,
-                 prev_station: str, prev_train: Train | VTSpec) -> None:
+                 prev_station: str | None = None, prev_train: Train | VTSpec | None = None) -> None:
         """ Constructor """
         self.station = station
         self.start_date = start_date
@@ -42,14 +42,19 @@ class BFSResult:
         prev_train = self.prev_train
         path: Path = []
         while prev_station in results:
+            assert prev_station is not None and prev_train is not None, self
             path = [(prev_station, prev_train)] + path
             prev_train = results[prev_station].prev_train
             prev_station = results[prev_station].prev_station
+        assert prev_station is not None and prev_train is not None, self
         return [(prev_station, prev_train)] + path
 
     def total_duration(self) -> int:
         """ Get total duration """
-        return diff_time(self.arrival_time, self.initial_time, self.arrival_day, self.initial_day)
+        result = diff_time(self.arrival_time, self.initial_time, self.arrival_day, self.initial_day)
+        if result < 0:
+            result += 24 * 60
+        return result
 
     def total_distance(self, path: Path) -> int:
         """ Get total distance """
@@ -97,6 +102,7 @@ class BFSResult:
         last_station: str | None = None
         last_train: Train | None = None
         last_virtual: VTSpec | None = None
+        cur_date = self.start_date
         for i, (station, train) in enumerate(path):
             if not isinstance(train, Train):
                 # Print virtual transfer information only
@@ -112,16 +118,20 @@ class BFSResult:
                     # Must have happened a virtual transfer
                     assert last_virtual is not None and last_virtual[1] == station, (station, train)
                     last_time, last_day = last_train.arrival_time_virtual(last_station)[last_virtual[0]]
-                    total_waiting = diff_time(start_time, last_time, start_day, last_day)
-                    transfer_time = last_virtual[3]
+                    transfer_time, special = last_virtual[3], False
                 else:
                     last_time, last_day = last_train.arrival_time_virtual(last_station)[station]
-                    total_waiting = diff_time(start_time, last_time, start_day, last_day)
                     transfer_time, special = transfer_dict[station].get_transfer_time(
                         last_train.line, last_train.direction,
                         train.line, train.direction,
-                        self.start_date, last_time, last_day
+                        cur_date, last_time, last_day
                     )
+
+                total_waiting = diff_time(start_time, last_time, start_day, last_day)
+                if total_waiting < 0:
+                    total_waiting += 24 * 60
+                    cur_date += timedelta(days=1)
+                if station in last_train.line.stations:
                     assert transfer_time <= total_waiting, (last_train, station, train)
                     print(f"{indent_str}Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
                           suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
@@ -284,6 +294,7 @@ def bfs(
         else:
             cur_time, cur_day = results[station].arrival_time, results[station].arrival_day
             prev_train = results[station].prev_train
+            assert prev_train is not None, results[station]
             if isinstance(prev_train, Train):
                 prev_line = prev_train.line
                 prev_direction = prev_train.direction

@@ -280,6 +280,15 @@ def show_direction(stations: list[str], loop: bool = False):
     return f"{stations[0]} -> {int1} -> {int2} -> {stations[-1]}"
 
 
+def circular_dist(stations: list[str], station1: str, station2: str) -> int:
+    """ Return the circular distance from 1 to 2 """
+    index1 = stations.index(station1)
+    index2 = stations.index(station2)
+    if index2 >= index1:
+        return index2 - index1
+    return len(stations) + index2 - index1
+
+
 def distribute_braces(values: dict[T, int]) -> dict[str, T]:
     """ Distribute brace to values """
     res: dict[str, T] = {}

@@ -14,6 +14,8 @@ from src.city.transfer import Transfer
 from src.common.common import get_time_str, TimeSpec
 from src.bfs.avg_shortest_time import all_time_bfs
 from src.bfs.k_shortest_path import k_shortest_path
+from src.dist_graph.adaptor import get_dist_graph, to_trains
+from src.dist_graph.shortest_path import shortest_path
 from src.routing.train import Train, parse_all_trains
 
 
@@ -38,6 +40,8 @@ def find_last_train(
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
+                        default="time", help="Shortest path criteria")
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     args = parser.parse_args()
@@ -72,15 +76,33 @@ def main() -> None:
     start_day = start_time < time(3, 30)
     if start_day:
         print("Warning: assuming next day!")
-    results = k_shortest_path(
-        lines, train_dict, city.transfers, city.virtual_transfers,
-        start[0], end[0],
-        start_date, start_time, start_day,
-        k=args.num_path, exclude_edge=args.exclude_edge
-    )
-    if len(results) == 0:
-        print("Unreachable!")
+    if args.data_source == "time":
+        num_path = args.num_path or 1
+        results = k_shortest_path(
+            lines, train_dict, city.transfers, city.virtual_transfers,
+            start[0], end[0],
+            start_date, start_time, start_day,
+            k=num_path, exclude_edge=args.exclude_edge
+        )
+        if len(results) == 0:
+            print("Unreachable!")
+            sys.exit(0)
+    elif args.data_source == "transfer":
+        print("Not implemented yet!")
         sys.exit(0)
+    else:
+        if args.num_path is not None:
+            print("Warning: --num-path ignored in non-time criteria.")
+        graph = get_dist_graph(city)
+        path_dict = shortest_path(graph, start[0], ignore_dists=(args.data_source == "station"))
+        if end[0] not in path_dict:
+            print("Unreachable!")
+            sys.exit(0)
+        _, path = path_dict[end[0]]
+        results = [to_trains(
+            lines, train_dict, city.transfers, city.virtual_transfers, path, end[0],
+            start_date, start_time, start_day, exclude_edge=args.exclude_edge
+        )]
 
     # Print results
     for i, (k_result, k_path) in enumerate(results):

@@ -7,8 +7,8 @@
 from heapq import heapify, heappush, heappop
 
 from src.city.line import Line
-from src.dist_graph.adaptor import Graph
 
+Graph = dict[str, dict[str, tuple[int, Line | None]]]  # None = virtual transfer (length = 0)
 Path = list[tuple[str, Line | None]]
 
 

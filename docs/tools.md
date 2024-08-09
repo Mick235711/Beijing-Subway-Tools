@@ -590,16 +590,18 @@ Average over all 223 trains, segment speed: 26.38min, 42.67km/h
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
 ```
-usage: shortest_path.py [-h] [-k NUM_PATH] [--exclude-edge]
+usage: shortest_path.py [-h] [-d {time,transfer,station,distance}] [-k NUM_PATH] [--exclude-edge]
 
 options:
   -h, --help            show this help message and exit
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Shortest path criteria
   -k NUM_PATH, --num-path NUM_PATH
                         Show first k path
   --exclude-edge        Exclude edge case in transfer
 ```
 Use BFS and Yen's algorithm to find the shortest K routes (in terms of time spent) between two stations.
-The argument `-k` specifies the number of routes to be found.
+The argument `-k` specifies the number of routes to be found (only available in `--data-source time` mode).
 
 **NOTE: Larger `-k` value will result in longer computation time.**
 

@@ -12,7 +12,7 @@ import pyjson5
 from src.city.carriage import Carriage
 from src.city.date_group import DateGroup, parse_date_group
 from src.city.train_route import TrainRoute, parse_train_route, route_dist, stations_dist
-from src.common.common import distance_str, average
+from src.common.common import distance_str, average, circular_dist
 from src.timetable.timetable import Timetable, parse_timetable
 
 
@@ -139,6 +139,20 @@ class Line:
                         elem3["schedule"], elem3["filters"]
                     )
         return self.timetables_processed
+
+    def determine_direction(self, station1: str, station2: str) -> str:
+        """ Determine the direction by two stations """
+        assert station1 in self.stations and station2 in self.stations, (self, station1, station2)
+        if self.loop:
+            # Compare two directions to see which is better
+            return min(
+                list(self.directions.keys()),
+                key=lambda d: circular_dist(self.direction_stations(d), station1, station2)
+            )
+        for direction, stations in self.directions.items():
+            if stations.index(station1) < stations.index(station2):
+                return direction
+        assert False, (self, station1, station2)
 
 
 def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
