@@ -831,7 +831,7 @@ Minimum time path:
 # [`dist_graph/`](/src/dist_graph): Algorithms on the pure-distance graphs
 ### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
 ```
-usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
+usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a]
 
 options:
   -h, --help            show this help message and exit
@@ -841,10 +841,13 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  -a, --all             Calculate all pairs of ending stations
 ```
 
 Show the longest possible path in the network (i.e., the longest path that does not have duplicate edges).
 Notice that duplicate nodes are allowed.
+
+If `-a` is passed, then every possible pairs of ending station are calculated to truly get the global longest path.
 
 Example Usage:
 <pre>
@@ -884,6 +887,7 @@ Odd nodes in simplified graph:
 Calculating shortest paths... Done!
 Calculating best matching... Done!
 丰台南路 <-> 郭公庄 (3116), 西土城 <-> 六道口 (2793), 东直门 <-> 北新桥 (1622), 太平桥 <-> 复兴门 (0), 十里河 <-> 永定门外 (5248), 七里庄 <-> 东管头南 (4342), 金台路 <-> 三元桥 (5902), 广安门内 <-> 牛街 (0), 牡丹园 <-> 西直门 (5269), 公主坟 <-> 北京西站 (2570), 立水桥 <-> 望京 (10477), 国家图书馆 <-> 慈寿寺 (3694), 西二旗 <-> 清河站 (1545)
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 46.49it/s]
 
 Longest Route Possible:
 05:27 -> 21:14

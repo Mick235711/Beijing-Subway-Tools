@@ -83,7 +83,7 @@ def stations_dist_loop(stations: list[str], station_dists: list[int], start: str
     start_index = stations.index(start)
     end_index = stations.index(end)
     if start_index == end_index:
-        return 0
+        return sum(station_dists)
     if start_index > end_index:
         return sum(station_dists[start_index:] + station_dists[:end_index])
     return sum(station_dists[start_index:end_index])

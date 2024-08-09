@@ -62,7 +62,7 @@ def ask_for_shortest_path(
                         all_trains.append(train)
     all_trains = sorted(all_trains, key=lambda t: get_time_str(*t.arrival_time[start[0]]))
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
-    start_time = ask_for_time(
+    start_time, start_day = ask_for_time(
         allow_first=lambda: all_trains[0].arrival_time[start[0]],
         allow_last=lambda: find_last_train(
             lines, train_dict,
@@ -72,10 +72,6 @@ def ask_for_shortest_path(
         )
     )
 
-    # For now, assume that any input after 3:30AM is this day
-    start_day = start_time < time(3, 30)
-    if start_day:
-        print("Warning: assuming next day!")
     return city, start, end, train_dict, start_date, start_time, start_day
 
 

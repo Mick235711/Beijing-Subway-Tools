@@ -123,7 +123,11 @@ class BFSResult:
                     last_time, last_day = last_train.arrival_time_virtual(last_station)[last_virtual[0]]
                     transfer_time, special = last_virtual[3], False
                 else:
-                    last_time, last_day = last_train.arrival_time_virtual(last_station)[station]
+                    if station == last_station:
+                        assert last_train.loop_next is not None, (last_train, station)
+                        last_time, last_day = last_train.loop_next.arrival_time[station]
+                    else:
+                        last_time, last_day = last_train.arrival_time_virtual(last_station)[station]
                     transfer_time, special = transfer_dict[station].get_transfer_time(
                         last_train.line, last_train.direction,
                         train.line, train.direction,

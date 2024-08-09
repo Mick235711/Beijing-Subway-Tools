@@ -150,8 +150,13 @@ class Train:
         arrival_keys = list(virtual.keys())
         start_time, start_day = virtual[start_station]
         start_index = arrival_keys.index(start_station)
-        end_time, end_day = virtual[end_station]
-        end_index = arrival_keys.index(end_station)
+        if end_station == start_station:
+            assert self.loop_next is not None, (self, start_station)
+            end_time, end_day = self.loop_next.arrival_time[end_station]
+            end_index = len(arrival_keys)
+        else:
+            end_time, end_day = virtual[end_station]
+            end_index = arrival_keys.index(end_station)
         duration = diff_time(end_time, start_time, end_day, start_day)
         return suffix_s("station", end_index - start_index) + \
             f", {format_duration(duration)}, {distance_str(self.two_station_dist(start_station, end_station))}"
@@ -159,7 +164,7 @@ class Train:
     def two_station_str(self, start_station: str, end_station: str) -> str:
         """ Get string representation for two stations """
         arrival_keys = list(self.arrival_time.keys())
-        if end_station not in arrival_keys or arrival_keys.index(end_station) < arrival_keys.index(start_station):
+        if end_station not in arrival_keys or arrival_keys.index(end_station) <= arrival_keys.index(start_station):
             assert self.loop_next is not None, self
             center = f" -> {end_station} {self.loop_next.stop_time_repr(end_station)}"
         else:

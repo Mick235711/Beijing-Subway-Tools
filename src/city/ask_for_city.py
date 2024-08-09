@@ -419,18 +419,24 @@ def ask_for_date() -> date:
 
 
 def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
-                 allow_last: Callable[[], TimeSpec] | None = None) -> time:
+                 allow_last: Callable[[], TimeSpec] | None = None) -> tuple[time, bool]:
     """ Ask for a time """
     valid_answer: dict[str, Callable[[], TimeSpec]] = {}
     if allow_first is not None:
         valid_answer["first"] = allow_first
     if allow_last is not None:
         valid_answer["last"] = allow_last
-    return ask_question(
+    answer = ask_question(
         "Please enter the travel time (hh:mm" +
         (" or first" if allow_first else "") + (" or last" if allow_last else "") + "):",
         parse_time, default=get_time_str(datetime.now().time()), valid_answer=valid_answer
     )[0]
+
+    # For now, assume that any input after 3:30AM is this day
+    start_day = answer < time(3, 30)
+    if start_day:
+        print("Warning: assuming next day!")
+    return answer, start_day
 
 
 def ask_for_map(city: City, *, message: str | None = None) -> Map:

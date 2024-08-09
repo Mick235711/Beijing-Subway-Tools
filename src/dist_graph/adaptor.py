@@ -182,7 +182,11 @@ def to_trains(
         final_new_path.append((station, candidate))
 
         # Try to find a transfer time
-        cur_tuple = candidate.arrival_time_virtual(station)[next_station]
+        if station == next_station:
+            assert candidate.loop_next is not None, (candidate, station)
+            cur_tuple = candidate.loop_next.arrival_time[next_station]
+        else:
+            cur_tuple = candidate.arrival_time_virtual(station)[next_station]
         if i == len(new_path) - 1 or new_path[i + 1][1] is None:
             continue
         transfer = transfer_dict[next_station]
