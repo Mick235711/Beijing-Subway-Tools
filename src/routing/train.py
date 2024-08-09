@@ -409,12 +409,21 @@ def parse_trains(
 
 
 def parse_all_trains(
-    lines: Iterable[Line],
+    lines: Iterable[Line], *,
+    include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None
 ) -> dict[str, dict[str, dict[str, list[Train]]]]:
     """ Parse all trains from timetables """
     result: dict[str, dict[str, dict[str, list[Train]]]] = {}
     index_dict: dict[str, int] = {}
+    if isinstance(include_lines, str):
+        include_lines = set(x.strip() for x in include_lines.split(","))
+    if isinstance(exclude_lines, str):
+        exclude_lines = set(x.strip() for x in exclude_lines.split(","))
     for line in lines:
+        if include_lines is not None and line.name not in include_lines:
+            continue
+        if exclude_lines is not None and line.name in exclude_lines:
+            continue
         result[line.name] = parse_trains(line)
         index_dict[line.name] = line.index
     return dict(sorted(result.items(), key=lambda x: index_dict[x[0]]))

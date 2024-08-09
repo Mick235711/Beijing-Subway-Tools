@@ -46,12 +46,16 @@ def copy_graph(graph: Graph) -> Graph:
 
 def get_dist_graph(
     city: City, *,
-    include_lines: set[str] | None = None, exclude_lines: set[str] | None = None,
+    include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
     include_virtual: bool = True, include_circle: bool = True
 ) -> Graph:
     """ Get the distance graph for a city """
     lines = city.lines()
     graph: Graph = {}
+    if isinstance(include_lines, str):
+        include_lines = set(x.strip() for x in include_lines.split(","))
+    if isinstance(exclude_lines, str):
+        exclude_lines = set(x.strip() for x in exclude_lines.split(","))
     for line_name, line in lines.items():
         if include_lines is not None and line_name not in include_lines:
             continue

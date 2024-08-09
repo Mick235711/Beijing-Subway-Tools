@@ -69,14 +69,16 @@ def main() -> None:
     data_index = ["time", "transfer", "station", "distance"].index(args.data_source)
     _, _, result_dict_temp1 = shortest_in_city(
         args.limit_start, args.limit_end, (city, station1, start_date),
-        exclude_edge=args.exclude_edge
+        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
     )
     result_dict1 = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
     ) for station, x in result_dict_temp1.items()}
     _, _, result_dict_temp2 = shortest_in_city(
         args.limit_start, args.limit_end, (city, station2, start_date),
-        exclude_edge=args.exclude_edge
+        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
     )
     result_dict2 = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1

@@ -43,13 +43,20 @@ def main() -> None:
     parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
                         default="time", help="Shortest path criteria")
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--include-lines", help="Include lines")
+    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
+    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
     args = parser.parse_args()
 
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
     lines = city.lines()
-    train_dict = parse_all_trains(list(lines.values()))
+    train_dict = parse_all_trains(
+        list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
+    )
     start_date = ask_for_date()
 
     all_trains: list[Train] = []
@@ -62,11 +69,12 @@ def main() -> None:
                     if start[0] in train.arrival_time:
                         all_trains.append(train)
     all_trains = sorted(all_trains, key=lambda t: get_time_str(*t.arrival_time[start[0]]))
+    virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
     start_time = ask_for_time(
         allow_first=lambda: all_trains[0].arrival_time[start[0]],
         allow_last=lambda: find_last_train(
             lines, train_dict,
-            city.transfers, city.virtual_transfers,
+            city.transfers, virtual_transfers,
             start_date, start[0], end[0],
             exclude_edge=args.exclude_edge
         )
@@ -77,9 +85,11 @@ def main() -> None:
     if start_day:
         print("Warning: assuming next day!")
     if args.data_source == "time":
+        if args.exclude_single:
+            print("Warning: --exclude-single ignored in time mode.")
         num_path = args.num_path or 1
         results = k_shortest_path(
-            lines, train_dict, city.transfers, city.virtual_transfers,
+            lines, train_dict, city.transfers, virtual_transfers,
             start[0], end[0],
             start_date, start_time, start_day,
             k=num_path, exclude_edge=args.exclude_edge
@@ -93,14 +103,17 @@ def main() -> None:
     else:
         if args.num_path is not None:
             print("Warning: --num-path ignored in non-time criteria.")
-        graph = get_dist_graph(city)
+        graph = get_dist_graph(
+            city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+            include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
+        )
         path_dict = shortest_path(graph, start[0], ignore_dists=(args.data_source == "station"))
         if end[0] not in path_dict:
             print("Unreachable!")
             sys.exit(0)
         _, path = path_dict[end[0]]
         results = [to_trains(
-            lines, train_dict, city.transfers, city.virtual_transfers, path, end[0],
+            lines, train_dict, city.transfers, virtual_transfers, path, end[0],
             start_date, start_time, start_day, exclude_edge=args.exclude_edge
         )]
 

@@ -40,6 +40,10 @@ def map_args(more_args: Callable[[argparse.ArgumentParser], Any] | None = None) 
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
     parser.add_argument(
         "-w", "--line-width", type=int, help="Override contour line width", default=5)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--include-lines", help="Include lines")
+    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
+    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     if more_args is not None:
         more_args(parser)
@@ -236,7 +240,11 @@ def main() -> None:
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
 
-    city, start, result_dict_temp = shortest_in_city(args.limit_start, args.limit_end, exclude_edge=args.exclude_edge)
+    city, start, result_dict_temp = shortest_in_city(
+        args.limit_start, args.limit_end,
+        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
+    )
     data_index = ["time", "transfer", "station", "distance"].index(args.data_source)
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
