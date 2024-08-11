@@ -240,6 +240,32 @@ def shortest_path_args(parser: argparse.ArgumentParser, have_single: bool = Fals
         parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
 
 
+def print_station_info(
+    station: str, avg_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
+    max_info: PathInfo, min_info: PathInfo, path_coverage: list[tuple[float, AbstractPath, list[PathInfo]]],
+    *, index: int | None = None, show_path_transfers: dict[str, Transfer] | None = None
+) -> None:
+    """ Print percentage info on a station """
+    if index is not None:
+        print(f"#{index + 1}", end=": ")
+    print(f"{station}, " + suffix_s("minute", f"{avg_time:.2f}") +
+          f" (min {min_info[0]} - max {max_info[0]})" +
+          f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
+          distance_str(avg_dist) + ")")
+    print("Percentage of each path:")
+    for percent, path, examples in path_coverage:
+        print("    " + percentage_str(percent) + " " + path_shorthand(station, path), end="")
+        print(f" [Example: {examples[0][2].time_str()}]")
+
+    if show_path_transfers is not None:
+        print("\nMaximum time path:")
+        max_info[2].pretty_print_path(max_info[1], show_path_transfers, indent=1)
+
+        print("\nMinimum time path:")
+        min_info[2].pretty_print_path(min_info[1], show_path_transfers, indent=1)
+        print()
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -262,32 +288,16 @@ def main() -> None:
     )
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:
-        for i, (station, (
-            avg_time, avg_transfer, avg_station, avg_dist, max_info, min_info, path_coverage
-        )) in enumerate(result_dict.items()):
+        for i, (station, data) in enumerate(result_dict.items()):
             if len(stations) > 0 and station not in stations:
                 continue
             if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
                 if i == args.limit_num:
                     print("...")
                 continue
-
-            print(f"#{i + 1}: {station}, " + suffix_s("minute", f"{avg_time:.2f}") +
-                  f" (min {min_info[0]} - max {max_info[0]})" +
-                  f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
-                  distance_str(avg_dist) + ")")
-            print("Percentage of each path:")
-            for percent, path, examples in path_coverage:
-                print("    " + percentage_str(percent) + " " + path_shorthand(station, path), end="")
-                print(f" [Example: {examples[0][2].time_str()}]")
-
-            if args.show_path:
-                print("\nMaximum time path:")
-                max_info[2].pretty_print_path(max_info[1], city.transfers, indent=1)
-
-                print("\nMinimum time path:")
-                min_info[2].pretty_print_path(min_info[1], city.transfers, indent=1)
-                print()
+            print_station_info(
+                station, *data, index=i, show_path_transfers=(city.transfers if args.show_path else None)
+            )
         return
 
     # sort and display first/last

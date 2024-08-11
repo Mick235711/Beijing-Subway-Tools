@@ -8,6 +8,7 @@ import argparse
 import sys
 from datetime import date, time
 
+from src.bfs.bfs import BFSResult, Path
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from src.city.city import City
 from src.city.line import Line
@@ -75,14 +76,8 @@ def ask_for_shortest_path(
     return city, start, end, train_dict, start_date, start_time, start_day
 
 
-def main() -> None:
-    """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
-                        default="time", help="Shortest path criteria")
-    parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
-    shortest_path_args(parser, True)
-    args = parser.parse_args()
+def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[BFSResult, Path]]]:
+    """ Get the kth shortest paths """
     city, start, end, train_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
     lines = city.lines()
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
@@ -124,6 +119,19 @@ def main() -> None:
     for i, (k_result, k_path) in enumerate(results):
         print(f"\nShortest Path #{i + 1}:")
         k_result.pretty_print_path(k_path, city.transfers)
+
+    return city, start[0], end[0], results
+
+
+def main() -> None:
+    """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
+                        default="time", help="Shortest path criteria")
+    parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+    shortest_path_args(parser, True)
+    args = parser.parse_args()
+    get_kth_path(args)
 
 
 # Call main

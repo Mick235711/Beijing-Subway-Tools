@@ -14,15 +14,15 @@ from scipy.interpolate import griddata  # type: ignore
 from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_city, ask_for_date
 from src.graph.map import Map
 from src.bfs.avg_shortest_time import shortest_in_city
-from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, get_levels
+from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, get_levels, Color, \
+    convert_color
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
 
 
 def draw_station_filled(
-    draw: ImageDraw.ImageDraw, station: str,
-    color: tuple[float, float, float] | tuple[float, float, float, float],
+    draw: ImageDraw.ImageDraw, station: str, color: Color,
     map_obj: Map, *args, **kwargs
 ) -> None:
     """ Draw filled circle onto the station """
@@ -30,7 +30,7 @@ def draw_station_filled(
     draw.ellipse(
         [(x, y), (x + 2 * r, y + 2 * r)], *args,
         outline="black",
-        fill=tuple(round(x * 255) for x in color),  # type: ignore
+        fill=convert_color(color),  # type: ignore
         **kwargs
     )
 

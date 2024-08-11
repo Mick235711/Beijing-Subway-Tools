@@ -7,12 +7,13 @@
 from datetime import date, time, timedelta
 from math import floor, ceil
 
+from src.bfs.avg_shortest_time import AbstractPath
 from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import add_min_tuple, get_time_str, diff_time_tuple
-from src.bfs.bfs import BFSResult, Path as BFSPath
-from src.dist_graph.shortest_path import Graph, Path, AugmentedPath
+from src.bfs.bfs import BFSResult, Path as BFSPath, expand_path
+from src.dist_graph.shortest_path import Graph, Path
 from src.routing.train import Train
 
 
@@ -97,15 +98,17 @@ def get_dist_graph(
     return graph
 
 
-def simplify_path(path: Path, end_station: str) -> AugmentedPath:
+def simplify_path(path: Path, end_station: str) -> AbstractPath:
     """ Simplify paths such that lines are collapsed """
-    new_path: AugmentedPath = []
+    new_path: AbstractPath = []
     last_line: Line | None = None
     for i, (station, line) in enumerate(path):
         if last_line is not None and line == last_line:
             continue
         next_station = end_station if i == len(path) - 1 else path[i + 1][0]
-        new_path.append((station, None if line is None else (line, line.determine_direction(station, next_station))))
+        new_path.append(
+            (station, None if line is None else (line.name, line.determine_direction(station, next_station)))
+        )
         last_line = line
     return new_path
 
@@ -152,21 +155,21 @@ def to_trains(
             continue
 
         # Normal line, find a suitable train
-        line, direction = line_direction
+        line_name, direction = line_direction
         next_date = cur_date + timedelta(days=1)
         cur_candidates: list[Train] = []
         next_candidates: list[Train] = []
-        for date_group, train_list in train_dict[line.name][direction].items():
+        for date_group, train_list in train_dict[line_name][direction].items():
             trains = sorted(
                 [train for train in train_list if station in train.arrival_time.keys()
                  and next_station in train.arrival_time_virtual(station).keys()],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )
-            if line.date_groups[date_group].covers(next_date):
+            if lines[line_name].date_groups[date_group].covers(next_date):
                 if len(trains) == 0:
                     continue
                 next_candidates.append(trains[0])
-            if line.date_groups[date_group].covers(cur_date):
+            if lines[line_name].date_groups[date_group].covers(cur_date):
                 trains = [train for train in trains if diff_time_tuple(train.arrival_time[station], cur_tuple) >= 0]
                 if len(trains) == 0:
                     continue
@@ -191,7 +194,7 @@ def to_trains(
             continue
         transfer = transfer_dict[next_station]
         transfer_time, is_special = transfer.get_transfer_time(
-            line, direction,
+            lines[line_name], direction,
             new_path[i + 1][1][0], new_path[i + 1][1][1],  # type: ignore
             cur_date, cur_tuple[0], cur_tuple[1]
         )
@@ -201,3 +204,34 @@ def to_trains(
         end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1],
         force_next_day=force_next_day
     ), final_new_path
+
+
+def reduce_path(bfs_path: BFSPath, end_station: str) -> Path:
+    """ Reduce a BFS path into a simple path """
+    path = expand_path(bfs_path, end_station)
+    return [(station, train.line if isinstance(train, Train) else None) for station, train in path]
+
+
+def reduce_abstract_path(lines: dict[str, Line], abstract_path: AbstractPath, end_station: str) -> Path:
+    """ Reduce an abstract path into a simple path """
+    path: Path = []
+    for i, (station, line_dir) in enumerate(abstract_path):
+        if line_dir is None:
+            path.append((station, None))
+            continue
+
+        line = lines[line_dir[0]]
+        direction = line_dir[1]
+        stations = line.direction_stations(direction)
+        next_station = end_station if i == len(abstract_path) - 1 else abstract_path[i + 1][0]
+        index1 = stations.index(station)
+        index2 = stations.index(next_station)
+        if index2 <= index1:
+            assert line.loop, (line, direction, station, next_station)
+            results = stations[index1:] + stations[:index2]
+        else:
+            results = stations[index1:index2]
+
+        for result_station in results:
+            path.append((result_station, line))
+    return path

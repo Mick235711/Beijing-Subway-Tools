@@ -7,13 +7,11 @@
 import argparse
 from typing import cast
 
-import matplotlib as mpl
 from PIL import Image, ImageDraw
-from matplotlib.colors import LinearSegmentedColormap, Colormap
 from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map
-from src.graph.draw_map import get_levels, draw_all_station, draw_contour_wrap, map_args
+from src.graph.draw_map import get_colormap, draw_all_station, draw_contour_wrap, map_args
 from src.bfs.avg_shortest_time import avg_shortest_in_city
 
 # reset max pixel
@@ -28,25 +26,7 @@ def main() -> None:
                             help="Strategy for combining station data")
 
     args = map_args(append_arg)
-    if args.color_map is None:
-        cmap: Colormap = LinearSegmentedColormap("GYR", {
-            'red': ((0.0, 0.0, 0.0),
-                    (0.5, 1.0, 1.0),
-                    (1.0, 1.0, 1.0)),
-            'green': ((0.0, 1.0, 1.0),
-                      (0.5, 1.0, 1.0),
-                      (1.0, 0.0, 0.0)),
-            'blue': ((0.0, 0.0, 0.0),
-                     (0.5, 0.0, 0.0),
-                     (1.0, 0.0, 0.0))
-        })
-    else:
-        cmap = mpl.colormaps[args.color_map]
-
-    if args.levels is None:
-        levels = get_levels(args.data_source)
-    else:
-        levels = [int(x.strip()) for x in args.levels.split(",")]
+    cmap, levels = get_colormap(args)
 
     city, stations, result_dict_temp = avg_shortest_in_city(
         args.limit_start, args.limit_end,

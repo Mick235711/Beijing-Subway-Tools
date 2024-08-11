@@ -22,25 +22,31 @@ from src.bfs.avg_shortest_time import shortest_in_city, shortest_path_args
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
+Color = tuple[float, float, float] | tuple[float, float, float, float]
 
 
-def map_args(more_args: Callable[[argparse.ArgumentParser], Any] | None = None) -> argparse.Namespace:
+def map_args(
+    more_args: Callable[[argparse.ArgumentParser], Any] | None = None,
+    *, contour_args: bool = True, have_single: bool = False
+) -> argparse.Namespace:
     """ Parse arguments """
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
-    parser.add_argument("-l", "--levels", help="Override default levels")
-    parser.add_argument("-f", "--focus", help="Add focus on a specific contour")
     parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
                         default="time", help="Graph data source")
-    parser.add_argument(
-        "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
-    parser.add_argument(
-        "-w", "--line-width", type=int, help="Override contour line width", default=5)
-    shortest_path_args(parser)
+
+    if contour_args:
+        parser.add_argument("-l", "--levels", help="Override default levels")
+        parser.add_argument("-f", "--focus", help="Add focus on a specific contour")
+        parser.add_argument(
+            "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
+        parser.add_argument(
+            "-w", "--line-width", type=int, help="Override contour line width", default=5)
+    shortest_path_args(parser, have_single)
     if more_args is not None:
         more_args(parser)
     return parser.parse_args()
@@ -69,9 +75,13 @@ def find_font_size(
     assert False, (text, max_length)
 
 
+def convert_color(color: Color) -> tuple:
+    """ Convert color to PIL format """
+    return tuple(round(x * 255) for x in color)
+
+
 def draw_station(
-    draw: ImageDraw.ImageDraw, station: str,
-    color: tuple[float, float, float] | tuple[float, float, float, float],
+    draw: ImageDraw.ImageDraw, station: str, color: Color,
     map_obj: Map, text: str, *args, **kwargs
 ) -> None:
     """ Draw circle & text onto station position """
@@ -83,13 +93,12 @@ def draw_station(
     font_size = find_font_size(draw, text, 2 * r)
     kwargs["font_size"] = font_size
     kwargs["anchor"] = "mm"
-    kwargs["fill"] = tuple(round(x * 255) for x in color)
+    kwargs["fill"] = convert_color(color)
     draw.text((x + r, y + r), text, *args, **kwargs)
 
 
 def draw_all_station(
-    draw: ImageDraw.ImageDraw,
-    colormap: Colormap | tuple[float, float, float] | tuple[float, float, float, float],
+    draw: ImageDraw.ImageDraw, colormap: Colormap | Color,
     map_obj: Map, avg_shortest: dict[str, float]
 ) -> None:
     """ Draw on all stations """
@@ -213,9 +222,8 @@ def draw_contour_wrap(
     fig.savefig(output, dpi=dpi)
 
 
-def main() -> None:
-    """ Main function """
-    args = map_args()
+def get_colormap(args: argparse.Namespace) -> tuple[Colormap, list[int]]:
+    """ Get colormap and levels """
     if args.color_map is None:
         cmap: Colormap = LinearSegmentedColormap("GYR", {
             'red': ((0.0, 0.0, 0.0),
@@ -235,6 +243,13 @@ def main() -> None:
         levels = get_levels(args.data_source)
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
+    return cmap, levels
+
+
+def main() -> None:
+    """ Main function """
+    args = map_args()
+    cmap, levels = get_colormap(args)
 
     city, start, result_dict_temp = shortest_in_city(
         args.limit_start, args.limit_end,
