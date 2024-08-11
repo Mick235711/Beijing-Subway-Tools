@@ -222,9 +222,9 @@ def draw_contour_wrap(
     fig.savefig(output, dpi=dpi)
 
 
-def get_colormap(args: argparse.Namespace) -> tuple[Colormap, list[int]]:
+def get_colormap(color_map: str | None = None) -> Colormap:
     """ Get colormap and levels """
-    if args.color_map is None:
+    if color_map is None:
         cmap: Colormap = LinearSegmentedColormap("GYR", {
             'red': ((0.0, 0.0, 0.0),
                     (0.5, 1.0, 1.0),
@@ -237,19 +237,27 @@ def get_colormap(args: argparse.Namespace) -> tuple[Colormap, list[int]]:
                      (1.0, 0.0, 0.0))
         })
     else:
-        cmap = mpl.colormaps[args.color_map]
+        cmap = mpl.colormaps[color_map]
+    return cmap
 
+
+def get_levels_from_source(args: argparse.Namespace, have_minus: bool = False) -> list[int]:
+    """ Get levels from data source """
     if args.levels is None:
         levels = get_levels(args.data_source)
+        if have_minus:
+            levels = levels[1:]
+            levels = [-x for x in reversed(levels)] + [0] + levels
     else:
         levels = [int(x.strip()) for x in args.levels.split(",")]
-    return cmap, levels
+    return levels
 
 
 def main() -> None:
     """ Main function """
     args = map_args()
-    cmap, levels = get_colormap(args)
+    cmap = get_colormap(args.color_map)
+    levels = get_levels_from_source(args)
 
     city, start, result_dict_temp = shortest_in_city(
         args.limit_start, args.limit_end,

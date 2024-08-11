@@ -14,8 +14,8 @@ from scipy.interpolate import griddata  # type: ignore
 from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_city, ask_for_date
 from src.graph.map import Map
 from src.bfs.avg_shortest_time import shortest_in_city
-from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, get_levels, Color, \
-    convert_color
+from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, Color, convert_color, \
+    get_levels_from_source
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
@@ -56,12 +56,7 @@ def main() -> None:
         })
     else:
         cmap = mpl.colormaps[args.color_map]
-
-    if args.levels is None:
-        levels = get_levels(args.data_source)[1:]
-        levels = [-x for x in reversed(levels)] + [0] + levels
-    else:
-        levels = [int(x.strip()) for x in args.levels.split(",")]
+    levels = get_levels_from_source(args, True)
 
     city = ask_for_city()
     (station1, _), (station2, _) = ask_for_station_pair(city)

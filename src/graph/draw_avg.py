@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw
 from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_map
-from src.graph.draw_map import get_colormap, draw_all_station, draw_contour_wrap, map_args
+from src.graph.draw_map import get_colormap, draw_all_station, draw_contour_wrap, map_args, get_levels_from_source
 from src.bfs.avg_shortest_time import avg_shortest_in_city
 
 # reset max pixel
@@ -26,7 +26,8 @@ def main() -> None:
                             help="Strategy for combining station data")
 
     args = map_args(append_arg)
-    cmap, levels = get_colormap(args)
+    cmap = get_colormap(args.color_map)
+    levels = get_levels_from_source(args)
 
     city, stations, result_dict_temp = avg_shortest_in_city(
         args.limit_start, args.limit_end,

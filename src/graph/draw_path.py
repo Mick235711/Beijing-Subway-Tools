@@ -8,6 +8,7 @@ import argparse
 from math import sqrt
 
 from PIL import Image, ImageDraw
+from matplotlib.colors import Colormap
 from scipy.interpolate import griddata  # type: ignore
 
 from src.bfs.shortest_path import get_kth_path
@@ -16,7 +17,7 @@ from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_cit
 from src.city.city import City
 from src.dist_graph.adaptor import reduce_path, reduce_abstract_path
 from src.graph.draw_equtime import draw_station_filled
-from src.graph.draw_map import map_args
+from src.graph.draw_map import map_args, get_colormap, convert_color
 from src.dist_graph.shortest_path import Path
 from src.graph.map import Map
 
@@ -25,21 +26,20 @@ Image.MAX_IMAGE_PIXELS = 300000000
 
 # Some constants
 DrawDict = list[tuple[float, Path]]  # (alpha, path)
-MAX_ALPHA = 0.8
-MIN_ALPHA = 0.2
+DRAW_ALPHA = 0.6
 
 
 def get_ordinal_alpha(index: int, max_index: int) -> float:
     """ Get alpha value for index (from 0 to max_index - 1) """
     assert max_index > index >= 0, (index, max_index)
     if max_index == 1:
-        return MAX_ALPHA
-    return MAX_ALPHA - (MAX_ALPHA - MIN_ALPHA) * (index / (max_index - 1))
+        return 1
+    return 1 - index / (max_index - 1)
 
 
 def get_percent_alpha(percentage: float) -> float:
     """ Get percentage (0-100) alpha value """
-    return MIN_ALPHA + (MAX_ALPHA - MIN_ALPHA) * percentage / 100
+    return percentage / 100
 
 
 def fetch_kth_path_result(args: argparse.Namespace) -> tuple[City, str, str, DrawDict]:
@@ -80,7 +80,7 @@ def get_edge_wide(map_obj: Map) -> float:
 
 def draw_path(
     draw: ImageDraw.ImageDraw, map_obj: Map, start_station: str, end_station: str,
-    alpha: float, edge_wide: float
+    cmap: Colormap, alpha: float, edge_wide: float
 ) -> None:
     """ Draw a path on map """
     start_x, start_y, start_r = map_obj.coordinates[start_station]
@@ -98,7 +98,7 @@ def draw_path(
     draw.polygon(
         [(start_x - dx, start_y + dy), (start_x + dx, start_y - dy),
          (end_x + dx, end_y - dy), (end_x - dx, end_y + dy)],
-        fill=(0, 0, 0, int(255 * alpha))
+        fill=convert_color(cmap(alpha)[:-1] + (DRAW_ALPHA,))
     )
 
 
@@ -111,6 +111,7 @@ def main() -> None:
         parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
 
     args = map_args(append_arg, contour_args=False, have_single=True)
+    cmap = get_colormap(args.color_map)
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:
             print("Warning: --limit-start/end ignored in kth mode.")
@@ -129,25 +130,31 @@ def main() -> None:
     draw_new = ImageDraw.Draw(img_new)
     edge_wide = get_edge_wide(map_obj)
 
-    draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
-    draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
     alpha_dict: dict[tuple[str, str], float] = {}
     for alpha, path in draw_dict:
         for i, (station, _) in enumerate(path):
             next_station = end_station if i == len(path) - 1 else path[i + 1][0]
+            accu = 0.0
             if (station, next_station) in alpha_dict:
-                alpha = max(alpha, alpha_dict[(station, next_station)])
+                accu = max(accu, alpha_dict[(station, next_station)])
             if (next_station, station) in alpha_dict:
-                alpha = max(alpha, alpha_dict[(next_station, station)])
-            alpha_dict[(station, next_station)] = alpha
-            alpha_dict[(next_station, station)] = alpha
+                accu = max(accu, alpha_dict[(next_station, station)])
+            if args.strategy == "kth":
+                new_alpha = max(alpha, accu)
+            else:
+                new_alpha = alpha + accu
+            alpha_dict[(station, next_station)] = new_alpha
+            alpha_dict[(next_station, station)] = new_alpha
     new_alpha_dict: dict[tuple[str, str], float] = {}
     for (station, next_station), alpha in alpha_dict.items():
         if (next_station, station) not in new_alpha_dict:
-            new_alpha_dict[(station, next_station)] = alpha
+            new_alpha_dict[(station, next_station)] = 1 - alpha
     for (station, next_station), alpha in new_alpha_dict.items():
-        draw_path(draw_new, map_obj, station, next_station, alpha, edge_wide)
+        draw_path(draw_new, map_obj, station, next_station, cmap, alpha, edge_wide)
     img.paste(img_new, mask=img_new)
+
+    draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
+    draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
 
     print("Drawing done! Saving...")
     img.save(args.output, dpi=(args.dpi, args.dpi))
