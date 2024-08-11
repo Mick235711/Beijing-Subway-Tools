@@ -143,7 +143,8 @@ def draw_contours(
         max_value = max(abs(v) for v in avg_shortest.values())
         min_value = min(list(avg_shortest.values()))
         processed_levels = [level for level in levels if min_value <= level <= max_value]
-        processed_levels.append(min(level for level in levels if level > max_value))
+        if any(level > max_value for level in levels):
+            processed_levels.append(min(level for level in levels if level > max_value))
 
         have_minus = any(level < 0 for level in levels)
         if have_minus:
