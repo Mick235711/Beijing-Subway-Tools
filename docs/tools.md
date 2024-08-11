@@ -1788,3 +1788,84 @@ Drawing levels: [-75, -60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 7
 Recalculated min/max: -61.85 - 46.47
 Drawing contours done! Saving...
 </pre>
+
+### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
+```
+usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
+                    [--exclude-single] [--strategy {kth,avg}] [-k NUM_PATH]
+
+options:
+  -h, --help            show this help message and exit
+  -s LIMIT_START, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e LIMIT_END, --limit-end LIMIT_END
+                        Limit end time of the search
+  -c COLOR_MAP, --color-map COLOR_MAP
+                        Override default colormap
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  --dpi DPI             DPI of output image
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-edge        Exclude edge case in transfer
+  --exclude-single      Exclude single-direction lines
+  --strategy {kth,avg}  Strategy for combining station data
+  -k NUM_PATH, --num-path NUM_PATH
+                        Show first k path
+```
+Draw the first k-th shortest paths on the map.
+On default, the route with deeper shades of grey is faster.
+There are two mode selectable by `--strategy`: `kth` that calculate shortest path on a specific time,
+and `avg` that accumulates the shortest path over one day.
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_equtime.py -n 3 -o ./docs/example-2.png
+City default: &lt;北京: 24 lines&gt;
+? Please select a starting station: <i>环球度假区</i>
+? Please select an ending station: <i>苹果园</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-08-07</i>
+Calculating 环球度假区: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 603/603 [01:19<00:00,  7.56it/s]
+环球度假区 -> 苹果园, 99.33 minutes (min 93 - max 108) (avg: transfer = 2.00, station = 35.43, distance = 52.22km)
+Percentage of each path:
+    67.02% 环球度假区 --- 1号线 (西行) --> 建国门 --- 2号线 (外环) --> 朝阳门 --- 6号线 (西行) --> 苹果园 [Example: 05:19 -> 07:06]
+    26.41% 环球度假区 --- 1号线 (西行) --> 公主坟 --- 10号线 (内环) --> 慈寿寺 --- 6号线 (西行) --> 苹果园 [Example: 05:05 -> 06:46]
+    2.96% 环球度假区 --- 7号线 (西行) --> 九龙山 --- 14号线 (东北行) --> 金台路 --- 6号线 (西行) --> 苹果园 [Example: 06:41 -> 08:19]
+    1.05% 环球度假区 --- 1号线 (西行) --> 复兴门 --- 2号线 (内环) --> 车公庄 --- 6号线 (西行) --> 苹果园 [Example: 19:37 -> 21:17]
+    0.76% 环球度假区 --- 1号线 (西行) --> 国贸 --- 10号线 (外环) --> 呼家楼 --- 6号线 (西行) --> 苹果园 [Example: 16:14 -> 17:54]
+    0.57% 环球度假区 --- 1号线 (西行) --> 王府井 --- 8号线 (北行) --> 南锣鼓巷 --- 6号线 (西行) --> 苹果园 [Example: 11:02 -> 12:43]
+    0.48% 环球度假区 --- 7号线 (西行) --> 北京西站 --- 9号线 (北行) --> 白石桥南 --- 6号线 (西行) --> 苹果园 [Example: 05:51 -> 07:32]
+    0.48% 环球度假区 --- 1号线 (西行) --> 大望路 --- 14号线 (东北行) --> 金台路 --- 6号线 (西行) --> 苹果园 [Example: 09:37 -> 11:19]
+    0.29% 环球度假区 --- 7号线 (西行) --> 双井 --- 10号线 (外环) --> 呼家楼 --- 6号线 (西行) --> 苹果园 [Example: 06:07 -> 07:47]
+
+Maximum time path:
+    22:14 -> 00:02 (+1)
+    Total time: 1h48min, total distance: 52.09km, 35 stations, 2 transfers.
+
+    Waiting time: 5 minutes
+    1号线 西行 全程车 [6B-] 环球度假区 22:19 -> 建国门 23:07 (18 stations, 48min, 27.40km)
+    Transfer at 建国门: 1号线 -> 2号线, 1 minute (special time)
+    2号线 外环 积水潭回库车 [6B-] 建国门 23:08 -> 朝阳门 23:11 (1 station, 3min, 1.74km)
+    Transfer at 朝阳门: 2号线 -> 6号线, 2.5 minutes
+    Waiting time: 7.5 minutes
+    6号线 西行 全程车 [8B] 朝阳门 23:21 -> 苹果园 00:02 (+1) (16 stations, 41min, 22.95km)
+
+Minimum time path:
+    15:41 -> 17:14
+    Total time: 1h33min, total distance: 52.09km, 35 stations, 2 transfers.
+
+    1号线 西行 全程车 [6B-] 环球度假区 15:41 -> 建国门 16:28 (18 stations, 47min, 27.40km)
+    Transfer at 建国门: 1号线 -> 2号线, 1 minute (special time)
+    2号线 外环 环行 [6B-] 建国门 16:29 -> 朝阳门 16:32 (1 station, 3min, 1.74km)
+    Transfer at 朝阳门: 2号线 -> 6号线, 2.5 minutes
+    Waiting time: 0.5 minutes
+    6号线 西行 全程车 [8B] 朝阳门 16:35 -> 苹果园 17:14 (16 stations, 39min, 22.95km)
+
+? Please select a map: <i>Official Map</i>
+Drawing done! Saving...
+</pre>
