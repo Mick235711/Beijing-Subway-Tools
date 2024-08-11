@@ -17,7 +17,7 @@ from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_cit
 from src.city.city import City
 from src.dist_graph.adaptor import reduce_path, reduce_abstract_path
 from src.graph.draw_equtime import draw_station_filled
-from src.graph.draw_map import map_args, get_colormap, convert_color
+from src.graph.draw_map import map_args, get_colormap, convert_color, find_font_size
 from src.dist_graph.shortest_path import Path
 from src.graph.map import Map
 
@@ -39,7 +39,7 @@ def get_ordinal_alpha(index: int, max_index: int) -> float:
 
 def get_percent_alpha(percentage: float) -> float:
     """ Get percentage (0-100) alpha value """
-    return percentage / 100
+    return percentage
 
 
 def fetch_kth_path_result(args: argparse.Namespace) -> tuple[City, str, str, DrawDict]:
@@ -47,7 +47,7 @@ def fetch_kth_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
     city, start_station, end_station, results = get_kth_path(args)
     draw_dict: DrawDict = []
     for i, (result, path) in enumerate(results):
-        draw_dict.append((get_ordinal_alpha(i, len(results)), reduce_path(path, end_station)))
+        draw_dict.append((i, reduce_path(path, end_station)))
     return city, start_station, end_station, draw_dict
 
 
@@ -69,7 +69,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
     path_coverage = data[-1]
     draw_dict: DrawDict = []
     for percent, path, _ in path_coverage:
-        draw_dict.append((get_percent_alpha(percent), reduce_abstract_path(city.lines(), path, end[0])))
+        draw_dict.append((percent, reduce_abstract_path(city.lines(), path, end[0])))
     return city, start[0], end[0], draw_dict
 
 
@@ -80,7 +80,7 @@ def get_edge_wide(map_obj: Map) -> float:
 
 def draw_path(
     draw: ImageDraw.ImageDraw, map_obj: Map, start_station: str, end_station: str,
-    cmap: Colormap, alpha: float, edge_wide: float
+    cmap: Colormap, index: float, alpha: float, edge_wide: float, is_index: bool = False
 ) -> None:
     """ Draw a path on map """
     start_x, start_y, start_r = map_obj.coordinates[start_station]
@@ -101,6 +101,12 @@ def draw_path(
         fill=convert_color(cmap(alpha)[:-1] + (DRAW_ALPHA,))
     )
 
+    # Draw an index in the middle
+    index_str = f"#{index + 1}" if is_index else f"{index * 100:.1f}%"
+    font_size = find_font_size(draw, index_str, edge_wide * 2)
+    draw.text(((start_x + end_x) / 2, (start_y + end_y) / 2), index_str,
+              fill="white", anchor="mm", font_size=font_size)
+
 
 def main() -> None:
     """ Main function """
@@ -111,14 +117,12 @@ def main() -> None:
         parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
 
     args = map_args(append_arg, contour_args=False, have_single=True)
-    cmap = get_colormap(args.color_map)
+    cmap = get_colormap(args.color_map or "Greys")
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:
             print("Warning: --limit-start/end ignored in kth mode.")
         city, start_station, end_station, draw_dict = fetch_kth_path_result(args)
     else:
-        if args.data_source is not None:
-            print("Warning: -d/--data-source ignored in avg mode.")
         if args.num_path is not None:
             print("Warning: -k/--num-path ignored in avg mode.")
         city, start_station, end_station, draw_dict = fetch_avg_path_result(args)
@@ -131,26 +135,34 @@ def main() -> None:
     edge_wide = get_edge_wide(map_obj)
 
     alpha_dict: dict[tuple[str, str], float] = {}
-    for alpha, path in draw_dict:
+    for index, path in draw_dict:
         for i, (station, _) in enumerate(path):
             next_station = end_station if i == len(path) - 1 else path[i + 1][0]
-            accu = 0.0
+            accu = -1.0
             if (station, next_station) in alpha_dict:
                 accu = max(accu, alpha_dict[(station, next_station)])
             if (next_station, station) in alpha_dict:
                 accu = max(accu, alpha_dict[(next_station, station)])
             if args.strategy == "kth":
-                new_alpha = max(alpha, accu)
+                alpha = index if accu < -0.5 else min(index, accu)
             else:
-                new_alpha = alpha + accu
-            alpha_dict[(station, next_station)] = new_alpha
-            alpha_dict[(next_station, station)] = new_alpha
+                alpha = (0.0 if accu < -0.5 else accu) + index
+            alpha_dict[(station, next_station)] = alpha
+            alpha_dict[(next_station, station)] = alpha
     new_alpha_dict: dict[tuple[str, str], float] = {}
     for (station, next_station), alpha in alpha_dict.items():
         if (next_station, station) not in new_alpha_dict:
-            new_alpha_dict[(station, next_station)] = 1 - alpha
+            new_alpha_dict[(station, next_station)] = alpha
     for (station, next_station), alpha in new_alpha_dict.items():
-        draw_path(draw_new, map_obj, station, next_station, cmap, alpha, edge_wide)
+        if args.strategy == "kth":
+            color_alpha = get_ordinal_alpha(int(alpha), len(draw_dict))
+        else:
+            color_alpha = get_percent_alpha(alpha)
+        draw_path(
+            draw_new, map_obj, station, next_station,
+            cmap, alpha, color_alpha, edge_wide,
+            args.strategy == "kth"
+        )
     img.paste(img_new, mask=img_new)
 
     draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
