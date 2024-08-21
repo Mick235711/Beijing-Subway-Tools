@@ -984,13 +984,46 @@ Waiting time: 2.5 minutes
 
 # [`stats/`](/src/stats): Statistics of a city and its lines
 ### Common Arguments
-In all the programs in this section, the following arguments are supported:
+In all the programs in this section (except those that accept no arguments), the following arguments are supported:
 - `-n N`: Limit number of output (only show the min/max N stations/trains/...)
 - `-a`: Show combined data for all date groups
 - `-f`: Only include train that runs the full journey
 - `-s hh:mm` and `-e hh:mm`: Limit the passing time of the trains
 - `-i L1,L2,L3`: Only include those lines
 - `-e L1,L2,L3`: Exclude those lines from the result
+
+### [`city_statistics.py`](/src/stats/city_statistics.py): Basic statistics for a city
+(This program has no command-line arguments.)
+
+Show some basic data on a city, such as number of lines, total rail distance, and number of transfer stations.
+
+Example Usage:
+<pre>
+$ python3 src/stats/city_statistics.py
+City default: &lt;北京: 24 lines&gt;
+=====&gt; Line Information &lt;=====
+Total # of lines: 24 (2 loop, 1 end-circle)
+Total # of lines with different fare: 3
+Total # of regular lines: 19
+Total distance: 770.07km (avg 32.09km per line)
+Total distance for regular lines: 611.83km (avg 32.20km per line)
+
+====&gt; Station Information &lt;=====
+Total # of stations: 374
+Total # of stations (recounting for each line): 462
+Average # of lines per station: 1.24
+Station with 1 line: 294
+Station with 2 lines: 72
+Station with 3 lines: 8 (西直门, 东直门, 金安桥, 平安里, 国家图书馆, 草桥, 宋家庄, 十里河)
+
+=====&gt; Transfer Information &lt;=====
+Line with max number of transfer stations: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22 transfers)
+Line with min number of transfer stations: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1 transfers)
+Average # of transfer stations per line: 7.0
+Line with max number of consecutive transfers: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (知春路 - 牡丹园, 3 consecutivem)
+Line with min number of consecutive transfers: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (金安桥 - 金安桥, 1 consecutive)
+Average # of consecutive transfer stations per line: 2.125
+</pre>
 
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
 ```
