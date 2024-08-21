@@ -10,7 +10,6 @@ from typing import Any
 from src.city.date_group import TimeInterval, parse_time_interval, DateGroup
 from src.city.line import Line
 
-
 TransferSpec = tuple[str, str, str, str]
 
 

@@ -10,12 +10,12 @@ from collections.abc import Generator
 import networkx as nx  # type: ignore
 from tqdm import tqdm
 
-from src.bfs.shortest_path import ask_for_shortest_path
 from src.bfs.avg_shortest_time import shortest_path_args
+from src.bfs.shortest_path import ask_for_shortest_path
 from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time
 from src.city.line import Line
-from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains
+from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.train import parse_all_trains
 
 

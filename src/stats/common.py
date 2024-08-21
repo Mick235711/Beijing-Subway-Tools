@@ -22,7 +22,6 @@ from src.common.common import parse_time, diff_time_tuple, try_numerical, Revers
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
-
 T = TypeVar("T")
 
 

@@ -19,7 +19,6 @@ from prompt_toolkit.completion import DeduplicateCompleter, Completer, Completio
 from prompt_toolkit.document import Document
 from pypinyin import pinyin, Style
 
-
 # Constants
 TimeSpec = tuple[time, bool]
 T = TypeVar("T")

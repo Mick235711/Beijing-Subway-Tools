@@ -16,7 +16,6 @@ from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
 from src.stats.common import count_trains
 
-
 Segment = Sequence[Train | ThroughTrain]
 
 

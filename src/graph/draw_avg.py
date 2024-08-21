@@ -10,9 +10,9 @@ from typing import cast
 from PIL import Image, ImageDraw
 from scipy.interpolate import griddata  # type: ignore
 
+from src.bfs.avg_shortest_time import avg_shortest_in_city
 from src.city.ask_for_city import ask_for_map
 from src.graph.draw_map import get_colormap, draw_all_station, draw_contour_wrap, map_args, get_levels_from_source
-from src.bfs.avg_shortest_time import avg_shortest_in_city
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000

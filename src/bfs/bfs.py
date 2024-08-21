@@ -16,7 +16,6 @@ from src.common.common import diff_time, diff_time_tuple, format_duration, get_t
     distance_str, get_time_repr, from_minutes
 from src.routing.train import Train
 
-
 # Virtual Transfer Spec: from_station, to_station, minute, is_special
 VTSpec = tuple[str, str, TransferSpec, float, bool]
 Path = list[tuple[str, Train | VTSpec]]

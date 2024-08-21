@@ -5,21 +5,20 @@
 
 # Libraries
 import argparse
+import multiprocessing as mp
 from datetime import date, time
 from functools import partial
-import multiprocessing as mp
 
 from tqdm import tqdm
 
+from src.bfs.bfs import bfs_wrap, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_station_list
 from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma
-from src.bfs.bfs import bfs_wrap, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.routing.train import Train, parse_all_trains
-
 
 AbstractPath = list[tuple[str, tuple[str, str] | None]]
 PathInfo = tuple[int, Path, BFSResult]

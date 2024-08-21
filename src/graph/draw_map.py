@@ -5,8 +5,8 @@
 
 # Libraries
 import argparse
-from typing import cast, Any
 from collections.abc import Callable
+from typing import cast, Any
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -15,10 +15,10 @@ from PIL import Image, ImageDraw
 from matplotlib.colors import LinearSegmentedColormap, Colormap, LogNorm, SymLogNorm
 from scipy.interpolate import griddata  # type: ignore
 
+from src.bfs.avg_shortest_time import shortest_in_city, shortest_path_args
 from src.city.ask_for_city import ask_for_map
 from src.common.common import parse_comma
 from src.graph.map import Map
-from src.bfs.avg_shortest_time import shortest_in_city, shortest_path_args
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
