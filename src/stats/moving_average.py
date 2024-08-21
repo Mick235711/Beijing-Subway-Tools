@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from src.common.common import moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, diff_time_tuple, \
     average
 from src.routing.train import Train
-from src.stats.city_statistics import parse_args, append_table_args, output_table, get_all_trains_from_set
+from src.stats.common import parse_args, append_table_args, output_table, get_all_trains_from_set
 from src.stats.hour_trains import minute_trains
 
 

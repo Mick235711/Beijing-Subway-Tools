@@ -10,7 +10,7 @@ from src.city.through_spec import ThroughSpec
 from src.common.common import speed_str
 from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, parse_args_through
+from src.stats.common import display_first, parse_args_through
 
 
 def highest_speed_train(

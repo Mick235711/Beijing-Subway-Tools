@@ -13,7 +13,7 @@ from src.city.through_spec import ThroughSpec
 from src.common.common import add_min_tuple, get_time_str, suffix_s
 from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, divide_by_line, parse_args, parse_args_through
+from src.stats.common import display_first, divide_by_line, parse_args, parse_args_through
 
 
 def hour_trains(

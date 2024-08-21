@@ -14,7 +14,7 @@ from src.city.through_spec import ThroughSpec
 from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
-from src.stats.city_statistics import count_trains
+from src.stats.common import count_trains
 
 
 Segment = Sequence[Train | ThroughTrain]

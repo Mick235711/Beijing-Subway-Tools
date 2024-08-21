@@ -12,7 +12,7 @@ from src.city.date_group import DateGroup
 from src.city.transfer import Transfer, TransferSpec
 from src.common.common import suffix_s, diff_time_tuple, average
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, parse_args
+from src.stats.common import display_first, parse_args
 
 
 def key_list_str(

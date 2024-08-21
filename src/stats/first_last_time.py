@@ -6,7 +6,7 @@
 # Libraries
 from src.common.common import get_time_str
 from src.routing.train import Train
-from src.stats.city_statistics import display_first, parse_args
+from src.stats.common import display_first, parse_args
 
 
 def first_train_station(

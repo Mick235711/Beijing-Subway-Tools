@@ -9,7 +9,7 @@ import argparse
 from src.common.common import sequence_data
 from src.routing.show_segments import get_all_segments, sort_segment
 from src.routing.train import Train
-from src.stats.city_statistics import parse_args, append_table_args, output_table
+from src.stats.common import parse_args, append_table_args, output_table
 
 
 def get_segment_data(train_date_set: set[tuple[str, Train]], *, sort_by: str = "distance") -> tuple:
