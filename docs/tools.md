@@ -1017,12 +1017,14 @@ Station with 2 lines: 72
 Station with 3 lines: 8 (西直门, 东直门, 金安桥, 平安里, 国家图书馆, 草桥, 宋家庄, 十里河)
 
 =====&gt; Transfer Information &lt;=====
-Line with max number of transfer stations: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22 transfers)
-Line with min number of transfer stations: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1 transfers)
-Average # of transfer stations per line: 7.0
-Line with max number of consecutive transfers: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (知春路 - 牡丹园, 3 consecutivem)
+Line with max number of transfer stations: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22/45 = 48.89% transfers)
+Line with min number of transfer stations: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1/3 = 33.33% transfers)
+Average # of transfer stations per line: 7.00
+Line with max percentage of transfer stations: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt; (12/18 = 66.67% transfers)
+Line with min percentage of transfer stations: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt; (1/9 = 11.11% transfers)
+Line with max number of consecutive transfers: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (知春路 - 牡丹园, 3 consecutive)
 Line with min number of consecutive transfers: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (金安桥 - 金安桥, 1 consecutive)
-Average # of consecutive transfer stations per line: 2.125
+Average # of consecutive transfer stations per line: 2.12
 </pre>
 
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station

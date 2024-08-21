@@ -72,10 +72,22 @@ def main() -> None:
         consecutive_dict[name] = max_sequence
 
     max_line = max(transfer_dict.keys(), key=lambda x: (transfer_dict[x], lines[x].total_distance()))
-    print(f"Line with max number of transfer stations: {lines[max_line]} ({transfer_dict[max_line]} transfers)")
+    print(f"Line with max number of transfer stations: {lines[max_line]} " +
+          f"({transfer_dict[max_line]}/{len(lines[max_line].stations)} = " +
+          f"{transfer_dict[max_line] / len(lines[max_line].stations) * 100:.2f}% transfers)")
     min_line = min(transfer_dict.keys(), key=lambda x: (transfer_dict[x], lines[x].total_distance()))
-    print(f"Line with min number of transfer stations: {lines[min_line]} ({transfer_dict[min_line]} transfers)")
+    print(f"Line with min number of transfer stations: {lines[min_line]} " +
+          f"({transfer_dict[min_line]}/{len(lines[min_line].stations)} = " +
+          f"{transfer_dict[min_line] / len(lines[min_line].stations) * 100:.2f}% transfers)")
     print(f"Average # of transfer stations per line: {sum(transfer_dict.values()) / len(lines):.2f}")
+    max_line = max(transfer_dict.keys(), key=lambda x: (transfer_dict[x] / len(lines[x].stations), lines[x].total_distance()))
+    print(f"Line with max percentage of transfer stations: {lines[max_line]} " +
+          f"({transfer_dict[max_line]}/{len(lines[max_line].stations)} = " +
+          f"{transfer_dict[max_line] / len(lines[max_line].stations) * 100:.2f}% transfers)")
+    min_line = min(transfer_dict.keys(), key=lambda x: (transfer_dict[x] / len(lines[x].stations), lines[x].total_distance()))
+    print(f"Line with min percentage of transfer stations: {lines[min_line]} " +
+          f"({transfer_dict[min_line]}/{len(lines[min_line].stations)} = " +
+          f"{transfer_dict[min_line] / len(lines[min_line].stations) * 100:.2f}% transfers)")
     max_line = max(consecutive_dict.keys(), key=lambda x: (len(consecutive_dict[x]), lines[x].total_distance()))
     print("Line with max number of consecutive transfers: " +
           f"{lines[max_line]} ({consecutive_dict[max_line][0]} - {consecutive_dict[max_line][-1]}, " +
