@@ -9,7 +9,7 @@ from math import floor, ceil
 
 from src.city.line import Line
 from src.city.transfer import Transfer
-from src.common.common import add_min, diff_time_tuple
+from src.common.common import add_min
 from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index
 from src.routing.train import Train
 
@@ -114,6 +114,10 @@ def k_shortest_path(
                 if prev_station == station:
                     if isinstance(prev_train, Train):
                         exclude_edges[prev_station].add((prev_train.line, prev_train.direction))
+                    elif i == len(prev_trace) - 1:
+                        # Special case the ending + virtual transfer case
+                        for direction in lines[prev_train[2][2]].directions.keys():
+                            exclude_edges[prev_station].add((lines[prev_train[2][2]], direction))
                     else:
                         exclude_edges[prev_station].add((lines[prev_train[2][2]], prev_train[2][3]))
 
