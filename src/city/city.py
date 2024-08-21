@@ -31,6 +31,7 @@ class City:
         self.aliases = aliases or []
         self.line_files: list[str] = []
         self.lines_processed: dict[str, Line] | None = None
+        self.force_set: set[Line] = set()
         self.transfers: dict[str, Transfer] = {}
         self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
         self.through_specs: list[ThroughSpec] = []
@@ -49,7 +50,9 @@ class City:
         assert self.carriages is not None, self
         self.lines_processed = {}
         for line_file in self.line_files:
-            line = parse_line(self.carriages, line_file)
+            line, force_start = parse_line(self.carriages, line_file)
+            if force_start:
+                self.force_set.add(line)
             self.lines_processed[line.name] = line
         return self.lines_processed
 
@@ -91,6 +94,9 @@ def parse_city(city_root: str) -> City:
     if "through_trains" in city_dict:
         city.through_specs = [spec for spec_dict in city_dict["through_trains"]
                               for spec in parse_through_spec(city.lines(), spec_dict)]
+
+    for line_obj in city.force_set:
+        line_obj.must_include = set(x for x in line_obj.stations if x not in city.transfers)
     return city
 
 

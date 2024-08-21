@@ -14,7 +14,7 @@
         {name: "东直门", dist: 3022},
         {name: "北新桥", dist: 1622}
     ],
-    must_include: ["3号航站楼", "2号航站楼"],
+    force_start: true,
     train_routes: {
         "进城": {
             aliases: ["City-bound"],

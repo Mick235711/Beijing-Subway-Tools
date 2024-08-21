@@ -155,7 +155,7 @@ class Line:
         assert False, (self, station1, station2)
 
 
-def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
+def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line, bool]:
     """ Parse JSON5 file as a line """
     assert os.path.exists(line_file), line_file
     with open(line_file) as fp:
@@ -201,9 +201,12 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
             assert max(0, len(line.stations) - 1) == len(line.station_dists), line_dict
         assert all(x in line.stations for x in line.station_aliases.keys()), line_dict
 
+    force_start = False
     if "must_include" in line_dict:
         line.must_include = set(line_dict["must_include"])
         assert all(x in line.stations for x in line.must_include), (line_dict, line.stations, line.must_include)
+    elif "force_start" in line_dict and line_dict["force_start"]:
+        force_start = True
 
     # populate directions and routes
     for direction, value in line_dict["train_routes"].items():
@@ -244,4 +247,4 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> Line:
         line.date_groups[group_name] = parse_date_group(group_name, group_value)
 
     line.timetable_dict = line_dict["timetable"]
-    return line
+    return line, force_start

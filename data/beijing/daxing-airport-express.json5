@@ -12,7 +12,7 @@
         {name: "大兴新城", dist: 25303},
         {name: "草桥", dist: 13028}
     ],
-    must_include: ["大兴机场", "大兴新城"],
+    force_start: true,
     train_routes: {
         "进城": {
             aliases: ["City-bound"],

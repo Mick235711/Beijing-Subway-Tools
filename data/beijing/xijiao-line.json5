@@ -16,6 +16,7 @@
         {name: "颐和园西门", dist: 1505, aliases: ["Summer Palace West Gate"]},
         {name: "巴沟", dist: 2922}
     ],
+    force_start: true,
     train_routes: {
         "进城": {
             aliases: ["City-bound"],
