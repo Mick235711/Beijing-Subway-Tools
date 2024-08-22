@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, time, timedelta
 from math import floor, ceil
 
-from src.city.line import Line
+from src.city.line import Line, station_full_name
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer, TransferSpec
 from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
@@ -140,7 +140,7 @@ class BFSResult:
                     cur_date += timedelta(days=1)
                 if station in last_train.line.stations:
                     assert transfer_time <= total_waiting, (last_train, station, train)
-                    print(f"{indent_str}Transfer at {station}: " +
+                    print(f"{indent_str}Transfer at {station_full_name(station, {last_train.line, train.line})}: " +
                           f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
                           suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
                 if total_waiting > transfer_time:

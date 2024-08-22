@@ -12,7 +12,7 @@ import pyjson5
 
 from src.city.carriage import Carriage, parse_carriage
 from src.city.date_group import DateGroup
-from src.city.line import Line, parse_line
+from src.city.line import Line, parse_line, station_full_name
 from src.city.through_spec import ThroughSpec, parse_through_spec
 from src.city.transfer import Transfer, parse_transfer, parse_virtual_transfer
 
@@ -53,10 +53,7 @@ class City:
     def station_full_name(self, station: str) -> str:
         """ Get full name for station """
         assert station in self.station_lines, (station, self.station_lines)
-        lines = self.station_lines[station]
-        if all(x.code is not None for x in lines):
-            return station + " " + "/".join(x.station_code(station) for x in lines)
-        return station
+        return station_full_name(station, self.station_lines[station])
 
 
 def parse_city(city_root: str) -> City:

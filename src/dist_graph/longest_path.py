@@ -13,6 +13,7 @@ from tqdm import tqdm
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.bfs.shortest_path import ask_for_shortest_path
 from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time
+from src.city.city import City
 from src.city.line import Line
 from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
@@ -95,7 +96,9 @@ def euler_route(graph: Graph, start_station: str, end_station: str) -> tuple[int
     return total_distance, path
 
 
-def get_longest_route(graph: Graph, start_station: str, end_station: str, verbose: bool = True) -> tuple[int, Path]:
+def get_longest_route(
+    graph: Graph, city: City, start_station: str, end_station: str, verbose: bool = True
+) -> tuple[int, Path]:
     """ Get the longest route in a dist graph """
     small_graph = simplify_graph(graph, start_station, end_station)
 
@@ -105,7 +108,7 @@ def get_longest_route(graph: Graph, start_station: str, end_station: str, verbos
     if verbose:
         print("Odd nodes in simplified graph:")
         for station in odd_nodes:
-            print(f"{station} ({len(small_graph[station])})")
+            print(f"{city.station_full_name(station)} ({len(small_graph[station])})")
 
     # Do the single-source shortest path for each pair of odd nodes
     dist_dict: dict[tuple[str, str], tuple[int, Path]] = {}
@@ -170,14 +173,15 @@ def main() -> None:
 
     small_tuple: tuple[int, Path, str] | None = None
     for start_station, end_station in tqdm(possible_pairs):
-        dist, route = get_longest_route(graph, start_station, end_station, not args.all)
+        dist, route = get_longest_route(graph, city, start_station, end_station, not args.all)
         if small_tuple is None or small_tuple[0] < dist:
             small_tuple = (dist, route, end_station)
     assert small_tuple is not None
     dist, route, end_station = small_tuple
 
     if args.all:
-        print(f"Longest route is from {route[0][0]} to {end_station}, totalling {dist}m.")
+        print(f"Longest route is from {city.station_full_name(route[0][0])} " +
+              f"to {city.station_full_name(end_station)}, totalling {dist}m.")
     result, bfs_path = to_trains(
         lines, train_dict, city.transfers, virtual_transfers, route, end_station,
         start_date, start_time, start_day, exclude_edge=args.exclude_edge

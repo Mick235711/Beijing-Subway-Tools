@@ -98,13 +98,13 @@ class Train:
 
     def show_with(self, station: str) -> str:
         """ String representation with stop time on station """
-        base = f"{station} {self.stop_time_repr(station)}"
+        base = f"{self.line.station_full_name(station)} {self.stop_time_repr(station)}"
         if self.stations[0] != station:
-            base = f"{self.stations[0]} {self.start_time_repr()} -> " + base
+            base = f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " + base
         if self.loop_next is not None:
-            base += f" -> {self.loop_next.stations[0]} {self.loop_next.start_time_repr()}"
+            base += f" -> {self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()}"
         elif self.stations[-1] != station:
-            base += f" -> {self.stations[-1]} {self.end_time_repr()}"
+            base += f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}"
         return base
 
     def direction_repr(self) -> str:
@@ -167,11 +167,12 @@ class Train:
         arrival_keys = list(self.arrival_time.keys())
         if end_station not in arrival_keys or arrival_keys.index(end_station) <= arrival_keys.index(start_station):
             assert self.loop_next is not None, self
-            center = f" -> {end_station} {self.loop_next.stop_time_repr(end_station)}"
+            center = f" -> {self.line.station_full_name(end_station)} {self.loop_next.stop_time_repr(end_station)}"
         else:
-            center = f" -> {end_station} {self.stop_time_repr(end_station)}"
-        return f"{self.direction_repr()} {start_station} {self.stop_time_repr(start_station)}" + \
-            center + f" ({self.two_station_duration_repr(start_station, end_station)})"
+            center = f" -> {self.line.station_full_name(end_station)} {self.stop_time_repr(end_station)}"
+        return (f"{self.direction_repr()} {self.line.station_full_name(start_station)} " +
+                f"{self.stop_time_repr(start_station)}" + center +
+                f" ({self.two_station_duration_repr(start_station, end_station)})")
 
     def two_station_interval(self, start_station: str, end_station: str) -> list[str]:
         """ Get all intermediate stations between two stations (left-closed, right-open) """
@@ -235,7 +236,7 @@ class Train:
         # Pre-run
         reprs: list[str] = []
         for station in self.stations:
-            reprs.append(f"{station} {get_time_repr(*self.arrival_time[station])}")
+            reprs.append(f"{self.line.station_full_name(station)} {get_time_repr(*self.arrival_time[station])}")
         if self.loop_next is not None:
             reprs.append(
                 f"{stations[0]} {get_time_repr(*self.loop_next.arrival_time[stations[0]])}")

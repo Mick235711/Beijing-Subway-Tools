@@ -14,7 +14,7 @@ from tqdm import tqdm
 from src.bfs.bfs import bfs_wrap, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_station_list
 from src.city.city import City
-from src.city.line import Line
+from src.city.line import Line, station_full_name
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma
@@ -43,7 +43,7 @@ def all_time_bfs(
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
     all_list = list(x for x in all_minutes if limit_start_num <= x <= limit_end_num)
 
-    with tqdm(desc=f"Calculating {start_station}", total=len(all_list)) as bar:
+    with tqdm(desc=("Calculating " + station_full_name(start_station, lines)), total=len(all_list)) as bar:
         with mp.Pool() as pool:
             multi_result = []
             for elem in pool.imap_unordered(
@@ -217,14 +217,14 @@ def avg_shortest_in_city(
     return city, stations, result_dict
 
 
-def path_shorthand(end_station: str, path: AbstractPath) -> str:
+def path_shorthand(end_station: str, city: City, path: AbstractPath) -> str:
     """ One-line representation of a path """
     result = ""
     for station, line_direction in path:
         if line_direction is None:
-            result += f"{station} --- (virtual) --> "
+            result += f"{city.station_full_name(station)} --- (virtual) --> "
         else:
-            result += f"{station} --- {line_direction[0]} ({line_direction[1]}) --> "
+            result += f"{city.station_full_name(station)} --- {line_direction[0]} ({line_direction[1]}) --> "
     return result + end_station
 
 
@@ -240,20 +240,20 @@ def shortest_path_args(parser: argparse.ArgumentParser, have_single: bool = Fals
 
 
 def print_station_info(
-    station: str, avg_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
+    city: City, station: str, avg_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
     max_info: PathInfo, min_info: PathInfo, path_coverage: list[tuple[float, AbstractPath, list[PathInfo]]],
     *, index: int | None = None, show_path_transfers: dict[str, Transfer] | None = None
 ) -> None:
     """ Print percentage info on a station """
     if index is not None:
         print(f"#{index + 1}", end=": ")
-    print(f"{station}, " + suffix_s("minute", f"{avg_time:.2f}") +
+    print(f"{city.station_full_name(station)}, " + suffix_s("minute", f"{avg_time:.2f}") +
           f" (min {min_info[0]} - max {max_info[0]})" +
           f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
           distance_str(avg_dist) + ")")
     print("Percentage of each path:")
     for percent, path, examples in path_coverage:
-        print("    " + percentage_str(percent) + " " + path_shorthand(station, path), end="")
+        print("    " + percentage_str(percent) + " " + path_shorthand(station, city, path), end="")
         print(f" [Example: {examples[0][2].time_str()}]")
 
     if show_path_transfers is not None:
@@ -295,24 +295,25 @@ def main() -> None:
                     print("...")
                 continue
             print_station_info(
-                station, *data, index=i, show_path_transfers=(city.transfers if args.show_path else None)
+                city, station, *data, index=i, show_path_transfers=(city.transfers if args.show_path else None)
             )
         return
 
     # sort and display first/last
+    full_name = city.station_full_name(station)
     result_list = [(data[0], station) for station, data in result_dict.items()]
     if stations is not None:
         for avg_time, station in result_list:
             if station not in stations:
                 continue
-            print(f"{station}: {avg_time}")
+            print(f"{full_name}: {avg_time}")
         return
     print("Nearest " + suffix_s("station", args.limit_num) + ":")
     print("\n".join(
-        f"{station}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
+        f"{full_name}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
     print("\nFarthest " + suffix_s("station", args.limit_num) + ":")
     print("\n".join(
-        f"{station}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
+        f"{full_name}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
 
 
 # Call main

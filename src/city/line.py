@@ -54,6 +54,11 @@ class Line:
             return f"{self.name} [{self.code}]"
         return self.name
 
+    def station_full_name(self, station: str) -> str:
+        """ Return the full name for a station """
+        assert station in self.stations, (station, self)
+        return station_full_name(station, {self})
+
     def station_code(self, station: str) -> str:
         """ Return a code for the station """
         assert self.code is not None, self
@@ -169,6 +174,17 @@ class Line:
             if stations.index(station1) < stations.index(station2):
                 return direction
         assert False, (self, station1, station2)
+
+
+def station_full_name(station: str, lines: dict[str, Line] | set[Line]) -> str:
+    """ Get full name for station """
+    if isinstance(lines, set):
+        processed_lines = lines
+    else:
+        processed_lines = set(x for x in lines.values() if station in x.stations)
+    if all(x.code is not None for x in processed_lines):
+        return station + " (" + "/".join(x.station_code(station) for x in processed_lines) + ")"
+    return station
 
 
 def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line, bool]:
