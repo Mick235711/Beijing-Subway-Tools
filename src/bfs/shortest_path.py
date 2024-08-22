@@ -46,7 +46,7 @@ def ask_for_shortest_path(
     """ Ask information for shortest path computation """
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
-    lines = city.lines()
+    lines = city.lines
     train_dict = parse_all_trains(
         list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
     )
@@ -79,7 +79,7 @@ def ask_for_shortest_path(
 def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[BFSResult, Path]]]:
     """ Get the kth shortest paths """
     city, start, end, train_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
-    lines = city.lines()
+    lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
     if args.data_source == "time":

@@ -57,7 +57,7 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
 def get_all_maps(city: City) -> dict[str, Map]:
     """ Get all the maps present """
     # Construct station -> lines mapping
-    lines = city.lines()
+    lines = city.lines
     station_lines: dict[str, set[Line]] = {}
     for line in lines.values():
         for station in line.stations:

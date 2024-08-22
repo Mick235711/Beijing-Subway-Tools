@@ -36,7 +36,7 @@ def avg_waiting_time(
     exclude_edge: bool = False, show_all: bool = False
 ) -> None:
     """ Print the average waiting time for each transfer station """
-    lines = city.lines()
+    lines = city.lines
     date_groups = city.all_date_groups()
     transfer_dict = city.transfers
     virtual_dict = city.virtual_transfers

@@ -30,7 +30,7 @@ class City:
         self.root = root
         self.aliases = aliases or []
         self.line_files: list[str] = []
-        self.lines_processed: dict[str, Line] | None = None
+        self.lines: dict[str, Line] = {}
         self.force_set: set[Line] = set()
         self.transfers: dict[str, Transfer] = {}
         self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
@@ -39,27 +39,12 @@ class City:
 
     def __repr__(self) -> str:
         """ Get string representation """
-        if self.lines_processed is not None:
-            return f"<{self.name}: {len(self.lines_processed)} lines>"
-        return f"<{self.name}: {len(self.line_files)} lines (unprocessed)>"
-
-    def lines(self) -> dict[str, Line]:
-        """ Get lines """
-        if self.lines_processed is not None:
-            return self.lines_processed
-        assert self.carriages is not None, self
-        self.lines_processed = {}
-        for line_file in self.line_files:
-            line, force_start = parse_line(self.carriages, line_file)
-            if force_start:
-                self.force_set.add(line)
-            self.lines_processed[line.name] = line
-        return self.lines_processed
+        return f"<{self.name}: {len(self.lines)} lines>"
 
     def all_date_groups(self) -> dict[str, DateGroup]:
         """ Get all possible date groups """
         all_groups: dict[str, DateGroup] = {}
-        for line in self.lines().values():
+        for line in self.lines.values():
             for date_group in line.date_groups.values():
                 all_groups[date_group.name] = date_group
         return all_groups
@@ -86,14 +71,21 @@ def parse_city(city_root: str) -> City:
     assert os.path.exists(carriage), city_root
     city.carriages = parse_carriage(carriage)
 
+    # Parse lines
+    for line_file in city.line_files:
+        line_obj, force_start = parse_line(city.carriages, line_file)
+        if force_start:
+            city.force_set.add(line_obj)
+        city.lines[line_obj.name] = line_obj
+
     if "transfers" in city_dict:
-        city.transfers = parse_transfer(city.lines(), city_dict["transfers"])
+        city.transfers = parse_transfer(city.lines, city_dict["transfers"])
     if "virtual_transfers" in city_dict:
-        city.virtual_transfers = parse_virtual_transfer(city.lines(), city_dict["virtual_transfers"])
+        city.virtual_transfers = parse_virtual_transfer(city.lines, city_dict["virtual_transfers"])
 
     if "through_trains" in city_dict:
         city.through_specs = [spec for spec_dict in city_dict["through_trains"]
-                              for spec in parse_through_spec(city.lines(), spec_dict)]
+                              for spec in parse_through_spec(city.lines, spec_dict)]
 
     for line_obj in city.force_set:
         line_obj.must_include = set(x for x in line_obj.stations if x not in city.transfers)

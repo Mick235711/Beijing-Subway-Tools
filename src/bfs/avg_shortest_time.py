@@ -139,7 +139,7 @@ def shortest_in_city(
         start_date = ask_for_date()
     else:
         city, start, start_date = city_station
-    lines = city.lines()
+    lines = city.lines
     train_dict = parse_all_trains(list(lines.values()), include_lines=include_lines, exclude_lines=exclude_lines)
     ls_time, ls_day = parse_time_opt(limit_start)
     le_time, le_day = parse_time_opt(limit_end)

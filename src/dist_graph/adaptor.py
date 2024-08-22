@@ -59,7 +59,7 @@ def get_dist_graph(
     include_virtual: bool = True, include_circle: bool = True
 ) -> Graph:
     """ Get the distance graph for a city """
-    lines = city.lines()
+    lines = city.lines
     graph: Graph = {}
     if isinstance(include_lines, str):
         include_lines = set(x.strip() for x in include_lines.split(","))

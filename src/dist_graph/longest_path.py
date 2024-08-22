@@ -141,7 +141,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.all:
         city = ask_for_city()
-        lines = city.lines()
+        lines = city.lines
         train_dict = parse_all_trains(
             list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
         )
@@ -150,7 +150,7 @@ def main() -> None:
         start, end = None, None
     else:
         city, start, end, train_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
-        lines = city.lines()
+        lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
     graph = get_dist_graph(

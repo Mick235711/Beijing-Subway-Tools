@@ -147,7 +147,7 @@ def parse_args(
     args = parser.parse_args()
 
     city = ask_for_city()
-    lines = city.lines()
+    lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
 
     if args.all:

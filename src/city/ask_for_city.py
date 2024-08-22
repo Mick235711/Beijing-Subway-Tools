@@ -48,7 +48,7 @@ def ask_for_city(*, message: str | None = None) -> City:
 def ask_for_line(city: City, *, message: str | None = None,
                  only_loop: bool = False, only_express: bool = False) -> Line:
     """ Ask for a line in the city """
-    lines = city.lines()
+    lines = city.lines
     if only_loop:
         lines = {name: line for name, line in lines.items() if line.loop}
     if only_express:
@@ -86,7 +86,7 @@ def ask_for_station(
 ) -> tuple[str, set[Line]]:
     """ Ask for a station in the city """
     # First compute all the stations
-    lines = city.lines()
+    lines = city.lines
     station_lines: dict[str, set[Line]] = {}
     aliases: dict[str, list[str]] = {}
     for line in lines.values():
@@ -362,10 +362,10 @@ def ask_for_through_train(
 ]:
     """ Ask for a list of train or through train """
     city = ask_for_city()
-    train_dict = parse_all_trains(list(city.lines().values()))
+    train_dict = parse_all_trains(list(city.lines.values()))
     train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
     line = ask_for_line_with_through(
-        city.lines(), through_dict.keys(), only_express=only_express, exclude_end_circle=exclude_end_circle
+        city.lines, through_dict.keys(), only_express=only_express, exclude_end_circle=exclude_end_circle
     )
     if isinstance(line, Line):
         if ignore_direction:

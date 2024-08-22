@@ -51,7 +51,7 @@ def main() -> None:
         if not args.all_directions:
             asked_direction = ask_for_direction(asked_line)
     else:
-        lines = list(city.lines().values())
+        lines = list(city.lines.values())
     train_dict = parse_all_trains(lines)  # line -> direction -> date_group -> list[Train]
 
     cur_date: date | None = None
@@ -103,7 +103,7 @@ def main() -> None:
     elif cur_date is not None:
         for line_name, line_dict in final_dict.items():
             for direction, inner_dict in line_dict.items():
-                final_dict[line_name][direction] = filter_date_group(inner_dict, city.lines()[line_name], cur_date)
+                final_dict[line_name][direction] = filter_date_group(inner_dict, city.lines[line_name], cur_date)
 
     if args.output is not None:
         print(f"Writing to {args.output}...")

@@ -12,7 +12,7 @@ from src.common.common import distance_str, suffix_s
 def main() -> None:
     """ Main function """
     city = ask_for_city()
-    lines = city.lines()
+    lines = city.lines
     loop_line = {name: line for name, line in lines.items() if line.loop}
     circle_line = {name: line for name, line in lines.items() if line.end_circle_start is not None}
     include_line = {name: line for name, line in lines.items() if len(line.must_include) > 0}

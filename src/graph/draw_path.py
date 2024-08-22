@@ -69,7 +69,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
     path_coverage = data[-1]
     draw_dict: DrawDict = []
     for percent, path, _ in path_coverage:
-        draw_dict.append((percent, reduce_abstract_path(city.lines(), path, end[0])))
+        draw_dict.append((percent, reduce_abstract_path(city.lines, path, end[0])))
     return city, start[0], end[0], draw_dict
 
 
