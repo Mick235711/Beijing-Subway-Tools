@@ -56,7 +56,7 @@ These fields specify the elements of the array `stations`.
 `dist` is not required for the first station.
 Must be in order of the line.
 Not required if provided both `station_names` and `station_dists`.
-If `index` is not provided, it is assumed to be the last station's index +1.
+If `index` is not provided, it is assumed to be the last station's index +1 (or "01" for the first station).
 
 ## Routing Specification Format
 A train route refers to a regularly scheduled train visiting several predetermined stations in order. Common train routing includes "Full route", "Short turn on Station X",

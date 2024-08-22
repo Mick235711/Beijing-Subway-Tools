@@ -213,8 +213,10 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             if "index" in station:
                 line.station_indexes.append(str(station["index"]))
             elif line.code is not None:
-                assert i > 0, station
-                line.station_indexes.append(str(int(line.station_indexes[-1]) + 1))
+                if i == 0:
+                    line.station_indexes.append("01")
+                else:
+                    line.station_indexes.append(f"{int(line.station_indexes[-1]) + 1:>02}")
         if line.loop:
             line.station_dists.append(line_dict["stations"][0]["dist"])
     else:
