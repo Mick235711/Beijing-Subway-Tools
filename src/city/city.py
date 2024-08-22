@@ -31,6 +31,7 @@ class City:
         self.aliases = aliases or []
         self.line_files: list[str] = []
         self.lines: dict[str, Line] = {}
+        self.station_lines: dict[str, set[Line]] = {}
         self.force_set: set[Line] = set()
         self.transfers: dict[str, Transfer] = {}
         self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
@@ -48,6 +49,14 @@ class City:
             for date_group in line.date_groups.values():
                 all_groups[date_group.name] = date_group
         return all_groups
+
+    def station_full_name(self, station: str) -> str:
+        """ Get full name for station """
+        assert station in self.station_lines, (station, self.station_lines)
+        lines = self.station_lines[station]
+        if all(x.code is not None for x in lines):
+            return station + " " + "/".join(x.station_code(station) for x in lines)
+        return station
 
 
 def parse_city(city_root: str) -> City:
@@ -89,6 +98,10 @@ def parse_city(city_root: str) -> City:
 
     for line_obj in city.force_set:
         line_obj.must_include = set(x for x in line_obj.stations if x not in city.transfers)
+        for station in line_obj.stations:
+            if station not in city.station_lines:
+                city.station_lines[station] = set()
+            city.station_lines[station].add(line_obj)
     return city
 
 

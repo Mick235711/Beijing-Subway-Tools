@@ -15,7 +15,7 @@ def main() -> None:
     station, lines = ask_for_station(city)
     for line in sorted(lines, key=lambda x: x.index):
         train_dict = parse_trains(line)
-        print(f"\n{line.name}:")
+        print(f"\n{line.full_name()}:")
         for direction, direction_dict in train_dict.items():
             for date_group, train_list in direction_dict.items():
                 print(f"    {direction} - {date_group}:")

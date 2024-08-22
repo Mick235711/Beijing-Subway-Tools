@@ -133,7 +133,7 @@ def segment_repr(date_group: str, segment: Segment) -> str:
         return f"{segment_str(segment)}: {date_group} {first_through.spec.route_str()} " + \
             f"[{first_through.first_train().train_code()}] " + segment_duration_str(segment)
     assert isinstance(segment[0], Train), segment
-    return f"{segment_str(segment, segment[0].line.loop)}: {date_group} {segment[0].line.name} " + \
+    return f"{segment_str(segment, segment[0].line.loop)}: {date_group} {segment[0].line.full_name()} " + \
         (f"{segment[0].direction} " if segment[0].line.loop else "") + \
         f"[{segment[0].train_code()}] " + segment_duration_str(segment)
 

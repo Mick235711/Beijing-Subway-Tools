@@ -57,16 +57,8 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
 def get_all_maps(city: City) -> dict[str, Map]:
     """ Get all the maps present """
     # Construct station -> lines mapping
-    lines = city.lines
-    station_lines: dict[str, set[Line]] = {}
-    for line in lines.values():
-        for station in line.stations:
-            if station not in station_lines:
-                station_lines[station] = set()
-            station_lines[station].add(line)
-
     res: dict[str, Map] = {}
     for map_file in glob(os.path.join(city.root, "map*.json5")):
-        map_obj = parse_map(map_file, station_lines)
+        map_obj = parse_map(map_file, city.station_lines)
         res[map_obj.name] = map_obj
     return res

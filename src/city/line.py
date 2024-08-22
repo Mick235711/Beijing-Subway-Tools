@@ -25,10 +25,13 @@ class Line:
         self.name = name
         self.index = index
         self.aliases = aliases or []
+        self.code: str | None = None
+        self.code_separator = ""
         self.carriage_num = carriage_num
         self.carriage_type = carriage_type
         self.design_speed = design_speed
         self.stations: list[str] = []
+        self.station_indexes: list[str] = []
         self.must_include: set[str] = set()
         self.station_dists: list[int] = []
         self.station_aliases: dict[str, list[str]] = {}
@@ -45,9 +48,22 @@ class Line:
         self.end_circle_start: str | None = None
         self.end_circle_spec: dict[str, int] = {}  # Store end_circle split dists
 
+    def full_name(self) -> str:
+        """ Return a name with code """
+        if self.code is not None:
+            return f"{self.name} [{self.code}]"
+        return self.name
+
+    def station_code(self, station: str) -> str:
+        """ Return a code for the station """
+        assert self.code is not None, self
+        assert station in self.stations, (self, station)
+        index = self.stations.index(station)
+        return f"{self.code}{self.code_separator}{self.station_indexes[index]}"
+
     def __repr__(self) -> str:
         """ Get string representation """
-        return f"<{self.name}: {self.line_str()}>"
+        return f"<{self.full_name()}: {self.line_str()}>"
 
     def direction_stations(self, direction: str | None = None) -> list[str]:
         """ Returns the base route's station for this direction """
@@ -173,6 +189,11 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
         line = Line(line_dict["name"], index, line_dict["carriage_num"], carriage,
                     line_dict["design_speed"], line_dict.get("aliases"))
 
+    if "code" in line_dict:
+        line.code = line_dict["code"]
+        if "code_separator" in line_dict:
+            line.code_separator = line_dict["code_separator"]
+
     # parse loop
     if "loop" in line_dict:
         line.loop = line_dict["loop"]
@@ -189,12 +210,19 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
                 if station["name"] not in line.station_aliases:
                     line.station_aliases[station["name"]] = []
                 line.station_aliases[station["name"]] += station["aliases"]
+            if "index" in station:
+                line.station_indexes.append(str(station["index"]))
+            elif line.code is not None:
+                assert i > 0, station
+                line.station_indexes.append(str(int(line.station_indexes[-1]) + 1))
         if line.loop:
             line.station_dists.append(line_dict["stations"][0]["dist"])
     else:
         line.stations = line_dict["station_names"]
         line.station_dists = line_dict["station_dists"]
         line.station_aliases = line_dict["station_aliases"]
+        line.station_indexes = line_dict["station_indexes"]
+        assert len(line.stations) == len(line.station_indexes), line_dict
         if line.loop:
             assert len(line.stations) == len(line.station_dists), line_dict
         else:
@@ -237,7 +265,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
                 direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop)
             if len(route_value) == 0:
                 line.direction_base_route[direction] = route
-            elif line.loop and len(route_value) == 1 and "starts_with" in route_value and\
+            elif line.loop and len(route_value) == 1 and "starts_with" in route_value and \
                     route_value["starts_with"] == line.directions[direction][0]:
                 line.loop_start_route[direction] = route
             line.train_routes[direction][route_name] = route

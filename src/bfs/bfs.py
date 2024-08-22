@@ -140,7 +140,8 @@ class BFSResult:
                     cur_date += timedelta(days=1)
                 if station in last_train.line.stations:
                     assert transfer_time <= total_waiting, (last_train, station, train)
-                    print(f"{indent_str}Transfer at {station}: {last_train.line.name} -> {train.line.name}, " +
+                    print(f"{indent_str}Transfer at {station}: " +
+                          f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
                           suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
                 if total_waiting > transfer_time:
                     print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))

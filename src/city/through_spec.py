@@ -42,7 +42,7 @@ class ThroughSpec:
     def __repr__(self) -> str:
         """ String representation """
         return "<" + " => ".join(
-            f"{line.name} {direction} {date_group.name} {route.name}"
+            f"{line.full_name()} {direction} {date_group.name} {route.name}"
             for line, direction, date_group, route in self.spec
         ) + ">"
 
@@ -66,7 +66,7 @@ class ThroughSpec:
 
     def line_str(self) -> str:
         """ String representation for lines """
-        return " + ".join(line.name for line, _, _, _ in self.spec)
+        return " + ".join(line.full_name() for line, _, _, _ in self.spec)
 
     def line_index(self) -> tuple[int, ...]:
         """ Get the index of the route for sorting """
@@ -78,7 +78,7 @@ class ThroughSpec:
 
     def direction_str(self) -> str:
         """ String representation for directions """
-        return " => ".join(f"{line.name} ({direction})" for line, direction, _, _ in self.spec)
+        return " => ".join(f"{line.full_name()} ({direction})" for line, direction, _, _ in self.spec)
 
 
 def parse_through_single_direction(

@@ -29,22 +29,18 @@ def main() -> None:
     print("Total distance for regular lines: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / len(regular_line)) + " per line)")
 
-    station_dict: dict[str, set[Line]] = {}
+    station_lines = city.station_lines
     max_len = 1
-    for line in lines.values():
-        for station in line.stations:
-            if station not in station_dict:
-                station_dict[station] = set()
-            station_dict[station].add(line)
-            if len(station_dict[station]) > max_len:
-                max_len = len(station_dict[station])
+    for line_list in station_lines.values():
+        if len(line_list) > max_len:
+            max_len = len(line_list)
     print("\n====> Station Information <=====")
-    print(f"Total # of stations: {len(station_dict)}")
+    print(f"Total # of stations: {len(station_lines)}")
     recount_sum = sum(len(line.stations) for line in lines.values())
     print(f"Total # of stations (recounting for each line): {recount_sum}")
-    print(f"Average # of lines per station: {recount_sum / len(station_dict):.2f}")
+    print(f"Average # of lines per station: {recount_sum / len(station_lines):.2f}")
     for i in range(1, max_len + 1):
-        station_list = [station for station, lines in station_dict.items() if len(lines) == i]
+        station_list = [station for station, lines in station_lines.items() if len(lines) == i]
         print("Station with " + suffix_s("line", i) + f": {len(station_list)}", end="")
         if i >= 3:
             print(" (" + ", ".join(station_list) + ")")
@@ -56,7 +52,7 @@ def main() -> None:
     consecutive_dict: dict[str, list[str]] = {}
     for name, line in lines.items():
         transfer_stations = [(index, station) for index, station in enumerate(line.stations)
-                             if len(station_dict[station]) > 1]
+                             if len(station_lines[station]) > 1]
         transfer_dict[name] = len(transfer_stations)
         count = 1
         max_sequence: list[str] = [transfer_stations[0][1]]

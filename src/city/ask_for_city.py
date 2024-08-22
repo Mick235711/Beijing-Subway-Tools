@@ -87,15 +87,8 @@ def ask_for_station(
     """ Ask for a station in the city """
     # First compute all the stations
     lines = city.lines
-    station_lines: dict[str, set[Line]] = {}
     aliases: dict[str, list[str]] = {}
     for line in lines.values():
-        for station in line.stations:
-            if exclude is not None and station in exclude:
-                continue
-            if station not in station_lines:
-                station_lines[station] = set()
-            station_lines[station].add(line)
         for station, station_aliases in line.station_aliases.items():
             if exclude is not None and station in exclude:
                 continue
@@ -106,17 +99,19 @@ def ask_for_station(
             aliases[station] = list(temp)
 
     meta_information: dict[str, str] = {}
-    for station, lines_set in station_lines.items():
+    for station, lines_set in city.station_lines.items():
         if exclude is not None and station in exclude:
             continue
-        meta_information[station] = ", ".join(line.name for line in sorted(list(lines_set), key=lambda x: x.index))
+        meta_information[station] = ", ".join(
+            line.full_name() for line in sorted(list(lines_set), key=lambda x: x.index)
+        )
     meta_information = dict(sorted(meta_information.items(), key=lambda x: to_pinyin(x[0])[0]))
     aliases = dict(sorted(aliases.items(), key=lambda x: to_pinyin(x[0])[0]))
 
     # Ask
     real_message = message or "Please select a station:"
     station = complete_pinyin(real_message, meta_information, aliases, sort=False, allow_empty=allow_empty)
-    return station, station_lines[station] if station != "" else set()
+    return station, city.station_lines[station] if station != "" else set()
 
 
 def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
@@ -196,7 +191,7 @@ def ask_for_station_in_line(
     for station in stations:
         if exclude is not None and station in exclude:
             continue
-        meta_information[station] = line.name
+        meta_information[station] = line.full_name()
         if station in line.station_aliases:
             aliases[station] = line.station_aliases[station]
 
