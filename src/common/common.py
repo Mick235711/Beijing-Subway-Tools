@@ -125,7 +125,8 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     completer = WordCompleter(words=words, display_dict=display_dict, meta_dict=meta_dict)
     answer = questionary.autocomplete(
         message, choices=[], completer=DeduplicateCompleter(completer),
-        validate=lambda x: (x == "" and allow_empty) or x.lower() in display_dict).ask()
+        validate=lambda x: (x == "" and allow_empty) or x.lower() in display_dict
+    ).ask()
     if answer == "":
         assert allow_empty
         return answer

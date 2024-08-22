@@ -115,10 +115,13 @@ class Train:
     def __repr__(self) -> str:
         """ Get string representation """
         if self.loop_next is not None:
-            return f"<{self.direction_repr()} {self.stations[0]} {self.start_time_repr()}" + \
-                f" -> {self.loop_next.stations[0]} {self.loop_next.start_time_repr()} (loop)>"
-        return f"<{self.direction_repr()} {self.stations[0]} {self.start_time_repr()}" + \
-            f" -> {self.stations[-1]} {self.end_time_repr()}>"
+            return (
+                f"<{self.direction_repr()} " +
+                f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " +
+                f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} (loop)>"
+            )
+        return f"<{self.direction_repr()} {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}" + \
+            f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}>"
 
     def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """

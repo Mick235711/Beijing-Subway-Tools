@@ -95,6 +95,7 @@ def parse_city(city_root: str) -> City:
 
     for line_obj in city.force_set:
         line_obj.must_include = set(x for x in line_obj.stations if x not in city.transfers)
+    for line_obj in city.lines.values():
         for station in line_obj.stations:
             if station not in city.station_lines:
                 city.station_lines[station] = set()

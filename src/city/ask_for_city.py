@@ -92,6 +92,7 @@ def ask_for_station(
         for station, station_aliases in line.station_aliases.items():
             if exclude is not None and station in exclude:
                 continue
+            station = city.station_full_name(station)
             if station not in aliases:
                 aliases[station] = []
             temp = set(aliases[station])
@@ -102,6 +103,7 @@ def ask_for_station(
     for station, lines_set in city.station_lines.items():
         if exclude is not None and station in exclude:
             continue
+        station = city.station_full_name(station)
         meta_information[station] = ", ".join(
             line.full_name() for line in sorted(list(lines_set), key=lambda x: x.index)
         )
@@ -111,6 +113,8 @@ def ask_for_station(
     # Ask
     real_message = message or "Please select a station:"
     station = complete_pinyin(real_message, meta_information, aliases, sort=False, allow_empty=allow_empty)
+    if station.endswith(")"):
+        station = station[:station.rfind("(")].strip()
     return station, city.station_lines[station] if station != "" else set()
 
 
@@ -147,7 +151,8 @@ def ask_for_line_in_station(
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     lines_dict: dict[str, Line] = {line.name: line for line in lines}
-    for name, line in sorted(lines_dict.items(), key=lambda x: x[1].index):
+    for line in sorted(lines_dict.values(), key=lambda x: x.index):
+        name = line.full_name()
         meta_information[name] = line.line_str()
         if len(line.aliases) > 0:
             aliases[name] = line.aliases
@@ -169,6 +174,8 @@ def ask_for_line_in_station(
         answer = complete_pinyin("Please select a line:", meta_information, aliases, sort=False)
     if payload_dict is not None and answer in payload_dict:
         return payload_dict[answer]
+    if answer.endswith("]"):
+        answer = answer[:answer.rfind("[")].strip()
     return lines_dict[answer]
 
 
@@ -191,6 +198,7 @@ def ask_for_station_in_line(
     for station in stations:
         if exclude is not None and station in exclude:
             continue
+        station = line.station_full_name(station)
         meta_information[station] = line.full_name()
         if station in line.station_aliases:
             aliases[station] = line.station_aliases[station]
@@ -198,22 +206,27 @@ def ask_for_station_in_line(
     # Ask
     have_default = with_timetable and with_direction is not None
     if message is not None:
-        return complete_pinyin(message, meta_information, aliases, sort=False)
-    if have_default:
-        assert with_direction is not None
-        viable = [
-            station for station in stations
-            if len(line.timetables()[station][with_direction]) == len(line.date_groups)
-        ]
-        if len(viable) == 0:
-            have_default = False
+        answer = complete_pinyin(message, meta_information, aliases, sort=False)
     else:
-        viable = []
-    answer = complete_pinyin(
-        "Please select a station" + (f" (default: {viable[-1]}):" if have_default else ":"),
-        meta_information, aliases, sort=False, allow_empty=have_default
-    )
-    return viable[-1] if answer == "" and have_default else answer
+        if have_default:
+            assert with_direction is not None
+            viable = [
+                station for station in stations
+                if len(line.timetables()[station][with_direction]) == len(line.date_groups)
+            ]
+            if len(viable) == 0:
+                have_default = False
+        else:
+            viable = []
+        answer = complete_pinyin(
+            "Please select a station" + (f" (default: {viable[-1]}):" if have_default else ":"),
+            meta_information, aliases, sort=False, allow_empty=have_default
+        )
+        if answer == "" and have_default:
+            return viable[-1]
+    if answer.endswith(")"):
+        answer = answer[:answer.rfind("(")].strip()
+    return answer
 
 
 def ask_for_station_pair_in_line(
@@ -244,7 +257,10 @@ def ask_for_direction(
         directions = [direction_name for direction_name in directions if any(
             route.is_express() for route in line.train_routes[direction_name].values())]
 
-    direction_dict = {direction: (line.directions[direction], line.loop) for direction in directions}
+    direction_dict = {
+        direction: ([line.station_full_name(s) for s in line.directions[direction]], line.loop)
+        for direction in directions
+    }
     if include_default and message is None:
         viable = [direction for direction in directions if 0 < sum(
             1 if direction in station_dict else 0 for station_dict in line.timetables().values()
