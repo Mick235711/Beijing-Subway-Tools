@@ -183,7 +183,7 @@ def station_full_name(station: str, lines: dict[str, Line] | set[Line]) -> str:
     else:
         processed_lines = set(x for x in lines.values() if station in x.stations)
     if all(x.code is not None for x in processed_lines):
-        return station + " (" + "/".join(x.station_code(station) for x in processed_lines) + ")"
+        return station + " (" + "/".join(set(x.station_code(station) for x in processed_lines)) + ")"
     return station
 
 
@@ -217,6 +217,9 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             line.loop_last_segment = line_dict["loop_last_segment"]
 
     # populate stations
+    index_reversed = False
+    if "index_reversed" in line_dict and line_dict["index_reversed"]:
+        index_reversed = True
     if "stations" in line_dict:
         for i, station in enumerate(line_dict["stations"]):
             line.stations.append(station["name"])
@@ -231,6 +234,9 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             elif line.code is not None:
                 if i == 0:
                     line.station_indexes.append("01")
+                elif index_reversed:
+                    assert int(line.station_indexes[-1]) > 0, (line_dict, line.station_indexes)
+                    line.station_indexes.append(f"{int(line.station_indexes[-1]) - 1:>02}")
                 else:
                     line.station_indexes.append(f"{int(line.station_indexes[-1]) + 1:>02}")
         if line.loop:
