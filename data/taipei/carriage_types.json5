@@ -1,0 +1,26 @@
+{
+    // 四条市区线的统一车型，例如C301，C321等，载客量均一致
+    "C": {
+        name: "市区线统型车",
+        aliases: ["Type C Urban Line Unified Type"],
+        capacity: 368
+    },
+    // 文湖线车型，VAL 256/INNOVIA APM 256，APM轻轨中运量
+    "L": {
+        name: "APM中运量",
+        aliases: ["Type L Wenhu Line APM"],
+        capacity: 114
+    },
+    // 环状线车型，中运量
+    "Y": {
+        name: "环状线电联车",
+        aliases: ["Type Y Circle Line Car"],
+        capacity: 162
+    },
+    // 轻轨车型
+    "LRT": {
+        name: "轻轨电联车",
+        aliases: ["Light Rail"],
+        capacity: 53
+    }
+}

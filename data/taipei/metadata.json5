@@ -1,0 +1,13 @@
+{
+    city_name: "台北",
+    city_aliases: ["Taipei"],
+    transfers: {
+        // 取自https://blog.transtaiwan.com/blog/transfer-time-settings/
+        // 按“快”模式时间，唯一的调整是如果快/普通都是2min，则记为1.5min。4个同台换乘站按0.5min/1min记另一个方向
+    },
+    virtual_transfers: [
+    ],
+    through_trains: [
+        // 支线按跨线记载
+    ]
+}

@@ -28,6 +28,17 @@
 | 大兴机场线     | 第2版   | 2023-04-27 | ~~进城~~ ~~出城~~   | ~~Chart~~ |
 
 
+# Taipei Metro
+台北+新北+桃园捷运。包括机场捷运，淡水轻轨，安坑轻轨，不包括维修中的环状线，台铁/高铁。数据来源：
+- 时刻表（目前版本：2023/11公布）
+  - R/G/O/BL: [台北捷运官方网站](https://www.metro.taipei/cp.aspx?n=91974F2B13D997F1)
+  - BR: MetroMan地铁通非官方时刻表
+  - 两条轻轨: [新北捷运官方网站](https://www.ntmetro.com.tw/basic/?mode=detail&node=460)
+  - 机场捷运: [桃园捷运官方网站](https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable.php)
+- 换乘时间: [Blog](https://blog.transtaiwan.com/blog/transfer-time-settings/)
+- 各站站间距: [PTT](https://www.ptt.cc/bbs/MRT/M.1342435699.A.99B.html)
+
+
 # Enhancements
 - [x] 快车实现：正常记录过站时间，但是不允许上车（显示passing/通过）
 - [x] 东西南北 East West South North 桥 Bridge ...
