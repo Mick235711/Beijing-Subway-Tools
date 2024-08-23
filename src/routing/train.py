@@ -167,14 +167,14 @@ class Train:
 
     def two_station_str(self, start_station: str, end_station: str) -> str:
         """ Get string representation for two stations """
-        arrival_keys = list(self.arrival_time.keys())
-        if end_station not in arrival_keys or arrival_keys.index(end_station) <= arrival_keys.index(start_station):
+        arrival_keys = self.arrival_time_virtual(start_station)
+        if start_station == end_station:
             assert self.loop_next is not None, self
-            center = f" -> {self.line.station_full_name(end_station)} {self.loop_next.stop_time_repr(end_station)}"
-        else:
-            center = f" -> {self.line.station_full_name(end_station)} {self.stop_time_repr(end_station)}"
+            arrival_keys[end_station] = self.loop_next.arrival_time[end_station]
+        assert end_station in arrival_keys, (end_station, arrival_keys)
         return (f"{self.direction_repr()} {self.line.station_full_name(start_station)} " +
-                f"{self.stop_time_repr(start_station)}" + center +
+                f"{self.stop_time_repr(start_station)} -> {self.line.station_full_name(end_station)} " +
+                f"{get_time_repr(*arrival_keys[end_station])}" +
                 f" ({self.two_station_duration_repr(start_station, end_station)})")
 
     def two_station_interval(self, start_station: str, end_station: str) -> list[str]:

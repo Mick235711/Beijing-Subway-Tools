@@ -162,7 +162,8 @@ def to_trains(
         for date_group, train_list in train_dict[line_name][direction].items():
             trains = sorted(
                 [train for train in train_list if station in train.arrival_time.keys()
-                 and next_station in train.arrival_time_virtual(station).keys()],
+                 and next_station in train.arrival_time_virtual(station).keys()
+                 and (station != next_station or train.loop_next is not None)],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )
             if lines[line_name].date_groups[date_group].covers(next_date):
@@ -195,7 +196,7 @@ def to_trains(
         transfer = transfer_dict[next_station]
         transfer_time, is_special = transfer.get_transfer_time(
             lines[line_name], direction,
-            new_path[i + 1][1][0], new_path[i + 1][1][1],  # type: ignore
+            lines[new_path[i + 1][1][0]], new_path[i + 1][1][1],  # type: ignore
             cur_date, cur_tuple[0], cur_tuple[1]
         )
         cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time))
