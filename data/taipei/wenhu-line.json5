@@ -21,7 +21,7 @@
         {name: "忠孝復興", dist: 900},
         {name: "南京復興", dist: 1150},
         {name: "中山國中", dist: 1050, aliases: ["Zhongshan Junior High School"]},
-        {name: "松山機場", dist: 1480, aliases: ["Songshan Airport"]},
+        {name: "松山機場", dist: 1480, aliases: ["Songshan Airport", "TSA"]},
         {name: "大直", dist: 2586, aliases: ["Shih Chien University"]},
         {name: "劍南路", dist: 1328, aliases: ["Miramar"]},
         {name: "西湖", dist: 1284, aliases: ["Takming University"]},
