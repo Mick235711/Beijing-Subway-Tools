@@ -1,0 +1,75 @@
+// 数据截止2023/11
+// 淡水信义线时刻表（来自台北捷运官网）
+// 注：新北投支线独立描述
+{
+    name: "淡水信義線",
+    aliases: ["Tamsui-Xinyi Line", "Danshui-Xinyi Line"],
+    code: "R",
+    index: 2,
+    carriage_num: 6,
+    carriage_type: "C",
+    design_speed: 80,
+    stations: [
+        {name: "象山", index: "02"},
+        {name: "台北101/世貿", dist: 859, aliases: ["Taipei 101/World Trade Center"]},
+        {name: "信義安和", dist: 1082},
+        {name: "大安", dist: 792},
+        {name: "大安森林公園", dist: 798, aliases: ["Daan Park"]},
+        {name: "東門", dist: 657},
+        {name: "中正紀念堂", dist: 1560, aliases: ["Chiang Kai-Shek Memorial Hall", "Nanmen"]},
+        {name: "台大醫院", dist: 950, aliases: ["National Taiwan University Hospital"]},
+        {name: "台北車站", dist: 630, aliases: ["Taipei Main Station"]},
+        {name: "中山", dist: 630},
+        {name: "雙連", dist: 550, aliases: ["Mackay Memorial Hospital"]},
+        {name: "民權西路", dist: 550, aliases: ["Minquan West Road"]},
+        {name: "圓山", dist: 1020},
+        {name: "劍潭", dist: 1519, aliases: ["Taipei Performing Arts Center"]},
+        {name: "士林", dist: 1191},
+        {name: "芝山", dist: 980},
+        {name: "明德", dist: 887},
+        {name: "石牌", dist: 610, aliases: ["Veterans General Hospital"]},
+        {name: "唭哩岸", dist: 1240, aliases: ["National Yang Ming Chiao Tung University"]},
+        {name: "奇岩", dist: 850},
+        {name: "北投", dist: 760},
+        {name: "復興崗", dist: 1620},
+        {name: "忠義", dist: 1440},
+        {name: "關渡", dist: 880},
+        {name: "竹圍", dist: 2050},
+        {name: "紅樹林", dist: 1935},
+        {name: "淡水", dist: 2062}
+    ],
+    train_routes: {
+        "北行": {
+            aliases: ["Northbound"],
+            "全程車": {},
+            "大安始發空車": {starts_with: "大安"},
+            "台北車站始發空車": {starts_with: "台北車站"},
+            "劍潭始發空車": {starts_with: "劍潭"},
+            "唭哩岸始發空車": {starts_with: "唭哩岸"},
+            "忠義始發空車": {starts_with: "忠義"},
+            "紅樹林始發空車": {starts_with: "紅樹林"},
+            "北投區間車": {ends_with: "北投"}
+        },
+        "南行": {
+            aliases: ["Southbound"],
+            reversed: true,
+            "全程車": {},
+            "大安始發空車": {starts_with: "大安"},
+            "台北車站始發空車": {starts_with: "台北車站"},
+            "民權西路始發空車": {starts_with: "民權西路"},
+            "劍潭始發空車": {starts_with: "劍潭"},
+            "石牌始發空車": {starts_with: "石牌"},
+            "唭哩岸始發空車": {starts_with: "唭哩岸"},
+            "北投始發空車": {starts_with: "北投"},
+            "忠義始發空車": {starts_with: "忠義"},
+            "大安區間車": {ends_with: "大安"}
+        }
+    },
+    date_groups: {
+        "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "週六": {weekday: [6], aliases: ["Saturday"]},
+        "週日": {weekday: [7], aliases: ["Sunday and National Holidays"]}
+    },
+    timetable: {
+    }
+}
