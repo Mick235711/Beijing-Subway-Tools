@@ -1,4 +1,4 @@
-// 数据截止2023/11
+// 数据截止2023/07
 // 淡水信义线时刻表（来自台北捷运官网）
 // 注：新北投支线独立描述
 {
@@ -111,6 +111,67 @@
                         {plan: "北投區間車", trains: ["08:47"]}
                     ]
                 }
+            },
+            "南行": {
+                // 以+2min计算
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [9, 5, 5, 6, 4, 4, 4, 5, 5, 4, 4, 4, 5, 7]},
+                        {first_train: "07:22", delta: [2, 4, 3, 4, 3, 4, 2, 5, [14, [2, 4]], 3, 4, 2]},
+                        {first_train: "09:27", delta: [2, 4, 6, 7, 8, 8, [14, [9, 10, 10]], 9, 7, 6, 6]},
+                        {first_train: "17:23", delta: [[7, [2, 4, 2, 4, 2, 5]], 2, 4, 2, 6, [6, [10, 9, 10]]]},
+                        {first_train: "22:54", delta: [10, 11, 10, 11, 10, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:06"]},
+                        {plan: "台北車站始發空車", trains: ["06:15"]},
+                        {plan: "民權西路始發空車", trains: ["06:20"]},
+                        {plan: "劍潭始發空車", trains: ["06:25"]},
+                        {plan: "石牌始發空車", trains: ["06:31"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:35"]},
+                        {plan: "北投始發空車", first_train: "06:39", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "07:24", skip_trains: 1, until: "07:57"},
+                        {plan: "北投始發空車", trains: ["08:09"]},
+                        {plan: "北投始發空車", first_train: "08:21", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:51", skip_trains: 1, until: "09:29"},
+                        {plan: "北投始發空車", first_train: "17:25", skip_trains: 1, until: "19:44"},
+                        {plan: "忠義始發空車", trains: ["06:43"]}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:06", delta: [9, 5, 5, 7, 2, 4, 5, 10, 8, 9, 9, 9, 11, 11]},
+                        {first_train: "08:00", delta: [10, [7, [10, 9]], 8, [45, [9]], [9, [8]], [8, [9]], [6, [10, 10, 9]]]},
+                        {first_train: "22:44", delta: [10, 10, 11, 10, 11, 10, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:06"]},
+                        {plan: "台北車站始發空車", trains: ["06:15"]},
+                        {plan: "民權西路始發空車", trains: ["06:20"]},
+                        {plan: "劍潭始發空車", trains: ["06:25"]},
+                        {plan: "石牌始發空車", trains: ["06:32"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:34"]},
+                        {plan: "北投始發空車", trains: ["06:38"]},
+                        {plan: "忠義始發空車", trains: ["06:43"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [9, 5, 5, 7, 2, 4, 5, 10, 8, 9, 9, 9, 11, 11]},
+                        {first_train: "08:00", delta: [10, [7, [10, 9]], 8, [45, [9]], [9, [8]], [8, [9]], [6, [10, 10, 9]]]},
+                        {first_train: "22:44", delta: [10, 10, 11, 10, 11, 10, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:06"]},
+                        {plan: "台北車站始發空車", trains: ["06:15"]},
+                        {plan: "民權西路始發空車", trains: ["06:20"]},
+                        {plan: "劍潭始發空車", trains: ["06:25"]},
+                        {plan: "石牌始發空車", trains: ["06:32"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:34"]},
+                        {plan: "北投始發空車", trains: ["06:38"]},
+                        {plan: "忠義始發空車", trains: ["06:43"]}
+                    ]
+                }
             }
         },
         "台北101/世貿": {
@@ -151,6 +212,66 @@
                     ],
                     filters: [
                         {plan: "北投區間車", trains: ["08:49"]}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [9, 5, 5, 6, 4, 4, 4, 5, 5, 4, 4, 4, 5, 7]},
+                        {first_train: "07:20", delta: [2, 4, 3, 4, 3, 4, 2, 5, [14, [2, 4]], 3, 4, 2]},
+                        {first_train: "09:25", delta: [2, 4, 6, 7, 8, 8, [14, [9, 10, 10]], 9, 7, 6, 6]},
+                        {first_train: "17:21", delta: [[7, [2, 4, 2, 4, 2, 5]], 2, 4, 2, 6, [6, [10, 9, 10]]]},
+                        {first_train: "22:52", delta: [10, 11, 10, 11, 10, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:04"]},
+                        {plan: "台北車站始發空車", trains: ["06:13"]},
+                        {plan: "民權西路始發空車", trains: ["06:18"]},
+                        {plan: "劍潭始發空車", trains: ["06:23"]},
+                        {plan: "石牌始發空車", trains: ["06:29"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:33"]},
+                        {plan: "北投始發空車", first_train: "06:37", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "07:22", skip_trains: 1, until: "07:55"},
+                        {plan: "北投始發空車", trains: ["08:07"]},
+                        {plan: "北投始發空車", first_train: "08:19", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:49", skip_trains: 1, until: "09:27"},
+                        {plan: "北投始發空車", first_train: "17:23", skip_trains: 1, until: "19:42"},
+                        {plan: "忠義始發空車", trains: ["06:41"]}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:04", delta: [9, 5, 5, 7, 2, 4, 5, 10, 8, 9, 9, 9, 11, 11]},
+                        {first_train: "07:58", delta: [10, [7, [10, 9]], 8, [45, [9]], [9, [8]], [8, [9]], [6, [10, 10, 9]]]},
+                        {first_train: "22:42", delta: [10, 10, 11, 10, 11, 10, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:04"]},
+                        {plan: "台北車站始發空車", trains: ["06:13"]},
+                        {plan: "民權西路始發空車", trains: ["06:18"]},
+                        {plan: "劍潭始發空車", trains: ["06:23"]},
+                        {plan: "石牌始發空車", trains: ["06:30"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:32"]},
+                        {plan: "北投始發空車", trains: ["06:36"]},
+                        {plan: "忠義始發空車", trains: ["06:41"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [9, 5, 5, 7, 2, 4, 5, 10, 8, 9, 9, 9, 11, 11]},
+                        {first_train: "07:58", delta: [10, [7, [10, 9]], 8, [45, [9]], [9, [8]], [8, [9]], [6, [10, 10, 9]]]},
+                        {first_train: "22:42", delta: [10, 10, 11, 10, 11, 10, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:04"]},
+                        {plan: "台北車站始發空車", trains: ["06:13"]},
+                        {plan: "民權西路始發空車", trains: ["06:18"]},
+                        {plan: "劍潭始發空車", trains: ["06:23"]},
+                        {plan: "石牌始發空車", trains: ["06:30"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:32"]},
+                        {plan: "北投始發空車", trains: ["06:36"]},
+                        {plan: "忠義始發空車", trains: ["06:41"]}
                     ]
                 }
             }
@@ -194,6 +315,66 @@
                     ],
                     filters: [
                         {plan: "北投區間車", trains: ["08:51"]}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 4, 5, 7, 3, 4, 4, 5, 5, 4, 4, 4, 5, 6]},
+                        {first_train: "07:18", delta: [2, 4, 3, 4, 2, 4, 3, 5, [14, [2, 4]], 3, 4, 2]},
+                        {first_train: "09:22", delta: [3, 4, 6, 7, 8, 8, [14, [9, 10, 10]], 9, 7, 6, 6]},
+                        {first_train: "17:18", delta: [[7, [3, 4, 2, 4, 3, 3]], 3, 4, 2, 6, [6, [9, 10, 10]]]},
+                        {first_train: "22:50", delta: [10, 10, 11, 10, 11, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:02"]},
+                        {plan: "台北車站始發空車", trains: ["06:12"]},
+                        {plan: "民權西路始發空車", trains: ["06:16"]},
+                        {plan: "劍潭始發空車", trains: ["06:21"]},
+                        {plan: "石牌始發空車", trains: ["06:28"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:31"]},
+                        {plan: "北投始發空車", first_train: "06:35", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "07:20", skip_trains: 1, until: "07:53"},
+                        {plan: "北投始發空車", trains: ["08:05"]},
+                        {plan: "北投始發空車", first_train: "08:17", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:47", skip_trains: 1, until: "09:25"},
+                        {plan: "北投始發空車", first_train: "17:21", skip_trains: 1, until: "19:40"},
+                        {plan: "忠義始發空車", trains: ["06:39"]}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 4, 5, 7, 2, 4, 5, 10, 8, 9, 9, 9, 11, [4, [10]]]},
+                        {first_train: "08:25", delta: [[6, [9, 10]], 8, [45, [9]], [9, [8]], [8, [9]], [6, [10, 9, 10]]]},
+                        {first_train: "22:40", delta: [10, 10, 10, 11, 10, 11, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:02"]},
+                        {plan: "台北車站始發空車", trains: ["06:12"]},
+                        {plan: "民權西路始發空車", trains: ["06:16"]},
+                        {plan: "劍潭始發空車", trains: ["06:21"]},
+                        {plan: "石牌始發空車", trains: ["06:28"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:30"]},
+                        {plan: "北投始發空車", trains: ["06:34"]},
+                        {plan: "忠義始發空車", trains: ["06:39"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 4, 5, 7, 2, 4, 5, 10, 8, 9, 9, 9, 11, [4, [10]]]},
+                        {first_train: "08:25", delta: [[6, [9, 10]], 8, [45, [9]], [9, [8]], [8, [9]], [6, [10, 9, 10]]]},
+                        {first_train: "22:40", delta: [10, 10, 10, 11, 10, 11, 11, 10, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:02"]},
+                        {plan: "台北車站始發空車", trains: ["06:12"]},
+                        {plan: "民權西路始發空車", trains: ["06:16"]},
+                        {plan: "劍潭始發空車", trains: ["06:21"]},
+                        {plan: "石牌始發空車", trains: ["06:28"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:30"]},
+                        {plan: "北投始發空車", trains: ["06:34"]},
+                        {plan: "忠義始發空車", trains: ["06:39"]}
                     ]
                 }
             }
@@ -253,6 +434,78 @@
                         {plan: "北投區間車", first_train: "08:53", skip_trains: 1, until: "22:38"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 5, 4, 7, 3, 4, 4, 6, 4, 4, 4, 4, 5, 3]},
+                        {first_train: "07:11", delta: [2, 3, 2, 4, 3, 4, 3, 4, 2, 5, [14, [2, 4]], 3]},
+                        {first_train: "09:14", delta: [3, 3, 3, 4, 3, 4, 6, 3, 5, 3, [14, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "16:42", delta: [5, 4, 3, 4, [5, [3]], [7, [4, 2, 4, 2, 4, 3]]]},
+                        {first_train: "19:30", delta: [2, 4, 2, 6, [6, [6, 3, 6, 4, 6, 4]], 6, 4, 5]},
+                        {first_train: "22:58", delta: [5, 5, 11, 10, 11, 10, 11, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:00"]},
+                        {plan: "台北車站始發空車", trains: ["06:10"]},
+                        {plan: "民權西路始發空車", trains: ["06:15"]},
+                        {plan: "劍潭始發空車", trains: ["06:19"]},
+                        {plan: "石牌始發空車", trains: ["06:26"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:29"]},
+                        {plan: "北投始發空車", first_train: "06:33", skip_trains: 1, until: "07:51"},
+                        {plan: "北投始發空車", trains: ["08:03"]},
+                        {plan: "北投始發空車", first_train: "08:15", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:45", skip_trains: 1, until: "09:30"},
+                        {plan: "北投始發空車", first_train: "09:43", skip_trains: 1, until: "23:03"},
+                        {plan: "忠義始發空車", trains: ["06:37"]},
+                        {plan: "大安區間車", trains: ["07:07", "07:13", "09:30"]},
+                        {plan: "大安區間車", first_train: "09:43", skip_trains: 1, until: "17:13"},
+                        {plan: "大安區間車", first_train: "19:50", skip_trains: 1, until: "23:03"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 5, 4, 7, 2, 4, 5, 10, 8, 10, 8, [7, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "10:22", delta: [3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [6, [6, 4, 6, 3, 6, 4]]]},
+                        {first_train: "22:34", delta: [4, 10, 10, 5, 5, 11, 10, 11, 10, 11, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:00"]},
+                        {plan: "台北車站始發空車", trains: ["06:10"]},
+                        {plan: "民權西路始發空車", trains: ["06:15"]},
+                        {plan: "劍潭始發空車", trains: ["06:19"]},
+                        {plan: "石牌始發空車", trains: ["06:26"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:28"]},
+                        {plan: "北投始發空車", trains: ["06:32"]},
+                        {plan: "北投始發空車", first_train: "08:28", skip_trains: 1, until: "22:34"},
+                        {plan: "北投始發空車", trains: ["23:03"]},
+                        {plan: "忠義始發空車", trains: ["06:37"]},
+                        {plan: "大安區間車", first_train: "08:28", skip_trains: 1, until: "22:34"},
+                        {plan: "大安區間車", trains: ["23:03"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 5, 4, 7, 2, 4, 5, 10, 8, 10, 8, [7, [10]], 9]},
+                        {first_train: "08:42", delta: [9, [4, [6, 4, 5, 4]], 6, 4, 5, 3, [45, [5, 4]], [8, [5, 3]], 5]},
+                        {first_train: "18:22", delta: [[8, [5, 4]], [6, [6, 4, 6, 3, 6, 4]], 6, 4, 10, 10]},
+                        {first_train: "23:03", delta: [5, 11, 10, 11, 10, 11, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "大安始發空車", trains: ["06:00"]},
+                        {plan: "台北車站始發空車", trains: ["06:10"]},
+                        {plan: "民權西路始發空車", trains: ["06:15"]},
+                        {plan: "劍潭始發空車", trains: ["06:19"]},
+                        {plan: "石牌始發空車", trains: ["06:26"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:28"]},
+                        {plan: "北投始發空車", trains: ["06:32"]},
+                        {plan: "北投始發空車", first_train: "08:57", skip_trains: 1, until: "22:34"},
+                        {plan: "北投始發空車", trains: ["23:03"]},
+                        {plan: "忠義始發空車", trains: ["06:37"]},
+                        {plan: "大安區間車", first_train: "08:57", skip_trains: 1, until: "22:34"},
+                        {plan: "大安區間車", trains: ["23:03"]}
+                    ]
+                }
             }
         },
         "大安森林公園": {
@@ -308,6 +561,76 @@
                         {plan: "大安始發空車", first_train: "09:04", skip_trains: 1, until: "22:40"},
                         {plan: "大安始發空車", trains: ["23:19", "00:14", "00:26"]},
                         {plan: "北投區間車", first_train: "08:54", skip_trains: 1, until: "22:40"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [5, 4, 7, 3, 4, 4, 6, 4, 4, 4, 4, 5, 3, 4]},
+                        {first_train: "07:11", delta: [3, 3, 3, 3, 4, 3, 4, 2, 5, [8, [3]], [9, [2, 4]], [2, [3, 3, 3, 4]]]},
+                        {first_train: "09:28", delta: [4, 6, 3, 5, 3, [14, [5, 5, 4, 5, 5, 5]], 5]},
+                        {first_train: "16:45", delta: [4, 3, 4, [7, [3]], [7, [4, 3, 3, 3, 3, 3]], 4, 3]},
+                        {first_train: "19:42", delta: [[6, [6, 4, 5, 4, 6, 4]], 6, 4, 5, 5, 5, 6, 10]},
+                        {first_train: "23:28", delta: [9, 11, 11, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:08"]},
+                        {plan: "民權西路始發空車", trains: ["06:13"]},
+                        {plan: "劍潭始發空車", trains: ["06:17"]},
+                        {plan: "石牌始發空車", trains: ["06:24"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:27"]},
+                        {plan: "北投始發空車", first_train: "06:31", skip_trains: 1, until: "07:50"},
+                        {plan: "北投始發空車", trains: ["08:02"]},
+                        {plan: "北投始發空車", first_train: "08:13", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:43", skip_trains: 1, until: "09:28"},
+                        {plan: "北投始發空車", first_train: "09:41", skip_trains: 1, until: "23:01"},
+                        {plan: "忠義始發空車", trains: ["06:35"]},
+                        {plan: "大安區間車", trains: ["07:05", "07:11", "09:28"]},
+                        {plan: "大安區間車", first_train: "09:41", skip_trains: 1, until: "17:11"},
+                        {plan: "大安區間車", first_train: "19:48", skip_trains: 1, until: "23:01"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:08", delta: [5, 4, 7, 3, 4, 4, 10, 9, 9, 9, 9, 10, 10, 11]},
+                        {first_train: "08:02", delta: [10, 9, [6, [5, 5, 5, 4]], 5, 3, [45, [5, 4]], [8, [5, 3]], 5]},
+                        {first_train: "18:20", delta: [[8, [5, 4]], [6, [6, 4, 6, 4, 5, 4]], 6, 4, 10, 10]},
+                        {first_train: "23:01", delta: [6, 10, 11, 9, 11, 11, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:08"]},
+                        {plan: "民權西路始發空車", trains: ["06:13"]},
+                        {plan: "劍潭始發空車", trains: ["06:17"]},
+                        {plan: "石牌始發空車", trains: ["06:24"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:27"]},
+                        {plan: "北投始發空車", trains: ["06:31"]},
+                        {plan: "北投始發空車", first_train: "08:26", skip_trains: 1, until: "22:32"},
+                        {plan: "北投始發空車", trains: ["23:01"]},
+                        {plan: "忠義始發空車", trains: ["06:35"]},
+                        {plan: "大安區間車", first_train: "08:26", skip_trains: 1, until: "22:32"},
+                        {plan: "大安區間車", trains: ["23:01"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [5, 4, 7, 3, 4, 4, 10, 9, 9, 9, 9, 10, 10, 11]},
+                        {first_train: "08:02", delta: [10, 9, 10, 9, 10, [4, [5, 4, 5, 5]], 5, 4, 5, 3, [44, [5, 4]], 5]},
+                        {first_train: "17:08", delta: [[9, [5, 3]], [8, [5, 4]], [6, [6, 4, 6, 4, 5, 4]], 6]},
+                        {first_train: "22:36", delta: [10, 10, 5, 6, 10, 11, 9, 11, 11, 12, 15, 13, 11]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:08"]},
+                        {plan: "民權西路始發空車", trains: ["06:13"]},
+                        {plan: "劍潭始發空車", trains: ["06:17"]},
+                        {plan: "石牌始發空車", trains: ["06:24"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:27"]},
+                        {plan: "北投始發空車", trains: ["06:31"]},
+                        {plan: "北投始發空車", first_train: "08:55", skip_trains: 1, until: "22:32"},
+                        {plan: "北投始發空車", trains: ["23:01"]},
+                        {plan: "忠義始發空車", trains: ["06:35"]},
+                        {plan: "大安區間車", first_train: "08:55", skip_trains: 1, until: "22:32"},
+                        {plan: "大安區間車", trains: ["23:01"]}
                     ]
                 }
             }
@@ -369,6 +692,76 @@
                         {plan: "北投區間車", first_train: "08:56", skip_trains: 1, until: "22:41"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [5, 5, 7, 3, 3, 5, 6, [5, [4]], 3, 4, 3, 3, 2]},
+                        {first_train: "07:19", delta: [3, 3, 3, 4, 3, 5, 2, 4, 2, 4, 2, 4, 2, [19, [3]]]},
+                        {first_train: "09:00", delta: [4, 3, 3, 3, 3, 4, 4, 3, 4, 5, 3, 5, 3, [14, [5, 5, 5, 4, 5, 5]]]},
+                        {first_train: "16:38", delta: [5, 5, 3, 3, 3, 4, 2, [8, [3, 4, 3, 3, 3, 3]]]},
+                        {first_train: "19:40", delta: [[6, [6, 4, 6, 4, 5, 4]], 6, 4, 5, 5, 5, 6]},
+                        {first_train: "23:16", delta: [10, 9, 11, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:06"]},
+                        {plan: "民權西路始發空車", trains: ["06:11"]},
+                        {plan: "劍潭始發空車", trains: ["06:16"]},
+                        {plan: "石牌始發空車", trains: ["06:23"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:26"]},
+                        {plan: "北投始發空車", first_train: "06:29", skip_trains: 1, until: "07:48"},
+                        {plan: "北投始發空車", trains: ["08:00"]},
+                        {plan: "北投始發空車", first_train: "08:12", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:42", skip_trains: 1, until: "09:27"},
+                        {plan: "北投始發空車", first_train: "09:39", skip_trains: 1, until: "22:59"},
+                        {plan: "忠義始發空車", trains: ["06:34"]},
+                        {plan: "大安區間車", trains: ["07:03", "07:10", "09:27"]},
+                        {plan: "大安區間車", first_train: "09:39", skip_trains: 1, until: "17:10"},
+                        {plan: "大安區間車", first_train: "19:46", skip_trains: 1, until: "22:59"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:06", delta: [5, 5, 7, 2, 4, 5, 10, 8, 9, 9, 10, 10, 9, 11]},
+                        {first_train: "08:00", delta: [10, 9, [6, [6, 4, 5, 4]], 6, 3, [45, [5, 4]], 5, 3, [15, [4]]]},
+                        {first_train: "18:19", delta: [[9, [5, 4]], [6, [6, 4, 6, 4, 5, 4]], 10, 10, 5, 6]},
+                        {first_train: "23:16", delta: [10, 9, 11, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:06"]},
+                        {plan: "民權西路始發空車", trains: ["06:11"]},
+                        {plan: "劍潭始發空車", trains: ["06:16"]},
+                        {plan: "石牌始發空車", trains: ["06:23"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:25"]},
+                        {plan: "北投始發空車", trains: ["06:29"]},
+                        {plan: "北投始發空車", first_train: "08:25", skip_trains: 1, until: "22:30"},
+                        {plan: "北投始發空車", trains: ["22:59"]},
+                        {plan: "忠義始發空車", trains: ["06:34"]},
+                        {plan: "大安區間車", first_train: "08:25", skip_trains: 1, until: "22:30"},
+                        {plan: "大安區間車", trains: ["22:59"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [5, 5, 7, 2, 4, 5, 10, 8, 9, 9, 10, 10, 9, 11]},
+                        {first_train: "08:00", delta: [10, 9, 10, 9, 10, [4, [5, 4, 6, 4]], 5, 4, 6, 3, [45, [5, 4]]]},
+                        {first_train: "17:12", delta: [3, [16, [4]], [9, [5, 4]], [6, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "22:44", delta: [10, 5, 6, 11, 10, 9, 11, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:06"]},
+                        {plan: "民權西路始發空車", trains: ["06:11"]},
+                        {plan: "劍潭始發空車", trains: ["06:16"]},
+                        {plan: "石牌始發空車", trains: ["06:23"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:25"]},
+                        {plan: "北投始發空車", trains: ["06:29"]},
+                        {plan: "北投始發空車", first_train: "08:53", skip_trains: 1, until: "22:30"},
+                        {plan: "北投始發空車", trains: ["22:59"]},
+                        {plan: "忠義始發空車", trains: ["06:34"]},
+                        {plan: "大安區間車", first_train: "08:53", skip_trains: 1, until: "22:30"},
+                        {plan: "大安區間車", trains: ["22:59"]}
+                    ]
+                }
             }
         },
         "中正紀念堂": {
@@ -422,6 +815,75 @@
                         {plan: "大安始發空車", first_train: "09:09", skip_trains: 1, until: "22:45"},
                         {plan: "大安始發空車", trains: ["23:24", "00:19", "00:31"]},
                         {plan: "北投區間車", first_train: "09:00", skip_trains: 1, until: "22:45"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [5, 4, 8, 2, 4, 5, 5, 5, 3, 5, 3, 4, 3, 4, [6, [3]]]},
+                        {first_train: "07:24", delta: [4, 3, 5, [8, [3]], 2, [10, [3]], 4, 2, [5, [3]], 4, 3]},
+                        {first_train: "09:04", delta: [3, 3, 3, 3, 4, 3, 4, 5, 3, 5, 3, [5, [5]], [13, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "16:29", delta: [5, 5, 5, [2, [3, 4, 3, 3, 3, 3, 3]], [6, [4, 3, 3, 3, 3, 3]]]},
+                        {first_train: "19:26", delta: [3, 3, 5, [6, [5, 4, 6, 4, 6, 4]], 5, 4, 5]},
+                        {first_train: "22:50", delta: [6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:03"]},
+                        {plan: "民權西路始發空車", trains: ["06:08"]},
+                        {plan: "劍潭始發空車", trains: ["06:12"]},
+                        {plan: "石牌始發空車", trains: ["06:20"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:22"]},
+                        {plan: "北投始發空車", first_train: "06:26", skip_trains: 1, until: "07:45"},
+                        {plan: "北投始發空車", trains: ["07:57"]},
+                        {plan: "北投始發空車", first_train: "08:08", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:38", skip_trains: 1, until: "09:23"},
+                        {plan: "北投始發空車", first_train: "09:35", skip_trains: 1, until: "22:56"},
+                        {plan: "忠義始發空車", trains: ["06:31"]},
+                        {plan: "大安區間車", trains: ["06:59", "07:06", "09:23"]},
+                        {plan: "大安區間車", first_train: "09:35", skip_trains: 1, until: "17:06"},
+                        {plan: "大安區間車", first_train: "19:42", skip_trains: 1, until: "22:56"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:03", delta: [5, 4, 8, 2, 4, 5, 10, 8, 8, 9, [7, [10]], [6, [5, 4, 5, 5]]]},
+                        {first_train: "10:15", delta: [3, [45, [5, 4]], 5, 3, [16, [4]], [8, [5, 4]], [6, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "22:27", delta: [4, 9, 10, 6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:03"]},
+                        {plan: "民權西路始發空車", trains: ["06:08"]},
+                        {plan: "劍潭始發空車", trains: ["06:12"]},
+                        {plan: "石牌始發空車", trains: ["06:20"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:22"]},
+                        {plan: "北投始發空車", trains: ["06:26"]},
+                        {plan: "北投始發空車", first_train: "08:21", skip_trains: 1, until: "22:27"},
+                        {plan: "北投始發空車", trains: ["22:56"]},
+                        {plan: "忠義始發空車", trains: ["06:31"]},
+                        {plan: "大安區間車", first_train: "08:21", skip_trains: 1, until: "22:27"},
+                        {plan: "大安區間車", trains: ["22:56"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [5, 4, 8, 2, 4, 5, 10, 8, 8, 9, [7, [10]], 9, 10]},
+                        {first_train: "08:44", delta: [[4, [5, 5, 5, 4]], 5, 5, 5, 3, [45, [5, 4]], 5, 3, [15, [4]]]},
+                        {first_train: "18:15", delta: [[8, [5, 4]], [6, [6, 4, 5, 4, 6, 4]], 6, 4, 9, 10]},
+                        {first_train: "22:56", delta: [5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:03"]},
+                        {plan: "民權西路始發空車", trains: ["06:08"]},
+                        {plan: "劍潭始發空車", trains: ["06:12"]},
+                        {plan: "石牌始發空車", trains: ["06:20"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:22"]},
+                        {plan: "北投始發空車", trains: ["06:26"]},
+                        {plan: "北投始發空車", first_train: "08:49", skip_trains: 1, until: "22:27"},
+                        {plan: "北投始發空車", trains: ["22:56"]},
+                        {plan: "忠義始發空車", trains: ["06:31"]},
+                        {plan: "大安區間車", first_train: "08:49", skip_trains: 1, until: "22:27"},
+                        {plan: "大安區間車", trains: ["22:56"]}
                     ]
                 }
             }
@@ -478,6 +940,75 @@
                         {plan: "大安始發空車", first_train: "09:11", skip_trains: 1, until: "22:47"},
                         {plan: "大安始發空車", trains: ["23:25", "00:20", "00:33"]},
                         {plan: "北投區間車", first_train: "09:02", skip_trains: 1, until: "22:47"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [5, 4, 8, 2, 4, 5, 5, 5, 3, 5, 3, 4, 3, 4, [6, [3]]]},
+                        {first_train: "07:22", delta: [4, 3, 5, [8, [3]], 2, [17, [3]], 4, [2, [3, 3, 4, 3]]]},
+                        {first_train: "09:25", delta: [5, 3, 5, 3, [5, [5]], [13, [4, 5, 5, 5, 5, 5]], 4]},
+                        {first_train: "16:32", delta: [5, 5, 3, 4, [6, [3]], [2, [4, 3, 3, 3, 3]], [5, [3, 4, 3, 3, 3, 3]]]},
+                        {first_train: "19:17", delta: [4, 3, 3, 3, 5, [6, [5, 4, 6, 4, 6, 4]], 5]},
+                        {first_train: "22:38", delta: [5, 5, 6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:01"]},
+                        {plan: "民權西路始發空車", trains: ["06:06"]},
+                        {plan: "劍潭始發空車", trains: ["06:10"]},
+                        {plan: "石牌始發空車", trains: ["06:18"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:20"]},
+                        {plan: "北投始發空車", first_train: "06:24", skip_trains: 1, until: "07:43"},
+                        {plan: "北投始發空車", trains: ["07:55"]},
+                        {plan: "北投始發空車", first_train: "08:06", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:36", skip_trains: 1, until: "09:21"},
+                        {plan: "北投始發空車", first_train: "09:33", skip_trains: 1, until: "22:54"},
+                        {plan: "忠義始發空車", trains: ["06:29"]},
+                        {plan: "大安區間車", trains: ["06:57", "07:04", "09:21"]},
+                        {plan: "大安區間車", first_train: "09:33", skip_trains: 1, until: "17:04"},
+                        {plan: "大安區間車", first_train: "19:40", skip_trains: 1, until: "22:54"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:01", delta: [5, 4, 8, 2, 4, 5, 10, 8, 9, 8, [7, [10]], [6, [5, 4, 5, 5]]]},
+                        {first_train: "10:13", delta: [3, [45, [5, 4]], 5, 3, [16, [4]], [8, [5, 4]], [6, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "22:25", delta: [4, 9, 10, 6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:01"]},
+                        {plan: "民權西路始發空車", trains: ["06:06"]},
+                        {plan: "劍潭始發空車", trains: ["06:10"]},
+                        {plan: "石牌始發空車", trains: ["06:18"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:20"]},
+                        {plan: "北投始發空車", trains: ["06:24"]},
+                        {plan: "北投始發空車", first_train: "08:19", skip_trains: 1, until: "22:25"},
+                        {plan: "北投始發空車", trains: ["22:54"]},
+                        {plan: "忠義始發空車", trains: ["06:29"]},
+                        {plan: "大安區間車", first_train: "08:19", skip_trains: 1, until: "22:25"},
+                        {plan: "大安區間車", trains: ["22:54"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [5, 4, 8, 2, 4, 5, 10, 8, 9, 8, [7, [10]], 9, 10]},
+                        {first_train: "08:42", delta: [[4, [5, 5, 5, 4]], 5, 5, 5, 3, [45, [5, 4]], 5, 3, [15, [4]]]},
+                        {first_train: "18:13", delta: [[8, [5, 4]], [6, [6, 4, 5, 4, 6, 4]], 6, 4, 9, 10]},
+                        {first_train: "22:54", delta: [5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:01"]},
+                        {plan: "民權西路始發空車", trains: ["06:06"]},
+                        {plan: "劍潭始發空車", trains: ["06:10"]},
+                        {plan: "石牌始發空車", trains: ["06:18"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:20"]},
+                        {plan: "北投始發空車", trains: ["06:24"]},
+                        {plan: "北投始發空車", first_train: "08:47", skip_trains: 1, until: "22:25"},
+                        {plan: "北投始發空車", trains: ["22:54"]},
+                        {plan: "忠義始發空車", trains: ["06:29"]},
+                        {plan: "大安區間車", first_train: "08:47", skip_trains: 1, until: "22:25"},
+                        {plan: "大安區間車", trains: ["22:54"]}
                     ]
                 }
             }
@@ -544,6 +1075,76 @@
                         {plan: "北投區間車", first_train: "09:03", skip_trains: 1, until: "22:48"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 4, 7, 3, 3, 5, 6, [5, [4]], 3, 4, 2, 4, 2]},
+                        {first_train: "07:11", delta: [4, 3, 3, 4, 3, 4, [20, [3]], 2, [3, [3, 3, 3, 4]]]},
+                        {first_train: "09:17", delta: [3, 4, 5, 3, 5, 3, [14, [5, 5, 4, 5, 5, 5]], 5]},
+                        {first_train: "16:36", delta: [4, [3, [3, 4, 3, 3, 3]], [6, [3, 3, 4, 3, 3, 3]]]},
+                        {first_train: "19:25", delta: [3, 5, [6, [6, 4, 5, 4, 6, 4]], 6, 4, 5, 5, 5]},
+                        {first_train: "22:58", delta: [10, 11, 10, 9, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:00"]},
+                        {plan: "民權西路始發空車", trains: ["06:05"]},
+                        {plan: "劍潭始發空車", trains: ["06:09"]},
+                        {plan: "石牌始發空車", trains: ["06:16"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:19"]},
+                        {plan: "北投始發空車", first_train: "06:22", skip_trains: 1, until: "07:41"},
+                        {plan: "北投始發空車", trains: ["07:53"]},
+                        {plan: "北投始發空車", first_train: "08:05", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:34", skip_trains: 1, until: "09:20"},
+                        {plan: "北投始發空車", first_train: "09:32", skip_trains: 1, until: "22:52"},
+                        {plan: "忠義始發空車", trains: ["06:27"]},
+                        {plan: "大安區間車", trains: ["06:56", "07:02", "09:20"]},
+                        {plan: "大安區間車", first_train: "09:32", skip_trains: 1, until: "17:03"},
+                        {plan: "大安區間車", first_train: "19:39", skip_trains: 1, until: "22:52"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 4, 7, 3, 3, 5, 10, 8, 9, 9, 10, 9, 10, 11]},
+                        {first_train: "07:53", delta: [10, 9, [6, [5, 5, 5, 4]], 5, 3, [45, [5, 4]], [8, [5, 3]], 5]},
+                        {first_train: "18:11", delta: [[8, [5, 4]], [6, [6, 4, 6, 4, 5, 4]], 6, 4, 10, 10]},
+                        {first_train: "22:52", delta: [6, 10, 11, 10, 9, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:00"]},
+                        {plan: "民權西路始發空車", trains: ["06:05"]},
+                        {plan: "劍潭始發空車", trains: ["06:09"]},
+                        {plan: "石牌始發空車", trains: ["06:16"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:19"]},
+                        {plan: "北投始發空車", trains: ["06:22"]},
+                        {plan: "北投始發空車", first_train: "08:17", skip_trains: 1, until: "22:23"},
+                        {plan: "北投始發空車", trains: ["22:52"]},
+                        {plan: "忠義始發空車", trains: ["06:27"]},
+                        {plan: "大安區間車", first_train: "08:17", skip_trains: 1, until: "22:23"},
+                        {plan: "大安區間車", trains: ["22:52"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 4, 7, 3, 3, 5, 10, 8, 9, 9, 10, 9, 10, 11]},
+                        {first_train: "07:53", delta: [10, 9, 10, 9, 10, [4, [5, 4, 5, 5]], 5, 4, 5, 3, [44, [5, 4]], 5]},
+                        {first_train: "16:59", delta: [[9, [5, 3]], [8, [5, 4]], [6, [6, 4, 6, 4, 5, 4]], 6]},
+                        {first_train: "22:27", delta: [10, 10, 5, 6, 10, 11, 10, 9, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:00"]},
+                        {plan: "民權西路始發空車", trains: ["06:05"]},
+                        {plan: "劍潭始發空車", trains: ["06:09"]},
+                        {plan: "石牌始發空車", trains: ["06:16"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:19"]},
+                        {plan: "北投始發空車", trains: ["06:22"]},
+                        {plan: "北投始發空車", first_train: "08:46", skip_trains: 1, until: "22:23"},
+                        {plan: "北投始發空車", trains: ["22:52"]},
+                        {plan: "忠義始發空車", trains: ["06:27"]},
+                        {plan: "大安區間車", first_train: "08:46", skip_trains: 1, until: "22:23"},
+                        {plan: "大安區間車", trains: ["22:52"]}
+                    ]
+                }
             }
         },
         "中山": {
@@ -605,6 +1206,73 @@
                         {plan: "大安始發空車", first_train: "09:14", skip_trains: 1, until: "22:50"},
                         {plan: "大安始發空車", trains: ["23:29", "00:24", "00:37"]},
                         {plan: "北投區間車", first_train: "09:05", skip_trains: 1, until: "22:50"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [4, 8, 2, 4, 4, 6, 4, 4, 5, 3, 4, 3, 4, 3]},
+                        {first_train: "07:04", delta: [2, 3, 4, 3, 3, 4, 3, 4, [20, [3]], 2, [3, [3, 3, 3, 4]]]},
+                        {first_train: "09:15", delta: [3, 4, 5, 3, 5, 3, [14, [5, 5, 5, 4, 5, 5]]]},
+                        {first_train: "16:29", delta: [5, 5, 2, 4, 3, 4, 2, [2, [4, 3, 3, 3, 3]], [6, [3, 4, 3, 3, 3, 3]]]},
+                        {first_train: "19:23", delta: [4, [6, [4, 6, 4, 5, 4, 6]], 4, 6, 4, 5, 5]},
+                        {first_train: "22:50", delta: [6, 10, 11, 10, 9, 12, 12, 15, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:03"]},
+                        {plan: "劍潭始發空車", trains: ["06:07"]},
+                        {plan: "石牌始發空車", trains: ["06:15"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:17"]},
+                        {plan: "北投始發空車", first_train: "06:21", skip_trains: 1, until: "07:39"},
+                        {plan: "北投始發空車", trains: ["07:51"]},
+                        {plan: "北投始發空車", first_train: "08:03", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:32", skip_trains: 1, until: "09:18"},
+                        {plan: "北投始發空車", first_train: "09:30", skip_trains: 1, until: "22:50"},
+                        {plan: "忠義始發空車", trains: ["06:25"]},
+                        {plan: "大安區間車", trains: ["06:54", "07:01", "09:18"]},
+                        {plan: "大安區間車", first_train: "09:30", skip_trains: 1, until: "17:01"},
+                        {plan: "大安區間車", first_train: "19:37", skip_trains: 1, until: "22:50"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:03", delta: [4, 8, 2, 4, 4, 11, 8, 9, 8, 10, 9, 10, 11, 10]},
+                        {first_train: "08:01", delta: [9, [6, [5, 5, 5, 4]], 5, 4, 4, [45, [4, 5]], [8, [3, 5]], 3]},
+                        {first_train: "18:14", delta: [[7, [4, 5]], [6, [4, 6, 4, 6, 4, 5]], 4, 6, 4, 10]},
+                        {first_train: "22:45", delta: [5, 6, 10, 11, 10, 9, 12, 12, 15, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:03"]},
+                        {plan: "劍潭始發空車", trains: ["06:07"]},
+                        {plan: "石牌始發空車", trains: ["06:15"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:17"]},
+                        {plan: "北投始發空車", trains: ["06:21"]},
+                        {plan: "北投始發空車", first_train: "08:15", skip_trains: 1, until: "22:21"},
+                        {plan: "北投始發空車", trains: ["22:50"]},
+                        {plan: "忠義始發空車", trains: ["06:25"]},
+                        {plan: "大安區間車", first_train: "08:15", skip_trains: 1, until: "22:21"},
+                        {plan: "大安區間車", trains: ["22:50"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [4, 8, 2, 4, 4, 11, 8, 9, 8, 10, 9, 10, 11, 10]},
+                        {first_train: "08:01", delta: [9, 10, 9, 10, [4, [5, 4, 5, 5]], 5, 4, 5, 4, 4, [44, [4, 5]], 4]},
+                        {first_train: "17:02", delta: [[9, [3, 5]], [7, [4, 5]], [6, [4, 6, 4, 6, 4, 5]], 4]},
+                        {first_train: "22:21", delta: [4, 10, 10, 5, 6, 10, 11, 10, 9, 12, 12, 15, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:03"]},
+                        {plan: "劍潭始發空車", trains: ["06:07"]},
+                        {plan: "石牌始發空車", trains: ["06:15"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:17"]},
+                        {plan: "北投始發空車", trains: ["06:21"]},
+                        {plan: "北投始發空車", first_train: "08:44", skip_trains: 1, until: "22:21"},
+                        {plan: "北投始發空車", trains: ["22:50"]},
+                        {plan: "忠義始發空車", trains: ["06:25"]},
+                        {plan: "大安區間車", first_train: "08:44", skip_trains: 1, until: "22:21"},
+                        {plan: "大安區間車", trains: ["22:50"]}
                     ]
                 }
             }
@@ -671,6 +1339,71 @@
                         {plan: "北投區間車", first_train: "09:06", skip_trains: 1, until: "22:51"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [5, 7, 2, 4, 5, 6, 4, 4, 4, 3, 4, 3, 4, [6, [3]]]},
+                        {first_train: "07:17", delta: [4, 3, 5, [8, [3]], 2, [12, [3]], 2, [2, [4, 3, 3, 3]]]},
+                        {first_train: "09:02", delta: [3, 4, 4, 3, 4, 5, 3, 5, 4, [14, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "16:27", delta: [5, 5, [2, [3, 4, 3, 3, 3, 3, 3]], [6, [4, 3, 3, 3, 3, 3]]]},
+                        {first_train: "19:19", delta: [3, 3, [6, [4, 6, 4, 6, 4, 5]], 4, 6, 4, 5]},
+                        {first_train: "22:43", delta: [6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:01"]},
+                        {plan: "劍潭始發空車", trains: ["06:06"]},
+                        {plan: "石牌始發空車", trains: ["06:13"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:15"]},
+                        {plan: "北投始發空車", first_train: "06:19", skip_trains: 1, until: "07:38"},
+                        {plan: "北投始發空車", trains: ["07:50"]},
+                        {plan: "北投始發空車", first_train: "08:01", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:31", skip_trains: 1, until: "09:16"},
+                        {plan: "北投始發空車", first_train: "09:28", skip_trains: 1, until: "22:49"},
+                        {plan: "忠義始發空車", trains: ["06:24"]},
+                        {plan: "大安區間車", trains: ["06:52", "06:59", "09:16"]},
+                        {plan: "大安區間車", first_train: "09:28", skip_trains: 1, until: "16:59"},
+                        {plan: "大安區間車", first_train: "19:35", skip_trains: 1, until: "22:49"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:01", delta: [5, 7, 2, 4, 5, 10, 8, 9, 8, [7, [10]], [6, [5, 4, 5, 5]]]},
+                        {first_train: "10:08", delta: [3, [45, [5, 4]], 5, 3, [16, [4]], [9, [5, 4]], [6, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "22:33", delta: [10, 6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:01"]},
+                        {plan: "劍潭始發空車", trains: ["06:06"]},
+                        {plan: "石牌始發空車", trains: ["06:13"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:15"]},
+                        {plan: "北投始發空車", trains: ["06:19"]},
+                        {plan: "北投始發空車", first_train: "08:14", skip_trains: 1, until: "22:19"},
+                        {plan: "北投始發空車", trains: ["22:49"]},
+                        {plan: "忠義始發空車", trains: ["06:24"]},
+                        {plan: "大安區間車", first_train: "08:14", skip_trains: 1, until: "22:19"},
+                        {plan: "大安區間車", trains: ["22:49"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [5, 7, 2, 4, 5, 10, 8, 9, 8, [7, [10]], 9, 10, 9, [4, [5, 5, 5, 4]]]},
+                        {first_train: "09:58", delta: [5, 5, 3, [45, [5, 4]], 5, 3, [16, [4]], [9, [5, 4]], [6, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "22:33", delta: [10, 6, 5, 11, 10, 10, 10, 12, 12, 15, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:01"]},
+                        {plan: "劍潭始發空車", trains: ["06:06"]},
+                        {plan: "石牌始發空車", trains: ["06:13"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:15"]},
+                        {plan: "北投始發空車", trains: ["06:19"]},
+                        {plan: "北投始發空車", first_train: "08:42", skip_trains: 1, until: "22:19"},
+                        {plan: "北投始發空車", trains: ["22:49"]},
+                        {plan: "忠義始發空車", trains: ["06:24"]},
+                        {plan: "大安區間車", first_train: "08:42", skip_trains: 1, until: "22:19"},
+                        {plan: "大安區間車", trains: ["22:49"]}
+                    ]
+                }
             }
         },
         "民權西路": {
@@ -732,6 +1465,73 @@
                         {plan: "大安始發空車", first_train: "09:18", skip_trains: 1, until: "22:53"},
                         {plan: "大安始發空車", trains: ["23:32", "00:27", "00:39"]},
                         {plan: "北投區間車", first_train: "09:08", skip_trains: 1, until: "22:53"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 7, 2, 4, 5, 5, 5, 3, 5, 3, 4, 3, 4, 2]},
+                        {first_train: "07:01", delta: [2, 3, 4, 3, 3, 4, 3, 4, [19, [3]], 2, 3, [3, [3, 3, 3, 4]]]},
+                        {first_train: "09:12", delta: [3, 4, 5, 3, 5, 3, [14, [5, 5, 5, 4, 5, 5]]]},
+                        {first_train: "16:26", delta: [5, 5, 2, 4, 3, 4, 2, [8, [4, 3, 3, 3, 3, 3]]]},
+                        {first_train: "19:28", delta: [[6, [6, 4, 5, 4, 6, 4]], 6, 4, 5, 5, 5, 6, 10]},
+                        {first_train: "23:14", delta: [10, 10, 12, 12, 14, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:00"]},
+                        {plan: "劍潭始發空車", trains: ["06:05"]},
+                        {plan: "石牌始發空車", trains: ["06:12"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:14"]},
+                        {plan: "北投始發空車", first_train: "06:18", skip_trains: 1, until: "07:36"},
+                        {plan: "北投始發空車", trains: ["07:48"]},
+                        {plan: "北投始發空車", first_train: "08:00", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:29", skip_trains: 1, until: "09:15"},
+                        {plan: "北投始發空車", first_train: "09:27", skip_trains: 1, until: "22:47"},
+                        {plan: "忠義始發空車", trains: ["06:23"]},
+                        {plan: "大安區間車", trains: ["06:51", "06:57", "09:15"]},
+                        {plan: "大安區間車", first_train: "09:27", skip_trains: 1, until: "16:58"},
+                        {plan: "大安區間車", first_train: "19:34", skip_trains: 1, until: "22:47"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 7, 2, 4, 5, 10, 8, 9, 8, 10, 9, 10, 11, 10]},
+                        {first_train: "07:58", delta: [9, [6, [5, 5, 5, 4]], 5, 3, [45, [5, 4]], [9, [5, 3]], [7, [5, 4]], 5]},
+                        {first_train: "19:18", delta: [[6, [6, 4, 6, 4, 5, 4]], 6, 4, 10, 10, 5, 6, 10]},
+                        {first_train: "23:14", delta: [10, 10, 12, 12, 14, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:00"]},
+                        {plan: "劍潭始發空車", trains: ["06:05"]},
+                        {plan: "石牌始發空車", trains: ["06:12"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:14"]},
+                        {plan: "北投始發空車", trains: ["06:18"]},
+                        {plan: "北投始發空車", first_train: "08:12", skip_trains: 1, until: "22:18"},
+                        {plan: "北投始發空車", trains: ["22:47"]},
+                        {plan: "忠義始發空車", trains: ["06:23"]},
+                        {plan: "大安區間車", first_train: "08:12", skip_trains: 1, until: "22:18"},
+                        {plan: "大安區間車", trains: ["22:47"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 7, 2, 4, 5, 10, 8, 9, 8, 10, 9, 10, 11, 10]},
+                        {first_train: "07:58", delta: [9, 10, 9, 10, [4, [5, 4, 5, 5]], 5, 4, 5, 3, [44, [5, 4]], 5]},
+                        {first_train: "16:54", delta: [[9, [5, 3]], [8, [5, 4]], [6, [6, 4, 6, 4, 5, 4]], 6]},
+                        {first_train: "22:22", delta: [10, 10, 5, 6, 10, 11, 10, 10, 12, 12, 14, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "民權西路始發空車", trains: ["06:00"]},
+                        {plan: "劍潭始發空車", trains: ["06:05"]},
+                        {plan: "石牌始發空車", trains: ["06:12"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:14"]},
+                        {plan: "北投始發空車", trains: ["06:18"]},
+                        {plan: "北投始發空車", first_train: "08:41", skip_trains: 1, until: "22:18"},
+                        {plan: "北投始發空車", trains: ["22:47"]},
+                        {plan: "忠義始發空車", trains: ["06:23"]},
+                        {plan: "大安區間車", first_train: "08:41", skip_trains: 1, until: "22:18"},
+                        {plan: "大安區間車", trains: ["22:47"]}
                     ]
                 }
             }
@@ -797,6 +1597,69 @@
                         {plan: "大安始發空車", first_train: "09:20", skip_trains: 1, until: "22:55"},
                         {plan: "大安始發空車", trains: ["23:34", "00:29", "00:42"]},
                         {plan: "北投區間車", first_train: "09:10", skip_trains: 1, until: "22:55"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [7, 2, 4, 5, 5, 5, 4, 4, 3, 4, [9, [3]], 4, 3]},
+                        {first_train: "07:25", delta: [[13, [3]], 2, 4, 3, 3, 3, 2, [5, [3]], [2, [4, 3, 3, 3]]]},
+                        {first_train: "09:05", delta: [4, 4, 3, 5, 4, 5, 3, [14, [5, 5, 5, 4, 5, 5]]]},
+                        {first_train: "16:24", delta: [5, 5, 2, [8, [4, 3, 3, 3, 3, 3]], 4, 3, 3]},
+                        {first_train: "19:21", delta: [5, [6, [5, 4, 6, 4, 6, 4]], [6, [5]], 11, 10, 11, 10]},
+                        {first_train: "23:44", delta: [12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "劍潭始發空車", trains: ["06:03"]},
+                        {plan: "石牌始發空車", trains: ["06:10"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:12"]},
+                        {plan: "北投始發空車", first_train: "06:16", skip_trains: 1, until: "07:34"},
+                        {plan: "北投始發空車", trains: ["07:46"]},
+                        {plan: "北投始發空車", first_train: "07:58", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:27", skip_trains: 1, until: "09:13"},
+                        {plan: "北投始發空車", first_train: "09:25", skip_trains: 1, until: "22:45"},
+                        {plan: "忠義始發空車", trains: ["06:21"]},
+                        {plan: "大安區間車", trains: ["06:49", "06:55", "09:13"]},
+                        {plan: "大安區間車", first_train: "09:25", skip_trains: 1, until: "16:55"},
+                        {plan: "大安區間車", first_train: "19:31", skip_trains: 1, until: "22:45"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:03", delta: [7, 2, 4, 5, 10, 8, 9, 8, 10, 9, [5, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "10:04", delta: [3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [6, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "22:16", delta: [4, 10, 10, 5, 5, 11, 10, 11, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "劍潭始發空車", trains: ["06:03"]},
+                        {plan: "石牌始發空車", trains: ["06:10"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:12"]},
+                        {plan: "北投始發空車", trains: ["06:16"]},
+                        {plan: "北投始發空車", first_train: "08:10", skip_trains: 1, until: "22:16"},
+                        {plan: "北投始發空車", trains: ["22:45"]},
+                        {plan: "忠義始發空車", trains: ["06:21"]},
+                        {plan: "大安區間車", first_train: "08:10", skip_trains: 1, until: "22:16"},
+                        {plan: "大安區間車", trains: ["22:45"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [7, 2, 4, 5, 10, 8, 9, 8, 10, 9, [5, [10]], 9, 10]},
+                        {first_train: "08:33", delta: [[4, [6, 4, 5, 4]], 6, 4, 5, 3, [45, [5, 4]], [8, [5, 3]], 5]},
+                        {first_train: "18:04", delta: [[8, [5, 4]], [6, [6, 4, 5, 4, 6, 4]], 6, 4, 10, 10]},
+                        {first_train: "22:45", delta: [5, 11, 10, 11, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "劍潭始發空車", trains: ["06:03"]},
+                        {plan: "石牌始發空車", trains: ["06:10"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:12"]},
+                        {plan: "北投始發空車", trains: ["06:16"]},
+                        {plan: "北投始發空車", first_train: "08:39", skip_trains: 1, until: "22:16"},
+                        {plan: "北投始發空車", trains: ["22:45"]},
+                        {plan: "忠義始發空車", trains: ["06:21"]},
+                        {plan: "大安區間車", first_train: "08:39", skip_trains: 1, until: "22:16"},
+                        {plan: "大安區間車", trains: ["22:45"]}
                     ]
                 }
             }
@@ -867,6 +1730,72 @@
                         {plan: "大安始發空車", first_train: "09:22", skip_trains: 1, until: "22:58"},
                         {plan: "大安始發空車", trains: ["23:37", "00:32", "00:45"]},
                         {plan: "北投區間車", first_train: "09:12", skip_trains: 1, until: "22:58"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 2, 4, 5, 5, 5, 4, 4, 4, 4, [9, [3]], 4, 3]},
+                        {first_train: "07:23", delta: [[7, [3]], 2, [13, [3]], 2, [2, [4, 3, 3, 3]], 4, 2, 4]},
+                        {first_train: "09:07", delta: [3, 4, 5, 4, 4, 4, [14, [4, 5, 5, 5, 5, 5]], 4]},
+                        {first_train: "16:26", delta: [5, 2, 4, 3, 4, 2, [8, [4, 3, 3, 3, 3, 3]], 5, 6, 4, 5, 4, 6, 4, 6, 4, 5, 4, 6]},
+                        {first_train: "20:21", delta: [[3, [6, 4, 6, 4, 5, 4]], 6, 3, 6, 4, 6, 4, [5, [5]]]},
+                        {first_train: "22:47", delta: [11, 10, 11, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "劍潭始發空車", trains: ["06:00"]},
+                        {plan: "石牌始發空車", trains: ["06:07"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:09"]},
+                        {plan: "北投始發空車", first_train: "06:13", skip_trains: 1, until: "07:32"},
+                        {plan: "北投始發空車", trains: ["07:44"]},
+                        {plan: "北投始發空車", first_train: "07:55", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:25", skip_trains: 1, until: "09:10"},
+                        {plan: "北投始發空車", first_train: "09:23", skip_trains: 1, until: "22:42"},
+                        {plan: "忠義始發空車", trains: ["06:18"]},
+                        {plan: "大安區間車", trains: ["06:47", "06:53", "09:10"]},
+                        {plan: "大安區間車", first_train: "09:23", skip_trains: 1, until: "16:53"},
+                        {plan: "大安區間車", first_train: "19:29", skip_trains: 1, until: "22:42"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 2, 4, 5, 10, 8, 9, 8, 10, 9, 10, 11, 10, 10]},
+                        {first_train: "08:02", delta: [[6, [5, 5, 5, 4]], 5, 3, [45, [5, 4]], [9, [5, 3]], [7, [5, 4]], 5]},
+                        {first_train: "19:13", delta: [[2, [6, 4, 6, 4, 5, 4]], 6, [3, [4, 6, 4, 6, 4, 5]]]},
+                        {first_train: "21:48", delta: [6, 3, 6, 4, 6, 4, 10, 10, 5, 5, 11, 10, 11]},
+                        {first_train: "23:29", delta: [12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "劍潭始發空車", trains: ["06:00"]},
+                        {plan: "石牌始發空車", trains: ["06:07"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:09"]},
+                        {plan: "北投始發空車", trains: ["06:13"]},
+                        {plan: "北投始發空車", first_train: "08:07", skip_trains: 1, until: "22:13"},
+                        {plan: "北投始發空車", trains: ["22:42"]},
+                        {plan: "忠義始發空車", trains: ["06:18"]},
+                        {plan: "大安區間車", first_train: "08:07", skip_trains: 1, until: "22:13"},
+                        {plan: "大安區間車", trains: ["22:42"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 2, 4, 5, 10, 8, 9, 8, 10, 9, 10, 11, 10, 10]},
+                        {first_train: "08:02", delta: [10, 9, 10, [4, [5, 4, 5, 5]], 5, 4, 5, 3, [44, [5, 4]], 5]},
+                        {first_train: "16:49", delta: [[9, [5, 3]], [8, [5, 4]], [2, [6, 4, 6, 4, 5, 4]], 6, [3, [4, 6, 4, 6, 4, 5]]]},
+                        {first_train: "21:48", delta: [6, 3, 6, 4, 6, 4, 10, 10, 5, 5, 11, 10, 11]},
+                        {first_train: "23:29", delta: [12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "劍潭始發空車", trains: ["06:00"]},
+                        {plan: "石牌始發空車", trains: ["06:07"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:09"]},
+                        {plan: "北投始發空車", trains: ["06:13"]},
+                        {plan: "北投始發空車", first_train: "08:36", skip_trains: 1, until: "22:13"},
+                        {plan: "北投始發空車", trains: ["22:42"]},
+                        {plan: "忠義始發空車", trains: ["06:18"]},
+                        {plan: "大安區間車", first_train: "08:36", skip_trains: 1, until: "22:13"},
+                        {plan: "大安區間車", trains: ["22:42"]}
                     ]
                 }
             }
@@ -940,6 +1869,67 @@
                         {plan: "北投區間車", first_train: "09:14", skip_trains: 1, until: "23:00"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [2, 4, 5, 5, 5, 4, 4, 4, 4, [9, [3]], 4, 3, 5, [6, [3]]]},
+                        {first_train: "07:42", delta: [2, [12, [3]], 2, 3, 3, 4, 3, 3, 4, 3, 3, 3, 4]},
+                        {first_train: "08:57", delta: [4, 4, 3, 4, 5, 4, 4, 4, [14, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "16:19", delta: [5, 5, 2, [2, [4, 3, 3, 3, 3]], [7, [3, 4, 3, 3, 3, 3]]]},
+                        {first_train: "19:21", delta: [[5, [6, 4, 5, 4, 6, 4]], 6, 3, 6, 4, 5, 4]},
+                        {first_train: "22:20", delta: [4, 5, 5, 5, 6, 11, 10, 10, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:05"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:07"]},
+                        {plan: "北投始發空車", first_train: "06:11", skip_trains: 1, until: "07:30"},
+                        {plan: "北投始發空車", trains: ["07:42"]},
+                        {plan: "北投始發空車", first_train: "07:53", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:22", skip_trains: 1, until: "09:08"},
+                        {plan: "北投始發空車", first_train: "09:21", skip_trains: 1, until: "22:39"},
+                        {plan: "忠義始發空車", trains: ["06:16"]},
+                        {plan: "大安區間車", trains: ["06:45", "06:51", "09:08"]},
+                        {plan: "大安區間車", first_train: "09:21", skip_trains: 1, until: "16:51"},
+                        {plan: "大安區間車", first_train: "19:27", skip_trains: 1, until: "22:39"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:05", delta: [2, 4, 5, 10, 8, 10, 7, 10, 9, [5, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "09:59", delta: [3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [5, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "21:42", delta: [4, 6, 3, 6, 4, 5, 4, 10, 10, 5, 6, 11, 10]},
+                        {first_train: "23:16", delta: [10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:05"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:07"]},
+                        {plan: "北投始發空車", trains: ["06:11"]},
+                        {plan: "北投始發空車", first_train: "08:05", skip_trains: 1, until: "22:10"},
+                        {plan: "北投始發空車", trains: ["22:39"]},
+                        {plan: "忠義始發空車", trains: ["06:16"]},
+                        {plan: "大安區間車", first_train: "08:05", skip_trains: 1, until: "22:10"},
+                        {plan: "大安區間車", trains: ["22:39"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [2, 4, 5, 10, 8, 10, 7, 10, 9, [5, [10]], 9, 10, 9, [4, [6, 4, 5, 4]]]},
+                        {first_train: "09:50", delta: [4, 5, 3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [5, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "21:42", delta: [4, 6, 3, 6, 4, 5, 4, 10, 10, 5, 6, 11, 10]},
+                        {first_train: "23:16", delta: [10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:05"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:07"]},
+                        {plan: "北投始發空車", trains: ["06:11"]},
+                        {plan: "北投始發空車", first_train: "08:34", skip_trains: 1, until: "22:10"},
+                        {plan: "北投始發空車", trains: ["22:39"]},
+                        {plan: "忠義始發空車", trains: ["06:16"]},
+                        {plan: "大安區間車", first_train: "08:34", skip_trains: 1, until: "22:10"},
+                        {plan: "大安區間車", trains: ["22:39"]}
+                    ]
+                }
             }
         },
         "芝山": {
@@ -1011,6 +2001,69 @@
                         {plan: "北投區間車", first_train: "09:16", skip_trains: 1, until: "23:02"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [2, 4, 5, 5, 5, 4, 4, 4, 4, [9, [3]], 4, 3, 5, [6, [3]]]},
+                        {first_train: "07:40", delta: [2, [13, [3]], 2, [2, [4, 3, 3, 3]], 4, 2, 4, 4, 3]},
+                        {first_train: "09:10", delta: [5, 4, 4, 4, [14, [5, 4, 5, 5, 5, 5]], 5, 4, 5, [5, [3]]]},
+                        {first_train: "16:45", delta: [[7, [4, 3, 3, 3, 3, 3]], 4, 3, 3, 3, 3, [2, [5, 5, 4, 6, 4, 6, 4, 5, 4, 6, 4, 6, 4, 5]]]},
+                        {first_train: "21:34", delta: [6, 4, 6, 3, 5, 4, 6, 4, 6, 4, 5, 5, 5]},
+                        {first_train: "22:43", delta: [10, 11, 10, 10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:03"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:05"]},
+                        {plan: "北投始發空車", first_train: "06:09", skip_trains: 1, until: "07:28"},
+                        {plan: "北投始發空車", trains: ["07:40"]},
+                        {plan: "北投始發空車", first_train: "07:51", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:21", skip_trains: 1, until: "09:06"},
+                        {plan: "北投始發空車", first_train: "09:19", skip_trains: 1, until: "22:37"},
+                        {plan: "忠義始發空車", trains: ["06:14"]},
+                        {plan: "大安區間車", trains: ["06:43", "06:49", "09:06"]},
+                        {plan: "大安區間車", first_train: "09:19", skip_trains: 1, until: "16:49"},
+                        {plan: "大安區間車", first_train: "19:24", skip_trains: 1, until: "22:37"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:03", delta: [2, 4, 5, 10, 8, 10, 7, 10, 9, [5, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "09:57", delta: [3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [2, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "20:13", delta: [4, 5, 5, [2, [5, 4, 6, 4, 6, 4]], 5, 4, 6]},
+                        {first_train: "21:44", delta: [6, 3, 5, 4, 6, 4, 10, 10, 5, 6, 10, 11, 10, 10]},
+                        {first_train: "23:36", delta: [12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:03"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:05"]},
+                        {plan: "北投始發空車", trains: ["06:09"]},
+                        {plan: "北投始發空車", first_train: "08:03", skip_trains: 1, until: "22:08"},
+                        {plan: "北投始發空車", trains: ["22:37"]},
+                        {plan: "忠義始發空車", trains: ["06:14"]},
+                        {plan: "大安區間車", first_train: "08:03", skip_trains: 1, until: "22:08"},
+                        {plan: "大安區間車", trains: ["22:37"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [2, 4, 5, 10, 8, 10, 7, 10, 9, [5, [10]], 9, 10, 9, [4, [6, 4, 5, 4]]]},
+                        {first_train: "09:48", delta: [4, 5, 3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [2, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "20:13", delta: [4, 5, 5, [2, [5, 4, 6, 4, 6, 4]], 5, 4, 6]},
+                        {first_train: "21:44", delta: [6, 3, 5, 4, 6, 4, 10, 10, 5, 6, 10, 11, 10, 10]},
+                        {first_train: "23:36", delta: [12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:03"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:05"]},
+                        {plan: "北投始發空車", trains: ["06:09"]},
+                        {plan: "北投始發空車", first_train: "08:32", skip_trains: 1, until: "22:08"},
+                        {plan: "北投始發空車", trains: ["22:37"]},
+                        {plan: "忠義始發空車", trains: ["06:14"]},
+                        {plan: "大安區間車", first_train: "08:32", skip_trains: 1, until: "22:08"},
+                        {plan: "大安區間車", trains: ["22:37"]}
+                    ]
+                }
             }
         },
         "明德": {
@@ -1080,6 +2133,69 @@
                         {plan: "大安始發空車", first_train: "09:28", skip_trains: 1, until: "23:04"},
                         {plan: "大安始發空車", trains: ["23:42", "00:39", "00:52"]},
                         {plan: "北投區間車", first_train: "09:18", skip_trains: 1, until: "23:04"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [3, 3, 5, 6, [5, [4]], [9, [3]], 4, 3, 5, [13, [3]], 2]},
+                        {first_train: "08:02", delta: [3, 3, 3, 2, [5, [3]], [2, [4, 3, 3, 3]], 3, 4, 4]},
+                        {first_train: "09:08", delta: [5, 4, 4, [2, [4, 5, 5, 5]], [13, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "16:21", delta: [5, 2, 3, 3, 4, 2, [8, [4, 3, 3, 3, 3, 3]]]},
+                        {first_train: "19:17", delta: [[2, [6, 4, 5, 4, 6, 4]], [3, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "21:48", delta: [3, 5, 4, 6, 4, 6, 4, 5, 5, 5, 6, 10, 11, 10]},
+                        {first_train: "23:22", delta: [12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:01"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:04"]},
+                        {plan: "北投始發空車", first_train: "06:07", skip_trains: 1, until: "07:26"},
+                        {plan: "北投始發空車", trains: ["07:38"]},
+                        {plan: "北投始發空車", first_train: "07:50", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:19", skip_trains: 1, until: "09:05"},
+                        {plan: "北投始發空車", first_train: "09:17", skip_trains: 1, until: "22:35"},
+                        {plan: "忠義始發空車", trains: ["06:12"]},
+                        {plan: "大安區間車", trains: ["06:41", "06:47", "09:05"]},
+                        {plan: "大安區間車", first_train: "09:17", skip_trains: 1, until: "16:47"},
+                        {plan: "大安區間車", first_train: "19:23", skip_trains: 1, until: "22:35"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:01", delta: [3, 3, 5, 10, 8, 10, 7, 11, 8, 10, 11, 10, 10, 9, [6, [5, 5, 5, 4]]]},
+                        {first_train: "09:55", delta: [3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], [2, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "20:11", delta: [[3, [4, 6, 4, 6, 4, 5]], 4, 6, 3, 5, 4, 6]},
+                        {first_train: "22:10", delta: [10, 10, 5, 6, 10, 11, 10, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:01"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:04"]},
+                        {plan: "北投始發空車", trains: ["06:07"]},
+                        {plan: "北投始發空車", first_train: "08:01", skip_trains: 1, until: "22:06"},
+                        {plan: "北投始發空車", trains: ["22:35"]},
+                        {plan: "忠義始發空車", trains: ["06:12"]},
+                        {plan: "大安區間車", first_train: "08:01", skip_trains: 1, until: "22:06"},
+                        {plan: "大安區間車", trains: ["22:35"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [3, 3, 5, 10, 8, 10, 7, 11, 8, 10, 11, 10, 10, 9]},
+                        {first_train: "08:06", delta: [9, 10, [4, [5, 4, 5, 5]], 5, 4, 5, 3, [45, [5, 4]], [8, [5, 3]], 5]},
+                        {first_train: "17:55", delta: [[8, [5, 4]], [2, [6, 4, 6, 4, 5, 4]], 6, [3, [4, 6, 4, 6, 4, 5]]]},
+                        {first_train: "21:42", delta: [6, 3, 5, 4, 6, 4, 10, 10, 5, 6, 10, 11, 10]},
+                        {first_train: "23:22", delta: [12, 12, 14, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:01"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:04"]},
+                        {plan: "北投始發空車", trains: ["06:07"]},
+                        {plan: "北投始發空車", first_train: "08:30", skip_trains: 1, until: "22:06"},
+                        {plan: "北投始發空車", trains: ["22:35"]},
+                        {plan: "忠義始發空車", trains: ["06:12"]},
+                        {plan: "大安區間車", first_train: "08:30", skip_trains: 1, until: "22:06"},
+                        {plan: "大安區間車", trains: ["22:35"]}
                     ]
                 }
             }
@@ -1154,6 +2270,67 @@
                         {plan: "北投區間車", first_train: "09:20", skip_trains: 1, until: "23:06"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [2, 4, 5, 5, 5, 4, 4, 4, 4, [9, [3]], 4, 3, 5, [6, [3]]]},
+                        {first_train: "07:37", delta: [2, [12, [3]], 2, 3, 3, 4, 3, 3, 4, 3, 3, 3, 4]},
+                        {first_train: "08:52", delta: [4, 4, 3, 4, 5, 4, 4, 4, [14, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "16:14", delta: [5, 5, 2, [8, [3, 4, 3, 3, 3, 3]], 3, 4, 3]},
+                        {first_train: "19:11", delta: [5, [5, [5, 4, 6, 4, 6, 4]], 5, 4, 5, 4, 6, 4, [5, [5]]]},
+                        {first_train: "22:39", delta: [11, 10, 11, 10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:00"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:02"]},
+                        {plan: "北投始發空車", first_train: "06:06", skip_trains: 1, until: "07:25"},
+                        {plan: "北投始發空車", trains: ["07:37"]},
+                        {plan: "北投始發空車", first_train: "07:48", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:17", skip_trains: 1, until: "09:03"},
+                        {plan: "北投始發空車", first_train: "09:16", skip_trains: 1, until: "22:34"},
+                        {plan: "忠義始發空車", trains: ["06:11"]},
+                        {plan: "大安區間車", trains: ["06:40", "06:46", "09:03"]},
+                        {plan: "大安區間車", first_train: "09:16", skip_trains: 1, until: "16:45"},
+                        {plan: "大安區間車", first_train: "19:21", skip_trains: 1, until: "22:34"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [2, 4, 5, 10, 8, 10, 7, 10, 9, [5, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "09:54", delta: [3, [45, [5, 4]], 5, 3, [16, [4]], [8, [5, 4]], [5, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "21:37", delta: [4, 5, 4, 5, 4, 6, 4, 10, 10, 5, 5, 11, 10]},
+                        {first_train: "23:11", delta: [10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:00"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:02"]},
+                        {plan: "北投始發空車", trains: ["06:06"]},
+                        {plan: "北投始發空車", first_train: "08:00", skip_trains: 1, until: "22:05"},
+                        {plan: "北投始發空車", trains: ["22:34"]},
+                        {plan: "忠義始發空車", trains: ["06:11"]},
+                        {plan: "大安區間車", first_train: "08:00", skip_trains: 1, until: "22:05"},
+                        {plan: "大安區間車", trains: ["22:34"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [2, 4, 5, 10, 8, 10, 7, 10, 9, [5, [10]], 9, 10, 9, [4, [6, 4, 5, 4]]]},
+                        {first_train: "09:45", delta: [4, 5, 3, [45, [5, 4]], 5, 3, [16, [4]], [8, [5, 4]], [5, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "21:37", delta: [4, 5, 4, 5, 4, 6, 4, 10, 10, 5, 5, 11, 10]},
+                        {first_train: "23:11", delta: [10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "石牌始發空車", trains: ["06:00"]},
+                        {plan: "唭哩岸始發空車", trains: ["06:02"]},
+                        {plan: "北投始發空車", trains: ["06:06"]},
+                        {plan: "北投始發空車", first_train: "08:29", skip_trains: 1, until: "22:05"},
+                        {plan: "北投始發空車", trains: ["22:34"]},
+                        {plan: "忠義始發空車", trains: ["06:11"]},
+                        {plan: "大安區間車", first_train: "08:29", skip_trains: 1, until: "22:05"},
+                        {plan: "大安區間車", trains: ["22:34"]}
+                    ]
+                }
             }
         },
         "唭哩岸": {
@@ -1224,6 +2401,65 @@
                         {plan: "大安始發空車", first_train: "09:31", skip_trains: 1, until: "23:09"},
                         {plan: "大安始發空車", trains: ["23:47", "00:43", "00:56"]},
                         {plan: "北投區間車", first_train: "09:22", skip_trains: 1, until: "23:09"}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [4, 5, 5, 4, 4, 5, 3, 5, 3, 3, 3, 3, 2, 3]},
+                        {first_train: "06:56", delta: [3, 3, 4, 3, 4, [19, [3]], 2, 3, 3, 3, 3, 4, 3]},
+                        {first_train: "08:35", delta: [2, 4, 3, 3, 3, 4, 4, 3, 4, 5, 3, 5, 3, [4, [5]]]},
+                        {first_train: "09:46", delta: [[13, [4, 5, 5, 5, 5, 5]], 4, 5, 5, 5, 2, 3, 4, [6, [3]]]},
+                        {first_train: "16:52", delta: [[7, [4, 3, 3, 3, 3, 3]], 4, [5, [4, 6, 4, 6, 4, 5]]]},
+                        {first_train: "21:38", delta: [6, 4, 5, 3, 5, 4, 6, 4, 5, 5, 5, 6, 11]},
+                        {first_train: "22:57", delta: [10, 11, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "唭哩岸始發空車", trains: ["06:00"]},
+                        {plan: "北投始發空車", first_train: "06:04", skip_trains: 1, until: "07:22"},
+                        {plan: "北投始發空車", trains: ["07:34"]},
+                        {plan: "北投始發空車", first_train: "07:46", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:15", skip_trains: 1, until: "09:01"},
+                        {plan: "北投始發空車", first_train: "09:13", skip_trains: 1, until: "22:30"},
+                        {plan: "忠義始發空車", trains: ["06:09"]},
+                        {plan: "大安區間車", trains: ["06:38", "06:44", "09:01"]},
+                        {plan: "大安區間車", first_train: "09:13", skip_trains: 1, until: "16:43"},
+                        {plan: "大安區間車", first_train: "19:19", skip_trains: 1, until: "22:30"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [4, 5, 9, 9, 10, 6, 11, 9, [5, [10]], [6, [5, 4, 5, 5]]]},
+                        {first_train: "09:52", delta: [3, [45, [5, 4]], 5, 3, [16, [4]], [9, [5, 4]], [5, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "21:44", delta: [4, 5, 3, 5, 4, 10, 10, 5, 6, 11, 10, 10, 11]},
+                        {first_train: "23:30", delta: [12, 13, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "唭哩岸始發空車", trains: ["06:00"]},
+                        {plan: "北投始發空車", trains: ["06:04"]},
+                        {plan: "北投始發空車", first_train: "07:58", skip_trains: 1, until: "22:01"},
+                        {plan: "北投始發空車", trains: ["22:30"]},
+                        {plan: "忠義始發空車", trains: ["06:09"]},
+                        {plan: "大安區間車", first_train: "07:58", skip_trains: 1, until: "22:01"},
+                        {plan: "大安區間車", trains: ["22:30"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [4, 5, 9, 9, 10, 6, 11, 9, [5, [10]], 9, 10, 9, [4, [5, 5, 5, 4]]]},
+                        {first_train: "09:42", delta: [5, 5, 3, [45, [5, 4]], 5, 3, [16, [4]], [9, [5, 4]], [5, [6, 4, 6, 4, 5, 4]]]},
+                        {first_train: "21:44", delta: [4, 5, 3, 5, 4, 10, 10, 5, 6, 11, 10, 10, 11]},
+                        {first_train: "23:30", delta: [12, 13, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "唭哩岸始發空車", trains: ["06:00"]},
+                        {plan: "北投始發空車", trains: ["06:04"]},
+                        {plan: "北投始發空車", first_train: "08:26", skip_trains: 1, until: "22:01"},
+                        {plan: "北投始發空車", trains: ["22:30"]},
+                        {plan: "忠義始發空車", trains: ["06:09"]},
+                        {plan: "大安區間車", first_train: "08:26", skip_trains: 1, until: "22:01"},
+                        {plan: "大安區間車", trains: ["22:30"]}
                     ]
                 }
             }
@@ -1304,6 +2540,61 @@
                         {plan: "北投區間車", first_train: "09:24", skip_trains: 1, until: "23:11"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 6, [5, [4]], [9, [3]], 4, 3, 5, 3, 3, 3, 3, 2, [15, [3]]]},
+                        {first_train: "08:14", delta: [2, [2, [4, 3, 3, 3]], 4, 2, 4, 4, 3, 4, 5, 4]},
+                        {first_train: "09:16", delta: [4, [14, [5, 4, 5, 5, 5, 5]], 5, 4, 5, 2, [8, [3, 4, 3, 3, 3, 3]]]},
+                        {first_train: "18:57", delta: [4, 3, 3, 5, [5, [5, 4, 6, 4, 6, 4]], 5, 4]},
+                        {first_train: "21:51", delta: [3, 6, 4, 5, 4, 5, 5, 6, 5, 11, 10, 11, 10, 12]},
+                        {first_train: "23:40", delta: [13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "北投始發空車", first_train: "06:02", skip_trains: 1, until: "07:21"},
+                        {plan: "北投始發空車", trains: ["07:32"]},
+                        {plan: "北投始發空車", first_train: "07:44", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:14", skip_trains: 1, until: "08:59"},
+                        {plan: "北投始發空車", first_train: "09:12", skip_trains: 1, until: "22:29"},
+                        {plan: "忠義始發空車", trains: ["06:07"]},
+                        {plan: "大安區間車", trains: ["06:36", "06:42", "08:59"]},
+                        {plan: "大安區間車", first_train: "09:12", skip_trains: 1, until: "16:41"},
+                        {plan: "大安區間車", first_train: "19:17", skip_trains: 1, until: "22:29"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 10, 8, 10, 7, 10, 9, [5, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "09:50", delta: [3, [45, [5, 4]], 5, 3, [16, [4]], [8, [5, 4]], [5, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "21:33", delta: [4, 5, 4, 5, 3, 6, 4, 9, 10, 6, 5, 11, 10]},
+                        {first_train: "23:06", delta: [10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "北投始發空車", trains: ["06:02"]},
+                        {plan: "北投始發空車", first_train: "07:56", skip_trains: 1, until: "22:00"},
+                        {plan: "北投始發空車", trains: ["22:29"]},
+                        {plan: "忠義始發空車", trains: ["06:07"]},
+                        {plan: "大安區間車", first_train: "07:56", skip_trains: 1, until: "22:00"},
+                        {plan: "大安區間車", trains: ["22:29"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 10, 8, 10, 7, 10, 9, [5, [10]], 9, 10, 9, [4, [6, 4, 5, 4]]]},
+                        {first_train: "09:41", delta: [4, 5, 3, [45, [5, 4]], 5, 3, [16, [4]], [8, [5, 4]], [5, [6, 4, 5, 4, 6, 4]]]},
+                        {first_train: "21:33", delta: [4, 5, 4, 5, 3, 6, 4, 9, 10, 6, 5, 11, 10]},
+                        {first_train: "23:06", delta: [10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "北投始發空車", trains: ["06:02"]},
+                        {plan: "北投始發空車", first_train: "08:25", skip_trains: 1, until: "22:00"},
+                        {plan: "北投始發空車", trains: ["22:29"]},
+                        {plan: "忠義始發空車", trains: ["06:07"]},
+                        {plan: "大安區間車", first_train: "08:25", skip_trains: 1, until: "22:00"},
+                        {plan: "大安區間車", trains: ["22:29"]}
+                    ]
+                }
             }
         },
         "北投": {
@@ -1382,6 +2673,61 @@
                         {plan: "北投區間車", first_train: "09:26", skip_trains: 1, until: "23:13"}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 5, 5, 4, 4, 4, 4, [9, [3]], 4, 3, 5, 3, 3]},
+                        {first_train: "07:19", delta: [3, 2, 3, 3, 4, 2, [12, [3]], 2, 4, 3, 3, 3, 4, [2, [3, 3, 4, 3]]]},
+                        {first_train: "09:01", delta: [5, 4, 4, 4, [14, [5, 5, 4, 5, 5, 5]], 5, 5]},
+                        {first_train: "16:18", delta: [2, [8, [3, 4, 3, 3, 3, 3]], 3, 4, 3, 3, 5, 5, 5, 5, 4, 6, 4, 5, 5, 5, 4, 6]},
+                        {first_train: "20:08", delta: [[3, [5, 4, 6, 4, 6, 4]], 5, 4, 5, 3, 6, 4, 5]},
+                        {first_train: "22:11", delta: [6, 4, 6, 5, 11, 10, 11, 10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "北投始發空車", first_train: "06:00", skip_trains: 1, until: "07:19"},
+                        {plan: "北投始發空車", trains: ["07:30"]},
+                        {plan: "北投始發空車", first_train: "07:42", skip_trains: 1, count: 4},
+                        {plan: "北投始發空車", first_train: "08:12", skip_trains: 1, until: "08:57"},
+                        {plan: "北投始發空車", first_train: "09:10", skip_trains: 1, until: "22:27"},
+                        {plan: "忠義始發空車", trains: ["06:05"]},
+                        {plan: "大安區間車", trains: ["06:34", "06:40", "08:57"]},
+                        {plan: "大安區間車", first_train: "09:10", skip_trains: 1, until: "16:39"},
+                        {plan: "大安區間車", first_train: "19:15", skip_trains: 1, until: "22:27"}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 10, 8, 10, 7, 11, 8, [5, [10]], [6, [5, 4, 6, 4]]]},
+                        {first_train: "09:48", delta: [3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], 6, 4, 5, 5, 5, 4, 6, 4, 5, 5, 5]},
+                        {first_train: "19:58", delta: [[3, [6, 4, 5, 4, 6, 4]], 6, 4, 5, 4, 5, 3, 6]},
+                        {first_train: "22:02", delta: [9, 10, 6, 5, 11, 10, 11, 10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "北投始發空車", trains: ["06:00"]},
+                        {plan: "北投始發空車", first_train: "07:54", skip_trains: 1, until: "21:58"},
+                        {plan: "北投始發空車", trains: ["22:27"]},
+                        {plan: "忠義始發空車", trains: ["06:05"]},
+                        {plan: "大安區間車", first_train: "07:54", skip_trains: 1, until: "21:58"},
+                        {plan: "大安區間車", trains: ["22:27"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 10, 8, 10, 7, 11, 8, [5, [10]], 9, 10, 9, [4, [6, 4, 5, 4]]]},
+                        {first_train: "09:39", delta: [4, 5, 3, [45, [5, 4]], [9, [5, 3]], [8, [5, 4]], 6, 4, 5, 5, 5, 4, 6, 4, 5, 5, 5]},
+                        {first_train: "19:58", delta: [[3, [6, 4, 5, 4, 6, 4]], 6, 4, 5, 4, 5, 3, 6]},
+                        {first_train: "22:02", delta: [9, 10, 6, 5, 11, 10, 11, 10, 12, 12, 13, 13, 12]}
+                    ],
+                    filters: [
+                        {plan: "北投始發空車", trains: ["06:00"]},
+                        {plan: "北投始發空車", first_train: "08:23", skip_trains: 1, until: "21:58"},
+                        {plan: "北投始發空車", trains: ["22:27"]},
+                        {plan: "忠義始發空車", trains: ["06:05"]},
+                        {plan: "大安區間車", first_train: "08:23", skip_trains: 1, until: "21:58"},
+                        {plan: "大安區間車", trains: ["22:27"]}
+                    ]
+                }
             }
         },
         "復興崗": {
@@ -1433,6 +2779,42 @@
                         {plan: "劍潭始發空車", trains: ["06:15"]},
                         {plan: "台北車站始發空車", trains: ["06:24"]},
                         {plan: "大安始發空車", trains: ["06:34", "23:53", "00:50", "01:03"]}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 8, 8, 6, 6, 6, 6, 7, 8, 6, 6, 2, 3, [2, [6, 3, 3, 6, 6, 6]]]},
+                        {first_train: "08:31", delta: [7, 6, 7, 7, 5, 8, 9, [14, [9, 10, 10]], 9, 5]},
+                        {first_train: "16:27", delta: [[8, [6, 7, 6]], 8, [2, [10, 9, 10, 10, 9]], 10, 10, 9]},
+                        {first_train: "21:22", delta: [10, 9, 8, 10, 10, 10, 10, 11, 10, 11, 10, 12, 12, 13]},
+                        {first_train: "00:00", delta: [12]}
+                    ],
+                    filters: [
+                        {plan: "忠義始發空車", trains: ["06:02"]}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 8, 10, 7, 11, 8, 10, 11, 10, [7, [10, 9]], 8, [44, [9]]]},
+                        {first_train: "16:33", delta: [[9, [8]], [8, [9]], 10, [2, [10, 9, 10, 10, 9]], 10, 10, 9]},
+                        {first_train: "21:22", delta: [10, 9, 8, 10, 10, 10, 10, 11, 10, 11, 10, 12, 12, 13]},
+                        {first_train: "00:00", delta: [12]}
+                    ],
+                    filters: [
+                        {plan: "忠義始發空車", trains: ["06:02"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 8, 10, 7, 11, 8, 10, 11, 10, [7, [10, 9]], 8, [44, [9]]]},
+                        {first_train: "16:33", delta: [[9, [8]], [8, [9]], 10, [2, [10, 9, 10, 10, 9]], 10, 10, 9]},
+                        {first_train: "21:22", delta: [10, 9, 8, 10, 10, 10, 10, 11, 10, 11, 10, 12, 12, 13]},
+                        {first_train: "00:00", delta: [12]}
+                    ],
+                    filters: [
+                        {plan: "忠義始發空車", trains: ["06:02"]}
                     ]
                 }
             }
@@ -1492,6 +2874,39 @@
                         {plan: "劍潭始發空車", trains: ["06:17"]},
                         {plan: "台北車站始發空車", trains: ["06:27"]},
                         {plan: "大安始發空車", trains: ["06:36", "23:56", "00:53", "01:05"]}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 8, 8, 6, 6, 5, 7, 7, 7, 6, 6, 2, 4, [2, [6, 3, 3, 6, 6, 6]]]},
+                        {first_train: "08:29", delta: [6, 6, 8, 7, 5, 8, 9, [14, [9, 10, 10]], 9, 5, [8, [7, 6, 6]]]},
+                        {first_train: "18:57", delta: [8, [2, [10, 9, 10, 10, 9]], 10, 10, 9, 10, 10, 9]},
+                        {first_train: "21:47", delta: [9, 10, 10, 11, 11, 10, 11, 10, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "忠義始發空車", trains: ["06:00"]}
+                    ]
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 8, 10, 7, 11, 8, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:43", delta: [[8, [9]], 10, [2, [10, 9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:39", delta: [8, 9, 10, 10, 11, 11, 10, 11, 10, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "忠義始發空車", trains: ["06:00"]}
+                    ]
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 8, 10, 7, 11, 8, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:43", delta: [[8, [9]], 10, [2, [10, 9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:39", delta: [8, 9, 10, 10, 11, 11, 10, 11, 10, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: [
+                        {plan: "忠義始發空車", trains: ["06:00"]}
                     ]
                 }
             }
@@ -1556,6 +2971,34 @@
                         {plan: "大安始發空車", trains: ["06:38", "23:57", "00:54", "01:07"]}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [8, 8, 6, 6, 5, 7, 7, 7, 7, 5, 3, 4, 5, 3]},
+                        {first_train: "07:32", delta: [6, 6, 6, 6, 3, 3, 6, 6, 7, 6, 7, 6, 7, 7]},
+                        {first_train: "08:59", delta: [8, 9, [14, [10, 9, 10]], 10, 4, 8, 5, [7, [7, 6, 6]]]},
+                        {first_train: "18:49", delta: [6, 8, 10, 10, [2, [9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:37", delta: [8, 10, 9, 10, 11, 11, 10, 11, 10, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:08", delta: [9, 9, 7, 11, 9, 9, 11, 10, [7, [10, 9]], [46, [9]], [8, [8]]]},
+                        {first_train: "17:42", delta: [[9, [9]], 10, 10, [2, [9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:37", delta: [8, 10, 9, 10, 11, 11, 10, 11, 10, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [9, 9, 7, 11, 9, 9, 11, 10, [7, [10, 9]], [46, [9]], [8, [8]]]},
+                        {first_train: "17:42", delta: [[9, [9]], 10, 10, [2, [9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:37", delta: [8, 10, 9, 10, 11, 11, 10, 11, 10, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
+                }
             }
         },
         "竹圍": {
@@ -1614,6 +3057,34 @@
                         {plan: "台北車站始發空車", trains: ["06:32"]},
                         {plan: "大安始發空車", trains: ["06:41", "00:00", "00:57", "01:10"]}
                     ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [9, 8, 6, 6, 4, 7, 7, 7, 6, 6, 3, 4, 4, 4]},
+                        {first_train: "07:30", delta: [5, 6, 6, 6, 3, 4, 5, 6, 7, 6, 7, 6, 7, 7]},
+                        {first_train: "08:56", delta: [8, [14, [9, 10, 10]], 9, 10, 5, 7, 6, [7, [6, 6, 7]]]},
+                        {first_train: "18:46", delta: [6, 8, 10, 10, [2, [9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:34", delta: [8, 10, 10, 10, 10, 11, 10, 11, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:05", delta: [9, 10, 6, 11, 9, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:39", delta: [[9, [9]], 10, 10, [2, [9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:34", delta: [8, 10, 10, 10, 10, 11, 10, 11, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [9, 10, 6, 11, 9, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:39", delta: [[9, [9]], 10, 10, [2, [9, 10, 10, 9]], 10, 10, 9, 10, 10]},
+                        {first_train: "21:34", delta: [8, 10, 10, 10, 10, 11, 10, 11, 10, 12, 12, 14, 12, 12]}
+                    ],
+                    filters: []
                 }
             }
         },
@@ -1678,6 +3149,34 @@
                         {plan: "大安始發空車", trains: ["06:44", "00:03", "01:00", "01:13"]}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [8, 8, 6, 6, 4, 7, 7, 7, 6, 5, [5, [4]], 6, 5]},
+                        {first_train: "07:44", delta: [5, 4, 4, 5, 7, 6, 6, 7, 6, 7, 7, 5, 8, [14, [9, 10, 10]]]},
+                        {first_train: "15:56", delta: [10, 5, 7, 6, [7, [6, 6, 7]], 6, 6, [2, [9, 9, 10, 10, 9, 10, 10]]]},
+                        {first_train: "21:12", delta: [10, 9, 8, 10, 10, 10, 10, 11, 10, 11, 11, 12, 12]},
+                        {first_train: "23:39", delta: [12, 12]}
+                    ],
+                    filters: []
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:03", delta: [8, 10, 7, 10, 9, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:36", delta: [[8, [9]], 10, [2, [9, 10, 10, 9, 10, 10, 9]], 10, 9, 8]},
+                        {first_train: "21:49", delta: [10, 10, 10, 11, 10, 11, 11, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [8, 10, 7, 10, 9, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:36", delta: [[8, [9]], 10, [2, [9, 10, 10, 9, 10, 10, 9]], 10, 9, 8]},
+                        {first_train: "21:49", delta: [10, 10, 10, 11, 10, 11, 11, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
+                }
             }
         },
         "淡水": {
@@ -1741,6 +3240,34 @@
                         {plan: "台北車站始發空車", trains: ["06:38"]},
                         {plan: "大安始發空車", trains: ["06:47", "00:06", "01:03", "01:16"]}
                     ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [8, 8, 6, 6, 4, 7, 7, 7, 6, 5, [5, [4]], 5, 6]},
+                        {first_train: "07:40", delta: [6, 4, 4, 6, 6, 6, 6, 7, 6, 7, 6, 6, 8, [14, [10, 9, 10]]]},
+                        {first_train: "15:54", delta: [9, 5, [8, [7, 6, 6]], 7, 8, 9, 10, 10, 9, 10]},
+                        {first_train: "19:53", delta: [8, [3, [10, 10, 9]], 8, 10, 10, 10, 10, 11, 10, 11, 11]},
+                        {first_train: "23:11", delta: [12, 13, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週六": {
+                    schedule: [
+                        {first_train: "06:00", delta: [8, 10, 7, 10, 9, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:33", delta: [[8, [9]], 10, 9, 10, 10, 9, 10, 10, 8, [3, [10, 10, 9]]]},
+                        {first_train: "21:36", delta: [10, 10, 10, 10, 11, 10, 11, 11, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
+                },
+                "週日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [8, 10, 7, 10, 9, [5, [10]], [6, [9, 10]], 8, [45, [9]], [8, [8]]]},
+                        {first_train: "17:33", delta: [[8, [9]], 10, 9, 10, 10, 9, 10, 10, 8, [3, [10, 10, 9]]]},
+                        {first_train: "21:36", delta: [10, 10, 10, 10, 11, 10, 11, 11, 12, 12, 13, 12, 12]}
+                    ],
+                    filters: []
                 }
             }
         }
