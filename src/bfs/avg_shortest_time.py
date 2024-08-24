@@ -224,8 +224,9 @@ def path_shorthand(end_station: str, city: City, path: AbstractPath) -> str:
         if line_direction is None:
             result += f"{city.station_full_name(station)} --- (virtual) --> "
         else:
-            result += f"{city.station_full_name(station)} --- {line_direction[0]} ({line_direction[1]}) --> "
-    return result + end_station
+            result += (f"{city.station_full_name(station)} --- " +
+                       f"{city.lines[line_direction[0]].full_name()} ({line_direction[1]}) --> ")
+    return result + city.station_full_name(end_station)
 
 
 def shortest_path_args(parser: argparse.ArgumentParser, have_single: bool = False) -> None:
@@ -300,20 +301,19 @@ def main() -> None:
         return
 
     # sort and display first/last
-    full_name = city.station_full_name(station)
     result_list = [(data[0], station) for station, data in result_dict.items()]
     if stations is not None:
         for avg_time, station in result_list:
             if station not in stations:
                 continue
-            print(f"{full_name}: {avg_time}")
+            print(f"{city.station_full_name(station)}: {avg_time}")
         return
     print("Nearest " + suffix_s("station", args.limit_num) + ":")
     print("\n".join(
-        f"{full_name}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
+        f"{city.station_full_name(station)}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
     print("\nFarthest " + suffix_s("station", args.limit_num) + ":")
     print("\n".join(
-        f"{full_name}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
+        f"{city.station_full_name(station)}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
 
 
 # Call main
