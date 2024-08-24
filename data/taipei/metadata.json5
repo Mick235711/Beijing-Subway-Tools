@@ -4,6 +4,12 @@
     transfers: {
         // 取自https://blog.transtaiwan.com/blog/transfer-time-settings/
         // 按“快”模式时间，唯一的调整是如果快/普通都是2min，则记为1.5min。4个同台换乘站按0.5min/1min记另一个方向
+        "大安": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/011.pdf
+            // 3扶梯+短通道，文湖线南行需换向后才能开始换乘
+            {from: "文湖線", from_direction: "北行", to: "淡水信義線", minutes: 2.5},
+            {from: "文湖線", from_direction: "南行", to: "淡水信義線", minutes: 3.5}
+        ]
     },
     virtual_transfers: [
     ],
