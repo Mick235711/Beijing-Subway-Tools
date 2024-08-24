@@ -1,0 +1,95 @@
+// 数据截止2023/07
+// 淡水信义线-新北投支线时刻表（来自台北捷运官网）
+// 注：独立于主线描述，全程时间按3min计算
+{
+    name: "新北投支線",
+    aliases: ["Danshui-Xinyi Line", "Tamsui-Xinyi Line", "Xinbeitou Branch Line"],
+    code: "R",
+    index: 22,
+    carriage_num: 3,
+    carriage_type: "C",
+    design_speed: 25,
+    stations: [
+        {name: "北投", index: "22"},
+        {name: "新北投", index: "22A", dist: 1030}
+    ],
+    train_routes: {
+        "北行": {
+            aliases: ["Northbound"],
+            "全程車": {}
+        },
+        "南行": {
+            aliases: ["Southbound"],
+            reversed: true,
+            "全程車": {}
+        }
+    },
+    date_groups: {
+        "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "例假日": {weekday: [6, 7], aliases: ["Holidays"]}
+    },
+    timetable: {
+        "北投": {
+            "北行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [12, 12, 8, [22, [7]], 9, [45, [10]], [23, [7]], 9, [19, [10]], 11, [4, [12]]]},
+                        {first_train: "23:56", delta: [14]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [12, 12, 11, [97, [10]], 11, [5, [12]], 14]}
+                    ],
+                    filters: []
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [12, 12, [23, [7]], [45, [10]], 8, [22, [7]], 8, [20, [10]], [6, [12]]]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [12, 12, 11, [97, [10]], [6, [12]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "新北投": {
+            "北行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [12, 12, 8, [22, [7]], 9, [45, [10]], [23, [7]], 9, [19, [10]], 11, [4, [12]]]},
+                        {first_train: "23:59", delta: [14]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [12, 12, 11, [97, [10]], 11, [5, [12]], 14]}
+                    ],
+                    filters: []
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [12, 12, [23, [7]], [45, [10]], 8, [22, [7]], 8, [20, [10]], [6, [12]]]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [12, 12, 11, [97, [10]], [6, [12]]]}
+                    ],
+                    filters: []
+                }
+            }
+        }
+    }
+}
