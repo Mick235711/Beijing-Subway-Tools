@@ -85,7 +85,10 @@ def avg_waiting_time(
                     cur_index += 1
                 if cur_index == len(train_list2):
                     break
-                result_key = (station1, station2, transfer_key)
+                result_key = (
+                    city.station_full_name(station1), city.station_full_name(station2),
+                    (lines[from_l].full_name(), from_d, lines[to_l].full_name(), to_d)
+                )
                 if result_key not in results:
                     results[result_key] = []
                 results[result_key].append(diff_time_tuple(
