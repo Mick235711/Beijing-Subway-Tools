@@ -23,12 +23,11 @@ Image.MAX_IMAGE_PIXELS = 300000000
 
 def draw_station_filled(
     draw: ImageDraw.ImageDraw, station: str, color: Color,
-    map_obj: Map, *args, **kwargs
+    map_obj: Map, **kwargs
 ) -> None:
     """ Draw filled circle onto the station """
-    x, y, r = map_obj.coordinates[station]
-    draw.ellipse(
-        [(x, y), (x + 2 * r, y + 2 * r)], *args,
+    map_obj.coordinates[station].draw(
+        draw,
         outline="black",
         fill=convert_color(color),  # type: ignore
         **kwargs

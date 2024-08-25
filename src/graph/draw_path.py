@@ -75,7 +75,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
 
 def get_edge_wide(map_obj: Map) -> float:
     """ Get edge wide (the minimum radius of all coordinates """
-    return min(x[2] for x in map_obj.coordinates.values())
+    return min(x.max_width() / 2 for x in map_obj.coordinates.values())
 
 
 def draw_path(
@@ -83,12 +83,10 @@ def draw_path(
     cmap: Colormap, index: float, alpha: float, edge_wide: float, is_index: bool = False
 ) -> None:
     """ Draw a path on map """
-    start_x, start_y, start_r = map_obj.coordinates[start_station]
-    start_x += start_r  # Refocus to center
-    start_y += start_r
-    end_x, end_y, end_r = map_obj.coordinates[end_station]
-    end_x += end_r
-    end_y += end_r
+    start_shape = map_obj.coordinates[start_station]
+    start_x, start_y = start_shape.center_point()
+    end_shape = map_obj.coordinates[end_station]
+    end_x, end_y = end_shape.center_point()
 
     # Calculate the upper and lower edge
     xy_length = sqrt((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y))

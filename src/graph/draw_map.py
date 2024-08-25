@@ -88,13 +88,13 @@ def draw_station(
     if station not in map_obj.coordinates:
         print(f"Warning: {station} ignored since no coordinates are specified!")
         return
-    x, y, r = map_obj.coordinates[station]
-    draw.ellipse([(x, y), (x + 2 * r, y + 2 * r)], fill="white")
-    font_size = find_font_size(draw, text, 2 * r)
+    shape = map_obj.coordinates[station]
+    shape.draw(draw)
+    font_size = find_font_size(draw, text, shape.max_width())
     kwargs["font_size"] = font_size
     kwargs["anchor"] = "mm"
     kwargs["fill"] = convert_color(color)
-    draw.text((x + r, y + r), text, *args, **kwargs)
+    draw.text(shape.center_point(), text, *args, **kwargs)
 
 
 def draw_all_station(
@@ -128,9 +128,10 @@ def draw_contours(
     for station, shortest in avg_shortest.items():
         if station not in map_obj.coordinates:
             continue
-        station_x, station_y, station_r = map_obj.coordinates[station]
-        x.append(station_x + station_r)
-        y.append(station_y + station_r)
+        station_shape = map_obj.coordinates[station]
+        center_x, center_y = station_shape.center_point()
+        x.append(center_x)
+        y.append(center_y)
         z.append(shortest)
 
     # interpolate the data to a regular field

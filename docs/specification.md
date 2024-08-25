@@ -195,6 +195,7 @@ This specification describes the key-values within `map_*.json5`.
 |--------------------|----------|--------|----------|-----------------------------------------------------------------------------------|
 | name               | Yes      | string |          | Name of the map                                                                   |
 | path               | Yes      | string |          | Path to the described map                                                         |
+| type               | No       | string | circle   | Shape of station. Currently can only be circle or rectangle.                      |
 | radius             | Yes      | int    |          | Radius of the circle on a regular station                                         |
 | font_size          | No       | int    |          | Font size for regular stations. Will be automatically determined if not provided  |
 | transfer_radius    | No       | int    | `radius` | Radius of the circle on a transfer station                                        |
@@ -203,3 +204,7 @@ This specification describes the key-values within `map_*.json5`.
 
 Note that the coordinate system starts in the upper left corner as `(0, 0)`. Also notice that the x-y coordinates are not
 the circle center, but the upper-left corner of the bounding box too.
+
+For different `type`s, the possible radius specification (fields for `coordinates` beside `x` and `y`) are different:
+- For `circle`, can be either `r` or both `rx` and `ry` (for ellipse, in this case `radius` and `transfer_radius` must be 2-tuples).
+- For `rectangle`, must be `w` and `h`. Optionally `r` can be included to indicate rounded corners.
