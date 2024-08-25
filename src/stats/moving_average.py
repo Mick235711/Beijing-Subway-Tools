@@ -114,12 +114,12 @@ def get_section_data(
     min_cap_cnt_key, max_cap_cnt_key = arg_minmax(cap_dict)
     separator = "\n" if show_example == "newline" else " "
     return (
-        average(count_dict.values()),
-        stddev(count_dict.values()),
+        average(count_dict.values()), stddev(count_dict.values()),
         f"{count_dict[min_cnt_key]}" +
         (f"{separator}[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
         f"{count_dict[max_cnt_key]}" +
         (f"{separator}[{max_cnt_key[2]} {max_cnt_key[1]} {max_cnt_key[0]} {max_cnt_key[3]}]" if show_example else ""),
+        average(cap_dict.values()), stddev(cap_dict.values()),
         f"{cap_dict[min_cap_cnt_key]}" +
         (f"{separator}[{min_cap_cnt_key[2]} {min_cap_cnt_key[1]} {min_cap_cnt_key[0]} {min_cap_cnt_key[3]}]"
          if show_example else ""),
@@ -143,7 +143,7 @@ def main() -> None:
         parser.add_argument("--include-edge", action="store_true", help="Include edge in moving average")
         parser.add_argument("-o", "--output", help="Output CSV file")
 
-    all_trains, args, _, lines = parse_args(append_arg)
+    all_trains, args, _, _ = parse_args(append_arg)
     separator = "\n" if args.show_example is None else " "
     if args.moving_average:
         average_str = f"{args.moving_average}-min Avg{separator}"
@@ -168,9 +168,9 @@ def main() -> None:
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
                 average_str + "Avg Count", average_str + "Stddev", average_str + "Min Count", average_str + "Max Count",
-                average_str + "Min Cap", average_str + "Max Cap"
+                average_str + "Avg Cap", average_str + "Stddev Cap", average_str + "Min Cap", average_str + "Max Cap"
             ], [
-                "", "", "", "", "", ""
+                "", "", "", "", "", "", "", ""
             ], use_capacity=True
         )
 
