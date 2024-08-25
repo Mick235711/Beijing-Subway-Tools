@@ -77,7 +77,7 @@ class Ellipse(Shape):
 
     def max_width(self) -> int:
         """ Return the max allowed width """
-        return self.rx * 2
+        return min(self.rx, self.ry) * 2
 
     def draw(self, draw: ImageDraw.ImageDraw, **kwargs) -> None:
         """ Draw this circle on the image """
@@ -106,7 +106,7 @@ class Rectangle(Shape):
 
     def max_width(self) -> int:
         """ Return the max allowed width """
-        return self.w
+        return min(self.w, self.h)
 
     def draw(self, draw: ImageDraw.ImageDraw, **kwargs) -> None:
         """ Draw this circle on the image """
@@ -162,8 +162,8 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
     if shape_type == "rectangle":
         width = map_dict.get("width")
         height = map_dict.get("height")
-        transfer_width = map_dict.get("transfer_width")
-        transfer_height = map_dict.get("transfer_height")
+        transfer_width = map_dict.get("transfer_width", width)
+        transfer_height = map_dict.get("transfer_height", height)
     coords: dict[str, Shape] = {}
     for station, spec in map_dict["coordinates"].items():
         x, y = spec["x"], spec["y"]
