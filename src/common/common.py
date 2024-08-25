@@ -12,6 +12,7 @@ import re
 from _ctypes import PyObj_FromPtr  # type: ignore
 from collections.abc import Iterable, Callable, Sequence, Mapping, Iterator
 from datetime import datetime, date, time, timedelta
+from math import sqrt
 from typing import TypeVar, Any
 
 import questionary
@@ -396,6 +397,17 @@ def average(data: Iterable[int | float]) -> float:
     return sum(data_list) / len(data_list)
 
 
+def stddev(data: Iterable[int | float]) -> float:
+    """ Calculate standard deviation """
+    data_list = list(data)
+    assert len(data_list) > 0, data_list
+    n = len(data_list)
+    avg = average(data_list)
+    if n == 1:
+        return 0.0
+    return sqrt(sum((elem - avg) * (elem - avg) / (n - 1) for elem in data_list))
+
+
 def try_numerical(test_str: Any) -> Any:
     """ Try to turn the string into numerical """
     if not isinstance(test_str, str):
@@ -412,7 +424,7 @@ def try_numerical(test_str: Any) -> Any:
 
 
 def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_min: int,
-                   include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
+                   include_edge: bool = False) -> tuple[float, float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average, return avg & min/max interval """
     assert len(data) > 0, data
     cur_min: float | None = None
@@ -435,11 +447,11 @@ def moving_average(data: Sequence[T], key: Callable[[T], int | float], moving_mi
         cur_sum.append(moving_avg)
     assert cur_min and cur_min_beg and cur_min_end and cur_max and cur_max_beg and cur_max_end, \
         {x: key(x) for x in data}
-    return average(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
+    return average(cur_sum), stddev(cur_sum), (cur_min_beg, cur_min_end, cur_min), (cur_max_beg, cur_max_end, cur_max)
 
 
 def moving_average_dict(data: Mapping[T, int | float], moving_min: int,
-                        include_edge: bool = False) -> tuple[float, tuple[T, T, float], tuple[T, T, float]]:
+                        include_edge: bool = False) -> tuple[float, float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average on a dictionary, return avg & min/max interval """
     return moving_average(list(data.keys()), lambda x: data[x], moving_min, include_edge)
 
@@ -450,12 +462,13 @@ def arg_minmax(data: Mapping[T, int | float]) -> tuple[T, T]:
 
 
 def sequence_data(sequence: Sequence[T], *,
-                  key: Callable[[T], int | float]) -> tuple[int, float, int | float, int | float]:
+                  key: Callable[[T], int | float]) -> tuple[int, float, float, int | float, int | float]:
     """ Return common data for a sequence (len/sum/min/max) """
-    avg_cnt = sum(key(x) for x in sequence) / len(sequence)
+    avg_cnt = average(key(x) for x in sequence)
+    stddev_cnt = stddev(key(x) for x in sequence)
     min_cnt = min(key(x) for x in sequence)
     max_cnt = max(key(x) for x in sequence)
-    return len(sequence), avg_cnt, min_cnt, max_cnt
+    return len(sequence), avg_cnt, stddev_cnt, min_cnt, max_cnt
 
 
 def parse_comma(field: str | None, default: str | None = None) -> set[str]:

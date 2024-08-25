@@ -18,7 +18,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute, route_dist, route_dist_list
-from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser
+from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser, stddev
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
@@ -221,7 +221,7 @@ basic_headers = {
     )
 }
 capacity_headers = {
-    False: (["Avg Dist", "Min Dist", "Max Dist"], ["km", "km", "km"]),
+    False: (["Avg Dist", "Stddev\nDist", "Min Dist", "Max Dist"], ["km", "", "km", "km"]),
     True: (["Carriage", "Capacity"], ["", "ppl"])
 }
 
@@ -287,11 +287,12 @@ def line_basic_data(line: Line, *, use_route: str | TrainRoute | None = None,
         direction_str = sorted_direction_str(line, stations)
     data = (
         line.index, line.name, direction_str,
-        total_distance / 1000, len(stations), line.design_speed, f"{total_distance / (total_stations * 1000):.2f}",
+        total_distance / 1000, len(stations), line.design_speed,
+        f"{total_distance / (total_stations * 1000):.2f}", stddev(x / 1000 for x in station_dists),
         min(station_dists) / 1000, max(station_dists) / 1000
     )
     if use_capacity:
-        return data[:-3] + (line.train_code(), line.train_capacity())  # type: ignore
+        return data[:-4] + (line.train_code(), line.train_capacity())  # type: ignore
     return data
 
 

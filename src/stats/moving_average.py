@@ -8,7 +8,7 @@ import argparse
 from collections.abc import Sequence
 
 from src.common.common import moving_average_dict, arg_minmax, add_min_tuple, get_time_str, TimeSpec, diff_time_tuple, \
-    average
+    average, stddev
 from src.routing.train import Train
 from src.stats.common import parse_args, append_table_args, output_table, get_all_trains_from_set
 from src.stats.hour_trains import minute_trains
@@ -24,13 +24,13 @@ def get_moving_average_data(
     line_dict = minute_trains(all_trains)[line.name]
     capacity_dict = minute_trains(all_trains, use_capacity=True)
 
-    avg_cnt, (
+    avg_cnt, stddev_cnt, (
         min_cnt_beg, min_cnt_end, min_cnt
     ), (
         max_cnt_beg, max_cnt_end, max_cnt
     ) = moving_average_dict(line_dict, moving_min, include_edge)
     line_cap_dict = capacity_dict[line.name]
-    avg_cap_cnt, (
+    avg_cap_cnt, stddev_cap_cnt, (
         min_cap_cnt_beg, min_cap_cnt_end, min_cap_cnt
     ), (
         max_cap_cnt_beg, max_cap_cnt_end, max_cap_cnt
@@ -38,10 +38,10 @@ def get_moving_average_data(
 
     separator = "\n" if show_example == "newline" else " "
     return (
-        avg_cnt,
+        avg_cnt, stddev_cnt,
         f"{min_cnt:.2f}" + (f"{separator}[{min_cnt_beg} - {min_cnt_end}]" if show_example else ""),
         f"{max_cnt:.2f}" + (f"{separator}[{max_cnt_beg} - {max_cnt_end}]" if show_example else ""),
-        avg_cap_cnt,
+        avg_cap_cnt, stddev_cap_cnt,
         f"{min_cap_cnt:.2f}" + (f"{separator}[{min_cap_cnt_beg} - {min_cap_cnt_end}]" if show_example else ""),
         f"{max_cap_cnt:.2f}" + (f"{separator}[{max_cap_cnt_beg} - {max_cap_cnt_end}]" if show_example else "")
     )
@@ -115,6 +115,7 @@ def get_section_data(
     separator = "\n" if show_example == "newline" else " "
     return (
         average(count_dict.values()),
+        stddev(count_dict.values()),
         f"{count_dict[min_cnt_key]}" +
         (f"{separator}[{min_cnt_key[2]} {min_cnt_key[1]} {min_cnt_key[0]} {min_cnt_key[3]}]" if show_example else ""),
         f"{count_dict[max_cnt_key]}" +
@@ -152,10 +153,10 @@ def main() -> None:
                 ts, moving_min=args.moving_average,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                average_str + "Avg Count", average_str + "Min Count", average_str + "Max Count",
-                average_str + "Capacity", average_str + "Min Cap", average_str + "Max Cap"
+                average_str + "Avg Count", average_str + "Stddev Cnt", average_str + "Min Count", average_str + "Max Count",
+                average_str + "Capacity", average_str + "Stddev Cap", average_str + "Min Cap", average_str + "Max Cap"
             ], [
-                "", "", "", "", "", ""
+                "", "", "", "", "", "", "", ""
             ], use_capacity=True
         )
     elif args.section:
@@ -166,10 +167,10 @@ def main() -> None:
                 ts, moving_min=args.section,
                 show_example=args.show_example, include_edge=args.include_edge
             ), [
-                average_str + "Avg Count", average_str + "Min Count", average_str + "Max Count",
+                average_str + "Avg Count", average_str + "Stddev", average_str + "Min Count", average_str + "Max Count",
                 average_str + "Min Cap", average_str + "Max Cap"
             ], [
-                "", "", "", "", ""
+                "", "", "", "", "", ""
             ], use_capacity=True
         )
 

@@ -64,9 +64,9 @@ def main() -> None:
         ], use_capacity=True)
     elif args.data_from == "speed":
         output_table(all_trains, args, get_speed_data, [
-            "Train\nCount", "Avg Speed", "Min Speed", "Max Speed"
+            "Train\nCount", "Avg Speed", "Stddev\nSpeed", "Min Speed", "Max Speed"
         ], [
-            "", "km/h", "km/h", "km/h"
+            "", "km/h", "", "km/h", "km/h"
         ])
     else:
         if args.full_only or args.split != "none":
@@ -75,9 +75,9 @@ def main() -> None:
         header = {"distance": "Dist", "duration": "Dura", "count": "Seg\nCount"}[args.data_from]
         unit = {"distance": "km", "duration": "min", "count": ""}[args.data_from]
         output_table(all_trains, args, lambda ts: get_segment_data(ts, sort_by=args.data_from), [
-            "Chain\nCount", "Avg " + header, "Min " + header, "Max " + header
+            "Chain\nCount", "Avg " + header, "Stddev\n" + header, "Min " + header, "Max " + header
         ], [
-            "", unit, unit, unit
+            "", unit, "", unit, unit
         ])
 
 

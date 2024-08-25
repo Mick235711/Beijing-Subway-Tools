@@ -17,7 +17,7 @@ from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
-    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma
+    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev
 from src.routing.train import Train, parse_all_trains
 
 AbstractPath = list[tuple[str, tuple[str, str] | None]]
@@ -95,7 +95,7 @@ def calculate_shortest(
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
     exclude_edge: bool = False
-) -> dict[str, tuple[float, float, float, float, PathInfo, PathInfo,
+) -> dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station (return type: avg time, transfer, station, distance) """
     results = all_time_bfs(
@@ -104,7 +104,7 @@ def calculate_shortest(
         limit_end=limit_end, limit_end_day=limit_end_day,
         exclude_edge=exclude_edge
     )
-    result_dict: dict[str, tuple[float, float, float, float, PathInfo, PathInfo,
+    result_dict: dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
@@ -113,7 +113,7 @@ def calculate_shortest(
             for station, train in path[1]
         ), path) for path in times_paths])
         result_dict[station] = (
-            average(times),
+            average(times), stddev(times),
             average(total_transfer(path) for _, path, _ in times_paths),
             average(len(expand_path(path, result.station)) for _, path, result in times_paths),
             average(result.total_distance(path) for _, path, result in times_paths),
@@ -130,7 +130,7 @@ def shortest_in_city(
     city_station: tuple[City, str, date] | None = None, *,
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
     exclude_virtual: bool = False, exclude_edge: bool = False
-) -> tuple[City, str, dict[str, tuple[float, float, float, float, PathInfo, PathInfo,
+) -> tuple[City, str, dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
            list[tuple[float, AbstractPath, list[PathInfo]]]]]]:
     """ Find the shortest path in the city """
     if city_station is None:
@@ -179,29 +179,30 @@ def avg_shortest_in_city(
                 if strategy == 'avg':
                     result_dict[station2] = (0.0, 0.0, 0.0, 0.0)
                 else:
-                    result_dict[station2] = (data[0], data[1], data[2], data[3])
+                    # data[1] is std dev, skip that
+                    result_dict[station2] = (data[0], data[2], data[3], data[4])
             if station2 not in len_dict:
                 len_dict[station2] = 0
             if strategy == 'avg':
                 result_dict[station2] = (
                     result_dict[station2][0] + data[0],
-                    result_dict[station2][1] + data[1],
-                    result_dict[station2][2] + data[2],
-                    result_dict[station2][3] + data[3]
+                    result_dict[station2][1] + data[2],
+                    result_dict[station2][2] + data[3],
+                    result_dict[station2][3] + data[4]
                 )
             elif strategy == 'min':
                 result_dict[station2] = (
                     min(result_dict[station2][0], data[0]),
-                    min(result_dict[station2][1], data[1]),
-                    min(result_dict[station2][2], data[2]),
-                    min(result_dict[station2][3], data[3])
+                    min(result_dict[station2][1], data[2]),
+                    min(result_dict[station2][2], data[3]),
+                    min(result_dict[station2][3], data[4])
                 )
             elif strategy == 'max':
                 result_dict[station2] = (
                     max(result_dict[station2][0], data[0]),
-                    max(result_dict[station2][1], data[1]),
-                    max(result_dict[station2][2], data[2]),
-                    max(result_dict[station2][3], data[3])
+                    max(result_dict[station2][1], data[2]),
+                    max(result_dict[station2][2], data[3]),
+                    max(result_dict[station2][3], data[4])
                 )
             else:
                 assert False, f"Unknown strategy: {strategy}"
@@ -241,7 +242,8 @@ def shortest_path_args(parser: argparse.ArgumentParser, have_single: bool = Fals
 
 
 def print_station_info(
-    city: City, station: str, avg_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
+    city: City, station: str,
+    avg_time: float, stddev_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
     max_info: PathInfo, min_info: PathInfo, path_coverage: list[tuple[float, AbstractPath, list[PathInfo]]],
     *, index: int | None = None, show_path_transfers: dict[str, Transfer] | None = None
 ) -> None:
@@ -249,7 +251,7 @@ def print_station_info(
     if index is not None:
         print(f"#{index + 1}", end=": ")
     print(f"{city.station_full_name(station)}, " + suffix_s("minute", f"{avg_time:.2f}") +
-          f" (min {min_info[0]} - max {max_info[0]})" +
+          f" (stddev = {stddev_time:.2f}) (min {min_info[0]} - max {max_info[0]})" +
           f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
           distance_str(avg_dist) + ")")
     print("Percentage of each path:")

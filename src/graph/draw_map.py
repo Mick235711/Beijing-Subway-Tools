@@ -266,7 +266,7 @@ def main() -> None:
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
     )
-    data_index = ["time", "transfer", "station", "distance"].index(args.data_source)
+    data_index = ["time", None, "transfer", "station", "distance"].index(args.data_source)
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
     ) for station, x in result_dict_temp.items()}

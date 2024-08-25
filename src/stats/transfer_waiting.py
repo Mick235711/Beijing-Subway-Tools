@@ -10,20 +10,20 @@ from math import floor, ceil
 from src.city.city import City
 from src.city.date_group import DateGroup
 from src.city.transfer import Transfer, TransferSpec
-from src.common.common import suffix_s, diff_time_tuple, average
+from src.common.common import suffix_s, diff_time_tuple, average, stddev
 from src.routing.train import Train
 from src.stats.common import display_first, parse_args
 
 
 def key_list_str(
-    result_key: tuple[str, str, TransferSpec], values: list[float], criteria: float, percentage: bool
+    result_key: tuple[str, str, TransferSpec], values: list[float], criteria: float, sd_crit: float, percentage: bool
 ) -> str:
     """ Obtain string representation """
     base = result_key[0] + (
         f" -> {result_key[1]} (virtual)" if result_key[0] != result_key[1] else ""
     )
     base += f" / {result_key[2][0]} ({result_key[2][1]}) -> {result_key[2][2]} ({result_key[2][3]}): "
-    base += "Average = " + suffix_s("minute", f"{criteria:.2f}")\
+    base += "Average = " + suffix_s("minute", f"{criteria:.2f}") + f" (stddev = {sd_crit:.2f})"\
         if not percentage else f"Percentage = {criteria * 100:.2f}%"
     base += ", max = " + suffix_s("minute", f"{max(values):.2f}")
     base += ", min = " + suffix_s("minute", f"{min(values):.2f}")
@@ -96,12 +96,12 @@ def avg_waiting_time(
                 ) - transfer_time)
 
     # Print results
-    criteria = [(k, v, average(v)) for k, v in results.items()]
+    criteria = [(k, v, average(v), stddev(v)) for k, v in results.items()]
     satisfied = min_waiting is not None or max_waiting is not None
     if satisfied:
         criteria = [(k, v, len([
             x for x in v if (min_waiting is None or min_waiting <= x) and (max_waiting is None or max_waiting >= x)
-        ]) / len(v)) for k, v in results.items()]
+        ]) / len(v), 0.0) for k, v in results.items()]
     display_first(
         sorted(criteria, key=lambda x: x[2], reverse=satisfied),
         lambda key_list: key_list_str(*key_list, satisfied), limit_num=limit_num
