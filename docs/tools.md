@@ -1386,7 +1386,70 @@ Earliest -> Latest Last Trains:
 #374: 草房: 00:42 (+1) @ 工作日 6号线 东行 草房回库车 [8B] (金安桥 23:35 -> 草房 00:42 (+1))
 </pre>
 
+### [`shortest_dist.py`](/src/stats/shortest_dist.py): Show the shortest/longest distance between stations
+```
+usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
 
+options:
+  -h, --help            show this help message and exit
+  -n LIMIT_NUM, --limit-num LIMIT_NUM
+                        Limit number of output
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+```
+
+Show the shortest/longest N station distance figures. Do not consider trains, so no parameter like `-a` and `-f`.
+
+Example Usage:
+<pre>
+$ python3 src/stats/shortest_dist.py -n 20
+City default: &lt;北京: 24 lines&gt;
+Shortest/Longest Station Distances:
+#1: 424m: 1号线 南礼士路 <-> 复兴门
+#2: 565m: 16号线 玉渊潭东门 <-> 木樨地
+#3: 689m: 11号线 北辛安 <-> 新首钢
+#4: 734m: 7号线 湾子 <-> 达官营
+#5: 734m: 10号线 呼家楼 <-> 金台夕照
+#6: 741m: 8号线 永定门外 <-> 木樨园
+#7: 749m: 10号线 泥洼 <-> 西局
+#8: 762m: 8号线 金鱼胡同 <-> 王府井
+#9: 774m: 1号线 王府井 <-> 东单
+#10: 776m: 1号线 临河里 <-> 土桥
+#11: 777m: 6号线 白石桥南 <-> 二里沟
+#12: 778m: 10号线 长春桥 <-> 火器营
+#13: 781m: 7号线 九龙山 <-> 大郊亭
+#14: 788m: 9号线 科怡路 <-> 丰台科技园
+#15: 790m: 1号线 永安里 <-> 国贸
+#16: 791m: 5号线 北新桥 <-> 张自忠路
+#17: 792m: 2号线 雍和宫 <-> 安定门
+#18: 815m: 4号线 西单 <-> 宣武门
+#19: 822m: 5号线 东单 <-> 崇文门
+#20: 824m: 2号线 东四十条 <-> 东直门
+...
+#422: 3508m: 昌平线 十三陵景区 <-> 昌平
+#423: 3623m: 13号线 西二旗 <-> 龙泽
+#424: 3799m: 昌平线 巩华城 <-> 朱辛庄
+#425: 3999m: 6号线 青年路 <-> 褡裢坡
+#426: 4042m: 房山线 长阳 <-> 稻田
+#427: 4073m: 14号线 园博园 <-> 大瓦窑
+#428: 4567m: 15号线 后沙峪 <-> 南法信
+#429: 4786m: 13号线 霍营 <-> 立水桥
+#430: 4866m: 13号线 五道口 <-> 上地
+#431: 5102m: 4号线 新宫 <-> 西红门
+#432: 5357m: 昌平线 南邵 <-> 沙河高教园
+#433: 5440m: 昌平线 生命科学园 <-> 西二旗
+#434: 5840m: 17号线 十八里店 <-> 北神树
+#435: 6466m: 房山线 稻田 <-> 大葆台
+#436: 6720m: 13号线 北苑 <-> 望京西
+#437: 7243m: 首都机场线 3号航站楼 -> 2号航站楼
+#438: 13028m: 大兴机场线 大兴新城 <-> 草桥
+#439: 18322m: 首都机场线 三元桥 -> 3号航站楼
+#440: 20738m: 首都机场线 2号航站楼 -> 三元桥
+#441: 25303m: 大兴机场线 大兴机场 <-> 大兴新城
+</pre>
+Notice that `->` indicated single-direction journey only.
 
 ### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
 ```

@@ -98,6 +98,7 @@
   - [ ] 多语言支持
   - [x] 车站/线路编号
 - [x] 各类平均数的标准差支持 (`city_statistics.py` & `show_express_trains.py` not done)
+- [x] 最短/最长站间距
 
 ## 线网径路PK：对于同一个首末站组合，指定不同径路
 - 指定径路：

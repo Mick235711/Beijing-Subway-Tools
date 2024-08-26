@@ -127,15 +127,16 @@ def display_first(
 
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
-    include_limit: bool = True, include_passing_limit: bool = True
+    include_limit: bool = True, include_passing_limit: bool = True, include_train_ctrl: bool = True
 ) -> tuple[dict[str, list[tuple[str, Train]]], argparse.Namespace, City, dict[str, Line]]:
     """ Parse arguments for all statistics files """
     parser = argparse.ArgumentParser()
     if include_limit:
         parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
-    parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
-    parser.add_argument("-f", "--full-only", action="store_true",
-                        help="Only include train that runs the full journey")
+    if include_train_ctrl:
+        parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
+        parser.add_argument("-f", "--full-only", action="store_true",
+                            help="Only include train that runs the full journey")
     if include_passing_limit:
         parser.add_argument("-s", "--limit-start", help="Limit earliest passing time of the trains")
         parser.add_argument("-e", "--limit-end", help="Limit latest passing time of the trains")
@@ -150,14 +151,15 @@ def parse_args(
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
 
-    if args.all:
-        print("All Dates:")
+    if vars(args).get("all", True):
+        if "all" in vars(args):
+            print("All Dates:")
         all_trains = get_all_trains(lines, train_dict)
     else:
         travel_date = ask_for_date()
         all_trains = get_all_trains(lines, train_dict, limit_date=travel_date)
 
-    if args.full_only:
+    if vars(args).get("full_only", False):
         all_trains = {k: [e for e in v if e[1].is_full()] for k, v in all_trains.items()}
 
     # Parse include/exclude lines
