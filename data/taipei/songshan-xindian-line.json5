@@ -1,0 +1,63 @@
+// 数据截止2023/07
+// 松山新店线时刻表（来自台北捷运官网）
+// 注：小碧潭支线独立描述
+{
+    name: "松山新店線",
+    aliases: ["Songshan-Xindian Line"],
+    code: "G",
+    index: 3,
+    carriage_num: 6,
+    carriage_type: "C",
+    design_speed: 80,
+    stations: [
+        {name: "新店", aliases: ["Bitan"]},
+        {name: "新店區公所", dist: 1115, aliases: ["Xindian District Office"]},
+        {name: "七張", dist: 900},
+        {name: "大坪林", dist: 850},
+        {name: "景美", dist: 1150},
+        {name: "萬隆", dist: 1070},
+        {name: "公館", dist: 1560, aliases: ["National Taiwan University"]},
+        {name: "台電大樓", dist: 900, aliases: ["Taipower Building"]},
+        {name: "古亭", dist: 877},
+        {name: "中正紀念堂", dist: 931, aliases: ["Chiang Kai-Shek Memorial Hall", "Nanmen"]},
+        {name: "小南門", dist: 822},
+        {name: "西門", dist: 756},
+        {name: "北門", dist: 836, aliases: ["Dadaocheng South"]},
+        {name: "中山", dist: 1201},
+        {name: "松江南京", dist: 1315},
+        {name: "南京復興", dist: 964},
+        {name: "台北小巨蛋", dist: 1014, aliases: ["Taipei Arena"]},
+        {name: "南京三民", dist: 1053},
+        {name: "松山", dist: 1339}
+    ],
+    train_routes: {
+        "北行": {
+            aliases: ["Northbound"],
+            "全程車": {},
+            "七張始發空車": {starts_with: "七張"},
+            "大坪林始發空車": {starts_with: "大坪林"},
+            "公館始發空車": {starts_with: "公館"},
+            "台電大樓始發空車": {starts_with: "台電大樓"},
+            "中正紀念堂始發空車": {starts_with: "中正紀念堂"},
+            "北門始發空車": {starts_with: "北門"},
+            "南京復興始發空車": {starts_with: "南京復興"}
+        },
+        "南行": {
+            aliases: ["Southbound"],
+            reversed: true,
+            "全程車": {},
+            "七張始發空車": {starts_with: "七張"},
+            "台電大樓始發空車": {starts_with: "台電大樓"},
+            "西門始發空車": {starts_with: "西門"},
+            "中山始發空車": {starts_with: "中山"},
+            "南京復興始發空車": {starts_with: "南京復興"},
+            "台電大樓區間車": {ends_with: "台電大樓"}
+        }
+    },
+    date_groups: {
+        "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "例假日": {weekday: [6, 7], aliases: ["Holidays"]}
+    },
+    timetable: {
+    }
+}
