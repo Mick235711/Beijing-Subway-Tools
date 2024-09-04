@@ -51,17 +51,53 @@ class Transfer:
                     self.special_time[(from_line.name, from_d, to_line.name, to_d)] = (minutes, time_interval)
 
     def get_transfer_time(
-        self, from_line: Line, from_direction: str, to_line: Line, to_direction: str,
+        self, from_line: Line | str, from_direction: str, to_line: Line | str, to_direction: str,
         cur_date: date | DateGroup, cur_time: time, cur_day: bool = False
     ) -> tuple[float, bool]:
         """ Retrieve transfer time (returns true if special) """
-        key = (from_line.name, from_direction, to_line.name, to_direction)
+        key = (from_line.name if isinstance(from_line, Line) else from_line, from_direction,
+               to_line.name if isinstance(to_line, Line) else to_line, to_direction)
         if key in self.special_time:
             special_time, interval = self.special_time[key]
             if interval.covers(cur_date, cur_time, cur_day):
                 return special_time, True
         assert key in self.transfer_time, (self, key)
         return self.transfer_time[key], False
+
+    def get_smallest_time(
+        self, from_line: Line | None = None, from_direction: str | None = None,
+        to_line: Line | None = None, to_direction: str | None = None,
+        cur_date: date | DateGroup | None = None, cur_time: time | None = None, cur_day: bool = False
+    ) -> tuple[str, str, str, str, float, bool]:
+        """ Retrieve the smallest transfer time available, given limited parameters """
+        if from_line is None:
+            assert from_direction is None, (from_line, from_direction)
+            possible_from = list(set((x[0], x[1]) for x in self.transfer_time.keys()))
+        elif from_direction is None:
+            possible_from = [(from_line.name, x) for x in from_line.directions.keys()]
+        else:
+            possible_from = [(from_line.name, from_direction)]
+        if to_line is None:
+            assert to_direction is None, (to_line, to_direction)
+            possible_to = list(set((x[0], x[1]) for x in self.transfer_time.keys()))
+        elif to_direction is None:
+            possible_to = [(to_line.name, x) for x in to_line.directions.keys()]
+        else:
+            possible_to = [(to_line.name, to_direction)]
+
+        results: list[tuple[str, str, str, str, float, bool]] = []
+        for from_l, from_d in possible_from:
+            for to_l, to_d in possible_to:
+                if (from_l, from_d, to_l, to_d) not in self.transfer_time.keys():
+                    continue
+                if cur_date is not None:
+                    # We have a date, use get_transfer_time then
+                    assert cur_time is not None, (cur_date, cur_time, cur_day)
+                    transfer_time = self.get_transfer_time(from_l, from_d, to_l, to_d, cur_date, cur_time, cur_day)
+                else:
+                    transfer_time = (self.transfer_time[(from_l, from_d, to_l, to_d)], False)
+                results.append((from_l, from_d, to_l, to_d, transfer_time[0], transfer_time[1]))
+        return min(results, key=lambda x: x[-2])
 
 
 def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_datas: list[dict[str, Any]],

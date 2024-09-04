@@ -175,14 +175,13 @@ def get_all_trains(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     virtual_dict: dict[tuple[str, str], Transfer],
-    station: str, cur_date: date, *, add_virtual: bool = True
+    station: str, cur_date: date
 ) -> list[tuple[str, Train]]:
     """ Get all trains passing through a station and its virtual transfers """
     all_passing = [(station, x) for x in get_all_trains_single(lines, train_dict, station, cur_date)]
-    if add_virtual:
-        for (from_station, to_station), transfer in virtual_dict.items():
-            if from_station == station:
-                all_passing += [(to_station, x) for x in get_all_trains_single(lines, train_dict, to_station, cur_date)]
+    for (from_station, to_station), transfer in virtual_dict.items():
+        if from_station == station:
+            all_passing += [(to_station, x) for x in get_all_trains_single(lines, train_dict, to_station, cur_date)]
     return sorted(all_passing, key=lambda st: get_time_str(*st[1].arrival_time[st[0]]))
 
 
@@ -199,17 +198,20 @@ def find_next_train(
     """ Find all possible next trains """
     # Find one for each line/direction/routes pair
     result: dict[tuple[str, str, frozenset[TrainRoute]], tuple[str, Train]] = {}
-    for new_station, train in get_all_trains(
-        lines, train_dict, virtual_dict, station, cur_date,
-        add_virtual=(cur_line is not None and cur_direction is not None)
-    ):
+    for new_station, train in get_all_trains(lines, train_dict, virtual_dict, station, cur_date):
         # calculate the least time for this line/direction
         if new_station != station:
-            assert cur_line is not None and cur_direction is not None, train
-            transfer_time, _ = virtual_dict[(station, new_station)].get_transfer_time(
-                cur_line, cur_direction, train.line, train.direction,
-                cur_date, cur_time, cur_day
-            )
+            if cur_line is None or cur_direction is None:
+                # Simply get the lowest possible transfer time
+                _, _, _, _, transfer_time, _ = virtual_dict[(station, new_station)].get_smallest_time(
+                    cur_line, cur_direction, train.line, train.direction,
+                    cur_date, cur_time, cur_day
+                )
+            else:
+                transfer_time, _ = virtual_dict[(station, new_station)].get_transfer_time(
+                    cur_line, cur_direction, train.line, train.direction,
+                    cur_date, cur_time, cur_day
+                )
         elif cur_line is not None and cur_line != train.line:
             assert cur_direction is not None, (cur_line, cur_direction)
             transfer_time, _ = transfer_dict[station].get_transfer_time(
@@ -353,12 +355,20 @@ def bfs(
                     results[next_station] = next_result
                     if next_train_start != station:
                         # A virtual transfer occurred
-                        assert prev_line is not None and prev_direction is not None, (station, next_train_start)
-                        transfer_spec = (prev_line.name, prev_direction, next_train.line.name, next_train.direction)
-                        transfer_time, special = virtual_dict[(station, next_train_start)].get_transfer_time(
-                            prev_line, prev_direction, next_train.line, next_train.direction,
-                            start_date, cur_time, cur_day
-                        )
+                        if prev_line is None or prev_direction is None:
+                            from_l, from_d, to_l, to_d, transfer_time, special = virtual_dict[
+                                (station, next_train_start)
+                            ].get_smallest_time(
+                                prev_line, prev_direction, next_train.line, next_train.direction,
+                                start_date, cur_time, cur_day
+                            )
+                            transfer_spec = (from_l, from_d, to_l, to_d)
+                        else:
+                            transfer_spec = (prev_line.name, prev_direction, next_train.line.name, next_train.direction)
+                            transfer_time, special = virtual_dict[(station, next_train_start)].get_transfer_time(
+                                prev_line, prev_direction, next_train.line, next_train.direction,
+                                start_date, cur_time, cur_day
+                            )
                         transferred_time, transferred_day = add_min(
                             cur_time, (floor if exclude_edge else ceil)(transfer_time), cur_day
                         )

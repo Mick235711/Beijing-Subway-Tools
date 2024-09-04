@@ -133,19 +133,19 @@ def to_trains(
             transfer = virtual_dict[(station, next_station)]
             if i == 0 or i == len(new_path) - 1 or new_path[i - 1][1] is None or new_path[i + 1][1] is None:
                 # Select the smallest virtual transfer time
-                from_line_name, from_direction, to_line_name, to_direction = min(
-                    list(transfer.transfer_time.keys()),
-                    key=lambda k: transfer.transfer_time[k]
-                )
+                from_line_name, from_direction, to_line_name, to_direction, transfer_time, is_special = \
+                    transfer.get_smallest_time(
+                        cur_date=cur_date, cur_time=cur_tuple[0], cur_day=cur_tuple[1]
+                    )
                 from_line = lines[from_line_name]
                 to_line = lines[to_line_name]
             else:
                 from_line, from_direction = new_path[i - 1][1]  # type: ignore
                 to_line, to_direction = new_path[i + 1][1]  # type: ignore
-            transfer_time, is_special = transfer.get_transfer_time(
-                from_line, from_direction, to_line, to_direction,
-                cur_date, cur_tuple[0], cur_tuple[1]
-            )
+                transfer_time, is_special = transfer.get_transfer_time(
+                    from_line, from_direction, to_line, to_direction,
+                    cur_date, cur_tuple[0], cur_tuple[1]
+                )
             final_new_path.append((
                 station, (station, next_station, (
                     from_line.name, from_direction, to_line.name, to_direction
