@@ -32,6 +32,13 @@
             // 参考：https://web.metro.taipei/img/ALL/INFOPDF/053.pdf
             // 2扶梯的站台十字节点（双向），淡水信义线B2，松山新店线B4
             {from: "淡水信義線", to: "松山新店線", minutes: 1}
+        ],
+        "七張": [
+            // 侧式站台，主支线共用一侧站台（相当于双岛四线同向同台）
+            {from: "松山新店線", from_direction: "北行", to: "小碧潭支線", to_direction: "北行", minutes: 0},
+            {from: "松山新店線", from_direction: "南行", to: "小碧潭支線", to_direction: "南行", minutes: 0},
+            {from: "松山新店線", from_direction: "南行", to: "小碧潭支線", to_direction: "北行", minutes: 1},
+            {from: "松山新店線", from_direction: "北行", to: "小碧潭支線", to_direction: "南行", minutes: 1}
         ]
     },
     virtual_transfers: [
