@@ -14,6 +14,24 @@
             // 参考：https://web.metro.taipei/img/ALL/INFOPDF/064.pdf
             // 共用站厅
             {from: "淡水信義線", to: "新北投支線", minutes: 1}
+        ],
+        "南京復興": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/009.pdf
+            // 2扶梯+2短通道，文湖线南行需换向后才能开始换乘
+            {from: "文湖線", from_direction: "北行", to: "松山新店線", minutes: 3},
+            {from: "文湖線", from_direction: "南行", to: "松山新店線", minutes: 4}
+        ],
+        "中正紀念堂": [
+            // 同向同台，叠岛
+            {from: "淡水信義線", from_direction: "北行", to: "松山新店線", to_direction: "北行", minutes: 0},
+            {from: "淡水信義線", from_direction: "南行", to: "松山新店線", to_direction: "南行", minutes: 0},
+            {from: "淡水信義線", from_direction: "南行", to: "松山新店線", to_direction: "北行", minutes: 0.5},
+            {from: "淡水信義線", from_direction: "北行", to: "松山新店線", to_direction: "南行", minutes: 0.5}
+        ],
+        "中山": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/053.pdf
+            // 2扶梯的站台十字节点（双向），淡水信义线B2，松山新店线B4
+            {from: "淡水信義線", to: "松山新店線", minutes: 1}
         ]
     },
     virtual_transfers: [
