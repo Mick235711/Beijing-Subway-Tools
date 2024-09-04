@@ -590,7 +590,7 @@ Average over all 223 trains, segment speed: 26.38min, 42.67km/h
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
 ```
-usage: shortest_path.py [-h] [-d {time,transfer,station,distance}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--exclude-single]
+usage: shortest_path.py [-h] [-d {time,transfer,station,distance}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
@@ -604,6 +604,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
 ```
 Use BFS and Yen's algorithm to find the shortest K routes (in terms of time spent) between two stations.
@@ -611,11 +612,16 @@ The argument `-k` specifies the number of routes to be found (only available in 
 
 **NOTE: Larger `-k` value will result in longer computation time.**
 
-`--exclude-edge` is a common flag that is present in most of the program below too.
+`--exclude-edge` is a common flag that is present in most of the programs below too.
 When specified, it will assume a "slower" person and round up the transfer time.
 In this mode, you can no longer have a 0-minute waiting time (i.e., after transfer just enough time to board).
 
+`--include-express` is also a common flag that is present in most of the programs below.
+When specified, higher-fare lines like Airport Express will be allowed to be utilized in all cases, even if
+its usage is not required.
+
 If `--exclude-single` is specified, no single-direction (end circle) line will be allowed.
+If `--exclude-virtual` is specified, no virtual transfers will be allowed.
 
 Example Usage:
 <pre>
@@ -729,7 +735,7 @@ When determining the shortest route, the following criteria are considered in th
 
 ### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
 ```
-usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
+usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -749,6 +755,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
 ```
 Find the average shortest time (shortest time average over every minute in a day), starting from a station.
 
@@ -1687,8 +1694,8 @@ Longest/Shortest Train Segments:
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
-usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH]
-                   [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
+usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
+                   [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -1700,15 +1707,15 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
-                        Graph data source
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
-  --dpi DPI             DPI of output image
   -w LINE_WIDTH, --line-width LINE_WIDTH
                         Override contour line width
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
@@ -1717,6 +1724,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
 ```
 
 Draw an equ-time graph originating from the specified station.
@@ -1728,7 +1736,7 @@ Notice that in every station's circle, the number represents the average number 
 **NOTE: This requires several minutes to compute.**
 
 There are a lot of options to customize the graph:
-- `-s`, `-e`, and `--exclude-edge` have the same meaning as in [the statistics section](#common-arguments).
+- `-s`, `-e`, `--include-*`, and `--exclude-*` have the same meaning as in `shortest_path.py` and [the statistics section](#common-arguments).
 - `-o` specifies the output graph path.
 - `-l` let you override the default contour levels. (For example: `-l 1,10,25` only draw contours at those three minutes.)
 - `-f` let you add focus (make bolder) on a specific contour line.
@@ -1754,8 +1762,8 @@ Drawing contours done! Saving...
 
 ### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
 ```
-usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH]
-                   [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--strategy {avg,min,max}]
+usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
+                   [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--strategy {avg,min,max}]
 
 options:
   -h, --help            show this help message and exit
@@ -1767,15 +1775,15 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
-                        Graph data source
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
-  --dpi DPI             DPI of output image
   -w LINE_WIDTH, --line-width LINE_WIDTH
                         Override contour line width
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
@@ -1784,6 +1792,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
   --strategy {avg,min,max}
                         Strategy for combining station data
 ```
@@ -1826,8 +1835,8 @@ Drawing contours done! Saving...
 
 ### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time maps from two stations
 ```
-usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-l LEVELS] [-f FOCUS] [-d {time,transfer,station,distance}] [-n LABEL_NUM] [--dpi DPI] [-w LINE_WIDTH]
-                       [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
+usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
+                       [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -1839,15 +1848,15 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Graph data source
+  --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
-                        Graph data source
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
-  --dpi DPI             DPI of output image
   -w LINE_WIDTH, --line-width LINE_WIDTH
                         Override contour line width
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
@@ -1856,6 +1865,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
 ```
 
 Draw an equ-time graph originating from the specified station.
@@ -1890,7 +1900,7 @@ Drawing contours done! Saving...
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
 usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
-                    [--exclude-single] [--strategy {kth,avg}] [-k NUM_PATH]
+                    [--include-express] [--exclude-single] [--strategy {kth,avg}] [-k NUM_PATH]
 
 options:
   -h, --help            show this help message and exit
@@ -1911,6 +1921,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
   --strategy {kth,avg}  Strategy for combining station data
   -k NUM_PATH, --num-path NUM_PATH

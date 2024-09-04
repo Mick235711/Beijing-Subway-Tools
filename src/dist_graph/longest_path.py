@@ -139,7 +139,7 @@ def get_longest_route(
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
-    shortest_path_args(parser)
+    shortest_path_args(parser, have_express=False)
     parser.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
     args = parser.parse_args()
     if args.all:

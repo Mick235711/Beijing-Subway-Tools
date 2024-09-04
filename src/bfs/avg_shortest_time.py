@@ -31,7 +31,7 @@ def all_time_bfs(
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
-    exclude_edge: bool = False
+    exclude_edge: bool = False, include_express: bool = False
 ) -> dict[str, list[PathInfo]]:
     """ Run BFS through all times, tally to each station """
     # Loop through first train to last train
@@ -49,7 +49,7 @@ def all_time_bfs(
             for elem in pool.imap_unordered(
                 partial(
                     bfs_wrap, lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
-                    exclude_edge=exclude_edge
+                    exclude_edge=exclude_edge, include_express=include_express
                 ), all_list, chunksize=50
             ):
                 bar.update()
@@ -94,7 +94,7 @@ def calculate_shortest(
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
     limit_end: time | None = None, limit_end_day: bool = False,
-    exclude_edge: bool = False
+    exclude_edge: bool = False, include_express: bool = False
 ) -> dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station (return type: avg time, transfer, station, distance) """
@@ -102,7 +102,7 @@ def calculate_shortest(
         lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
         limit_start=limit_start, limit_start_day=limit_start_day,
         limit_end=limit_end, limit_end_day=limit_end_day,
-        exclude_edge=exclude_edge
+        exclude_edge=exclude_edge, include_express=include_express
     )
     result_dict: dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
@@ -129,7 +129,7 @@ def shortest_in_city(
     limit_end: str | None = None,
     city_station: tuple[City, str, date] | None = None, *,
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
-    exclude_virtual: bool = False, exclude_edge: bool = False
+    exclude_virtual: bool = False, exclude_edge: bool = False, include_express: bool = False
 ) -> tuple[City, str, dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
            list[tuple[float, AbstractPath, list[PathInfo]]]]]]:
     """ Find the shortest path in the city """
@@ -148,7 +148,7 @@ def shortest_in_city(
         lines, train_dict, city.transfers, virtual_transfers, start_date, start,
         limit_start=ls_time, limit_start_day=ls_day,
         limit_end=le_time, limit_end_day=le_day,
-        exclude_edge=exclude_edge
+        exclude_edge=exclude_edge, include_express=include_express
     )
 
 
@@ -157,7 +157,8 @@ def avg_shortest_in_city(
     limit_end: str | None = None,
     *,
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
-    exclude_virtual: bool = False, exclude_edge: bool = False, strategy: str = 'avg'
+    exclude_virtual: bool = False, exclude_edge: bool = False, include_express: bool = False,
+    strategy: str = 'avg'
 ) -> tuple[City, list[str], dict[str, tuple[float, float, float, float]]]:
     """ Find the shortest path to several different stations """
     city = ask_for_city()
@@ -169,7 +170,7 @@ def avg_shortest_in_city(
         _, _, result = shortest_in_city(
             limit_start, limit_end, (city, station, start_date),
             include_lines=include_lines, exclude_lines=exclude_lines,
-            exclude_virtual=exclude_virtual, exclude_edge=exclude_edge
+            exclude_virtual=exclude_virtual, exclude_edge=exclude_edge, include_express=include_express
         )
         if station not in len_dict:
             len_dict[station] = 0
@@ -230,13 +231,19 @@ def path_shorthand(end_station: str, city: City, path: AbstractPath) -> str:
     return result + city.station_full_name(end_station)
 
 
-def shortest_path_args(parser: argparse.ArgumentParser, have_single: bool = False) -> None:
+def shortest_path_args(
+    parser: argparse.ArgumentParser,
+    *, have_single: bool = False, have_express: bool = True
+) -> None:
     """ Add the shortest path arguments like --include-lines """
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--include-lines", help="Include lines")
     group.add_argument("-x", "--exclude-lines", help="Exclude lines")
     parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    if have_express:
+        parser.add_argument("--include-express", action="store_true",
+                            help="Include non-essential use of express lines")
     if have_single:
         parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
 
@@ -286,7 +293,7 @@ def main() -> None:
     city, _, result_dict = shortest_in_city(
         args.limit_start, args.limit_end,
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
     if args.verbose or args.show_path:

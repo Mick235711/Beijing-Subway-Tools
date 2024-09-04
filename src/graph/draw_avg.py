@@ -32,7 +32,8 @@ def main() -> None:
     city, stations, result_dict_temp = avg_shortest_in_city(
         args.limit_start, args.limit_end,
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, strategy=args.strategy
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express,
+        strategy=args.strategy
     )
     data_index = ["time", None, "transfer", "station", "distance"].index(args.data_source)
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (

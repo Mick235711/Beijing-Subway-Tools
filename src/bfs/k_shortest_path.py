@@ -73,7 +73,7 @@ def k_shortest_path(
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_station: str, end_station: str,
     start_date: date, start_time: time, start_day: bool = False,
-    k: int = 1, *, exclude_edge: bool = False
+    k: int = 1, *, exclude_edge: bool = False, include_express: bool = False
 ) -> list[tuple[BFSResult, Path]]:
     """ Find the k shortest paths """
     result: list[tuple[BFSResult, Path]] = []
@@ -82,7 +82,7 @@ def k_shortest_path(
     # First find p1
     bfs_result = bfs(
         lines, train_dict, transfer_dict, virtual_dict, start_date,
-        start_station, start_time, start_day, exclude_edge=exclude_edge
+        start_station, start_time, start_day, exclude_edge=exclude_edge, include_express=include_express
     )
     if end_station not in bfs_result:
         return result
@@ -135,7 +135,7 @@ def k_shortest_path(
                 station, *saved_arrival_time,
                 initial_line_direction=(None if i == 0 else line_direction),
                 exclude_stations=set(x[0] for x in trace[:i]),
-                exclude_edges=exclude_edges, exclude_edge=exclude_edge
+                exclude_edges=exclude_edges, exclude_edge=exclude_edge, include_express=include_express
             )
             if saved_train != train:
                 saved_station = station

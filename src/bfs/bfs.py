@@ -288,7 +288,8 @@ def bfs(
     initial_line_direction: tuple[Line, str] | None = None,
     exclude_stations: set[str] | None = None,
     exclude_edges: dict[str, set[tuple[Line, str]]] | None = None,  # station -> line, direction
-    exclude_edge: bool = False
+    exclude_edge: bool = False,
+    include_express: bool = False
 ) -> dict[str, BFSResult]:
     """ Search for the shortest path (by time) to every station """
     queue = [start_station]
@@ -326,7 +327,7 @@ def bfs(
             if len(next_train.line.must_include) != 0 and next_train_start not in next_train.line.must_include and not (
                 station == start_station and initial_line_direction is not None and
                 initial_line_direction[0] == next_train.line
-            ):
+            ) and not include_express:
                 next_stations = [
                     (st, next_train_virtual[st]) for st in next_train.line.must_include if st in next_train_virtual
                 ]

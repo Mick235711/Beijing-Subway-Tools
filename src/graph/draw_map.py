@@ -46,7 +46,7 @@ def map_args(
             "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
         parser.add_argument(
             "-w", "--line-width", type=int, help="Override contour line width", default=5)
-    shortest_path_args(parser, have_single)
+    shortest_path_args(parser, have_single=have_single)
     if more_args is not None:
         more_args(parser)
     return parser.parse_args()
@@ -264,7 +264,7 @@ def main() -> None:
     city, start, result_dict_temp = shortest_in_city(
         args.limit_start, args.limit_end,
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     data_index = ["time", None, "transfer", "station", "distance"].index(args.data_source)
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (

@@ -26,12 +26,12 @@ def find_last_train(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, end_station: str, *,
-    exclude_edge: bool = False
+    exclude_edge: bool = False, include_express: bool = False
 ) -> TimeSpec:
     """ Calculate the last possible time to reach station """
     results = all_time_bfs(
         lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
-        exclude_edge=exclude_edge
+        exclude_edge=exclude_edge, include_express=include_express
     )
     max_result = max(results[end_station], key=lambda x: (
         get_time_str(x[2].arrival_time, x[2].arrival_day), get_time_str(x[2].initial_time, x[2].initial_day)
@@ -69,7 +69,7 @@ def ask_for_shortest_path(
             lines, train_dict,
             city.transfers, virtual_transfers,
             start_date, start[0], end[0],
-            exclude_edge=args.exclude_edge
+            exclude_edge=args.exclude_edge, include_express=args.include_express
         )
     )
 
@@ -90,7 +90,7 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
             lines, train_dict, city.transfers, virtual_transfers,
             start[0], end[0],
             start_date, start_time, start_day,
-            k=num_path, exclude_edge=args.exclude_edge
+            k=num_path, exclude_edge=args.exclude_edge, include_express=args.include_express
         )
         if len(results) == 0:
             print("Unreachable!")
@@ -129,7 +129,7 @@ def main() -> None:
     parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
                         default="time", help="Shortest path criteria")
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
-    shortest_path_args(parser, True)
+    shortest_path_args(parser, have_single=True)
     args = parser.parse_args()
     get_kth_path(args)
 

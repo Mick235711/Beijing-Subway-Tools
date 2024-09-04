@@ -64,7 +64,7 @@ def main() -> None:
     _, _, result_dict_temp1 = shortest_in_city(
         args.limit_start, args.limit_end, (city, station1, start_date),
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     result_dict1 = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
@@ -72,7 +72,7 @@ def main() -> None:
     _, _, result_dict_temp2 = shortest_in_city(
         args.limit_start, args.limit_end, (city, station2, start_date),
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     result_dict2 = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1

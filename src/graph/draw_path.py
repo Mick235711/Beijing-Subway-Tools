@@ -59,7 +59,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
     _, _, result_dict = shortest_in_city(
         args.limit_start, args.limit_end, (city, start[0], start_date),
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
 
     data = result_dict[end[0]]
