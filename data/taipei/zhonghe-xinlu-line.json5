@@ -1,0 +1,73 @@
+// 数据截止2023/07
+// 中和新芦线时刻表（来自台北捷运官网）
+// 注：芦洲线独立描述，按跨线处理
+{
+    name: "中和新蘆線",
+    aliases: ["Zhonghe-Xinlu Line"],
+    code: "O",
+    index: 4,
+    carriage_num: 6,
+    carriage_type: "C",
+    design_speed: 80,
+    stations: [
+        {name: "南勢角"},
+        {name: "景安", dist: 692},
+        {name: "永安市場", dist: 1150, aliases: ["Yongan Market"]},
+        {name: "頂溪", dist: 1300},
+        {name: "古亭", dist: 2150},
+        {name: "東門", dist: 1575},
+        {name: "忠孝新生", dist: 1180, aliases: ["National Taipei University of Technology"]},
+        {name: "松江南京", dist: 1147},
+        {name: "行天宮", dist: 823, aliases: ["Xingtian Temple"]},
+        {name: "中山國小", dist: 924, aliases: ["Zhongshan Elementary School", "Qingguang Commercial Zone"]},
+        {name: "民權西路", dist: 659, aliases: ["Minquan West Road"]},
+        {name: "大橋頭", dist: 681, aliases: ["Daqiao Elementary School"]},
+        {name: "台北橋", dist: 1339, aliases: ["Taipei Bridge"]},
+        {name: "菜寮", dist: 1009, aliases: ["New Taipei City Hospital"]},
+        {name: "三重", dist: 891},
+        {name: "先嗇宮", dist: 1675, aliases: ["Xianse Temple"]},
+        {name: "頭前庄", dist: 1286, aliases: ["Taipei Hospital"]},
+        {name: "新莊", dist: 1007, aliases: ["Xinzhuang Temple Street"]},
+        {name: "輔大", dist: 1826, aliases: ["Fu Jen University"]},
+        {name: "丹鳳", dist: 1247},
+        {name: "迴龍", dist: 1295, aliases: ["Lo-Sheng"]}
+    ],
+    train_routes: {
+        "北行": {
+            aliases: ["Northbound"],
+            "全程車": {},
+            "景安始發空車": {starts_with: "景安"},
+            "永安市場始發空車": {starts_with: "永安市場"},
+            "古亭始發空車": {starts_with: "古亭"},
+            "忠孝新生始發空車": {starts_with: "忠孝新生"},
+            "行天宮始發空車": {starts_with: "行天宮"},
+            "民權西路始發空車": {starts_with: "民權西路"},
+            "菜寮始發空車": {starts_with: "菜寮"},
+            "新莊始發空車": {starts_with: "新莊"},
+            "丹鳳始發空車": {starts_with: "丹鳳"},
+            "蘆洲線貫通車": {ends_with: "大橋頭"}
+        },
+        "南行": {
+            aliases: ["Southbound"],
+            reversed: true,
+            "全程車": {},
+            "景安始發空車": {starts_with: "景安"},
+            "永安市場始發空車": {starts_with: "永安市場"},
+            "古亭始發空車": {starts_with: "古亭"},
+            "忠孝新生始發空車": {starts_with: "忠孝新生"},
+            "中山國小始發空車": {starts_with: "中山國小"},
+            "民權西路始發空車": {starts_with: "民權西路"},
+            "大橋頭始發空車": {starts_with: "大橋頭"},
+            "先嗇宮始發空車": {starts_with: "先嗇宮"},
+            "頭前庄始發空車": {starts_with: "頭前庄"},
+            "輔大始發空車": {starts_with: "輔大"},
+            "蘆洲線貫通車": {starts_with: "大橋頭"}
+        }
+    },
+    date_groups: {
+        "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "例假日": {weekday: [6, 7], aliases: ["Holidays"]}
+    },
+    timetable: {
+    }
+}
