@@ -8,7 +8,7 @@ from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,
     ask_for_station_pair_in_line, ask_for_date_group
 from src.city.date_group import DateGroup
 from src.city.line import Line
-from src.common.common import get_time_str, diff_time
+from src.common.common import get_time_str, diff_time, suffix_s, average, stddev
 from src.routing.train import parse_trains
 
 
@@ -71,6 +71,9 @@ def main() -> None:
     direction, time_dict = get_time_between(
         line, date_group, start, end, with_direction=with_direction)
     line.timetables()[start][direction][date_group.name].pretty_print(with_time=time_dict)
+    print("Total " + suffix_s("train", len(time_dict)) + ". Average time = " +
+          f"{average(x for x in time_dict.values() if x is not None):.2f}" +
+          f" minutes (stddev = {stddev(x for x in time_dict.values() if x is not None):.2f})")
 
 
 # Call main

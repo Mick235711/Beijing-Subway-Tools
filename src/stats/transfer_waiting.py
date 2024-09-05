@@ -10,7 +10,7 @@ from math import floor, ceil
 from src.city.city import City
 from src.city.date_group import DateGroup
 from src.city.transfer import Transfer, TransferSpec
-from src.common.common import suffix_s, diff_time_tuple, average, stddev
+from src.common.common import diff_time_tuple, average, stddev
 from src.routing.train import Train
 from src.stats.common import display_first, parse_args
 
@@ -23,10 +23,9 @@ def key_list_str(
         f" -> {result_key[1]} (virtual)" if result_key[0] != result_key[1] else ""
     )
     base += f" / {result_key[2][0]} ({result_key[2][1]}) -> {result_key[2][2]} ({result_key[2][3]}): "
-    base += "Average = " + suffix_s("minute", f"{criteria:.2f}") + f" (stddev = {sd_crit:.2f})"\
+    base += f"Average = {criteria:.2f} minutes (stddev = {sd_crit:.2f})"\
         if not percentage else f"Percentage = {criteria * 100:.2f}%"
-    base += ", max = " + suffix_s("minute", f"{max(values):.2f}")
-    base += ", min = " + suffix_s("minute", f"{min(values):.2f}")
+    base += f", max = {max(values):.2f} minutes, min = {min(values):.2f} minutes"
     return base
 
 
