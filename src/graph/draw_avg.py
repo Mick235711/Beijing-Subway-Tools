@@ -10,7 +10,7 @@ from typing import cast
 from PIL import Image, ImageDraw
 from scipy.interpolate import griddata  # type: ignore
 
-from src.bfs.avg_shortest_time import avg_shortest_in_city
+from src.bfs.avg_shortest_time import avg_shortest_in_city, data_criteria
 from src.city.ask_for_city import ask_for_map
 from src.graph.draw_map import get_colormap, draw_all_station, draw_contour_wrap, map_args, get_levels_from_source
 
@@ -35,7 +35,7 @@ def main() -> None:
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express,
         strategy=args.strategy
     )
-    data_index = ["time", None, "transfer", "station", "distance"].index(args.data_source)
+    data_index = data_criteria.index(args.data_source)
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
     ) for station, x in result_dict_temp.items()}

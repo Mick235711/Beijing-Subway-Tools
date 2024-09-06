@@ -6,6 +6,7 @@
 # Libraries
 import argparse
 from collections.abc import Callable
+from datetime import date
 from typing import cast, Any
 
 import matplotlib as mpl
@@ -15,8 +16,9 @@ from PIL import Image, ImageDraw
 from matplotlib.colors import LinearSegmentedColormap, Colormap, LogNorm, SymLogNorm
 from scipy.interpolate import griddata  # type: ignore
 
-from src.bfs.avg_shortest_time import shortest_in_city, shortest_path_args
+from src.bfs.avg_shortest_time import shortest_in_city, shortest_path_args, data_criteria
 from src.city.ask_for_city import ask_for_map
+from src.city.city import City
 from src.common.common import parse_comma
 from src.graph.map import Map
 
@@ -27,7 +29,7 @@ Color = tuple[float, float, float] | tuple[float, float, float, float]
 
 def map_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None,
-    *, contour_args: bool = True, have_single: bool = False
+    *, contour_args: bool = True, have_single: bool = False, multi_source: bool = True
 ) -> argparse.Namespace:
     """ Parse arguments """
     parser = argparse.ArgumentParser()
@@ -35,8 +37,9 @@ def map_args(
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
-    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
-                        default="time", help="Graph data source")
+    if multi_source:
+        parser.add_argument("-d", "--data-source", choices=data_criteria,
+                            default="time", help="Graph data source")
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
 
     if contour_args:
@@ -56,9 +59,12 @@ def get_levels(kind: str = "time") -> list[int]:
     """ Get corresponding default drawing levels """
     return {
         "time": [0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240],
+        "stddev": [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         "transfer": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         "station": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100],
-        "distance": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 140, 160]
+        "distance": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 140, 160],
+        "max": [0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240],
+        "min": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120, 135, 150]
     }[kind]
 
 
@@ -255,22 +261,30 @@ def get_levels_from_source(args: argparse.Namespace, have_minus: bool = False) -
     return levels
 
 
+def get_map_data(
+    args: argparse.Namespace, city_station: tuple[City, str, date] | None = None,
+    with_map: Map | None = None
+) -> tuple[str, Map, dict]:
+    """ Get data necessary for drawing map """
+    city, start, _, result_dict_temp = shortest_in_city(
+        args.limit_start, args.limit_end, city_station,
+        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
+    )
+    data_index = data_criteria.index(args.data_source)
+    result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
+        1000 if args.data_source == "distance" else 1
+    ) for station, x in result_dict_temp.items()}
+    map_obj = with_map or ask_for_map(city)
+    return start, map_obj, result_dict
+
+
 def main() -> None:
     """ Main function """
     args = map_args()
     cmap = get_colormap(args.color_map)
     levels = get_levels_from_source(args)
-
-    city, start, _, result_dict_temp = shortest_in_city(
-        args.limit_start, args.limit_end,
-        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
-    )
-    data_index = ["time", None, "transfer", "station", "distance"].index(args.data_source)
-    result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
-        1000 if args.data_source == "distance" else 1
-    ) for station, x in result_dict_temp.items()}
-    map_obj = ask_for_map(city)
+    start, map_obj, result_dict = get_map_data(args)
 
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)

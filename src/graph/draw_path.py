@@ -114,7 +114,7 @@ def main() -> None:
                             help="Strategy for combining station data")
         parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
 
-    args = map_args(append_arg, contour_args=False, have_single=True)
+    args = map_args(append_arg, contour_args=False, have_single=True, multi_source=False)
     cmap = get_colormap(args.color_map or "Greys")
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:

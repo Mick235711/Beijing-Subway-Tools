@@ -1712,7 +1712,7 @@ Longest/Shortest Train Segments:
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
-usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
+usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
                    [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
@@ -1725,7 +1725,7 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
                         Graph data source
   --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
@@ -1780,7 +1780,7 @@ Drawing contours done! Saving...
 
 ### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
 ```
-usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
+usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
                    [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--strategy {avg,min,max}]
 
 options:
@@ -1793,7 +1793,7 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
                         Graph data source
   --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
@@ -1853,7 +1853,7 @@ Drawing contours done! Saving...
 
 ### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time maps from two stations
 ```
-usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
+usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
                        [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
@@ -1866,7 +1866,7 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
                         Graph data source
   --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
@@ -1917,8 +1917,8 @@ Drawing contours done! Saving...
 
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
-usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,transfer,station,distance}] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge]
-                    [--include-express] [--exclude-single] [--strategy {kth,avg}] [-k NUM_PATH]
+usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+                    [--strategy {kth,avg}] [-k NUM_PATH]
 
 options:
   -h, --help            show this help message and exit
@@ -1930,8 +1930,6 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
-                        Graph data source
   --dpi DPI             DPI of output image
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
