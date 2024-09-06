@@ -67,6 +67,37 @@ def equivalent_path(path1: Path, path2: Path) -> bool:
                for ((st1, t1), (st2, t2)) in zip(path1, path2))
 
 
+def fix_path(final_path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_date: date) -> Path:
+    """ Fix virtual transfers within a path """
+    if len(final_path) < 3:
+        return final_path
+    fixed_path = [final_path[0]]
+    for j, (nc_station, nc_train) in enumerate(final_path):
+        if j == 0 or j == len(final_path) - 1:
+            continue
+        if not isinstance(nc_train, Train) and isinstance(
+                final_path[j - 1][1], Train
+        ) and isinstance(final_path[j + 1][1], Train):
+            last_station = final_path[j - 1][0]
+            last_train = final_path[j - 1][1]
+            next_station = final_path[j + 1][0]
+            next_train = final_path[j + 1][1]
+            assert isinstance(last_train, Train) and isinstance(next_train, Train)
+            transfer_time, is_special = virtual_dict[(nc_station, next_station)].get_transfer_time(
+                last_train.line, last_train.direction, next_train.line, next_train.direction,
+                start_date, *last_train.arrival_time_virtual(last_station)[nc_station]
+            )
+            fixed_path.append((nc_station, (
+                nc_station, next_station,
+                (last_train.line.name, last_train.direction, next_train.line.name, next_train.direction),
+                transfer_time, is_special
+            )))
+        else:
+            fixed_path.append((nc_station, nc_train))
+    fixed_path.append(final_path[-1])
+    return fixed_path
+
+
 def k_shortest_path(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
@@ -122,7 +153,10 @@ def k_shortest_path(
                         exclude_edges[prev_station].add((lines[prev_train[2][2]], prev_train[2][3]))
 
             # Calculate deviate -> end and pin with start -> deviate together
-            if isinstance(saved_train, Train):
+            if station == start_station:
+                line_direction = None
+                saved_arrival_time = (start_time, start_day)
+            elif isinstance(saved_train, Train):
                 line_direction = (saved_train.line, saved_train.direction)
                 saved_arrival_time = saved_train.arrival_time_virtual(saved_station)[station]
             else:
@@ -147,32 +181,7 @@ def k_shortest_path(
             new_result.initial_time = start_time
             new_result.initial_day = start_day
             final_path = merge_path(limit_path(pk_path, station, end_station), new_path)
-
-            # Fix path
-            fixed_path = [final_path[0]]
-            for j, (nc_station, nc_train) in enumerate(final_path):
-                if j == 0 or j == len(final_path) - 1:
-                    continue
-                if not isinstance(nc_train, Train) and isinstance(
-                    final_path[j - 1][1], Train
-                ) and isinstance(final_path[j + 1][1], Train):
-                    last_station = final_path[j - 1][0]
-                    last_train = final_path[j - 1][1]
-                    next_station = final_path[j + 1][0]
-                    next_train = final_path[j + 1][1]
-                    assert isinstance(last_train, Train) and isinstance(next_train, Train)
-                    transfer_time, is_special = virtual_dict[(nc_station, next_station)].get_transfer_time(
-                        last_train.line, last_train.direction, next_train.line, next_train.direction,
-                        start_date, *last_train.arrival_time_virtual(last_station)[nc_station]
-                    )
-                    fixed_path.append((nc_station, (
-                        nc_station, next_station,
-                        (last_train.line.name, last_train.direction, next_train.line.name, next_train.direction),
-                        transfer_time, is_special
-                    )))
-                else:
-                    fixed_path.append((nc_station, nc_train))
-            fixed_path.append(final_path[-1])
+            fixed_path = fix_path(final_path, virtual_dict, start_date)
             new_candidate = (new_result, fixed_path)
 
             found = False

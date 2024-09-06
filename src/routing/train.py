@@ -181,7 +181,7 @@ class Train:
         """ Get string representation for two stations """
         arrival_keys = self.arrival_time_virtual(start_station)
         if start_station == end_station:
-            assert self.loop_next is not None, self
+            assert self.loop_next is not None, (self, start_station)
             arrival_keys[end_station] = self.loop_next.arrival_time[end_station]
         assert end_station in arrival_keys, (end_station, arrival_keys)
         return (f"{self.direction_repr()} {self.line.station_full_name(start_station)} " +
