@@ -1650,7 +1650,7 @@ options:
                         Include lines
   -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
-  -d {distance,duration,count}, --sort-by {distance,duration,count}
+  -d {distance,duration,count}, --data-source {distance,duration,count}
                         Sort by distance/duration/count
 ```
 

@@ -39,7 +39,7 @@ def main() -> None:
     """ Main function """
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
-        parser.add_argument("-d", "--sort-by", choices=[
+        parser.add_argument("-d", "--data-source", choices=[
             "distance", "duration", "count"
         ], default="distance", help="Sort by distance/duration/count")
 
