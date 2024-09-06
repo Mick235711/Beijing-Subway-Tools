@@ -737,7 +737,8 @@ When determining the shortest route, the following criteria are considered in th
 
 ### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
 ```
-usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
+usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-d {time,stddev,transfer,station,distance,max,min}] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
+                            [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -745,6 +746,8 @@ options:
                         Limit start time of the search
   -e LIMIT_END, --limit-end LIMIT_END
                         Limit end time of the search
+  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
+                        Station sort criteria
   -v, --verbose         Increase verbosity
   -p, --show-path       Show detailed path
   -n LIMIT_NUM, --limit-num LIMIT_NUM
@@ -767,6 +770,7 @@ There are a lot of flags:
 - `-s` and `-e` can specify the start and end time of the search (e.g. `-s 06:00` averages from 6am to end of day.)
 - `-n` and `-t` can limit the result. If `-n` is specified, then the nearest and farthest N stations are displayed.  If `-t` is specified, then only the specified stations are displayed.
 - `-v` and `-p` enable verbose output. `-v` will show the detailed path percentage of each station, and `-p` (implies `-v`) will add the max/min path display.
+- `-d` allows you to choose the sorting criteria.
 
 Example Usage:
 <pre>

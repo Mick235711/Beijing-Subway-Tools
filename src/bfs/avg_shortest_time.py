@@ -18,7 +18,7 @@ from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
-    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev
+    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 
@@ -87,6 +87,9 @@ def all_time_bfs(
                 new_paths.append((duration + last_minute - minute, path, new_result))
         results[station] = sorted(new_paths, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
     return results
+
+
+data_criteria = ["time", "stddev", "transfer", "station", "distance", "max", "min"]
 
 
 def calculate_shortest(
@@ -291,6 +294,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
+    parser.add_argument("-d", "--data-source", choices=data_criteria,
+                        default="time", help="Station sort criteria")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
     group.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
@@ -306,7 +311,8 @@ def main() -> None:
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
-    result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
+    result_dict = dict(sorted(list(result_dict.items()),
+                              key=lambda x: (x[1][data_criteria.index(args.data_source)], x[1][0], to_pinyin(x[0])[0])))
 
     for i, (station, data) in enumerate(result_dict.items()):
         if len(stations) > 0 and station not in stations:
