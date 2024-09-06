@@ -1025,6 +1025,18 @@ Station with 1 line: 294
 Station with 2 lines: 72
 Station with 3 lines: 8 (西直门, 东直门, 金安桥, 平安里, 国家图书馆, 草桥, 宋家庄, 十里河)
 
+=====&gt; Station Name Information &lt;=====
+Average # of name characters per station: 3.19
+Name with 1 character: 0
+Name with 2 characters: 81
+Name with 3 characters: 191
+Name with 4 characters: 62
+Name with 5 characters: 30 (清河小营桥, 物资学院路, 亦庄火车站, 生命科学园, 环球度假区, 军事博物馆, 海淀五路居, 和平里北街, 丰台东大街, 亦庄文化园, 2号航站楼, 丰台科技园, 黄村西大街, 黄村火车站, 农业展览馆, 十三陵景区, 昌平西山口, 良乡大学城, 3号航站楼, 北工大西门, 国家图书馆, 八角游乐园, 中国美术馆, 丽泽商务区, 颐和园西门, 国家植物园, 玉渊潭东门, 沙河高教园, 安德里北街, 欢乐谷景区)
+Name with 6 characters: 10 (良乡大学城西, 回龙观东大街, 良乡大学城北, 奥林匹克公园, 森林公园南门, 清华东路西口, 惠新西街南口, 惠新西街北口, 生物医药基地, 北京大学东门)
+Top 10 used words: 桥 (36), 门 (35), 北 (33), 庄 (32), 东 (31), 西 (31), 园 (27), 大 (25), 路 (24), 南 (22)
+Top 10 ending: 桥 (30), 门 (26), 庄 (26), 园 (22), 路 (20), 口 (13), 街 (12), 东 (10), 营 (10), 城 (9)
+Unique words: 2 3 岸 巴 笆 百 宝 葆 碑 伯 茶 常 场 崇 传 椿 磁 慈 萃 崔 达 褡 灯 佃 钓 动 度 堆 发 垡 法 坊 方 坟 分 俸 福 富 复 甘 钢 巩 古 谷 官 光 郝 合 黑 后 虎 呼 环 欢 会 霍 纪 济 积 技 基 机 假 嘉 健 箭 建 将 焦 郊 教 结 劲 境 旧 局 军 看 坎 克 来 览 郎 栗 礼 丽 篱 裢 连 亮 廖 临 灵 陵 榴 刘 柳 潞 锣 茂 媒 美 庙 民 命 明 牡 泥 年 牛 潘 盆 棚 匹 苹 坡 蒲 七 旗 前 青 球 群 然 饶 人 森 刹 善 商 芍 什 神 事 士 书 术 顺 宋 孙 坛 滩 堂 陶 体 条 铁 图 团 瓦 旺 王 魏 温 武 坞 务 夕 熙 夏 巷 肖 心 信 星 宣 燕 杨 业 怡 益 医 颐 瀛 雍 游 峪 圆 元 渊 照 贞 植 忠 周 主 朱 珠 资 梓 紫 自
+
 =====&gt; Transfer Information &lt;=====
 Line with max number of transfer stations: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22/45 = 48.89% transfers)
 Line with min number of transfer stations: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1/3 = 33.33% transfers)

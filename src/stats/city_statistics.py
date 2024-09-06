@@ -4,9 +4,31 @@
 """ Show basic statistics for a city """
 
 # Libraries
+from collections import Counter
+from typing import Any
+
 from src.city.ask_for_city import ask_for_city
-from src.city.line import Line
-from src.common.common import distance_str, suffix_s
+from src.common.common import distance_str, suffix_s, to_pinyin
+
+
+def print_cnt(values: dict[Any, Any], name: str, word: str, threshold: int | None = None) -> None:
+    """ Print list in regard to count """
+    max_len = 1
+    for line_list in values.values():
+        if len(line_list) > max_len:
+            max_len = len(line_list)
+    for i in range(1, max_len + 1):
+        key_list = [key for key, values in values.items() if len(values) == i]
+        print(name + " with " + suffix_s(word, i) + f": {len(key_list)}", end="")
+        if threshold is not None and i >= threshold and len(key_list) > 0:
+            print(" (" + ", ".join(key_list) + ")")
+        else:
+            print()
+
+
+def most_common(names: list[str]) -> list[tuple[str, int]]:
+    """ Counter.most_common with a tiebreaker """
+    return sorted(Counter(names).most_common(), key=lambda x: (-x[1], to_pinyin(x[0])[0]))
 
 
 def main() -> None:
@@ -29,23 +51,25 @@ def main() -> None:
     print("Total distance for regular lines: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / len(regular_line)) + " per line)")
 
-    station_lines = city.station_lines
-    max_len = 1
-    for line_list in station_lines.values():
-        if len(line_list) > max_len:
-            max_len = len(line_list)
     print("\n====> Station Information <=====")
+    station_lines = city.station_lines
     print(f"Total # of stations: {len(station_lines)}")
     recount_sum = sum(len(line.stations) for line in lines.values())
     print(f"Total # of stations (recounting for each line): {recount_sum}")
     print(f"Average # of lines per station: {recount_sum / len(station_lines):.2f}")
-    for i in range(1, max_len + 1):
-        station_list = [station for station, lines in station_lines.items() if len(lines) == i]
-        print("Station with " + suffix_s("line", i) + f": {len(station_list)}", end="")
-        if i >= 3:
-            print(" (" + ", ".join(station_list) + ")")
-        else:
-            print()
+    print_cnt(station_lines, "Station", "line", 3)
+
+    print("\n=====> Station Name Information <=====")
+    names = set(list(station_lines.keys()))
+    name_sum = sum(len(name) for name in names)
+    print(f"Average # of name characters per station: {name_sum / len(names):.2f}")
+    print_cnt({name: name for name in names}, "Name", "character", 5)
+    name_counter = most_common([ch for name in names for ch in name])
+    print("Top 10 used words: " + ", ".join(f"{ch} ({cnt})" for ch, cnt in name_counter[:10]))
+    print("Top 10 ending: " + ", ".join(
+        f"{ch} ({cnt})" for ch, cnt in most_common([name[-1] for name in names])[:10]))
+    print("Unique words: " + " ".join(sorted(
+        [ch for ch, cnt in name_counter if cnt == 1], key=lambda x: to_pinyin(x)[0])))
 
     print("\n=====> Transfer Information <=====")
     transfer_dict: dict[str, int] = {}

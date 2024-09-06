@@ -67,21 +67,21 @@ def equivalent_path(path1: Path, path2: Path) -> bool:
                for ((st1, t1), (st2, t2)) in zip(path1, path2))
 
 
-def fix_path(final_path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_date: date) -> Path:
+def fix_path(path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_date: date) -> Path:
     """ Fix virtual transfers within a path """
-    if len(final_path) < 3:
-        return final_path
-    fixed_path = [final_path[0]]
-    for j, (nc_station, nc_train) in enumerate(final_path):
-        if j == 0 or j == len(final_path) - 1:
+    if len(path) < 3:
+        return path
+    fixed_path = [path[0]]
+    for j, (nc_station, nc_train) in enumerate(path):
+        if j == 0 or j == len(path) - 1:
             continue
         if not isinstance(nc_train, Train) and isinstance(
-                final_path[j - 1][1], Train
-        ) and isinstance(final_path[j + 1][1], Train):
-            last_station = final_path[j - 1][0]
-            last_train = final_path[j - 1][1]
-            next_station = final_path[j + 1][0]
-            next_train = final_path[j + 1][1]
+                path[j - 1][1], Train
+        ) and isinstance(path[j + 1][1], Train):
+            last_station = path[j - 1][0]
+            last_train = path[j - 1][1]
+            next_station = path[j + 1][0]
+            next_train = path[j + 1][1]
             assert isinstance(last_train, Train) and isinstance(next_train, Train)
             transfer_time, is_special = virtual_dict[(nc_station, next_station)].get_transfer_time(
                 last_train.line, last_train.direction, next_train.line, next_train.direction,
@@ -94,7 +94,7 @@ def fix_path(final_path: Path, virtual_dict: dict[tuple[str, str], Transfer], st
             )))
         else:
             fixed_path.append((nc_station, nc_train))
-    fixed_path.append(final_path[-1])
+    fixed_path.append(path[-1])
     return fixed_path
 
 
