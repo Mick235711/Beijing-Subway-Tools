@@ -56,7 +56,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
     start_date = ask_for_date()
-    _, _, result_dict = shortest_in_city(
+    _, _, through_dict, result_dict = shortest_in_city(
         args.limit_start, args.limit_end, (city, start[0], start_date),
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
@@ -64,7 +64,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
 
     data = result_dict[end[0]]
     print(f"{start[0]} -> ", end="")
-    print_station_info(city, end[0], *data, show_path_transfers=city.transfers)
+    print_station_info(city, end[0], *data, show_path_transfers=city.transfers, through_dict=through_dict)
 
     path_coverage = data[-1]
     draw_dict: DrawDict = []

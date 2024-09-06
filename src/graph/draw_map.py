@@ -261,7 +261,7 @@ def main() -> None:
     cmap = get_colormap(args.color_map)
     levels = get_levels_from_source(args)
 
-    city, start, result_dict_temp = shortest_in_city(
+    city, start, _, result_dict_temp = shortest_in_city(
         args.limit_start, args.limit_end,
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express

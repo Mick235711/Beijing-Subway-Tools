@@ -10,10 +10,12 @@ from datetime import date, time, timedelta
 from math import floor, ceil
 
 from src.city.line import Line, station_full_name
+from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer, TransferSpec
 from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
     distance_str, get_time_repr, from_minutes
+from src.routing.through_train import ThroughTrain, find_through_train
 from src.routing.train import Train
 
 # Virtual Transfer Spec: from_station, to_station, minute, is_special
@@ -73,26 +75,35 @@ class BFSResult:
         return f"{get_time_repr(self.initial_time, self.initial_day)} -> " +\
                f"{get_time_repr(self.arrival_time, self.arrival_day)}"
 
-    def total_duration_str(self, path: Path, indent: int = 0) -> str:
+    def total_duration_str(
+        self, path: Path, indent: int = 0,
+        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+    ) -> str:
         """ Return string representation of the total transfer, etc. """
         indent_str = "    " * indent
         return (f"{indent_str}{self.time_str()}\n" +
                 f"{indent_str}Total time: {format_duration(self.total_duration())}, " +
                 f"total distance: {distance_str(self.total_distance(path))}, " +
                 suffix_s("station", len(expand_path(path, self.station))) + ", " +
-                suffix_s("transfer", total_transfer(path)) + ".")
+                suffix_s("transfer", total_transfer(path, through_dict=through_dict)) + ".")
 
-    def pretty_print(self, results: dict[str, BFSResult], transfer_dict: dict[str, Transfer], indent: int = 0) -> None:
+    def pretty_print(
+        self, results: dict[str, BFSResult], transfer_dict: dict[str, Transfer], indent: int = 0,
+        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+    ) -> None:
         """ Print the shortest path to this station """
         path = self.shortest_path(results)
-        self.pretty_print_path(path, transfer_dict, indent)
+        self.pretty_print_path(path, transfer_dict, indent, through_dict=through_dict)
 
-    def pretty_print_path(self, path: Path, transfer_dict: dict[str, Transfer], indent: int = 0) -> None:
+    def pretty_print_path(
+        self, path: Path, transfer_dict: dict[str, Transfer], indent: int = 0,
+        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+    ) -> None:
         """ Print the shortest path """
         indent_str = "    " * indent
 
         # Print total time, station, etc.
-        print(self.total_duration_str(path, indent) + "\n")
+        print(self.total_duration_str(path, indent, through_dict=through_dict) + "\n")
 
         if isinstance(path[0][1], Train):
             first_time, first_day = path[0][1].arrival_time[path[0][0]]
@@ -140,9 +151,18 @@ class BFSResult:
                     cur_date += timedelta(days=1)
                 if station in last_train.line.stations:
                     assert transfer_time <= total_waiting, (last_train, station, train)
-                    print(f"{indent_str}Transfer at {station_full_name(station, {last_train.line, train.line})}: " +
-                          f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
-                          suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
+                    if through_dict is None:
+                        last_through = None
+                    else:
+                        last_through = find_through_train(through_dict, last_train)
+                    full_name = station_full_name(station, {last_train.line, train.line})
+                    if last_through is not None and train in last_through[1].trains.values():
+                        # We have a through-train transfer
+                        print(f"{indent_str}(Pass-through at {full_name})")
+                    else:
+                        print(f"{indent_str}Transfer at {full_name}: " +
+                              f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
+                              suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
                 if total_waiting > transfer_time:
                     print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
 
@@ -234,9 +254,21 @@ def find_next_train(
     return list(result.values())
 
 
-def total_transfer(path: Path) -> int:
+def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None) -> int:
     """ Get total number of transfers in a path """
-    return len(list(filter(lambda x: isinstance(x[1], Train), path))) - 1
+    total_len = len(list(filter(lambda x: isinstance(x[1], Train), path))) - 1
+    if through_dict is None:
+        return total_len
+    for i in range(len(path) - 1):
+        train, next_train = path[i][1], path[i + 1][1]
+        if not isinstance(train, Train) or not isinstance(next_train, Train):
+            continue
+        through = find_through_train(through_dict, train)
+        if through is None:
+            continue
+        if next_train in through[1].trains.values():
+            total_len -= 1
+    return total_len
 
 
 def path_index(result: BFSResult, path: Path) -> tuple[int, int, int, int]:

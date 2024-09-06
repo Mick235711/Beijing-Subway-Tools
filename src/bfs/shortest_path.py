@@ -14,10 +14,12 @@ from src.bfs.k_shortest_path import k_shortest_path
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from src.city.city import City
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import get_time_str, TimeSpec
 from src.dist_graph.adaptor import get_dist_graph, to_trains
 from src.dist_graph.shortest_path import shortest_path
+from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 
 
@@ -42,7 +44,8 @@ def find_last_train(
 def ask_for_shortest_path(
     args: argparse.Namespace
 ) -> tuple[City, tuple[str, set[Line]], tuple[str, set[Line]],
-           dict[str, dict[str, dict[str, list[Train]]]], date, time, bool]:
+           dict[str, dict[str, dict[str, list[Train]]]], dict[ThroughSpec, list[ThroughTrain]],
+           date, time, bool]:
     """ Ask information for shortest path computation """
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
@@ -50,6 +53,7 @@ def ask_for_shortest_path(
     train_dict = parse_all_trains(
         list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
     )
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
     start_date = ask_for_date()
 
     all_trains: list[Train] = []
@@ -73,12 +77,12 @@ def ask_for_shortest_path(
         )
     )
 
-    return city, start, end, train_dict, start_date, start_time, start_day
+    return city, start, end, train_dict, through_dict, start_date, start_time, start_day
 
 
 def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[BFSResult, Path]]]:
     """ Get the kth shortest paths """
-    city, start, end, train_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
+    city, start, end, train_dict, through_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
     lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
@@ -118,7 +122,7 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
     # Print results
     for i, (k_result, k_path) in enumerate(results):
         print(f"\nShortest Path #{i + 1}:")
-        k_result.pretty_print_path(k_path, city.transfers)
+        k_result.pretty_print_path(k_path, city.transfers, through_dict=through_dict)
 
     return city, start[0], end[0], results
 

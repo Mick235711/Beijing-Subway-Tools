@@ -5,6 +5,7 @@
 
 # Libraries
 from collections.abc import Iterable
+from copy import deepcopy
 
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
@@ -135,6 +136,7 @@ def parse_through_train(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: Iterable[ThroughSpec]
 ) -> tuple[dict[str, dict[str, dict[str, list[Train]]]], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Parse through train from parsed train_dict """
+    train_dict = deepcopy(train_dict)
     result: dict[ThroughSpec, list[ThroughTrain]] = {}
     for through_spec in through_dict:
         result[through_spec] = []
@@ -169,6 +171,19 @@ def parse_through_train(
 
             last_line = line
     return train_dict, result
+
+
+def find_through_train(
+    through_dict: dict[ThroughSpec, list[ThroughTrain]], train: Train
+) -> tuple[ThroughSpec, ThroughTrain] | None:
+    """ Find through train for a single train """
+    for through_spec, through_trains in through_dict.items():
+        if train.line.name not in [x[0].name for x in through_spec.spec]:
+            continue
+        for through_train in through_trains:
+            if train in through_train.trains.values():
+                return through_spec, through_train
+    return None
 
 
 def reorganize_and_parse_train(

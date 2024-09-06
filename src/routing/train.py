@@ -32,6 +32,29 @@ class Train:
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
 
+    def __repr__(self) -> str:
+        """ Get string representation """
+        if self.loop_next is not None:
+            return (
+                    f"<{self.direction_repr()} " +
+                    f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " +
+                    f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} (loop)>"
+            )
+        return f"<{self.direction_repr()} {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}" + \
+            f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}>"
+
+    def __eq__(self, other: object) -> bool:
+        """ Determine equality """
+        if not isinstance(other, Train):
+            return False
+        def equal_tuple(train: Train) -> tuple:
+            """ Return an equal tuple """
+            return (
+                train.line.name, train.carriage_num, train.direction, train.stations,
+                train.real_end, train.skip_stations, train.arrival_time
+            )
+        return equal_tuple(self) == equal_tuple(other)
+
     def train_capacity(self) -> int:
         """ Capacity for this line """
         return self.line.carriage_type.train_capacity(self.carriage_num)
@@ -111,17 +134,6 @@ class Train:
         """ Get string representation for routing """
         return (f"{self.line.full_name()} {self.direction} " + "+".join(x.name for x in self.routes) +
                 f" [{self.train_code()}]")
-
-    def __repr__(self) -> str:
-        """ Get string representation """
-        if self.loop_next is not None:
-            return (
-                f"<{self.direction_repr()} " +
-                f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " +
-                f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} (loop)>"
-            )
-        return f"<{self.direction_repr()} {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}" + \
-            f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}>"
 
     def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """

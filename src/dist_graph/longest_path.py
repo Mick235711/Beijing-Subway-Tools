@@ -17,6 +17,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
+from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 
 
@@ -148,11 +149,12 @@ def main() -> None:
         train_dict = parse_all_trains(
             list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
         )
+        _, through_dict = parse_through_train(train_dict, city.through_specs)
         start_date = ask_for_date()
         start_time, start_day = ask_for_time()
         start, end = None, None
     else:
-        city, start, end, train_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
+        city, start, end, train_dict, through_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
         lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
@@ -188,7 +190,7 @@ def main() -> None:
     )
     print()
     print("Longest Route Possible:")
-    result.pretty_print_path(bfs_path, city.transfers)
+    result.pretty_print_path(bfs_path, city.transfers, through_dict=through_dict)
 
 
 # Call main
