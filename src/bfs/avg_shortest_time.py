@@ -259,7 +259,7 @@ def print_station_info(
     city: City, station: str,
     avg_time: float, stddev_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
     max_info: PathInfo, min_info: PathInfo, path_coverage: list[tuple[float, AbstractPath, list[PathInfo]]],
-    *, index: int | None = None, show_path_transfers: dict[str, Transfer] | None = None,
+    *, index: int | None = None, show_path_transfers: dict[str, Transfer] | bool = False,
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> None:
     """ Print percentage info on a station """
@@ -269,12 +269,15 @@ def print_station_info(
           f" (stddev = {stddev_time:.2f}) (min {min_info[0]} - max {max_info[0]})" +
           f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
           distance_str(avg_dist) + ")")
+    if isinstance(show_path_transfers, bool) and not show_path_transfers:
+        return
+
     print("Percentage of each path:")
     for percent, path, examples in path_coverage:
         print("    " + percentage_str(percent) + " " + path_shorthand(station, city, path), end="")
         print(f" [Example: {examples[0][2].time_str()}]")
 
-    if show_path_transfers is not None:
+    if not isinstance(show_path_transfers, bool):
         print("\nMaximum time path:")
         max_info[2].pretty_print_path(max_info[1], show_path_transfers, indent=1, through_dict=through_dict)
 
@@ -304,34 +307,18 @@ def main() -> None:
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     result_dict = dict(sorted(list(result_dict.items()), key=lambda x: (x[1][0], x[0])))
-    if args.verbose or args.show_path:
-        for i, (station, data) in enumerate(result_dict.items()):
-            if len(stations) > 0 and station not in stations:
-                continue
-            if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
-                if i == args.limit_num:
-                    print("...")
-                continue
-            print_station_info(
-                city, station, *data, index=i, show_path_transfers=(city.transfers if args.show_path else None),
-                through_dict=through_dict
-            )
-        return
 
-    # sort and display first/last
-    result_list = [(data[0], station) for station, data in result_dict.items()]
-    if stations is not None:
-        for avg_time, station in result_list:
-            if station not in stations:
-                continue
-            print(f"{city.station_full_name(station)}: {avg_time}")
-        return
-    print("Nearest " + suffix_s("station", args.limit_num) + ":")
-    print("\n".join(
-        f"{city.station_full_name(station)}: {avg_time}" for avg_time, station in result_list[:args.limit_num]))
-    print("\nFarthest " + suffix_s("station", args.limit_num) + ":")
-    print("\n".join(
-        f"{city.station_full_name(station)}: {avg_time}" for avg_time, station in result_list[-args.limit_num:]))
+    for i, (station, data) in enumerate(result_dict.items()):
+        if len(stations) > 0 and station not in stations:
+            continue
+        if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
+            if i == args.limit_num:
+                print("...")
+            continue
+        print_station_info(
+            city, station, *data, index=i, show_path_transfers=(city.transfers if args.show_path else args.verbose),
+            through_dict=through_dict
+        )
 
 
 # Call main
