@@ -11,7 +11,7 @@ from src.city.ask_for_city import ask_for_city
 from src.common.common import distance_str, suffix_s, to_pinyin
 
 
-def print_cnt(values: dict[Any, Any], name: str, word: str, threshold: int | None = None) -> None:
+def print_cnt(values: dict[str, Any], name: str, word: str, threshold: int | None = None) -> None:
     """ Print list in regard to count """
     max_len = 1
     for line_list in values.values():
@@ -21,7 +21,7 @@ def print_cnt(values: dict[Any, Any], name: str, word: str, threshold: int | Non
         key_list = [key for key, values in values.items() if len(values) == i]
         print(name + " with " + suffix_s(word, i) + f": {len(key_list)}", end="")
         if threshold is not None and i >= threshold and len(key_list) > 0:
-            print(" (" + ", ".join(key_list) + ")")
+            print(" (" + ", ".join(sorted(key_list, key=lambda x: to_pinyin(x)[0])) + ")")
         else:
             print()
 
