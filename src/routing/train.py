@@ -43,17 +43,22 @@ class Train:
         return f"<{self.direction_repr()} {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}" + \
             f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}>"
 
+    def equal_tuple(self) -> tuple:
+        """ Return an equal tuple """
+        return (
+            self.line.name, self.carriage_num, self.direction, tuple(self.stations),
+            self.real_end, tuple(self.skip_stations), tuple(self.arrival_time.items())
+        )
+
     def __eq__(self, other: object) -> bool:
         """ Determine equality """
         if not isinstance(other, Train):
             return False
-        def equal_tuple(train: Train) -> tuple:
-            """ Return an equal tuple """
-            return (
-                train.line.name, train.carriage_num, train.direction, train.stations,
-                train.real_end, train.skip_stations, train.arrival_time
-            )
-        return equal_tuple(self) == equal_tuple(other)
+        return self.equal_tuple() == other.equal_tuple()
+
+    def __hash__(self) -> int:
+        """ Hash function """
+        return hash(self.equal_tuple())
 
     def train_capacity(self) -> int:
         """ Capacity for this line """
