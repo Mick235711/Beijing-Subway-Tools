@@ -1476,6 +1476,76 @@ Shortest/Longest Station Distances:
 </pre>
 Notice that `->` indicated single-direction journey only.
 
+### [`furthest_station.py`](/src/stats/furthest_station.py): Station with the smallest/largest station sums
+```
+usage: furthest_station.py [-h] [-n LIMIT_NUM] [-d {station,distance}] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
+
+options:
+  -h, --help            show this help message and exit
+  -n LIMIT_NUM, --limit-num LIMIT_NUM
+                        Limit number of output
+  -d {station,distance}, --data-source {station,distance}
+                        Shortest path criteria
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-single      Exclude single-direction lines
+```
+
+Show station sums (sum of station count from this station to each station) sorted from smallest to largest.
+By passing `-d` you can change to sort by distance count instead of station count.
+
+Example Usage:
+<pre>
+$ python3 src/stats/furthest_station.py -n 20
+City default: &lt;北京: 24 lines&gt;
+Calculating 善各庄: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 374/374 [00:00<00:00, 841.91it/s]
+Nearest/Furthest Stations:
+#1: 平安里: 3693 stations (avg = 9.87 stations) (stddev = 5.25) (shortest: 车公庄 (1 station) -> longest: 燕山 (28 stations))
+#2: 太平桥: 3773 stations (avg = 10.09 stations) (stddev = 5.36) (shortest: 复兴门 (1 station) -> longest: 燕山 (27 stations))
+#3: 积水潭: 3794 stations (avg = 10.14 stations) (stddev = 5.40) (shortest: 西直门 (1 station) -> longest: 燕山 (29 stations))
+#4: 牛街: 3841 stations (avg = 10.27 stations) (stddev = 5.47) (shortest: 太平桥 (1 station) -> longest: 燕山 (26 stations))
+#5: 车公庄: 3857 stations (avg = 10.31 stations) (stddev = 5.38) (shortest: 西直门 (1 station) -> longest: 燕山 (29 stations))
+#6: 北海北: 3865 stations (avg = 10.33 stations) (stddev = 5.17) (shortest: 平安里 (1 station) -> longest: 燕山 (29 stations))
+#7: 鼓楼大街: 3889 stations (avg = 10.40 stations) (stddev = 5.39) (shortest: 安定门 (1 station) -> longest: 燕山 (30 stations))
+#8: 南锣鼓巷: 3897 stations (avg = 10.42 stations) (stddev = 5.22) (shortest: 北海北 (1 station) -> longest: 燕山 (30 stations))
+#9: 复兴门: 3907 stations (avg = 10.45 stations) (stddev = 5.45) (shortest: 阜成门 (1 station) -> longest: 燕山 (28 stations))
+#10: 新街口: 3917 stations (avg = 10.47 stations) (stddev = 5.31) (shortest: 西直门 (1 station) -> longest: 燕山 (29 stations))
+#11: 景风门: 3934 stations (avg = 10.52 stations) (stddev = 5.52) (shortest: 北京南站 (1 station) -> longest: 燕山 (25 stations))
+#12: 西直门: 3936 stations (avg = 10.52 stations) (stddev = 5.62) (shortest: 车公庄 (1 station) -> longest: 燕山 (30 stations))
+#13: 东四: 3951 stations (avg = 10.56 stations) (stddev = 5.33) (shortest: 朝阳门 (1 station) -> longest: 燕山 (31 stations))
+#14: 广安门内: 3956 stations (avg = 10.58 stations) (stddev = 5.50) (shortest: 菜市口 (1 station) -> longest: 燕山 (26 stations))
+#15: 朝阳门: 4019 stations (avg = 10.75 stations) (stddev = 5.49) (shortest: 建国门 (1 station) -> longest: 燕山 (32 stations))
+#16: 阜成门: 4025 stations (avg = 10.76 stations) (stddev = 5.50) (shortest: 车公庄 (1 station) -> longest: 燕山 (29 stations))
+#17: 北太平庄: 4031 stations (avg = 10.78 stations) (stddev = 5.50) (shortest: 积水潭 (1 station) -> longest: 燕山 (30 stations))
+#18: 西四: 4040 stations (avg = 10.80 stations) (stddev = 5.33) (shortest: 平安里 (1 station) -> longest: 燕山 (29 stations))
+#19: 什刹海: 4040 stations (avg = 10.80 stations) (stddev = 5.31) (shortest: 鼓楼大街 (1 station) -> longest: 燕山 (31 stations))
+#20: 车公庄西: 4076 stations (avg = 10.90 stations) (stddev = 5.55) (shortest: 车公庄 (1 station) -> longest: 燕山 (30 stations))
+...
+#355: 小园: 9024 stations (avg = 24.13 stations) (stddev = 7.17) (shortest: 石厂 (1 station) -> longest: 燕山 (41 stations))
+#356: 土桥: 9072 stations (avg = 24.26 stations) (stddev = 7.89) (shortest: 临河里 (1 station) -> longest: 燕山 (48 stations))
+#357: 万盛东: 9145 stations (avg = 24.45 stations) (stddev = 7.88) (shortest: 万盛西 (1 station) -> longest: 燕山 (47 stations))
+#358: 俸伯: 9171 stations (avg = 24.52 stations) (stddev = 7.44) (shortest: 顺义 (1 station) -> longest: 燕山 (49 stations))
+#359: 昌平西山口: 9187 stations (avg = 24.56 stations) (stddev = 7.41) (shortest: 十三陵景区 (1 station) -> longest: 燕山 (47 stations))
+#360: 潞城: 9240 stations (avg = 24.71 stations) (stddev = 6.88) (shortest: 东夏园 (1 station) -> longest: 燕山 (48 stations))
+#361: 阎村东: 9293 stations (avg = 24.85 stations) (stddev = 7.54) (shortest: 紫草坞 (1 station) -> longest: 环球度假区 (42 stations))
+#362: 石厂: 9396 stations (avg = 25.12 stations) (stddev = 7.18) (shortest: 小园 (1 station) -> longest: 燕山 (42 stations))
+#363: 花庄: 9413 stations (avg = 25.17 stations) (stddev = 8.08) (shortest: 土桥 (1 station) -> longest: 燕山 (49 stations))
+#364: 群芳: 9486 stations (avg = 25.36 stations) (stddev = 8.07) (shortest: 万盛东 (1 station) -> longest: 燕山 (48 stations))
+#365: 高楼金: 9630 stations (avg = 25.75 stations) (stddev = 8.15) (shortest: 花庄 (1 station) -> longest: 燕山 (49 stations))
+#366: 紫草坞: 9651 stations (avg = 25.80 stations) (stddev = 7.65) (shortest: 阎村 (1 station) -> longest: 环球度假区 (43 stations))
+#367: 环球度假区: 9785 stations (avg = 26.16 stations) (stddev = 8.08) (shortest: 花庄 (1 station) -> longest: 燕山 (50 stations))
+#368: 阎村: 10011 stations (avg = 26.77 stations) (stddev = 7.75) (shortest: 星城 (1 station) -> longest: 环球度假区 (44 stations))
+#369: 星城: 10373 stations (avg = 27.74 stations) (stddev = 7.84) (shortest: 大石河东 (1 station) -> longest: 环球度假区 (45 stations))
+#370: 大石河东: 10737 stations (avg = 28.71 stations) (stddev = 7.92) (shortest: 马各庄 (1 station) -> longest: 环球度假区 (46 stations))
+#371: 马各庄: 11103 stations (avg = 29.69 stations) (stddev = 7.99) (shortest: 饶乐府 (1 station) -> longest: 环球度假区 (47 stations))
+#372: 饶乐府: 11471 stations (avg = 30.67 stations) (stddev = 8.03) (shortest: 房山城关 (1 station) -> longest: 环球度假区 (48 stations))
+#373: 房山城关: 11841 stations (avg = 31.66 stations) (stddev = 8.06) (shortest: 燕山 (1 station) -> longest: 环球度假区 (49 stations))
+#374: 燕山: 12213 stations (avg = 32.66 stations) (stddev = 8.07) (shortest: 房山城关 (1 station) -> longest: 环球度假区 (50 stations))
+</pre>
+
 ### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
 ```
 usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r [REVERSE]] [-t TABLE_FORMAT] [--split {none,direction,route,all}]
