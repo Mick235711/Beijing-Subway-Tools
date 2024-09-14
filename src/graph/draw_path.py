@@ -33,7 +33,7 @@ def get_ordinal_alpha(index: int, max_index: int) -> float:
     """ Get alpha value for index (from 0 to max_index - 1) """
     assert max_index > index >= 0, (index, max_index)
     if max_index == 1:
-        return 1
+        return 1.0
     return 1 - index / (max_index - 1)
 
 
