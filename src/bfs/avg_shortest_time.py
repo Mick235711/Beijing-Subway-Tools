@@ -243,14 +243,15 @@ def path_shorthand(end_station: str, city: City, path: AbstractPath) -> str:
 
 def shortest_path_args(
     parser: argparse.ArgumentParser,
-    *, have_single: bool = False, have_express: bool = True
+    *, have_single: bool = False, have_express: bool = True, have_edge: bool = True
 ) -> None:
     """ Add the shortest path arguments like --include-lines """
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--include-lines", help="Include lines")
     group.add_argument("-x", "--exclude-lines", help="Exclude lines")
     parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
-    parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    if have_edge:
+        parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     if have_express:
         parser.add_argument("--include-express", action="store_true",
                             help="Include non-essential use of express lines")
