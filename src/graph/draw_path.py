@@ -113,6 +113,8 @@ def main() -> None:
         parser.add_argument("--strategy", choices=["kth", "avg"], default="kth",
                             help="Strategy for combining station data")
         parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+        parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
+                            default="time", help="Shortest path criteria")
 
     args = map_args(append_arg, contour_args=False, have_single=True, multi_source=False)
     cmap = get_colormap(args.color_map or "Greys")

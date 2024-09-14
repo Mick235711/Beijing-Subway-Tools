@@ -1988,7 +1988,7 @@ Drawing contours done! Saving...
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
 usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
-                    [--strategy {kth,avg}] [-k NUM_PATH]
+                    [--strategy {kth,avg}] [-k NUM_PATH] [-d {time,transfer,station,distance}]
 
 options:
   -h, --help            show this help message and exit
@@ -2012,6 +2012,8 @@ options:
   --strategy {kth,avg}  Strategy for combining station data
   -k NUM_PATH, --num-path NUM_PATH
                         Show first k path
+  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+                        Shortest path criteria
 ```
 Draw the first k-th shortest paths on the map.
 On default, the route with deeper shades of grey is faster.
