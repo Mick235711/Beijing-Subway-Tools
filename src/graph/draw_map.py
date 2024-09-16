@@ -262,9 +262,8 @@ def get_levels_from_source(args: argparse.Namespace, have_minus: bool = False) -
 
 
 def get_map_data(
-    args: argparse.Namespace, city_station: tuple[City, str, date] | None = None,
-    with_map: Map | None = None
-) -> tuple[str, Map, dict]:
+    args: argparse.Namespace, city_station: tuple[City, str, date] | None = None
+) -> tuple[City, str, dict]:
     """ Get data necessary for drawing map """
     city, start, _, result_dict_temp = shortest_in_city(
         args.limit_start, args.limit_end, city_station,
@@ -275,8 +274,7 @@ def get_map_data(
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
     ) for station, x in result_dict_temp.items()}
-    map_obj = with_map or ask_for_map(city)
-    return start, map_obj, result_dict
+    return city, start, result_dict
 
 
 def main() -> None:
@@ -284,7 +282,8 @@ def main() -> None:
     args = map_args()
     cmap = get_colormap(args.color_map)
     levels = get_levels_from_source(args)
-    start, map_obj, result_dict = get_map_data(args)
+    city, start, result_dict = get_map_data(args)
+    map_obj = ask_for_map(city)
 
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)

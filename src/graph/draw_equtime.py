@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw
 from matplotlib.colors import Colormap, LinearSegmentedColormap
 from scipy.interpolate import griddata  # type: ignore
 
-from src.city.ask_for_city import ask_for_station_pair, ask_for_city, ask_for_date
+from src.city.ask_for_city import ask_for_station_pair, ask_for_city, ask_for_date, ask_for_map
 from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, Color, convert_color, \
     get_levels_from_source, get_map_data
 from src.graph.map import Map
@@ -57,8 +57,9 @@ def main() -> None:
     city = ask_for_city()
     (station1, _), (station2, _) = ask_for_station_pair(city)
     start_date = ask_for_date()
-    _, map_obj, result_dict1 = get_map_data(args, (city, station1, start_date))
-    _, _, result_dict2 = get_map_data(args, (city, station2, start_date), map_obj)
+    city, _, result_dict1 = get_map_data(args, (city, station1, start_date))
+    _, _, result_dict2 = get_map_data(args, (city, station2, start_date))
+    map_obj = ask_for_map(city)
     result_dict = {
         station: result_dict1[station] - result_dict2[station]
         for station in set(list(result_dict1.keys())).intersection(result_dict2.keys())
