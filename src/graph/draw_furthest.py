@@ -25,7 +25,8 @@ def main() -> None:
         parser.add_argument("-d", "--data-source", choices=["station", "distance"],
                             default="station", help="Shortest path criteria")
 
-    args = map_args(append_arg, multi_source=False, have_single=True, have_express=False, have_edge=False)
+    args = map_args(append_arg, multi_source=False, include_limits=False,
+                    have_single=True, have_express=False, have_edge=False)
     cmap = get_colormap(args.color_map)
     levels = get_levels_from_source(args)
     city = ask_for_city()

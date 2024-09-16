@@ -29,12 +29,13 @@ Color = tuple[float, float, float] | tuple[float, float, float, float]
 
 def map_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None,
-    *, contour_args: bool = True, multi_source: bool = True, **kwargs
+    *, contour_args: bool = True, multi_source: bool = True, include_limits: bool = True, **kwargs
 ) -> argparse.Namespace:
     """ Parse arguments """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
-    parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
+    if include_limits:
+        parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
+        parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("-o", "--output", help="Output path", default="../processed.png")
     if multi_source:

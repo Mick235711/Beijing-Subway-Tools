@@ -1985,17 +1985,13 @@ Recalculated min/max: -61.85 - 46.47
 Drawing contours done! Saving...
 </pre>
 
-### [`draw_avg.py`](/src/graph/draw_avg.py): Draw the sum of stations/distances maps originating from each station
+### [`draw_furthest.py`](/src/graph/draw_furthest.py): Draw the sum of stations/distances maps originating from each station
 ```
-usage: draw_furthest.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual]
-                        [--exclude-single] [-d {station,distance}]
+usage: draw_furthest.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
+                        [-d {station,distance}]
 
 options:
   -h, --help            show this help message and exit
-  -s LIMIT_START, --limit-start LIMIT_START
-                        Limit start time of the search
-  -e LIMIT_END, --limit-end LIMIT_END
-                        Limit end time of the search
   -c COLOR_MAP, --color-map COLOR_MAP
                         Override default colormap
   -o OUTPUT, --output OUTPUT
