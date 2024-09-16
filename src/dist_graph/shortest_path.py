@@ -6,6 +6,9 @@
 # Libraries
 from heapq import heapify, heappush, heappop
 
+from tqdm import tqdm
+
+from src.city.city import City
 from src.city.line import Line
 
 Graph = dict[str, dict[tuple[str, Line | None], int]]  # (to, line), None = virtual transfer (length = 0)
@@ -61,3 +64,12 @@ def shortest_path(graph: Graph, from_station: str, *, ignore_dists: bool = False
             assert distances[station] != -1, (station, distances, parents)
             paths[station] = (distances[station], get_path(parents, station))
     return paths
+
+
+def all_shortest(city: City, graph: Graph, *, data_source: str = "station") -> dict[str, dict[str, tuple[int, Path]]]:
+    """ Get all station's shortest path dict """
+    path_dict: dict[str, dict[str, tuple[int, Path]]] = {}
+    for start_station in (bar := tqdm(list(graph.keys()))):
+        bar.set_description(f"Calculating {city.station_full_name(start_station)}")
+        path_dict[start_station] = shortest_path(graph, start_station, ignore_dists=(data_source == "station"))
+    return path_dict

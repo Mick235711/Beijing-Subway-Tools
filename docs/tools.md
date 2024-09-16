@@ -1985,6 +1985,59 @@ Recalculated min/max: -61.85 - 46.47
 Drawing contours done! Saving...
 </pre>
 
+### [`draw_avg.py`](/src/graph/draw_avg.py): Draw the sum of stations/distances maps originating from each station
+```
+usage: draw_furthest.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual]
+                        [--exclude-single] [-d {station,distance}]
+
+options:
+  -h, --help            show this help message and exit
+  -s LIMIT_START, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e LIMIT_END, --limit-end LIMIT_END
+                        Limit end time of the search
+  -c COLOR_MAP, --color-map COLOR_MAP
+                        Override default colormap
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  --dpi DPI             DPI of output image
+  -l LEVELS, --levels LEVELS
+                        Override default levels
+  -f FOCUS, --focus FOCUS
+                        Add focus on a specific contour
+  -n LABEL_NUM, --label-num LABEL_NUM
+                        Override # of label for each contour
+  -w LINE_WIDTH, --line-width LINE_WIDTH
+                        Override contour line width
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-single      Exclude single-direction lines
+  -d {station,distance}, --data-source {station,distance}
+                        Shortest path criteria
+```
+
+Draw a sum of stations/distances map for each station.
+Stations with lower sums are more "middle" in the network.
+To make numbers reasonable, the number in the vertices is the average station count/distances from each station.
+
+All the options are the same as those specified [above](#draw_mappy-draw-equ-time-maps-originating-from-a-station), except `--exclude-*` which are present in the
+[`furthest_station.py`](#furthest_stationpy-station-with-the-smallestlargest-station-sums) section.
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_furthest.py -n 3 -o test.png
+City default: &lt;北京: 24 lines&gt;
+Calculating 善各庄: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 374/374 [00:00<00:00, 777.88it/s]
+? Please select a map: <i>Official Map</i>
+Drawing stations done!
+Drawing levels: [20, 25, 30, 40, 50, 60, 80] (min = 16.65, max = 60.85)
+Recalculated min/max: 20.00 - 60.85
+Drawing contours done! Saving...
+</pre>
+
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
 usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
@@ -2022,7 +2075,7 @@ and `avg` that accumulates the shortest path over one day.
 
 Example Usage:
 <pre>
-$ python3 src/graph/draw_equtime.py -n 3 -o ./docs/example-2.png
+$ python3 src/graph/draw_equtime.py -n 3 -o test.png
 City default: &lt;北京: 24 lines&gt;
 ? Please select a starting station: <i>环球度假区</i>
 ? Please select an ending station: <i>苹果园</i>

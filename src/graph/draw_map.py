@@ -29,7 +29,7 @@ Color = tuple[float, float, float] | tuple[float, float, float, float]
 
 def map_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None,
-    *, contour_args: bool = True, have_single: bool = False, multi_source: bool = True
+    *, contour_args: bool = True, multi_source: bool = True, **kwargs
 ) -> argparse.Namespace:
     """ Parse arguments """
     parser = argparse.ArgumentParser()
@@ -49,7 +49,7 @@ def map_args(
             "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
         parser.add_argument(
             "-w", "--line-width", type=int, help="Override contour line width", default=5)
-    shortest_path_args(parser, have_single=have_single)
+    shortest_path_args(parser, **kwargs)
     if more_args is not None:
         more_args(parser)
     return parser.parse_args()

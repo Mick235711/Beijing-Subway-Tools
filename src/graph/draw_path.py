@@ -116,7 +116,7 @@ def main() -> None:
         parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
                             default="time", help="Shortest path criteria")
 
-    args = map_args(append_arg, contour_args=False, have_single=True, multi_source=False)
+    args = map_args(append_arg, contour_args=False, multi_source=False, have_single=True)
     cmap = get_colormap(args.color_map or "Greys")
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:

@@ -6,24 +6,18 @@
 # Libraries
 import argparse
 
-from tqdm import tqdm
-
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city
 from src.city.city import City
 from src.common.common import suffix_s, distance_str, stddev
 from src.dist_graph.adaptor import get_dist_graph
-from src.dist_graph.shortest_path import Graph, shortest_path, Path
+from src.dist_graph.shortest_path import Graph, all_shortest
 from src.stats.common import display_first
 
 
 def furthest_stations(city: City, graph: Graph, *, limit_num: int = 5, data_source: str = "station") -> None:
     """ Print the smallest/largest sum of stations needed """
-    path_dict: dict[str, dict[str, tuple[int, Path]]] = {}
-    for start_station in (bar := tqdm(list(graph.keys()))):
-        bar.set_description(f"Calculating {city.station_full_name(start_station)}")
-        path_dict[start_station] = shortest_path(graph, start_station, ignore_dists=(data_source == "station"))
-
+    path_dict = all_shortest(city, graph, data_source=data_source)
     shortest_dict: dict[str, tuple[str, int]] = {}
     longest_dict: dict[str, tuple[str, int]] = {}
     for station, inner_dict in path_dict.items():
