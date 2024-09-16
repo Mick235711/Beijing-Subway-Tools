@@ -30,9 +30,9 @@ def simplify_graph(graph: Graph, start_station: str, end_station: str) -> Graph:
         start, queue = queue[0], queue[1:]
         assert len(result[start]) == 1, (start, result)
         other = list(result[start].keys())[0]
-        remove_double_edge(result, start, other)
-        if len(result[other]) == 1 and other not in [start_station, end_station]:
-            queue.append(other)
+        remove_double_edge(result, start, other[0], other[1])
+        if len(result[other[0]]) == 1 and other[0] not in [start_station, end_station]:
+            queue.append(other[0])
     return result
 
 
@@ -58,42 +58,44 @@ def get_best_matching(dist_dict: dict[tuple[str, str], int], verbose: bool = Tru
     return list(result)
 
 
-def dfs(graph: Graph, source: str) -> Generator[tuple[str, str]]:
+def dfs(graph: Graph, source: str) -> Generator[tuple[str, str, Line | None]]:
     """ DFS for finding euler route """
-    vertex_stack = [source]
+    vertex_stack: list[tuple[str, Line | None]] = [(source, None)]
     last_vertex: str | None = None
     last_line: Line | None = None
+    cons_line: Line | None = None
     while len(vertex_stack) > 0:
-        current_vertex = vertex_stack[-1]
+        current_vertex, current_line = vertex_stack[-1]
         if current_vertex not in graph:
             if last_vertex is not None:
-                yield last_vertex, current_vertex
+                yield last_vertex, current_vertex, last_line
             last_vertex = current_vertex
+            last_line = current_line
             vertex_stack.pop()
         else:
             # Select the node with the same line for now
             candidates = [
-                v for v in graph[current_vertex].keys() if v in ([] if last_line is None else last_line.stations)
+                (v, l) for v, l in graph[current_vertex].keys() if cons_line and l and l.name == cons_line.name
             ]
             if len(candidates) == 0:
                 next_vertex = nx.utils.arbitrary_element(graph[current_vertex].keys())
             else:
                 next_vertex = candidates[0]
             vertex_stack.append(next_vertex)
-            last_line = graph[current_vertex][next_vertex][1]
-            remove_double_edge(graph, current_vertex, next_vertex)
+            cons_line = next_vertex[1]
+            remove_double_edge(graph, current_vertex, next_vertex[0], next_vertex[1])
 
 
 def euler_route(graph: Graph, start_station: str, end_station: str) -> tuple[int, Path]:
     """ Hierholzer's algorithm for Euler route """
-    res = list(reversed([(v, u) for u, v in dfs(copy_graph(graph), start_station)]))
+    res = list(reversed([(v, u, l) for u, v, l in dfs(copy_graph(graph), start_station)]))
     assert res[-1][1] == end_station, (res, start_station, end_station)
     path: Path = []
     total_distance = 0
-    for start, end in res:
-        assert end in graph[start], (res, start, end)
-        total_distance += graph[start][end][0]
-        path.append((start, graph[start][end][1]))
+    for start, end, line in res:
+        assert (end, line) in graph[start], (res, start, end, line)
+        total_distance += graph[start][(end, line)]
+        path.append((start, line))
     return total_distance, path
 
 
@@ -112,26 +114,30 @@ def get_longest_route(
             print(f"{city.station_full_name(station)} ({len(small_graph[station])})")
 
     # Do the single-source shortest path for each pair of odd nodes
-    dist_dict: dict[tuple[str, str], tuple[int, Path]] = {}
+    dist_dict: dict[tuple[str, str], int] = {}
+    path_record: dict[tuple[str, str], Path] = {}
     if verbose:
         print("Calculating shortest paths...", end="", flush=True)
     for station in odd_nodes:
         path_dict = shortest_path(small_graph, station)
         for station2 in odd_nodes:
             if station2 != station and station2 in path_dict:
-                dist_dict[(station, station2)] = path_dict[station2]
+                path = path_dict[station2][1]
+                residual = len([l for s, l in path if l is None])
+                dist_dict[(station, station2)] = path_dict[station2][0] + residual
+                path_record[(station, station2)] = path
     if verbose:
         print(" Done!")
 
     # Calculate best matching
-    match_list = get_best_matching({key: value[0] for key, value in dist_dict.items()}, verbose)
+    match_list = get_best_matching(dist_dict, verbose)
 
     # Remove all matched edges
-    for station1, station2 in match_list:
-        _, path = dist_dict[(station1, station2)]
-        for i, (cur_station, _) in enumerate(path[:-1]):
-            remove_double_edge(small_graph, cur_station, path[i + 1][0])
-        remove_double_edge(small_graph, path[-1][0], station2)
+    for station1, station2 in sorted(match_list, key=lambda x: dist_dict[x]):
+        path = path_record[(station1, station2)]
+        for i, (cur_station, cur_line) in enumerate(path[:-1]):
+            remove_double_edge(small_graph, cur_station, path[i + 1][0], cur_line)
+        remove_double_edge(small_graph, path[-1][0], station2, path[-1][1])
 
     # Calculate euler route
     return euler_route(small_graph, start_station, end_station)
@@ -174,7 +180,9 @@ def main() -> None:
                 possible_pairs.append((point, ending_points[j]))
 
     small_tuple: tuple[int, Path, str] | None = None
-    for start_station, end_station in tqdm(possible_pairs):
+    for start_station, end_station in (bar := tqdm(possible_pairs)):
+        bar.set_description(f"Calculating {city.station_full_name(start_station)} " +
+                            f"<-> {city.station_full_name(end_station)}")
         dist, route = get_longest_route(graph, city, start_station, end_station, not args.all)
         if small_tuple is None or small_tuple[0] < dist:
             small_tuple = (dist, route, end_station)

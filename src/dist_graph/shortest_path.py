@@ -8,7 +8,7 @@ from heapq import heapify, heappush, heappop
 
 from src.city.line import Line
 
-Graph = dict[str, dict[str, tuple[int, Line | None]]]  # None = virtual transfer (length = 0)
+Graph = dict[str, dict[tuple[str, Line | None], int]]  # (to, line), None = virtual transfer (length = 0)
 Path = list[tuple[str, Line | None]]
 
 
@@ -44,7 +44,7 @@ def shortest_path(graph: Graph, from_station: str, *, ignore_dists: bool = False
         visited.add(station)
 
         # Update the distances
-        for to_station, (edge_dist, line) in graph[station].items():
+        for (to_station, line), edge_dist in graph[station].items():
             if ignore_dists:
                 new_dist = dist + 1
             else:

@@ -21,7 +21,7 @@ def add_edge(graph: Graph, from_station: str, to_station: str, dist: int, line: 
     """ Add an edge to the graph """
     if from_station not in graph:
         graph[from_station] = {}
-    graph[from_station][to_station] = (dist, line)
+    graph[from_station][(to_station, line)] = dist
 
 
 def add_double_edge(graph: Graph, station1: str, station2: str, dist: int, line: Line | None) -> None:
@@ -30,19 +30,19 @@ def add_double_edge(graph: Graph, station1: str, station2: str, dist: int, line:
     add_edge(graph, station2, station1, dist, line)
 
 
-def remove_edge(graph: Graph, from_station: str, to_station: str) -> None:
+def remove_edge(graph: Graph, from_station: str, to_station: str, line: Line | None) -> None:
     """ Remove an edge from the graph """
     assert from_station in graph, (list(graph.keys()), from_station)
-    assert to_station in graph[from_station], (graph[from_station], from_station, to_station)
-    del graph[from_station][to_station]
+    assert (to_station, line) in graph[from_station], (graph[from_station], from_station, to_station, line)
+    del graph[from_station][(to_station, line)]
     if len(graph[from_station]) == 0:
         del graph[from_station]
 
 
-def remove_double_edge(graph: Graph, station1: str, station2: str) -> None:
+def remove_double_edge(graph: Graph, station1: str, station2: str, line: Line | None) -> None:
     """ Remove a double-direction edge from the graph """
-    remove_edge(graph, station1, station2)
-    remove_edge(graph, station2, station1)
+    remove_edge(graph, station1, station2, line)
+    remove_edge(graph, station2, station1, line)
 
 
 def copy_graph(graph: Graph) -> Graph:
