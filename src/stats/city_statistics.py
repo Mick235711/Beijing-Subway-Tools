@@ -8,7 +8,9 @@ from collections import Counter
 from typing import Any
 
 from src.city.ask_for_city import ask_for_city
+from src.city.city import City
 from src.common.common import distance_str, suffix_s, to_pinyin
+from src.stats.common import display_first
 
 
 def print_cnt(values: dict[str, Any], name: str, word: str, threshold: int | None = None) -> None:
@@ -31,9 +33,8 @@ def most_common(names: list[str]) -> list[tuple[str, int]]:
     return sorted(Counter(names).most_common(), key=lambda x: (-x[1], to_pinyin(x[0])[0]))
 
 
-def main() -> None:
-    """ Main function """
-    city = ask_for_city()
+def display_line_info(city: City) -> None:
+    """ Display line information """
     lines = city.lines
     loop_line = {name: line for name, line in lines.items() if line.loop}
     circle_line = {name: line for name, line in lines.items() if line.end_circle_start is not None}
@@ -51,10 +52,13 @@ def main() -> None:
     print("Total distance for regular lines: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / len(regular_line)) + " per line)")
 
+
+def display_station_info(city: City) -> None:
+    """ Display station and station name info """
     print("\n====> Station Information <=====")
     station_lines = city.station_lines
     print(f"Total # of stations: {len(station_lines)}")
-    recount_sum = sum(len(line.stations) for line in lines.values())
+    recount_sum = sum(len(line.stations) for line in city.lines.values())
     print(f"Total # of stations (recounting for each line): {recount_sum}")
     print(f"Average # of lines per station: {recount_sum / len(station_lines):.2f}")
     print_cnt(station_lines, "Station", "line", 3)
@@ -71,6 +75,11 @@ def main() -> None:
     print("Unique words: " + " ".join(sorted(
         [ch for ch, cnt in name_counter if cnt == 1], key=lambda x: to_pinyin(x)[0])))
 
+
+def display_transfer_info(city: City) -> None:
+    """ Display transfer info """
+    lines = city.lines
+    station_lines = city.station_lines
     print("\n=====> Transfer Information <=====")
     transfer_dict: dict[str, int] = {}
     consecutive_dict: dict[str, list[str]] = {}
@@ -111,23 +120,19 @@ def main() -> None:
                 max_sequence = count_sequence
         consecutive_dict[name] = max_sequence
 
-    max_line = max(transfer_dict.keys(), key=lambda x: (transfer_dict[x], lines[x].total_distance()))
-    print(f"Line with max number of transfer stations: {lines[max_line]} " +
-          f"({transfer_dict[max_line]}/{len(lines[max_line].stations)} = " +
-          f"{transfer_dict[max_line] / len(lines[max_line].stations) * 100:.2f}% transfers)")
-    min_line = min(transfer_dict.keys(), key=lambda x: (transfer_dict[x], lines[x].total_distance()))
-    print(f"Line with min number of transfer stations: {lines[min_line]} " +
-          f"({transfer_dict[min_line]}/{len(lines[min_line].stations)} = " +
-          f"{transfer_dict[min_line] / len(lines[min_line].stations) * 100:.2f}% transfers)")
+    print("Number of transfer stations:")
+    display_first(
+        sorted(transfer_dict.items(), key=lambda x: x[1], reverse=True),
+        lambda x: suffix_s("station", x[1]) + f": {lines[x[0]]} " +
+                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)"
+    )
     print(f"Average # of transfer stations per line: {sum(transfer_dict.values()) / len(lines):.2f}")
-    max_line = max(transfer_dict.keys(), key=lambda x: (transfer_dict[x] / len(lines[x].stations), lines[x].total_distance()))
-    print(f"Line with max percentage of transfer stations: {lines[max_line]} " +
-          f"({transfer_dict[max_line]}/{len(lines[max_line].stations)} = " +
-          f"{transfer_dict[max_line] / len(lines[max_line].stations) * 100:.2f}% transfers)")
-    min_line = min(transfer_dict.keys(), key=lambda x: (transfer_dict[x] / len(lines[x].stations), lines[x].total_distance()))
-    print(f"Line with min percentage of transfer stations: {lines[min_line]} " +
-          f"({transfer_dict[min_line]}/{len(lines[min_line].stations)} = " +
-          f"{transfer_dict[min_line] / len(lines[min_line].stations) * 100:.2f}% transfers)")
+    print("Percentage of transfer stations:")
+    display_first(
+        sorted(transfer_dict.items(), key=lambda x: x[1] / len(lines[x[0]].stations), reverse=True),
+        lambda x: f"{x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers: {lines[x[0]]} " +
+                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)"
+    )
     max_line = max(consecutive_dict.keys(), key=lambda x: (len(consecutive_dict[x]), lines[x].total_distance()))
     print("Line with max number of consecutive transfers: " +
           f"{lines[max_line]} ({consecutive_dict[max_line][0]} - {consecutive_dict[max_line][-1]}, " +
@@ -138,6 +143,14 @@ def main() -> None:
           f"{len(consecutive_dict[min_line])} consecutive)")
     print("Average # of consecutive transfer stations per line: " +
           f"{sum(len(x) for x in consecutive_dict.values()) / len(lines):.2f}")
+
+
+def main() -> None:
+    """ Main function """
+    city = ask_for_city()
+    display_line_info(city)
+    display_station_info(city)
+    display_transfer_info(city)
 
 
 # Call main
