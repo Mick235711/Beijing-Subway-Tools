@@ -89,6 +89,26 @@ def main() -> None:
                 count = 1
             if len(max_sequence) < count:
                 max_sequence = [x[1] for x in transfer_stations[i - count + 1:i + 1]]
+
+        # Special-case loop lines
+        if line.loop:
+            i = len(line.stations) - 1
+            pre_count = 0
+            while i >= 0 and len(station_lines[line.stations[i]]) > 1:
+                pre_count += 1
+                i -= 1
+            i = 0
+            post_count = 0
+            while i < len(line.stations) and len(station_lines[line.stations[i]]) > 1:
+                post_count += 1
+                i += 1
+            if pre_count + post_count >= len(line.stations):
+                count_sequence = line.stations
+            else:
+                count_sequence = line.stations[-pre_count:] if pre_count > 0 else []
+                count_sequence += line.stations[:post_count] if post_count > 0 else []
+            if len(count_sequence) > len(max_sequence):
+                max_sequence = count_sequence
         consecutive_dict[name] = max_sequence
 
     max_line = max(transfer_dict.keys(), key=lambda x: (transfer_dict[x], lines[x].total_distance()))
