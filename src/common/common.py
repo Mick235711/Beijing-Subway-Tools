@@ -471,10 +471,8 @@ def sequence_data(sequence: Sequence[T], *,
     return len(sequence), avg_cnt, stddev_cnt, min_cnt, max_cnt
 
 
-def parse_comma(field: str | None, default: str | None = None) -> set[str]:
+def parse_comma(field: str | None) -> set[str]:
     """ Parse comma-separated argument values """
-    if default is not None and field is None:
-        field = default
     if field is None:
         return set()
     elif "," in field:

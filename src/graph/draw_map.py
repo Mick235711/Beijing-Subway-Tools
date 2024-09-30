@@ -46,6 +46,8 @@ def map_args(
     if contour_args:
         parser.add_argument("-l", "--levels", help="Override default levels")
         parser.add_argument("-f", "--focus", help="Add focus on a specific contour")
+        parser.add_argument("--style-spec", action="append", nargs=2, metavar=("style", "spec"),
+                           help="Detailed contour style specification")
         parser.add_argument(
             "-n", "--label-num", type=int, help="Override # of label for each contour", default=1)
         parser.add_argument(
@@ -125,6 +127,7 @@ def draw_contours(
     map_obj: Map, avg_shortest: dict[str, float],
     *, levels: int | list[int] | None = None,
     label_num: int = 1, focus_contour: int | set[int] | None = None,
+    contour_styles: dict[int, str] | None = None,
     line_width: list[int] | None = None
 ) -> None:
     """ Draw contours on the whole map """
@@ -146,6 +149,14 @@ def draw_contours(
     Y = np.linspace(0, img_size[1], 1000)
     Z = griddata((x, y), z, (X[None, :], Y[:, None]))
 
+    regularize_focus: set[int] = set()
+    if focus_contour is not None:
+        if isinstance(focus_contour, int):
+            regularize_focus.add(focus_contour)
+        else:
+            regularize_focus = focus_contour
+    regularize_style = contour_styles or {}
+
     # adjust level
     if isinstance(levels, list):
         max_value = max(abs(v) for v in avg_shortest.values())
@@ -161,18 +172,18 @@ def draw_contours(
             levels = sorted(list(set(levels)))
         else:
             levels = sorted(x for x in list(set(processed_levels)) if x != 0)
-        print("Drawing levels:", levels, f"(min = {min_value:.2f}, max = {max_value:.2f})")
+        print("Drawing levels: [" + ", ".join(
+            str(f) if f not in regularize_focus and f not in regularize_style
+            else f"{f} (" + ", ".join(
+                (["focus"] if f in regularize_focus else []) +
+                ([regularize_style[f]] if f in regularize_style else [])
+            ) + ")"
+            for f in levels
+        ) + f"] (min = {min_value:.2f}, max = {max_value:.2f})")
 
     kwargs = {}
     if levels is not None:
         kwargs["levels"] = levels
-
-    regularize_focus: set[int] = set()
-    if focus_contour is not None:
-        if isinstance(focus_contour, int):
-            regularize_focus.add(focus_contour)
-        else:
-            regularize_focus = focus_contour
 
     if isinstance(levels, list):
         have_minus = any(level < 0 for level in levels)
@@ -192,12 +203,17 @@ def draw_contours(
     else:
         norm = None
 
-    cs = ax.contour(X, Y, Z, norm=norm, colors=([
-        ((0.0, 0.0, 0.0, 0.8) if f in regularize_focus else (0.0, 0.0, 0.0, 0.2))
-        for f in levels
-    ]) if isinstance(levels, list) else [
-        (0.0, 0.0, 0.0, 0.2)
-    ], origin="upper", linestyles="solid", linewidths=line_width, **kwargs)
+    if isinstance(levels, list):
+        cs = ax.contour(X, Y, Z, norm=norm, colors=[
+            ((0.0, 0.0, 0.0, 0.8) if f in regularize_focus else (0.0, 0.0, 0.0, 0.2))
+            for f in levels
+        ], origin="upper", linestyles=[
+            regularize_style.get(f, "solid") for f in levels
+        ], linewidths=line_width, **kwargs)
+    else:
+        cs = ax.contour(X, Y, Z, norm=norm, colors=[
+            (0.0, 0.0, 0.0, 0.2)
+        ], origin="upper", linestyles="solid", linewidths=line_width, **kwargs)
 
     for _ in range(label_num):
         labels = ax.clabel(cs, inline=True, fontsize=32)
@@ -209,9 +225,25 @@ def draw_contours(
                 cmap=colormap, origin="upper", extend="both", alpha=0.1, **kwargs)
 
 
+def parse_contour_spec(spec: list[list] | None = None) -> dict[int, str]:
+    """ Parse the contour spec arguments """
+    if spec is None:
+        return {}
+    result: dict[int, str] = {}
+    for style, single_spec in spec:
+        if style not in ["solid", "dashed", "dashdot", "dotted"]:
+            print(f"Warning: Invalid style {style}! (Ignored)")
+            continue
+        for f in parse_comma(single_spec):
+            if int(f) in result:
+                print(f"Warning: Duplicate specification for level {f}! (Latest used)")
+            result[int(f)] = style
+    return result
+
+
 def draw_contour_wrap(
     img: Image.Image, cmd_args: argparse.Namespace, *args,
-    default_contours: str | None = None,
+    default_contours: set[int] | None = None,
     levels: int | list[int] | None = None
 ) -> None:
     """ Draw contour in the current figure """
@@ -226,7 +258,9 @@ def draw_contour_wrap(
     draw_contours(
         ax, img.size, *args,
         label_num=cmd_args.label_num, line_width=cmd_args.line_width, levels=levels,
-        focus_contour=set(int(x) for x in parse_comma(cmd_args.focus, default_contours)),
+        focus_contour=(
+            set(int(x) for x in parse_comma(cmd_args.focus)) if cmd_args.focus is not None else default_contours
+        ), contour_styles=parse_contour_spec(cmd_args.style_spec)
     )
     print("Drawing contours done! Saving...")
     fig.savefig(output, dpi=dpi)
@@ -259,7 +293,7 @@ def get_levels_from_source(args: argparse.Namespace, have_minus: bool = False) -
             levels = levels[1:]
             levels = [-x for x in reversed(levels)] + [0] + levels
     else:
-        levels = [int(x.strip()) for x in args.levels.split(",")]
+        levels = [int(x) for x in parse_comma(args.levels)]
     return levels
 
 

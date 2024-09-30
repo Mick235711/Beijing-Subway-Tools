@@ -83,7 +83,7 @@ def main() -> None:
     print("Drawing stations done!")
 
     # Draw contours
-    draw_contour_wrap(img, args, cmap, map_obj, result_dict, default_contours="0", levels=levels)
+    draw_contour_wrap(img, args, cmap, map_obj, result_dict, default_contours={0}, levels=levels)
 
 
 # Call main
