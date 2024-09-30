@@ -156,7 +156,8 @@ def draw_contours(
 
         have_minus = any(level < 0 for level in levels)
         if have_minus:
-            levels = [max(level for level in levels if level <= min(min_value, 0))] + processed_levels
+            level_list = [level for level in levels if level <= min(min_value, 0)]
+            levels = ([max(level_list)] if len(level_list) > 0 else []) + processed_levels
             levels = sorted(list(set(levels)))
         else:
             levels = sorted(x for x in list(set(processed_levels)) if x != 0)
