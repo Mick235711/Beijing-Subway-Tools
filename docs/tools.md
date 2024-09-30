@@ -1828,8 +1828,8 @@ Longest/Shortest Train Segments:
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
-usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
-                   [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
+usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec] [-n LABEL_NUM]
+                   [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -1848,6 +1848,8 @@ options:
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
+  --style-spec style spec
+                        Detailed contour style specification
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
   -w LINE_WIDTH, --line-width LINE_WIDTH
@@ -1874,6 +1876,7 @@ There are a lot of options to customize the graph:
 - `-o` specifies the output graph path.
 - `-l` let you override the default contour levels. (For example: `-l 1,10,25` only draw contours at those three minutes.)
 - `-f` let you add focus (make bolder) on a specific contour line.
+- `--style-spec` let you specify the style of the contour lines. (For example: `--style-spec "dashed,10"` will draw dashed lines on the contour with 10 minutes.). Multiple spec can be specified.
 - `--dpi` let you override the default DPI of the output image.
 - `-d` let you choose the data source.
 - `-n` let you specify how many times the minute texts should be drawn on contour lines.
@@ -1896,8 +1899,8 @@ Drawing contours done! Saving...
 
 ### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
 ```
-usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
-                   [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--strategy {avg,min,max}]
+usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec] [-n LABEL_NUM]
+                   [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--strategy {avg,min,max}]
 
 options:
   -h, --help            show this help message and exit
@@ -1916,6 +1919,8 @@ options:
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
+  --style-spec style spec
+                        Detailed contour style specification
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
   -w LINE_WIDTH, --line-width LINE_WIDTH
@@ -1969,8 +1974,8 @@ Drawing contours done! Saving...
 
 ### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time maps from two stations
 ```
-usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH]
-                       [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
+usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec]
+                       [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -1989,6 +1994,8 @@ options:
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
+  --style-spec style spec
+                        Detailed contour style specification
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
   -w LINE_WIDTH, --line-width LINE_WIDTH
@@ -2033,8 +2040,8 @@ Drawing contours done! Saving...
 
 ### [`draw_furthest.py`](/src/graph/draw_furthest.py): Draw the sum of stations/distances maps originating from each station
 ```
-usage: draw_furthest.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-l LEVELS] [-f FOCUS] [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
-                        [-d {station,distance}]
+usage: draw_furthest.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec] [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual]
+                        [--exclude-single] [-d {station,distance}]
 
 options:
   -h, --help            show this help message and exit
@@ -2047,6 +2054,8 @@ options:
                         Override default levels
   -f FOCUS, --focus FOCUS
                         Add focus on a specific contour
+  --style-spec style spec
+                        Detailed contour style specification
   -n LABEL_NUM, --label-num LABEL_NUM
                         Override # of label for each contour
   -w LINE_WIDTH, --line-width LINE_WIDTH
