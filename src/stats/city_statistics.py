@@ -51,6 +51,9 @@ def display_line_info(city: City) -> None:
     total_dist = sum([line.total_distance() for line in regular_line.values()])
     print("Total distance for regular lines: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / len(regular_line)) + " per line)")
+    total_dist = sum([line.total_distance() for line in lines.values() if line.name not in include_line.keys()])
+    print("Total distance for normal fare lines: " + distance_str(total_dist) +
+          " (avg " + distance_str(total_dist / (len(lines) - len(include_line))) + " per line)")
 
 
 def display_station_info(city: City) -> None:

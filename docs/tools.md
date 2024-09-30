@@ -1020,6 +1020,7 @@ Total # of lines with different fare: 3
 Total # of regular lines: 19
 Total distance: 770.07km (avg 32.09km per line)
 Total distance for regular lines: 611.83km (avg 32.20km per line)
+Total distance for normal fare lines: 691.63km (avg 32.93km per line)
 
 ====&gt; Station Information &lt;=====
 Total # of stations: 374
