@@ -32,7 +32,7 @@ def key_list_str(
 def avg_waiting_time(
     all_trains: dict[str, list[tuple[str, Train]]], city: City,
     *, limit_num: int = 5, min_waiting: int | None = None, max_waiting: int | None = None,
-    exclude_edge: bool = False, show_all: bool = False
+    exclude_edge: bool = False, show_all: bool = False, exclude_virtual: bool = False
 ) -> None:
     """ Print the average waiting time for each transfer station """
     lines = city.lines
@@ -57,8 +57,9 @@ def avg_waiting_time(
     spec_dict: list[tuple[str, str, Transfer]] = []
     for station, transfer_spec in transfer_dict.items():
         spec_dict.append((station, station, transfer_spec))
-    for (station1, station2), transfer_spec in virtual_dict.items():
-        spec_dict.append((station1, station2, transfer_spec))
+    if not exclude_virtual:
+        for (station1, station2), transfer_spec in virtual_dict.items():
+            spec_dict.append((station1, station2, transfer_spec))
     results: dict[tuple[str, str, TransferSpec], list[float]] = {}
     for station1, station2, transfer_spec in spec_dict:
         for transfer_key in transfer_spec.transfer_time.keys():
@@ -115,10 +116,12 @@ def main() -> None:
         parser.add_argument("--max", type=int, help="Maximum waiting time")
         parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
         parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+        parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
 
     all_trains, args, city, _ = parse_args(append_arg)
     avg_waiting_time(all_trains, city, limit_num=args.limit_num, exclude_edge=args.exclude_edge,
-                     min_waiting=args.min, max_waiting=args.max, show_all=args.show_all)
+                     min_waiting=args.min, max_waiting=args.max, show_all=args.show_all,
+                     exclude_virtual=args.exclude_virtual)
 
 
 # Call main

@@ -1174,7 +1174,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`transfer_waiting.py`](/src/stats/max_train_station.py): Average waiting time for each transfer station
 ```
-usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--show-all] [--exclude-edge]
+usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--show-all] [--exclude-edge] [--exclude-virtual]
 
 options:
   -h, --help            show this help message and exit
@@ -1194,6 +1194,7 @@ options:
   --max MAX             Maximum waiting time
   --show-all            Show all results (including impossible cases)
   --exclude-edge        Exclude edge case in transfer
+  --exclude-virtual     Exclude virtual transfers
 ```
 
 Show the average waiting time after you finish transfer.
@@ -1878,7 +1879,7 @@ There are a lot of options to customize the graph:
 - `-o` specifies the output graph path.
 - `-l` let you override the default contour levels. (For example: `-l 1,10,25` only draw contours at those three minutes.)
 - `-f` let you add focus (make bolder) on a specific contour line.
-- `--style-spec` let you specify the style of the contour lines. (For example: `--style-spec "dashed,10"` will draw dashed lines on the contour with 10 minutes.). Multiple spec can be specified.
+- `--style-spec` let you specify the style of the contour lines. (For example: `--style-spec dashed 10,15` will draw dashed lines on the contour with 10 and 15 minutes.). Multiple spec can be specified.
 - `--dpi` let you override the default DPI of the output image.
 - `-d` let you choose the data source.
 - `-n` let you specify how many times the minute texts should be drawn on contour lines.
@@ -2128,7 +2129,7 @@ and `avg` that accumulates the shortest path over one day.
 
 Example Usage:
 <pre>
-$ python3 src/graph/draw_equtime.py -n 3 -o test.png
+$ python3 src/graph/draw_path.py -n 3 -o test.png
 City default: &lt;北京: 24 lines&gt;
 ? Please select a starting station: <i>环球度假区</i>
 ? Please select an ending station: <i>苹果园</i>
