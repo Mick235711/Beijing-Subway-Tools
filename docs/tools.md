@@ -27,6 +27,7 @@ and you can always press TAB to get a list of possible answers.
 
 Regarding Pinyin inputs, all possible tones/readings are supported:
 ![](complete.gif)
+
 Notice that also, directional verbs can be completed from East/West/etc.
 
 # [`timetable/`](/src/timetable): Creating and Modifying Timetables
