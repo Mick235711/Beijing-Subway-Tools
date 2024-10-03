@@ -18,7 +18,7 @@
         {name: "東門", dist: 657},
         {name: "中正紀念堂", dist: 1560, aliases: ["Chiang Kai-Shek Memorial Hall", "Nanmen"]},
         {name: "台大醫院", dist: 950, aliases: ["National Taiwan University Hospital"]},
-        {name: "台北車站", dist: 630, aliases: ["Taipei Main Station"]},
+        {name: "台北車站", dist: 630, aliases: ["Taipei Main Station", "Taipei HSR"]},
         {name: "中山", dist: 630},
         {name: "雙連", dist: 550, aliases: ["Mackay Memorial Hospital"]},
         {name: "民權西路", dist: 550, aliases: ["Minquan West Road"]},

@@ -1,0 +1,72 @@
+// 数据截止2022/11
+// 板蓝线时刻表（来自台北捷运官网）
+{
+    name: "板南線",
+    aliases: ["Bannan Line"],
+    code: "BL",
+    index: 5,
+    carriage_num: 6,
+    carriage_type: "C",
+    design_speed: 80,
+    stations: [
+        {name: "頂埔"},
+        {name: "永寧", dist: 1917},
+        {name: "土城", dist: 1129},
+        {name: "海山", dist: 1463},
+        {name: "亞東醫院", dist: 1647, aliases: ["Far Eastern Hospital"]},
+        {name: "府中", dist: 1314, aliases: ["The Lin Family Mansion and Garden"]},
+        {name: "板橋", dist: 653, aliases: ["Banqiao HSR"]},
+        {name: "新埔", dist: 1274},
+        {name: "江子翠", dist: 866},
+        {name: "龍山寺", dist: 3086, aliases: ["Longshan Temple", "Bangka Commercial Zone"]},
+        {name: "西門", dist: 1340},
+        {name: "台北車站", dist: 1431, aliases: ["Taipei Main Station", "Taipei HSR"]},
+        {name: "善導寺", dist: 671, aliases: ["Shandao Temple", "Huashan"]},
+        {name: "忠孝新生", dist: 943, aliases: ["National Taipei University of Technology"]},
+        {name: "忠孝復興", dist: 1129},
+        {name: "忠孝敦化", dist: 666},
+        {name: "國父紀念館", dist: 719, aliases: ["Sun Yat-Sen Memorial Hall"]},
+        {name: "市政府", dist: 850, aliases: ["Taipei City Hall"]},
+        {name: "永春", dist: 1135},
+        {name: "後山埤", dist: 817, aliases: ["Wufenpu Commercial Zone"]},
+        {name: "昆陽", dist: 1310},
+        {name: "南港", dist: 1185, aliases: ["Nangang HSR"]},
+        {name: "南港展覽館", dist: 1053, aliases: ["Taipei Nangang Exhibition Center"]}
+    ],
+    train_routes: {
+        "東行": {
+            aliases: ["Eastbound"],
+            "全程車": {},
+            "亞東醫院始發空車": {starts_with: "亞東醫院"},
+            "板橋始發空車": {starts_with: "板橋"},
+            "新埔始發空車": {starts_with: "新埔"},
+            "台北車站始發空車": {starts_with: "台北車站"},
+            "忠孝復興始發空車": {starts_with: "忠孝復興"},
+            "市政府始發空車": {starts_with: "市政府"},
+            "南港始發空車": {starts_with: "南港"},
+            "昆陽區間車": {ends_with: "昆陽"}
+        },
+        "西行": {
+            aliases: ["Westbound"],
+            reversed: true,
+            "全程車": {},
+            "永寧始發空車": {starts_with: "永寧"},
+            "亞東醫院始發空車": {starts_with: "亞東醫院"},
+            "江子翠始發空車": {starts_with: "江子翠"},
+            "台北車站始發空車": {starts_with: "台北車站"},
+            "忠孝復興始發空車": {starts_with: "忠孝復興"},
+            "國父紀念館始發空車": {starts_with: "國父紀念館"},
+            "後山埤始發空車": {starts_with: "後山埤"},
+            "昆陽始發空車": {starts_with: "昆陽"},
+            "南港始發空車": {starts_with: "南港"},
+            "亞東醫院區間車": {ends_with: "亞東醫院"}
+        }
+    },
+    date_groups: {
+        "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "週六": {weekday: [6], aliases: ["Saturday"]},
+        "週日": {weekday: [7], aliases: ["Sunday and National Holidays"]}
+    },
+    timetable: {
+    }
+}
