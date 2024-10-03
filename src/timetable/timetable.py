@@ -5,7 +5,7 @@
 
 # Libraries
 from datetime import time
-from typing import Iterable, Any
+from typing import Any
 
 from src.city.date_group import DateGroup
 from src.city.train_route import TrainRoute
@@ -33,7 +33,7 @@ class Timetable:
             return f"<Leaving {self.station} at " + get_time_repr(
                 self.leaving_time, self.next_day) + f" ({self.route_str()})>"
 
-        def route_iter(self) -> Iterable[TrainRoute]:
+        def route_iter(self) -> list[TrainRoute]:
             """ Iterable of route """
             return self.train_route if isinstance(self.train_route, list) else [self.train_route]
 
