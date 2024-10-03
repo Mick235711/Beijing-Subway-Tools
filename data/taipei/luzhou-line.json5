@@ -1,0 +1,39 @@
+// 数据截止2023/07
+// 中和新芦线（芦洲线）独立时刻表（来自台北捷运官网）
+// 注：独立描述，按跨线处理
+{
+    name: "蘆洲線",
+    aliases: ["Luzhou Line", "Zhonghe-Xinlu Line"],
+    code: "O",
+    index: 24,
+    carriage_num: 6,
+    carriage_type: "C",
+    design_speed: 80,
+    stations: [
+        {name: "大橋頭", index: "12", aliases: ["Daqiao Elementary School"]},
+        {name: "三重國小", index: "50", dist: 1807, aliases: ["Sanchong Elementary School"]},
+        {name: "三和國中", dist: 1163, aliases: ["Sanhe Junior High School"]},
+        {name: "徐匯中學", dist: 763, aliases: ["Saint Ignatius High School"]},
+        {name: "三民高中", dist: 831, aliases: ["Sanmin Senior High School", "National Open University"]},
+        {name: "蘆洲", dist: 1099, aliases: ["Luzhou Lee Family Historic Estate"]}
+    ],
+    train_routes: {
+        "北行": {
+            aliases: ["Northbound"],
+            "蘆洲線貫通車": {},
+            "徐匯中學始發空車": {starts_with: "徐匯中學"}
+        },
+        "南行": {
+            aliases: ["Southbound"],
+            reversed: true,
+            "蘆洲線貫通車": {},
+            "三和國中始發空車": {starts_with: "三和國中"}
+        }
+    },
+    date_groups: {
+        "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "例假日": {weekday: [6, 7], aliases: ["Holidays"]}
+    },
+    timetable: {
+    }
+}
