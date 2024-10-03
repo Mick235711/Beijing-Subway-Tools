@@ -126,9 +126,23 @@ def parse_through_spec(lines: dict[str, Line], spec_dict: dict[str, Any]) -> lis
     if "date_groups" in spec_dict:
         date_groups = spec_dict["date_groups"]
         assert len(lines_list) == len(date_groups), spec_dict
-    else:
+    elif "date_group" in spec_dict:
         date_groups = [spec_dict["date_group"] for _ in lines_list]
+    else:
+        list_dg = list(lines[lines_list[0]].date_groups.keys())
+        for i in range(1, len(lines_list)):
+            assert list_dg == list(lines[lines_list[i]].date_groups.keys()), (lines_list[0], lines_list[i])
+        result: list[ThroughSpec] = []
+        for date_group in list_dg:
+            result += parse_single_through_spec(lines, spec_dict, routes, [date_group for _ in lines_list])
+        return result
+    return parse_single_through_spec(lines, spec_dict, routes, date_groups)
 
+
+def parse_single_through_spec(lines: dict[str, Line], spec_dict: dict[str, Any],
+                              routes: list[str], date_groups: list[str]) -> list[ThroughSpec]:
+    """ Parse JSON5 spec as through train specification """
+    lines_list = spec_dict["lines"]
     if "directions" in spec_dict or "direction" in spec_dict:
         if "direction" in spec_dict:
             directions = [spec_dict["direction"] for _ in lines_list]
@@ -136,7 +150,7 @@ def parse_through_spec(lines: dict[str, Line], spec_dict: dict[str, Any]) -> lis
             directions = spec_dict["directions"]
             assert len(lines_list) == len(directions), spec_dict
         return [ThroughSpec([
-            (lines[line], direction, lines[line].date_groups[date_group], route)
+            (lines[line], direction, lines[line].date_groups[date_group], lines[line].train_routes[direction][route])
             for line, direction, date_group, route in zip(lines_list, directions, date_groups, routes)
         ])]
     lines_routes = list(zip(lines_list, routes))
