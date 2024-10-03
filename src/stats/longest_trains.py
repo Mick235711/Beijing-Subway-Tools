@@ -44,7 +44,7 @@ def main() -> None:
         ], default="distance", help="Sort by distance/duration/count")
 
     date_group_dict, through_dict, args, _, lines = parse_args_through(append_arg)
-    longest_segment(date_group_dict, through_dict, lines, args, limit_num=args.limit_num, sort_by=args.sort_by)
+    longest_segment(date_group_dict, through_dict, lines, args, limit_num=args.limit_num, sort_by=args.data_source)
 
 
 # Call main
