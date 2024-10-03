@@ -394,9 +394,10 @@ def ask_for_through_train(
     if only_express:
         candidate = [route for route in candidate if any(
             x[3].is_express() for x in route.spec)]
+
     if ignore_direction:
         direction = ask_for_direction_from_list(
-            {route.route_str(): (route.stations(), False) for route in candidate},
+            {route.route_str(): (route.stations(use_full_name=True), False) for route in candidate},
             include_default=False
         )
         return city, train_dict, line, [
@@ -404,7 +405,7 @@ def ask_for_through_train(
             for train in trains
         ]
     direction = ask_for_direction_from_list(
-        {route.direction_str(): (route.stations(), False) for route in candidate},
+        {route.direction_str(): (route.stations(use_full_name=True), False) for route in candidate},
         include_default=False
     )
     through_spec = {route.direction_str(): route for route in line}[direction]

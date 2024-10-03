@@ -21,15 +21,23 @@ class ThroughSpec:
         # list of (line, direction, date_group, route)
         self.spec = spec
 
-    def stations(self) -> list[str]:
+    def stations(self, use_full_name: bool = False) -> list[str]:
         """ Calculate stations for this through route """
         stations: list[str] = []
-        for _, _, _, route in self.spec:
+        last_station: str | None = None
+        for line, _, _, route in self.spec:
             if len(stations) == 0:
-                stations = route.stations[:]
+                if use_full_name:
+                    stations = [line.station_full_name(s) for s in route.stations]
+                else:
+                    stations = route.stations[:]
+                last_station = route.stations[-1]
             else:
-                assert stations[-1] == route.stations[0], (stations, route, self.spec)
-                stations.extend(route.stations[1:])
+                assert last_station == route.stations[0], (stations, route, self.spec)
+                if use_full_name:
+                    stations.extend([line.station_full_name(s) for s in route.stations[1:]])
+                else:
+                    stations.extend(route.stations[1:])
         return stations
 
     def skip_stations(self) -> set[str]:
