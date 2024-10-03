@@ -408,8 +408,9 @@ def ask_for_through_train(
         {route.direction_str(): (route.stations(use_full_name=True), False) for route in candidate},
         include_default=False
     )
-    through_spec = {route.direction_str(): route for route in line}[direction]
-    return city, train_dict, line, through_dict[through_spec]
+    through_spec_candidate = [route for route in candidate if route.direction_str() == direction]
+    assert len(through_spec_candidate) == 1, through_spec_candidate
+    return city, train_dict, line, through_dict[through_spec_candidate[0]]
 
 
 def ask_for_timetable() -> tuple[str, Timetable]:
