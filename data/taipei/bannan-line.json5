@@ -38,6 +38,7 @@
             aliases: ["Eastbound"],
             "全程車": {},
             "亞東醫院始發空車": {starts_with: "亞東醫院"},
+            "府中始發空車": {starts_with: "府中"},
             "板橋始發空車": {starts_with: "板橋"},
             "新埔始發空車": {starts_with: "新埔"},
             "台北車站始發空車": {starts_with: "台北車站"},
@@ -64,9 +65,1452 @@
     },
     date_groups: {
         "平常日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
-        "週六": {weekday: [6], aliases: ["Saturday"]},
-        "週日": {weekday: [7], aliases: ["Sunday and National Holidays"]}
+        "例假日": {weekday: [6, 7], aliases: ["Holidays"]}
     },
     timetable: {
+        "頂埔": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 8, 8, 8, 7, [8, [6]], 5, 6, 6, 5, 4, 4, 4]},
+                        {first_train: "08:04", delta: [5, 6, 3, 5, 6, 6, 6, 5, 7, 7, 9, 9, 6, 6]},
+                        {first_train: "09:35", delta: [4, 5, 5, 5, 5, 8, 6, 5, [10, [10, 9, 10]], 9, 8]},
+                        {first_train: "15:33", delta: [8, 9, 7, 10, 10, 9, 9, 6, 6, 9, 4, 5, 7, 5]},
+                        {first_train: "17:23", delta: [6, 5, 6, 5, 5, 6, 6, 6, 6, 7, 5, 5, 5, 7]},
+                        {first_train: "18:45", delta: [7, 2, 6, 4, 5, 6, 4, 7, [2, [7, 5, 4, 8]], [16, [8]]]},
+                        {first_train: "22:30", delta: [9, 11, 12, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [7, 8, [2, [8, 9, 9, 9]], 9, 9, 9, 6, 5, [7, [10, 9, 10]]]},
+                        {first_train: "11:35", delta: [[22, [9]], [22, [8]], [5, [9]], 8, 6, 4, [20, [9]], 7, 8, 8]},
+                        {first_train: "22:23", delta: [9, 10, 10, 10, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "永寧": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [7, 8, 8, 8, 7, 6, 6, 6, 6, 7, 6, 5, 6, 5]},
+                        {first_train: "07:40", delta: [6, 5, 4, 4, 4, 4, 6, 5, 3, 5, [5, [6]], 7, 10]},
+                        {first_train: "09:22", delta: [6, 5, 5, 4, 5, 5, 5, 5, 8, 6, 5, [10, [10, 9, 10]]]},
+                        {first_train: "15:20", delta: [8, 8, 8, 9, 7, 10, 10, 9, 10, 5, 6, 9, 4]},
+                        {first_train: "17:08", delta: [7, 5, 6, 6, 5, 6, 5, 5, 6, 6, 6, 6, 7, 6]},
+                        {first_train: "18:35", delta: [4, 7, 2, 7, 3, 5, 4, 5, 6, 4, 7, [2, [7, 5, 4, 8]]]},
+                        {first_train: "20:25", delta: [[16, [8]], 9, 11, 12, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    // 原10-19h时刻表混乱，以+3min计算
+                    schedule: [
+                        {first_train: "06:03", delta: [7, 8, [2, [8, 9, 9, 9]], 9, 9, 9, 6, 5, [7, [10, 9, 10]]]},
+                        {first_train: "11:38", delta: [[22, [9]], [22, [8]], [5, [9]], 8, 6, 4, [20, [9]], 7, 8, 8]},
+                        {first_train: "22:26", delta: [9, 10, 10, 10, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "土城": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [7, 8, 8, 8, 7, 6, 6, 6, 7, 6, 6, 5, 6, 5]},
+                        {first_train: "07:42", delta: [6, 5, 4, 4, 4, 4, 6, 6, 2, 5, [5, [6]], 8, 9]},
+                        {first_train: "09:24", delta: [6, 5, 5, 4, 5, 5, 5, 5, 9, 5, 5, [10, [10, 9, 10]]]},
+                        {first_train: "15:22", delta: [8, 8, 8, 9, 7, 10, 10, 9, 10, 5, 6, 9, 4]},
+                        {first_train: "17:10", delta: [7, 5, 6, 6, 5, 6, 5, 5, 6, 6, 6, 6, 7, 6]},
+                        {first_train: "18:37", delta: [4, 7, 2, 7, 3, 5, 4, 5, 6, 4, 7, [2, [7, 5, 4, 8]]]},
+                        {first_train: "20:27", delta: [[16, [8]], 9, 11, 12, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    // 原10-19h时刻表混乱，以+2min计算
+                    schedule: [
+                        {first_train: "06:05", delta: [7, 8, [2, [8, 9, 9, 9]], 9, 9, 10, 5, 5, [7, [10, 9, 10]]]},
+                        {first_train: "11:40", delta: [[22, [9]], [22, [8]], [5, [9]], 8, 6, 4, [20, [9]], 7, 8, 8]},
+                        {first_train: "22:28", delta: [9, 10, 10, 10, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "海山": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:07", delta: [7, 8, 8, 9, 6, 7, 5, 7, 7, 6, 6, 5, 5, 6]},
+                        {first_train: "07:45", delta: [6, [5, [4]], 6, 6, 3, 5, 5, 6, 6, 7, 5, 8, 10]},
+                        {first_train: "09:27", delta: [6, 4, [5, [5]], 4, 10, 5, 5, [10, [9, 10, 10]], 9, [4, [8]]]},
+                        {first_train: "16:05", delta: [10, 9, 10, 9, 6, 6, 9, 3, 6, 6, 6, 6, 5, 6]},
+                        {first_train: "17:47", delta: [5, 6, 5, 6, 7, 6, 6, 6, 6, 3, 7, 3, 6, 4]},
+                        {first_train: "19:08", delta: [3, 6, 6, 3, 7, [2, [8, 4, 4, 8]], [17, [8]], 10, 11]},
+                        {first_train: "23:09", delta: [8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    // 原10-19h时刻表混乱，以此处数据计算：https://ericyu.org/TaipeiMetroTime/lines/BL-a-6.html
+                    schedule: [
+                        {first_train: "06:07", delta: [7, [2, [8, 9, 9, 9]], 9, 9, 9, 10, 5, 5, [7, [9, 10, 10]]]},
+                        {first_train: "11:43", delta: [[21, [9]], [23, [8]], [6, [9]], 5, 4, [20, [9]], [5, [8]], 10, 10]},
+                        {first_train: "23:09", delta: [8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "亞東醫院": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 5, 7, 4, 4, 4, 4, 3, 6, 4, [2, [2, 4, 3, 3]]]},
+                        {first_train: "07:14", delta: [2, 4, 3, 3, 2, 3, 3, 2, 3, 3, 4, [14, [2]]]},
+                        {first_train: "08:18", delta: [[5, [2]], 4, 2, 3, 2, 3, 3, 3, 3, 5, 3, 4, 3]},
+                        {first_train: "09:08", delta: [3, [5, [5]], [12, [4, 5, 5, 5, 5, 5]], 4, 4, 4, 3]},
+                        {first_train: "15:44", delta: [[6, [4]], 5, 5, 4, 5, 5, 5, 4, 2, [6, [3]], 2, 4]},
+                        {first_train: "17:10", delta: [2, 4, [6, [3]], 2, [2, [3, 2, 3, 3]], 2, [6, [3]], 4, [8, [3]]]},
+                        {first_train: "18:49", delta: [4, 2, 4, 3, 4, 2, [7, [3]], 4, 3, [42, [4]], 8, 8]},
+                        {first_train: "22:50", delta: [11, 11, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: [
+                        {plan: "亞東醫院始發空車", trains: ["06:00", "06:05"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:21", skip_trains: 1, until: "07:50"},
+                        {plan: "亞東醫院始發空車", first_train: "07:52", skip_trains: 1, until: "08:22"},
+                        {plan: "亞東醫院始發空車", trains: ["08:24"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:32", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:06"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:08", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:14"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:34", skip_trains: 1, until: "16:41"},
+                        {plan: "亞東醫院始發空車", first_train: "16:43", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:03"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:12", skip_trains: 1, until: "18:40"},
+                        {plan: "亞東醫院始發空車", first_train: "18:49", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:23", "19:33", "19:40", "19:56", "20:04"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:20", skip_trains: 1, until: "22:20"},
+                        {plan: "昆陽區間車", first_train: "07:52", skip_trains: 3, count: 3},
+                        {plan: "昆陽區間車", trains: ["08:24", "09:08", "18:59", "19:08", "19:23"]},
+                        {plan: "昆陽區間車", first_train: "22:04", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 7, [2, [8, 9, 9, 9]], 9, 9, 9, [5, [5]], [6, [4, 5, 5, 5, 5, 5]], 4, 5, 5, 5, 5]},
+                        {first_train: "11:42", delta: [[22, [4, 5]], 3, [44, [4]], [27, [5, 4]], 4, 4, 5, 3, 8]},
+                        {first_train: "22:34", delta: [8, 10, 10, 10, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: [
+                        {plan: "亞東醫院始發空車", trains: ["06:00", "07:59"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:19", skip_trains: 1, until: "18:49"},
+                        {plan: "亞東醫院始發空車", first_train: "19:07", skip_trains: 1, until: "22:15"},
+                        {plan: "昆陽區間車", first_train: "21:58", skip_trains: 1, count: 3}
+                    ]
+                }
+            }
+        },
+        "府中": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 5, 7, 4, 4, 4, 4, 3, 6, 4, 2, 4, 3, 3]},
+                        {first_train: "07:02", delta: [4, 3, 4, 3, 3, 4, 2, 3, 3, 3, 2, 3, 2, 3]},
+                        {first_train: "07:48", delta: [[14, [2]], 4, 2, 2, 3, 2, 2, 3, 2, 3, 2, 3, 3]},
+                        {first_train: "08:50", delta: [3, 5, 3, 4, 3, 3, 3, [12, [5, 4, 5, 5, 5, 5]]]},
+                        {first_train: "15:07", delta: [4, 5, 5, 5, [8, [4]], 5, 3, 4, 5, 5, 5, 5, 4]},
+                        {first_train: "16:39", delta: [4, 2, [17, [3]], 2, 3, [3, [3, 3, 2]], 3, 4, [11, [3]]]},
+                        {first_train: "18:49", delta: [[5, [3]], 4, 2, [7, [3]], 4, 3, [42, [4]], 8, 8, 10, 11]},
+                        {first_train: "23:14", delta: [8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: [
+                        {plan: "亞東醫院始發空車", trains: ["06:02", "06:07"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:23", skip_trains: 1, until: "07:52"},
+                        {plan: "亞東醫院始發空車", first_train: "07:54", skip_trains: 1, until: "08:24"},
+                        {plan: "亞東醫院始發空車", trains: ["08:27"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:34", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:08"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:11", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:17"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:36", skip_trains: 1, until: "16:43"},
+                        {plan: "亞東醫院始發空車", first_train: "16:45", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:06"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:15", skip_trains: 1, until: "18:42"},
+                        {plan: "亞東醫院始發空車", first_train: "18:52", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:25", "19:35", "19:42", "19:58", "20:06"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:22", skip_trains: 1, until: "22:22"},
+                        {plan: "昆陽區間車", first_train: "07:54", skip_trains: 3, count: 3},
+                        {plan: "昆陽區間車", trains: ["08:27", "09:11", "19:01", "19:10", "19:25"]},
+                        {plan: "昆陽區間車", first_train: "22:06", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 7, 9, 9, 8, 9, 9, 8, 9, 9, 9, 4, 5, 4]},
+                        {first_train: "07:56", delta: [6, [4, [4, 5, 5, 5, 5, 5]], 4, [5, [5, 3]], [81, [4]], [10, [3, 4]]]},
+                        {first_train: "17:19", delta: [[6, [5, 2]], [27, [5, 4]], 4, 4, 5, 3, 8, 8, 8]},
+                        {first_train: "22:54", delta: [10, 10, 8, 7, 5, 7, 8, 8, 8, 7]}
+                    ],
+                    filters: [
+                        {plan: "亞東醫院始發空車", trains: ["06:02", "08:02"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:21", skip_trains: 1, until: "10:15"},
+                        {plan: "亞東醫院始發空車", trains: ["10:26", "10:34", "10:46", "10:54", "11:06", "11:14", "11:26", "11:34"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:46", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:22", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:58", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:34", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:10", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:46", skip_trains: 1, until: "16:20"},
+                        {plan: "亞東醫院始發空車", first_train: "16:30", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "16:55", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:33", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:59", skip_trains: 1, until: "18:51"},
+                        {plan: "亞東醫院始發空車", first_train: "19:09", skip_trains: 1, until: "22:17"},
+                        {plan: "府中始發空車", trains: ["07:42", "07:51", "10:18", "10:42", "10:58", "11:22"]},
+                        {plan: "府中始發空車", first_train: "11:42", skip_trains: 8, until: "14:42"},
+                        {plan: "府中始發空車", trains: ["16:23", "16:51", "17:26", "17:54"]},
+                        {plan: "昆陽區間車", first_train: "22:00", skip_trains: 1, count: 3}
+                    ]
+                }
+            }
+        },
+        "板橋": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 3, 2, 4, 3]},
+                        {first_train: "07:15", delta: [[6, [3]], 2, 3, 2, 3, 3, 1, 3, [21, [2]], 3, 3, 2]},
+                        {first_train: "08:43", delta: [2, 3, 4, 3, 4, 4, 3, 4, 2, 3, [13, [5, 5, 5, 4, 5, 5]]]},
+                        {first_train: "15:36", delta: [4, 3, 5, [6, [4]], 5, 4, 5, 5, 5, 5, 3, 3]},
+                        {first_train: "16:50", delta: [3, 2, [11, [3]], 4, [2, [2, 3, 3, 3, 2, 3, 3]], [4, [3]]]},
+                        {first_train: "18:25", delta: [4, [10, [3]], 4, 3, 3, 3, 2, [6, [3]], [44, [4]], 8, 8]},
+                        {first_train: "22:53", delta: [11, 11, 8, 7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "亞東醫院始發空車", trains: ["06:03", "06:08"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:24", skip_trains: 1, until: "07:43"},
+                        {plan: "亞東醫院始發空車", trains: ["07:50", "07:54"]},
+                        {plan: "亞東醫院始發空車", first_train: "07:56", skip_trains: 1, until: "08:16"},
+                        {plan: "亞東醫院始發空車", trains: ["08:22", "08:26", "08:28"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:35", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:10"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:12", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:18"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:37", skip_trains: 1, until: "16:44"},
+                        {plan: "亞東醫院始發空車", first_train: "16:47", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:07"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:16", skip_trains: 1, until: "18:44"},
+                        {plan: "亞東醫院始發空車", first_train: "18:53", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:26", "19:36", "19:44", "20:00", "20:08"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:24", skip_trains: 1, until: "22:24"},
+                        {plan: "板橋始發空車", trains: ["07:47", "08:20", "00:23", "00:32"]},
+                        {plan: "昆陽區間車", first_train: "07:47", skip_trains: 3, until: "08:28"},
+                        {plan: "昆陽區間車", trains: ["09:12", "19:03", "19:12", "19:26"]},
+                        {plan: "昆陽區間車", first_train: "22:08", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [10, 8, [3, [8, 9, 9]], 5, 4, 4, 5, 6, [4, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "10:04", delta: [[9, [4]], [40, [3, 5]], [2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:03", delta: [[27, [5, 4]], 4, 3, 5, 3, 8, 8, 9, 10, 9, 10]},
+                        {first_train: "23:23", delta: [7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "亞東醫院始發空車", trains: ["06:03", "08:03"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:22", skip_trains: 1, until: "10:16"},
+                        {plan: "亞東醫院始發空車", trains: ["10:28", "10:36", "10:48", "10:56", "11:07", "11:15", "11:28", "11:36"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:47", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:24", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:59", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:36", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:11", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:48", skip_trains: 1, until: "16:21"},
+                        {plan: "亞東醫院始發空車", first_train: "16:32", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "16:56", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:35", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:00", skip_trains: 1, until: "18:53"},
+                        {plan: "亞東醫院始發空車", first_train: "19:11", skip_trains: 1, until: "22:18"},
+                        {plan: "府中始發空車", trains: ["07:44", "07:52", "10:20", "10:43", "10:59", "11:23"]},
+                        {plan: "府中始發空車", first_train: "11:44", skip_trains: 8, until: "14:43"},
+                        {plan: "府中始發空車", trains: ["16:25", "16:53", "17:28", "17:56"]},
+                        {plan: "昆陽區間車", first_train: "22:02", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:23", "00:32"]}
+                    ]
+                }
+            }
+        },
+        "新埔": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [6, 5, 5, 7, 4, 4, 4, 4, 3, 5, 4, 3, 3, 4]},
+                        {first_train: "07:04", delta: [2, 4, 3, 4, 3, 4, 3, 3, 2, 3, 3, 2, 3, 2]},
+                        {first_train: "07:48", delta: [[21, [2]], 3, 2, 2, 3, 2, 3, 2, 3, 4, 3, 4, 4]},
+                        {first_train: "09:09", delta: [3, 3, 2, [5, [5]], [12, [4, 5, 5, 5, 5, 5]], [11, [4]]]},
+                        {first_train: "16:19", delta: [5, 4, 5, 5, 5, [19, [3]], 2, 3, [3, [3, 3, 2]], 3]},
+                        {first_train: "18:15", delta: [3, 4, [11, [3]], 4, 3, 3, 3, 4, 2, 3, 3, 3, 3]},
+                        {first_train: "19:28", delta: [4, 3, 3, [43, [4]], 8, 8, 10, 11, 11, 7, 7, 5, 8]},
+                        {first_train: "23:52", delta: [8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:00"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:06", "06:11"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:27", skip_trains: 1, until: "07:45"},
+                        {plan: "亞東醫院始發空車", trains: ["07:52", "07:56"]},
+                        {plan: "亞東醫院始發空車", first_train: "07:58", skip_trains: 1, until: "08:18"},
+                        {plan: "亞東醫院始發空車", trains: ["08:24", "08:28", "08:30"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:37", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:12"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:15", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:20"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:40", skip_trains: 1, until: "16:46"},
+                        {plan: "亞東醫院始發空車", first_train: "16:49", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:10"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:19", skip_trains: 1, until: "18:46"},
+                        {plan: "亞東醫院始發空車", first_train: "18:55", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:28", "19:38", "19:46", "20:02", "20:10"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:26", skip_trains: 1, until: "22:26"},
+                        {plan: "板橋始發空車", trains: ["07:50", "08:22", "00:26", "00:35"]},
+                        {plan: "昆陽區間車", first_train: "07:50", skip_trains: 3, until: "08:30"},
+                        {plan: "昆陽區間車", trains: ["09:15", "19:05", "19:14", "19:28"]},
+                        {plan: "昆陽區間車", first_train: "22:10", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [6, 10, 7, [2, [8, 9, 9, 9]], 9, 4, 5, 4, 4, 7, 4, 5, 5, 5, 4, 5, 5]},
+                        {first_train: "08:44", delta: [[3, [5, 5, 4, 5, 5, 5]], [4, [3, 5]], 3, [81, [4]], [16, [3, 4]]]},
+                        {first_train: "18:05", delta: [[27, [5, 4]], 4, 4, 5, 3, 8, 8, 8, 10, 9, 11]},
+                        {first_train: "23:25", delta: [7, 5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:00"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:06", "08:06"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:25", skip_trains: 1, until: "10:19"},
+                        {plan: "亞東醫院始發空車", trains: ["10:30", "10:38", "10:50", "10:58", "11:10", "11:18", "11:30", "11:38"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:50", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:26", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:02", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:38", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:14", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:50", skip_trains: 1, until: "16:24"},
+                        {plan: "亞東醫院始發空車", first_train: "16:34", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "16:59", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:37", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:02", skip_trains: 1, until: "18:55"},
+                        {plan: "亞東醫院始發空車", first_train: "19:13", skip_trains: 1, until: "22:21"},
+                        {plan: "府中始發空車", trains: ["07:46", "07:55", "10:22", "10:46", "11:02", "11:26"]},
+                        {plan: "府中始發空車", first_train: "11:46", skip_trains: 8, until: "14:46"},
+                        {plan: "府中始發空車", trains: ["16:27", "16:55", "17:30", "17:58"]},
+                        {plan: "昆陽區間車", first_train: "22:04", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:26", "00:35"]}
+                    ]
+                }
+            }
+        },
+        "江子翠": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 2, 3, 3]},
+                        {first_train: "07:15", delta: [4, 3, 4, 3, 3, 2, 3, 3, 2, 3, 2, 3, 1, 3, [20, [2]]]},
+                        {first_train: "08:36", delta: [3, 3, 2, 3, 2, 3, 4, 3, 4, 4, 3, 4, 2, 3, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5]},
+                        {first_train: "10:37", delta: [[10, [5, 4, 5, 5, 5, 5]], 5, [11, [4]], 5, 4, 5, 5]},
+                        {first_train: "16:40", delta: [5, 3, 3, 3, 3, 2, [11, [3]], 4, [2, [2, 3, 3, 3, 2, 3, 3]]]},
+                        {first_train: "18:17", delta: [[4, [3]], 4, [10, [3]], 4, 3, 3, 3, 2, [6, [3]], [44, [4]]]},
+                        {first_train: "22:40", delta: [8, 9, 11, 11, 8, 7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:02"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:07", "06:12"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:28", skip_trains: 1, until: "07:47"},
+                        {plan: "亞東醫院始發空車", trains: ["07:54", "07:58"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:00", skip_trains: 1, until: "08:20"},
+                        {plan: "亞東醫院始發空車", trains: ["08:26", "08:30", "08:32"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:39", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:14"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:16", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:22"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:42", skip_trains: 1, until: "16:48"},
+                        {plan: "亞東醫院始發空車", first_train: "16:51", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:11"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:20", skip_trains: 1, until: "18:48"},
+                        {plan: "亞東醫院始發空車", first_train: "18:57", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:30", "19:40", "19:48", "20:04", "20:12"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:28", skip_trains: 1, until: "22:28"},
+                        {plan: "板橋始發空車", trains: ["07:51", "08:24", "00:27", "00:36"]},
+                        {plan: "昆陽區間車", first_train: "07:51", skip_trains: 3, until: "08:32"},
+                        {plan: "昆陽區間車", trains: ["09:16", "19:07", "19:16", "19:30"]},
+                        {plan: "昆陽區間車", first_train: "22:12", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 10, 8, [3, [8, 9, 9]], 5, 4, 4, 5, 6, [4, [5, 5, 5, 5, 4, 5]]]},
+                        {first_train: "10:08", delta: [[9, [4]], [40, [3, 5]], [2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:07", delta: [[27, [5, 4]], 4, 3, 5, 3, 8, 8, 8, 10, 10, 10]},
+                        {first_train: "23:27", delta: [7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:02"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:07", "08:07"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:27", skip_trains: 1, until: "10:20"},
+                        {plan: "亞東醫院始發空車", trains: ["10:32", "10:40", "10:52", "11:00", "11:11", "11:19", "11:32", "11:40"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:51", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:28", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:03", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:40", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:15", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:52", skip_trains: 1, until: "16:25"},
+                        {plan: "亞東醫院始發空車", first_train: "16:36", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:00", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:39", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:04", skip_trains: 1, until: "18:57"},
+                        {plan: "亞東醫院始發空車", first_train: "19:15", skip_trains: 1, until: "22:22"},
+                        {plan: "府中始發空車", trains: ["07:48", "07:56", "10:24", "10:47", "11:03", "11:27"]},
+                        {plan: "府中始發空車", first_train: "11:48", skip_trains: 8, until: "14:47"},
+                        {plan: "府中始發空車", trains: ["16:29", "16:57", "17:32", "18:00"]},
+                        {plan: "昆陽區間車", first_train: "22:06", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:27", "00:36"]}
+                    ]
+                }
+            }
+        },
+        "龍山寺": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [6, 5, 5, 7, 4, 4, 4, 4, 3, 5, 4, 4, 3, 3]},
+                        {first_train: "07:09", delta: [2, 4, 4, 4, 3, 4, 2, 3, 3, 3, 3, [2, [2, 3, 2, 2]]]},
+                        {first_train: "08:04", delta: [[18, [2]], 3, 2, 3, 2, 3, 3, 3, 3, 4, 4, 4, 3]},
+                        {first_train: "09:20", delta: [3, 5, 4, [5, [5]], 4, 6, [11, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "15:30", delta: [5, [8, [4]], 5, 3, 4, [5, [5]], 4, 4, 2, [14, [3]], 4, [3, [2, 3, 3]]]},
+                        {first_train: "18:07", delta: [2, [13, [3]], 4, [5, [3]], 4, 3, 3, 3, 2, [6, [3]], [43, [4]]]},
+                        {first_train: "22:36", delta: [8, 8, 9, 11, 11, 8, 6, 6, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:05"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:11", "06:16"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:32", skip_trains: 1, until: "07:51"},
+                        {plan: "亞東醫院始發空車", trains: ["07:58", "08:02"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:04", skip_trains: 1, until: "08:24"},
+                        {plan: "亞東醫院始發空車", trains: ["08:30", "08:34", "08:36"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:43", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:17"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:20", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:26"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:45", skip_trains: 1, until: "16:52"},
+                        {plan: "亞東醫院始發空車", first_train: "16:54", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:15"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:24", skip_trains: 1, until: "18:52"},
+                        {plan: "亞東醫院始發空車", first_train: "19:01", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:34", "19:44", "19:52", "20:08", "20:16"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:32", skip_trains: 1, until: "22:32"},
+                        {plan: "板橋始發空車", trains: ["07:55", "08:28", "00:31", "00:40"]},
+                        {plan: "昆陽區間車", first_train: "07:55", skip_trains: 3, until: "08:36"},
+                        {plan: "昆陽區間車", trains: ["09:20", "19:11", "19:20", "19:34"]},
+                        {plan: "昆陽區間車", first_train: "22:16", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:05", delta: [6, 10, 7, 9, 9, 8, 9, 9, 8, 9, 9, 9, 4, 5]},
+                        {first_train: "08:00", delta: [5, 6, [4, [5, 5, 4, 5, 5, 5]], 5, [9, [4]], [39, [3, 5]], 3]},
+                        {first_train: "16:08", delta: [[9, [3, 4]], 4, 3, 3, 4, 3, 5, 2, 4, 3, 4, 3]},
+                        {first_train: "17:53", delta: [4, 3, 3, 4, 3, [4, [5, 4]], 6, [22, [4, 5]], 4, 4]},
+                        {first_train: "22:21", delta: [5, 3, 8, 8, 8, 10, 10, 10, 8, 6, 6, 7, 8, 8]},
+                        {first_train: "00:14", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:05"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:11", "08:11"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:30", skip_trains: 1, until: "10:24"},
+                        {plan: "亞東醫院始發空車", trains: ["10:36", "10:44", "10:56", "11:04", "11:15", "11:23", "11:36", "11:44"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:55", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:32", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:07", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:44", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:19", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:56", skip_trains: 1, until: "16:29"},
+                        {plan: "亞東醫院始發空車", first_train: "16:39", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:04", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:42", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:07", skip_trains: 1, until: "19:01"},
+                        {plan: "亞東醫院始發空車", first_train: "19:19", skip_trains: 1, until: "22:26"},
+                        {plan: "府中始發空車", trains: ["07:51", "08:00", "10:28", "10:51", "11:07", "11:31"]},
+                        {plan: "府中始發空車", first_train: "11:52", skip_trains: 8, until: "14:51"},
+                        {plan: "府中始發空車", trains: ["16:32", "17:00", "17:35", "18:03"]},
+                        {plan: "昆陽區間車", first_train: "22:10", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:31", "00:40"]}
+                    ]
+                }
+            }
+        },
+        "西門": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [5, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 2, 3, 3]},
+                        {first_train: "07:21", delta: [4, 4, [5, [3]], 2, 3, 2, 2, 3, [23, [2]], 3, 3, 2]},
+                        {first_train: "08:53", delta: [2, 3, 4, 3, 4, 4, 4, 3, 3, 2, [5, [5]], 4, [6, [5]]]},
+                        {first_train: "10:29", delta: [[10, [4, 5, 5, 5, 5, 5]], 4, 5, 5, 5, [11, [4]], 5]},
+                        {first_train: "16:32", delta: [4, 5, 5, 5, [20, [3]], [4, [2, 3, 3]], 3, 4, [11, [3]]]},
+                        {first_train: "19:07", delta: [3, 3, 3, 4, 2, 3, 3, 3, 3, 2, 4, 3, 3, 5, [35, [4]]]},
+                        {first_train: "22:15", delta: [3, [5, [4]], 9, 8, 9, 10, 11, 8, 7, 5, 7, 8, 8]},
+                        {first_train: "00:16", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:08"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:13", "06:18"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:34", skip_trains: 1, until: "07:53"},
+                        {plan: "亞東醫院始發空車", trains: ["08:00", "08:04"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:06", skip_trains: 1, until: "08:26"},
+                        {plan: "亞東醫院始發空車", trains: ["08:32", "08:36", "08:38"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:45", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:20"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:23", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:29"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:48", skip_trains: 1, until: "16:54"},
+                        {plan: "亞東醫院始發空車", first_train: "16:57", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:18"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:27", skip_trains: 1, until: "18:54"},
+                        {plan: "亞東醫院始發空車", first_train: "19:03", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:36", "19:46", "19:55", "20:11", "20:19"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:35", skip_trains: 1, until: "22:34"},
+                        {plan: "板橋始發空車", trains: ["07:58", "08:30", "00:33", "00:42"]},
+                        {plan: "昆陽區間車", first_train: "07:58", skip_trains: 3, until: "08:38"},
+                        {plan: "昆陽區間車", trains: ["09:23", "19:13", "19:22", "19:36"]},
+                        {plan: "昆陽區間車", first_train: "22:18", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [5, 10, 8, [2, [8, 9, 9, 9]], 9, 4, 5, 4, 4, 7, [4, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "10:14", delta: [[5, [5, 3]], [81, [4]], [16, [3, 4]], 3, [27, [5, 4]], 4]},
+                        {first_train: "22:24", delta: [5, 3, 8, 8, 8, 9, 10, 10, 8, 7, 5, 7, 8, 8]},
+                        {first_train: "00:16", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "新埔始發空車", trains: ["06:08"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:13", "08:14"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:33", skip_trains: 1, until: "10:27"},
+                        {plan: "亞東醫院始發空車", trains: ["10:38", "10:46", "10:58", "11:06", "11:18", "11:26", "11:38", "11:46"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:58", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:34", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:10", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:46", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:22", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:58", skip_trains: 1, until: "16:32"},
+                        {plan: "亞東醫院始發空車", first_train: "16:42", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:07", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:45", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:10", skip_trains: 1, until: "19:03"},
+                        {plan: "亞東醫院始發空車", first_train: "19:21", skip_trains: 1, until: "22:29"},
+                        {plan: "府中始發空車", trains: ["07:54", "08:03", "10:30", "10:54", "11:10", "11:34"]},
+                        {plan: "府中始發空車", first_train: "11:54", skip_trains: 8, until: "14:54"},
+                        {plan: "府中始發空車", trains: ["16:35", "17:03", "17:38", "18:06"]},
+                        {plan: "昆陽區間車", first_train: "22:12", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:33", "00:42"]}
+                    ]
+                }
+            }
+        },
+        "台北車站": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 6, 5, 5, 7, [8, [4]], [5, [3]], 4, 4, 4, [5, [3]]]},
+                        {first_train: "07:49", delta: [3, 2, 2, 3, 1, 3, [21, [2]], 3, 2, 3, 2, 3, 3]},
+                        {first_train: "09:04", delta: [3, 5, 3, 4, 3, 3, 3, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5]},
+                        {first_train: "10:46", delta: [[10, [5, 4, 5, 5, 5, 5]], 5, [11, [4]], 5, 4, 5, 5]},
+                        {first_train: "16:49", delta: [5, [19, [3]], 2, [2, [3, 2, 3, 3]], 2, [5, [3]], 4, [10, [3]]]},
+                        {first_train: "19:09", delta: [4, 3, 3, 4, 2, 3, 3, 3, 3, 2, 4, 3, 3, [42, [4]]]},
+                        {first_train: "22:41", delta: [8, 8, 9, 11, 11, 7, 7, 5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:00"]},
+                        {plan: "新埔始發空車", trains: ["06:10"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:16", "06:21"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:37", skip_trains: 1, until: "07:56"},
+                        {plan: "亞東醫院始發空車", trains: ["08:03", "08:07"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:09", skip_trains: 1, until: "08:29"},
+                        {plan: "亞東醫院始發空車", trains: ["08:35", "08:39", "08:41"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:48", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:22"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:25", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:31"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:51", skip_trains: 1, until: "16:57"},
+                        {plan: "亞東醫院始發空車", first_train: "17:00", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:21"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:30", skip_trains: 1, until: "18:57"},
+                        {plan: "亞東醫院始發空車", first_train: "19:06", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:39", "19:49", "19:57", "20:13", "20:21"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:37", skip_trains: 1, until: "22:37"},
+                        {plan: "板橋始發空車", trains: ["08:00", "08:33", "00:36", "00:45"]},
+                        {plan: "昆陽區間車", first_train: "08:00", skip_trains: 3, until: "08:41"},
+                        {plan: "昆陽區間車", trains: ["09:25", "19:16", "19:25", "19:39"]},
+                        {plan: "昆陽區間車", first_train: "22:21", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [10, 6, 10, 8, [3, [8, 9, 9]], 5, 4, 4, 5, 6, [4, [5, 5, 5, 5, 4, 5]]]},
+                        {first_train: "10:17", delta: [[5, [5, 3]], [81, [4]], [16, [3, 4]], 3, [27, [5, 4]], 4]},
+                        {first_train: "22:26", delta: [5, 3, 8, 8, 8, 10, 10, 10, 7, 7, 5, 8, 7, 8]},
+                        {first_train: "00:19", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:00"]},
+                        {plan: "新埔始發空車", trains: ["06:10"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:16", "08:16"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:36", skip_trains: 1, until: "10:30"},
+                        {plan: "亞東醫院始發空車", trains: ["10:41", "10:49", "11:01", "11:09", "11:21", "11:29", "11:41", "11:49"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:01", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:37", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:13", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:49", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:25", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:01", skip_trains: 1, until: "16:35"},
+                        {plan: "亞東醫院始發空車", first_train: "16:45", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:10", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:48", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:13", skip_trains: 1, until: "19:06"},
+                        {plan: "亞東醫院始發空車", first_train: "19:24", skip_trains: 1, until: "22:31"},
+                        {plan: "府中始發空車", trains: ["07:57", "08:05", "10:33", "10:57", "11:13", "11:37"]},
+                        {plan: "府中始發空車", first_train: "11:57", skip_trains: 8, until: "14:57"},
+                        {plan: "府中始發空車", trains: ["16:38", "17:06", "17:41", "18:09"]},
+                        {plan: "昆陽區間車", first_train: "22:15", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:36", "00:45"]}
+                    ]
+                }
+            }
+        },
+        "善導寺": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 5, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 2, 3]},
+                        {first_train: "07:21", delta: [5, 3, 4, 4, 3, 2, 3, 3, 3, 2, 3, [19, [2]], 3, [5, [2]]]},
+                        {first_train: "08:49", delta: [3, 2, 3, 2, 3, 4, 3, 4, 4, 4, 3, 3, 3, 5]},
+                        {first_train: "09:39", delta: [[5, [5]], 4, 6, [11, [4, 5, 5, 5, 5, 5]], 4, 5, [7, [4]]]},
+                        {first_train: "16:14", delta: [5, 3, 4, 5, 5, 5, 5, 4, 5, [16, [3]], 4, [3, [2, 3, 3]]]},
+                        {first_train: "18:14", delta: [2, [13, [3]], 4, [5, [3]], 4, 3, 3, 3, 2, [7, [3]]]},
+                        {first_train: "19:55", delta: [[36, [4]], 3, [5, [4]], 9, 8, 9, 11, 10, 8, 7, 5, 7]},
+                        {first_train: "00:04", delta: [8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:02"]},
+                        {plan: "新埔始發空車", trains: ["06:12"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:17", "06:22"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:38", skip_trains: 1, until: "07:58"},
+                        {plan: "亞東醫院始發空車", trains: ["08:04", "08:08"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:10", skip_trains: 1, until: "08:30"},
+                        {plan: "亞東醫院始發空車", trains: ["08:37", "08:41", "08:43"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:49", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:24"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:27", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:33"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:52", skip_trains: 1, until: "16:58"},
+                        {plan: "亞東醫院始發空車", first_train: "17:01", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:22"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:31", skip_trains: 1, until: "18:59"},
+                        {plan: "亞東醫院始發空車", first_train: "19:08", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:41", "19:50", "19:59", "20:15", "20:23"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:39", skip_trains: 1, until: "22:38"},
+                        {plan: "板橋始發空車", trains: ["08:02", "08:34", "00:37", "00:46"]},
+                        {plan: "昆陽區間車", first_train: "08:02", skip_trains: 3, until: "08:43"},
+                        {plan: "昆陽區間車", trains: ["09:27", "19:18", "19:27", "19:41"]},
+                        {plan: "昆陽區間車", first_train: "22:22", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [10, 5, 10, [3, [8, 9, 9]], 9, 4, 5, 4, 5, 6, [4, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "10:19", delta: [[9, [4]], [40, [3, 5]], [2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:18", delta: [[22, [5, 4]], 4, 4, 5, 4, 5, 4, 5, 5, 5, 4]},
+                        {first_train: "22:24", delta: [4, 5, 3, 8, 8, 8, 9, 10, 10, 8, 7, 5, 7, 8]},
+                        {first_train: "00:12", delta: [8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:02"]},
+                        {plan: "新埔始發空車", trains: ["06:12"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:17", "08:18"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:37", skip_trains: 1, until: "10:31"},
+                        {plan: "亞東醫院始發空車", trains: ["10:43", "10:51", "11:03", "11:11", "11:22", "11:30", "11:43", "11:51"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:02", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:39", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:14", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:51", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:26", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:03", skip_trains: 1, until: "16:36"},
+                        {plan: "亞東醫院始發空車", first_train: "16:47", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:11", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:50", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:15", skip_trains: 1, until: "19:08"},
+                        {plan: "亞東醫院始發空車", first_train: "19:26", skip_trains: 1, until: "22:33"},
+                        {plan: "府中始發空車", trains: ["07:58", "08:07", "10:35", "10:58", "11:14", "11:38"]},
+                        {plan: "府中始發空車", first_train: "11:59", skip_trains: 8, until: "14:58"},
+                        {plan: "府中始發空車", trains: ["16:40", "17:08", "17:43", "18:11"]},
+                        {plan: "昆陽區間車", first_train: "22:17", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:37", "00:46"]}
+                    ]
+                }
+            }
+        },
+        "忠孝新生": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [10, 5, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 2, 3]},
+                        {first_train: "07:23", delta: [5, 3, 4, 4, 2, 3, 3, 3, 2, 3, 3, [15, [2]], 3]},
+                        {first_train: "08:33", delta: [1, 2, 3, [6, [2]], 3, 2, 3, 2, 3, 4, 3, 4, 4]},
+                        {first_train: "09:23", delta: [3, 3, 3, 5, 4, [5, [5]], 4, 6, [11, [4, 5, 5, 5, 5, 5]]]},
+                        {first_train: "15:39", delta: [5, [8, [4]], 5, 3, 4, 5, 5, 5, 5, 4, 5, [15, [3]]]},
+                        {first_train: "17:45", delta: [4, [2, [2, 3, 3, 3, 2, 3]], [13, [3]], 4, [5, [3]], 4]},
+                        {first_train: "19:26", delta: [2, [8, [3]], 5, [42, [4]], 8, 8, 9, 11, 10, 8, 7, 5]},
+                        {first_train: "23:58", delta: [8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:04"]},
+                        {plan: "新埔始發空車", trains: ["06:14"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:19", "06:24"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:40", skip_trains: 1, until: "08:00"},
+                        {plan: "亞東醫院始發空車", trains: ["08:06", "08:10"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:12", skip_trains: 1, until: "08:33"},
+                        {plan: "亞東醫院始發空車", trains: ["08:39", "08:43", "08:45"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:51", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:26"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:29", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:35"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:54", skip_trains: 1, until: "17:00"},
+                        {plan: "亞東醫院始發空車", first_train: "17:03", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:24"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:33", skip_trains: 1, until: "19:00"},
+                        {plan: "亞東醫院始發空車", first_train: "19:10", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:43", "19:52", "20:01", "20:17", "20:25"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:41", skip_trains: 1, until: "22:41"},
+                        {plan: "板橋始發空車", trains: ["08:04", "08:36", "00:39", "00:48"]},
+                        {plan: "昆陽區間車", first_train: "08:04", skip_trains: 3, until: "08:45"},
+                        {plan: "昆陽區間車", trains: ["09:29", "19:19", "19:28", "19:43"]},
+                        {plan: "昆陽區間車", first_train: "22:25", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [10, 5, 10, [3, [8, 9, 9]], 9, 4, 5, 4, 5, 6, [4, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "10:21", delta: [[9, [4]], [40, [3, 5]], [2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:20", delta: [[22, [5, 4]], 4, 4, 5, 4, 5, 4, 5, 5, 5, 4]},
+                        {first_train: "22:26", delta: [4, 5, 3, 8, 8, 8, 9, 10, 10, 8, 7, 5, 7, 8]},
+                        {first_train: "00:14", delta: [8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "台北車站始發空車", trains: ["06:04"]},
+                        {plan: "新埔始發空車", trains: ["06:14"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:19", "08:20"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:39", skip_trains: 1, until: "10:33"},
+                        {plan: "亞東醫院始發空車", trains: ["10:45", "10:53", "11:05", "11:13", "11:24", "11:32", "11:45", "11:53"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:04", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:41", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:16", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:53", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:28", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:05", skip_trains: 1, until: "16:38"},
+                        {plan: "亞東醫院始發空車", first_train: "16:49", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:13", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:52", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:17", skip_trains: 1, until: "19:10"},
+                        {plan: "亞東醫院始發空車", first_train: "19:28", skip_trains: 1, until: "22:35"},
+                        {plan: "府中始發空車", trains: ["08:00", "08:09", "10:37", "11:00", "11:16", "11:40"]},
+                        {plan: "府中始發空車", first_train: "12:01", skip_trains: 8, until: "15:00"},
+                        {plan: "府中始發空車", trains: ["16:42", "17:10", "17:45", "18:13"]},
+                        {plan: "昆陽區間車", first_train: "22:19", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:39", "00:48"]}
+                    ]
+                }
+            }
+        },
+        "忠孝復興": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [6, 10, 5, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 2]},
+                        {first_train: "07:22", delta: [3, 5, 3, 4, 4, 2, 3, 3, 3, 2, 3, 3, [11, [2]]]},
+                        {first_train: "08:25", delta: [2, 1, 2, 3, [9, [2]], 3, 2, 3, 2, 3, 2, 4, 3]},
+                        {first_train: "09:17", delta: [4, 4, 3, 3, 3, [13, [5, 5, 5, 4, 5, 5]], [10, [4]]]},
+                        {first_train: "16:36", delta: [4, 5, 5, 5, 4, 4, 2, [14, [3]], 4, 3, 3, 2, [3, [3, 2, 3]]]},
+                        {first_train: "18:26", delta: [[12, [3]], 4, [5, [3]], 4, 3, 2, [7, [3]], [44, [4]], 8, 8]},
+                        {first_train: "23:12", delta: [11, 10, 8, 7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "忠孝復興始發空車", trains: ["06:00"]},
+                        {plan: "台北車站始發空車", trains: ["06:06"]},
+                        {plan: "新埔始發空車", trains: ["06:16"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:21", "06:26"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:42", skip_trains: 1, until: "08:02"},
+                        {plan: "亞東醫院始發空車", trains: ["08:08", "08:12"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:14", skip_trains: 1, until: "08:35"},
+                        {plan: "亞東醫院始發空車", trains: ["08:41", "08:45", "08:47"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:54", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:28"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:31", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:37"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:56", skip_trains: 1, until: "17:03"},
+                        {plan: "亞東醫院始發空車", first_train: "17:05", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:26"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:35", skip_trains: 1, until: "19:02"},
+                        {plan: "亞東醫院始發空車", first_train: "19:12", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:45", "19:55", "20:03", "20:19", "20:27"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:43", skip_trains: 1, until: "22:43"},
+                        {plan: "板橋始發空車", trains: ["08:06", "08:39", "00:41", "00:50"]},
+                        {plan: "昆陽區間車", first_train: "08:06", skip_trains: 3, until: "08:47"},
+                        {plan: "昆陽區間車", trains: ["09:31", "19:21", "19:30", "19:45"]},
+                        {plan: "昆陽區間車", first_train: "22:27", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [6, 10, 5, 10, 8, 9, 9, 9, 8, 9, 9, 8, 9, 9]},
+                        {first_train: "08:03", delta: [4, 4, 5, 6, [4, [5, 5, 5, 5, 4, 5]], 5, [5, [5, 3]]]},
+                        {first_train: "11:07", delta: [[80, [4]], [16, [3, 4]], 3, [27, [5, 4]], 4, 3, 5, 3, 8]},
+                        {first_train: "22:56", delta: [8, 10, 9, 10, 8, 7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "忠孝復興始發空車", trains: ["06:00"]},
+                        {plan: "台北車站始發空車", trains: ["06:06"]},
+                        {plan: "新埔始發空車", trains: ["06:16"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:21", "08:22"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:42", skip_trains: 1, until: "10:36"},
+                        {plan: "亞東醫院始發空車", trains: ["10:47", "10:55", "11:07", "11:15", "11:27", "11:35", "11:47", "11:55"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:07", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:43", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:19", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:55", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:31", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:07", skip_trains: 1, until: "16:41"},
+                        {plan: "亞東醫院始發空車", first_train: "16:51", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:16", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:54", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:19", skip_trains: 1, until: "19:12"},
+                        {plan: "亞東醫院始發空車", first_train: "19:30", skip_trains: 1, until: "22:37"},
+                        {plan: "府中始發空車", trains: ["08:03", "08:11", "10:39", "11:03", "11:19", "11:43"]},
+                        {plan: "府中始發空車", first_train: "12:03", skip_trains: 8, until: "15:03"},
+                        {plan: "府中始發空車", trains: ["16:44", "17:12", "17:47", "18:15"]},
+                        {plan: "昆陽區間車", first_train: "22:21", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:41", "00:50"]}
+                    ]
+                }
+            }
+        },
+        "忠孝敦化": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [6, 10, 6, 5, 4, 7, 5, 4, 4, 3, 5, 4, 4, 4]},
+                        {first_train: "07:15", delta: [3, 3, 2, 4, 4, 4, 3, 4, 3, 3, 2, 3, 3, [2, [2, 3, 2, 2]]]},
+                        {first_train: "08:16", delta: [[12, [2]], 3, [6, [2]], 3, 2, 3, 2, 3, 3, 3, 4, 4]},
+                        {first_train: "09:27", delta: [3, 2, 4, [12, [5, 4, 5, 5, 5, 5]], 5, 4, 5, 5]},
+                        {first_train: "15:48", delta: [[8, [4]], 5, 3, 4, 5, 5, 5, 5, 4, 5, [12, [3]], 2]},
+                        {first_train: "17:43", delta: [3, 3, 4, [5, [2, 3, 3]], [2, [3, 3, 3, 3, 4, 3, 3, 3, 3]]]},
+                        {first_train: "19:32", delta: [3, 2, 4, 3, 2, 4, 3, 3, [43, [4]], 8, 8, 10]},
+                        {first_train: "23:25", delta: [10, 7, 7, 5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "忠孝復興始發空車", trains: ["06:01"]},
+                        {plan: "台北車站始發空車", trains: ["06:07"]},
+                        {plan: "新埔始發空車", trains: ["06:17"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:23", "06:28"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:44", skip_trains: 1, until: "08:03"},
+                        {plan: "亞東醫院始發空車", trains: ["08:10", "08:14"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:16", skip_trains: 1, until: "08:36"},
+                        {plan: "亞東醫院始發空車", trains: ["08:43", "08:47", "08:49"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:55", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:30"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:32", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:39"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:58", skip_trains: 1, until: "17:04"},
+                        {plan: "亞東醫院始發空車", first_train: "17:07", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:28"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:37", skip_trains: 1, until: "19:04"},
+                        {plan: "亞東醫院始發空車", first_train: "19:13", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:46", "19:56", "20:04", "20:20", "20:28"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:44", skip_trains: 1, until: "22:44"},
+                        {plan: "板橋始發空車", trains: ["08:07", "08:40", "00:43", "00:52"]},
+                        {plan: "昆陽區間車", first_train: "08:07", skip_trains: 3, until: "08:49"},
+                        {plan: "昆陽區間車", trains: ["09:32", "19:23", "19:32", "19:46"]},
+                        {plan: "昆陽區間車", first_train: "22:28", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [6, 10, 6, 10, 8, 8, 10, 8, 9, 9, 8, 9, 9, 9]},
+                        {first_train: "08:04", delta: [5, 4, 5, 6, [4, [4, 5, 5, 5, 5, 5]], 4, 5, [7, [4]]]},
+                        {first_train: "11:01", delta: [[40, [3, 5]], [2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:24", delta: [4, [26, [4, 5]], [5, [4]], 8, 8, 8, 9, 10, 10, 7]},
+                        {first_train: "23:49", delta: [5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "忠孝復興始發空車", trains: ["06:01"]},
+                        {plan: "台北車站始發空車", trains: ["06:07"]},
+                        {plan: "新埔始發空車", trains: ["06:17"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:23", "08:24"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:43", skip_trains: 1, until: "10:37"},
+                        {plan: "亞東醫院始發空車", trains: ["10:49", "10:57", "11:09", "11:17", "11:28", "11:36", "11:49", "11:57"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:08", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:45", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:20", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:57", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:32", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:09", skip_trains: 1, until: "16:42"},
+                        {plan: "亞東醫院始發空車", first_train: "16:53", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:17", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:56", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:21", skip_trains: 1, until: "19:13"},
+                        {plan: "亞東醫院始發空車", first_train: "19:31", skip_trains: 1, until: "22:38"},
+                        {plan: "府中始發空車", trains: ["08:04", "08:13", "10:41", "11:04", "11:20", "11:44"]},
+                        {plan: "府中始發空車", first_train: "12:05", skip_trains: 8, until: "15:04"},
+                        {plan: "府中始發空車", trains: ["16:46", "17:14", "17:49", "18:17"]},
+                        {plan: "昆陽區間車", first_train: "22:22", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:43", "00:52"]}
+                    ]
+                }
+            }
+        },
+        "國父紀念館": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [6, 10, 5, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4, 2]},
+                        {first_train: "07:25", delta: [3, 5, 3, 4, 4, 2, 3, 3, 3, 2, 3, 3, [11, [2]]]},
+                        {first_train: "08:28", delta: [2, 1, 2, 3, [9, [2]], 3, 2, 3, 2, 3, 3, 3, 3]},
+                        {first_train: "09:20", delta: [4, 4, 3, 3, 3, [13, [5, 5, 5, 4, 5, 5]], [10, [4]]]},
+                        {first_train: "16:39", delta: [4, 5, 5, 5, 4, 4, 2, [14, [3]], 4, 3, 3, 3, 2, [3, [2, 3, 3]]]},
+                        {first_train: "18:32", delta: [[11, [3]], 4, [5, [3]], 4, 3, 2, 3, 3, 4, 3, 2, 4]},
+                        {first_train: "19:55", delta: [3, [43, [4]], 8, 8, 9, 11, 10, 8, 7, 5, 7, 8, 8]},
+                        {first_train: "00:27", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "忠孝復興始發空車", trains: ["06:03"]},
+                        {plan: "台北車站始發空車", trains: ["06:09"]},
+                        {plan: "新埔始發空車", trains: ["06:19"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:24", "06:29"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:45", skip_trains: 1, until: "08:05"},
+                        {plan: "亞東醫院始發空車", trains: ["08:11", "08:15"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:17", skip_trains: 1, until: "08:38"},
+                        {plan: "亞東醫院始發空車", trains: ["08:44", "08:48", "08:50"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:57", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:31"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:34", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:40"]},
+                        {plan: "亞東醫院始發空車", first_train: "10:59", skip_trains: 1, until: "17:06"},
+                        {plan: "亞東醫院始發空車", first_train: "17:08", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:29"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:38", skip_trains: 1, until: "19:05"},
+                        {plan: "亞東醫院始發空車", first_train: "19:15", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:48", "19:58", "20:06", "20:22", "20:30"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:46", skip_trains: 1, until: "22:46"},
+                        {plan: "板橋始發空車", trains: ["08:09", "08:42", "00:44", "00:53"]},
+                        {plan: "昆陽區間車", first_train: "08:09", skip_trains: 3, until: "08:50"},
+                        {plan: "昆陽區間車", trains: ["09:34", "19:24", "19:33", "19:48"]},
+                        {plan: "昆陽區間車", first_train: "22:30", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [6, 10, 5, 10, [2, [8, 9, 9, 9, 9]], 4, 5, 4, 4]},
+                        {first_train: "08:26", delta: [[2, [4, 5, 5, 5]], [3, [5, 5, 4, 5, 5, 5]], [4, [3, 5]]]},
+                        {first_train: "11:06", delta: [[81, [4]], [16, [3, 4]], 3, [27, [5, 4]], 4, 3, 5, 4]},
+                        {first_train: "22:52", delta: [8, 8, 9, 9, 10, 8, 7, 5, 7, 8, 8, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "忠孝復興始發空車", trains: ["06:03"]},
+                        {plan: "台北車站始發空車", trains: ["06:09"]},
+                        {plan: "新埔始發空車", trains: ["06:19"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:24", "08:26"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:45", skip_trains: 1, until: "10:39"},
+                        {plan: "亞東醫院始發空車", trains: ["10:50", "10:58", "11:10", "11:18", "11:30", "11:38", "11:50", "11:58"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:10", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:46", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:22", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:58", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:34", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:10", skip_trains: 1, until: "16:44"},
+                        {plan: "亞東醫院始發空車", first_train: "16:54", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:19", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:57", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:22", skip_trains: 1, until: "19:15"},
+                        {plan: "亞東醫院始發空車", first_train: "19:33", skip_trains: 1, until: "22:40"},
+                        {plan: "府中始發空車", trains: ["08:06", "08:15", "10:42", "11:06", "11:22", "11:46"]},
+                        {plan: "府中始發空車", first_train: "12:06", skip_trains: 8, until: "15:06"},
+                        {plan: "府中始發空車", trains: ["16:47", "17:15", "17:50", "18:18"]},
+                        {plan: "昆陽區間車", first_train: "22:24", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:44", "00:53"]}
+                    ]
+                }
+            }
+        },
+        "市政府": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 6, 10, 5, 5, 4, 8, [8, [4]], 3, 3, 3, 2, 4]},
+                        {first_train: "07:34", delta: [4, 3, 4, 3, 3, 2, 4, [2, [2, 3, 2, 2, 2]], [7, [2]]]},
+                        {first_train: "08:35", delta: [3, 2, 2, 1, 3, [5, [2]], 3, 2, 3, 2, 3, 2, 3]},
+                        {first_train: "09:17", delta: [5, 3, 5, 3, 3, 3, [13, [5, 5, 5, 4, 5, 5]], [10, [4]]]},
+                        {first_train: "16:40", delta: [5, 5, 5, 5, 4, 4, 2, [14, [3]], 4, [2, [3, 2, 3, 3, 2]]]},
+                        {first_train: "18:25", delta: [3, 2, 4, 2, 3, 3, 4, [9, [3]], 4, 3, 3, 3]},
+                        {first_train: "19:29", delta: [4, 2, [7, [3]], [29, [4]], 3, 4, 5, [12, [4]], 8, 8, 9]},
+                        {first_train: "23:28", delta: [10, 8, 6, 6, 7, 7, 9, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:00"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:05"]},
+                        {plan: "台北車站始發空車", trains: ["06:11"]},
+                        {plan: "新埔始發空車", trains: ["06:21"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:26", "06:31"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:47", skip_trains: 1, until: "08:06"},
+                        {plan: "亞東醫院始發空車", trains: ["08:13", "08:17"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:19", skip_trains: 1, until: "08:40"},
+                        {plan: "亞東醫院始發空車", trains: ["08:46", "08:50", "08:52"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:59", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:33"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:36", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:42"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:01", skip_trains: 1, until: "17:08"},
+                        {plan: "亞東醫院始發空車", first_train: "17:10", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:31"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:40", skip_trains: 1, until: "19:07"},
+                        {plan: "亞東醫院始發空車", first_train: "19:17", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:50", "20:00", "20:08", "20:24", "20:32"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:48", skip_trains: 1, until: "22:48"},
+                        {plan: "板橋始發空車", trains: ["08:10", "08:43", "00:46", "00:55"]},
+                        {plan: "昆陽區間車", first_train: "08:10", skip_trains: 3, until: "08:52"},
+                        {plan: "昆陽區間車", trains: ["09:36", "19:26", "19:35", "19:50"]},
+                        {plan: "昆陽區間車", first_train: "22:32", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [5, 6, 9, 6, 10, 8, 9, 9, 9, 8, 9, 9, 8, 9]},
+                        {first_train: "08:03", delta: [5, 4, 5, 4, 6, [4, [5, 5, 4, 5, 5, 5]], 5, [5, [5, 3]]]},
+                        {first_train: "11:12", delta: [[80, [4]], [16, [3, 4]], 3, [22, [5, 4]], 4, 4, 5, 4, 5]},
+                        {first_train: "22:11", delta: [5, 5, 5, 4, 3, 4, 5, 3, 8, 8, 8, 9, 10, 10]},
+                        {first_train: "23:46", delta: [6, 6, 7, 7, 9, 8, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:00"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:05"]},
+                        {plan: "台北車站始發空車", trains: ["06:11"]},
+                        {plan: "新埔始發空車", trains: ["06:20"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:26", "08:27"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:46", skip_trains: 1, until: "10:41"},
+                        {plan: "亞東醫院始發空車", trains: ["10:52", "11:00", "11:12", "11:20", "11:32", "11:40", "11:52", "12:00"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:12", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:48", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:24", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:00", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:36", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:12", skip_trains: 1, until: "16:46"},
+                        {plan: "亞東醫院始發空車", first_train: "16:56", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:21", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "17:59", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:24", skip_trains: 1, until: "19:17"},
+                        {plan: "亞東醫院始發空車", first_train: "19:35", skip_trains: 1, until: "22:42"},
+                        {plan: "府中始發空車", trains: ["08:08", "08:17", "10:44", "11:08", "11:24", "11:48"]},
+                        {plan: "府中始發空車", first_train: "12:08", skip_trains: 8, until: "15:08"},
+                        {plan: "府中始發空車", trains: ["16:49", "17:17", "17:52", "18:20"]},
+                        {plan: "昆陽區間車", first_train: "22:26", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:46", "00:55"]}
+                    ]
+                }
+            }
+        },
+        "永春": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 5, 11, 5, 5, 4, 7, 5, [7, [4]], 3, 3, 3, 2]},
+                        {first_train: "07:32", delta: [4, 3, 4, 4, 3, 3, 2, 3, 3, [2, [2, 3, 2, 2]]]},
+                        {first_train: "08:20", delta: [3, [7, [2]], 3, 2, 2, 1, [2, [3, 2, 2, 2]], 3, 2]},
+                        {first_train: "09:11", delta: [2, 3, 3, 5, 3, 5, 3, 2, [2, [4, 5, 5, 5]], [11, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "15:39", delta: [5, 4, 5, 5, [11, [4]], 5, 5, 5, 5, 4, 4, 2, [13, [3]]]},
+                        {first_train: "17:54", delta: [4, [2, [3, 2, 3, 3, 2]], 3, 3, 2, [5, [3]], 4, [7, [3]]]},
+                        {first_train: "19:15", delta: [4, 3, 3, 3, 3, 4, 2, [7, [3]], [28, [4]], 3, 4, 4]},
+                        {first_train: "22:06", delta: [[12, [4]], 8, 8, 9, 11, 10, 7, 7, 5, 8, 7, 8, 9]},
+                        {first_train: "00:38", delta: [10, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:02"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:07"]},
+                        {plan: "台北車站始發空車", trains: ["06:12"]},
+                        {plan: "新埔始發空車", trains: ["06:23"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:28", "06:33"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:49", skip_trains: 1, until: "08:08"},
+                        {plan: "亞東醫院始發空車", trains: ["08:15", "08:19"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:20", skip_trains: 1, until: "08:42"},
+                        {plan: "亞東醫院始發空車", trains: ["08:48", "08:52", "08:54"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:01", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:35"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:37", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:44"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:03", skip_trains: 1, until: "17:10"},
+                        {plan: "亞東醫院始發空車", first_train: "17:12", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:33"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:42", skip_trains: 1, until: "19:09"},
+                        {plan: "亞東醫院始發空車", first_train: "19:19", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:52", "20:02", "20:10", "20:26", "20:34"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:50", skip_trains: 1, until: "22:50"},
+                        {plan: "板橋始發空車", trains: ["08:12", "08:45", "00:48", "00:57"]},
+                        {plan: "昆陽區間車", first_train: "08:12", skip_trains: 3, until: "08:54"},
+                        {plan: "昆陽區間車", trains: ["09:37", "19:28", "19:37", "19:52"]},
+                        {plan: "昆陽區間車", first_train: "22:34", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [5, 5, 10, 6, 10, 8, 9, 9, 9, 8, 9, 9, 8, 9]},
+                        {first_train: "08:05", delta: [5, 4, 5, 4, 6, [4, [5, 5, 4, 5, 5, 5]], 5, [5, [5, 3]]]},
+                        {first_train: "11:14", delta: [[80, [4]], [16, [3, 4]], 3, [22, [5, 4]], 4, 4, 5, 4, 5]},
+                        {first_train: "22:13", delta: [5, 5, 5, 4, 3, 4, 5, 3, 8, 8, 8, 9, 10, 10]},
+                        {first_train: "23:47", delta: [7, 5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:02"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:07"]},
+                        {plan: "台北車站始發空車", trains: ["06:12"]},
+                        {plan: "新埔始發空車", trains: ["06:22"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:28", "08:29"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:48", skip_trains: 1, until: "10:43"},
+                        {plan: "亞東醫院始發空車", trains: ["10:54", "11:02", "11:14", "11:22", "11:34", "11:42", "11:54", "12:02"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:14", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:50", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:26", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:02", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:38", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:14", skip_trains: 1, until: "16:48"},
+                        {plan: "亞東醫院始發空車", first_train: "16:58", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:23", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "18:01", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:26", skip_trains: 1, until: "19:19"},
+                        {plan: "亞東醫院始發空車", first_train: "19:37", skip_trains: 1, until: "22:44"},
+                        {plan: "府中始發空車", trains: ["08:10", "08:19", "10:46", "11:10", "11:26", "11:50"]},
+                        {plan: "府中始發空車", first_train: "12:10", skip_trains: 8, until: "15:10"},
+                        {plan: "府中始發空車", trains: ["16:51", "17:19", "17:54", "18:22"]},
+                        {plan: "昆陽區間車", first_train: "22:28", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:48", "00:57"]}
+                    ]
+                }
+            }
+        },
+        "後山埤": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [4, 6, 11, 4, 5, 5, 7, [5, [4]], 5, 4, 3, 3, 4]},
+                        {first_train: "07:27", delta: [3, 4, 4, 3, 4, 4, 3, 2, 3, 3, 2, 3, 3, [6, [2]]]},
+                        {first_train: "08:22", delta: [3, 2, 2, 1, 3, 2, 2, 2, 3, 2, 1, [2, [2, 3, 2, 2]]]},
+                        {first_train: "09:05", delta: [2, 3, 2, 3, 3, 3, 4, 4, 5, 3, 2, 4, [12, [5, 4, 5, 5, 5, 5]]]},
+                        {first_train: "15:36", delta: [4, 5, 5, 5, [8, [4]], 5, 3, 4, 5, 5, 5, 5]},
+                        {first_train: "17:03", delta: [5, [12, [3]], 2, 4, 3, 3, 4, 2, 3, 3, 3, 2, 3]},
+                        {first_train: "18:18", delta: [3, 2, 3, 3, 2, [10, [3]], [2, [4, 3, 3, 3, 3]], 3]},
+                        {first_train: "19:38", delta: [4, 2, 4, 3, 2, 4, 3, 3, 5, [26, [4]], 3, 4, 4]},
+                        {first_train: "22:08", delta: [[12, [4]], 8, 8, 9, 11, 9, 8, 7, 5, 7, 8, 8, 8]},
+                        {first_train: "00:39", delta: [11, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:04"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:08"]},
+                        {plan: "台北車站始發空車", trains: ["06:14"]},
+                        {plan: "新埔始發空車", trains: ["06:25"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:29", "06:34"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:50", skip_trains: 1, until: "08:10"},
+                        {plan: "亞東醫院始發空車", trains: ["08:16", "08:20"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:22", skip_trains: 1, until: "08:44"},
+                        {plan: "亞東醫院始發空車", trains: ["08:50", "08:54", "08:56"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:03", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:37"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:39", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:46"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:05", skip_trains: 1, until: "17:11"},
+                        {plan: "亞東醫院始發空車", first_train: "17:14", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:35"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:44", skip_trains: 1, until: "19:11"},
+                        {plan: "亞東醫院始發空車", first_train: "19:21", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:53", "20:03", "20:12", "20:28", "20:36"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:52", skip_trains: 1, until: "22:52"},
+                        {plan: "板橋始發空車", trains: ["08:14", "08:47", "00:50", "00:59"]},
+                        {plan: "昆陽區間車", first_train: "08:14", skip_trains: 3, until: "08:56"},
+                        {plan: "昆陽區間車", trains: ["09:39", "19:30", "19:38", "19:53"]},
+                        {plan: "昆陽區間車", first_train: "22:36", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [4, 6, 10, 5, 10, 9, 8, 10, 8, 9, 9, 8, 9, 9]},
+                        {first_train: "08:07", delta: [4, 5, 4, 5, 6, [4, [5, 5, 4, 5, 5, 5]], 5, [8, [4]]]},
+                        {first_train: "11:08", delta: [[40, [3, 5]], [2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:31", delta: [[22, [5, 4]], 4, 4, 5, 4, 5, 4, 5, 5, 5, 4]},
+                        {first_train: "22:37", delta: [4, 4, 4, 8, 8, 8, 9, 10, 9, 8, 7, 5, 7, 8]},
+                        {first_train: "00:24", delta: [8, 7, 11, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:04"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:08"]},
+                        {plan: "台北車站始發空車", trains: ["06:14"]},
+                        {plan: "新埔始發空車", trains: ["06:24"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:29", "08:31"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:50", skip_trains: 1, until: "10:44"},
+                        {plan: "亞東醫院始發空車", trains: ["10:56", "11:04", "11:16", "11:24", "11:35", "11:43", "11:56", "12:04"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:15", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:52", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:27", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:04", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:39", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:16", skip_trains: 1, until: "16:49"},
+                        {plan: "亞東醫院始發空車", first_train: "17:00", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:24", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "18:03", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:28", skip_trains: 1, until: "19:21"},
+                        {plan: "亞東醫院始發空車", first_train: "19:39", skip_trains: 1, until: "22:45"},
+                        {plan: "府中始發空車", trains: ["08:11", "08:20", "10:48", "11:11", "11:27", "11:51"]},
+                        {plan: "府中始發空車", first_train: "12:12", skip_trains: 8, until: "15:11"},
+                        {plan: "府中始發空車", trains: ["16:53", "17:21", "17:56", "18:24"]},
+                        {plan: "昆陽區間車", first_train: "22:30", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:50", "00:59"]}
+                    ]
+                }
+            }
+        },
+        "昆陽": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [4, 6, 11, 4, 5, 5, 7, [5, [4]], 5, 4, 3, 4, 3]},
+                        {first_train: "07:29", delta: [3, 4, 4, 3, 4, 4, 3, 2, 3, 3, 2, 3, 3, 2]},
+                        {first_train: "08:14", delta: [2, 3, 2, 1, 2, 3, 2, 2, 1, 4, 2, 1, 2, 3]},
+                        {first_train: "08:46", delta: [2, 1, [2, [3, 2, 2, 2]], 3, 2, 3, 2, 3, 3, 4]},
+                        {first_train: "09:31", delta: [5, 3, 2, [2, [4, 5, 5, 5]], [11, [5, 5, 4, 5, 5, 5]]]},
+                        {first_train: "15:43", delta: [5, 4, 5, 5, [10, [4]], 5, 4, 5, 5, 5, 4, [11, [3]]]},
+                        {first_train: "17:46", delta: [2, 4, 3, 3, 4, 2, 3, 3, [2, [3, 2, 3, 3, 2]], [8, [3]]]},
+                        {first_train: "19:03", delta: [[2, [4, 3, 3, 3, 3]], 4, 1, 4, 3, 3, 3, 2, 4]},
+                        {first_train: "20:02", delta: [[28, [4]], 3, 4, 4, 5, [12, [4]], 8, 8, 9, 11, 9, 8]},
+                        {first_train: "23:58", delta: [5, 7, 8, 8, 8, 7, 11, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:06"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:10"]},
+                        {plan: "台北車站始發空車", trains: ["06:16"]},
+                        {plan: "新埔始發空車", trains: ["06:27"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:31", "06:36"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:52", skip_trains: 1, until: "08:12"},
+                        {plan: "亞東醫院始發空車", trains: ["08:19", "08:22"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:24", skip_trains: 1, until: "08:46"},
+                        {plan: "亞東醫院始發空車", trains: ["08:52", "08:56", "08:58"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:05", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", trains: ["09:39"]},
+                        {plan: "亞東醫院始發空車", first_train: "09:41", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:48"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:07", skip_trains: 1, until: "17:13"},
+                        {plan: "亞東醫院始發空車", first_train: "17:16", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:37"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:46", skip_trains: 1, until: "19:13"},
+                        {plan: "亞東醫院始發空車", first_train: "19:23", skip_trains: 2, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["19:55", "20:06", "20:14", "20:30", "20:38"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:54", skip_trains: 1, until: "22:54"},
+                        {plan: "板橋始發空車", trains: ["08:16", "08:49", "00:52", "01:01"]},
+                        {plan: "昆陽區間車", first_train: "08:16", skip_trains: 3, until: "08:58"},
+                        {plan: "昆陽區間車", trains: ["09:41", "19:32", "19:40", "19:55"]},
+                        {plan: "昆陽區間車", first_train: "22:38", skip_trains: 1, count: 3}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [4, 6, 10, 5, 10, 9, 9, 9, 9, 8, 9, 9, 8, 9]},
+                        {first_train: "08:09", delta: [5, 4, [7, [5]], [3, [4, 5, 5, 5, 5, 5]], 4, 5, 5, [5, [5, 3]]]},
+                        {first_train: "11:18", delta: [[80, [4]], [16, [3, 4]], 3, [22, [5, 4]], 4, 4, 5, 4, 5]},
+                        {first_train: "22:17", delta: [5, 5, 5, 4, 3, 4, 4, 4, 8, 8, 8, 9, 10, 9]},
+                        {first_train: "23:51", delta: [7, 5, 7, 8, 8, 8, 7, 11, 9]}
+                    ],
+                    filters: [
+                        {plan: "市政府始發空車", trains: ["06:06"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:10"]},
+                        {plan: "台北車站始發空車", trains: ["06:16"]},
+                        {plan: "新埔始發空車", trains: ["06:26"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:31", "08:33"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:53", skip_trains: 1, until: "10:47"},
+                        {plan: "亞東醫院始發空車", trains: ["10:58", "11:06", "11:18", "11:26", "11:38", "11:46", "11:58", "12:06"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:18", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:54", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:30", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:06", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:42", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:18", skip_trains: 1, until: "16:52"},
+                        {plan: "亞東醫院始發空車", first_train: "17:02", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:27", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "18:05", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:30", skip_trains: 1, until: "19:23"},
+                        {plan: "亞東醫院始發空車", first_train: "19:41", skip_trains: 1, until: "22:47"},
+                        {plan: "府中始發空車", trains: ["08:14", "08:23", "10:50", "11:14", "11:30", "11:54"]},
+                        {plan: "府中始發空車", first_train: "12:14", skip_trains: 8, until: "15:14"},
+                        {plan: "府中始發空車", trains: ["16:55", "17:23", "17:58", "18:26"]},
+                        {plan: "昆陽區間車", first_train: "22:32", skip_trains: 1, count: 3},
+                        {plan: "板橋始發空車", trains: ["00:52", "01:01"]}
+                    ]
+                }
+            }
+        },
+        "南港": {
+            "東行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [8, 4, 7, 10, 5, 5, 4, 7, 5, 4, 4, 3, 5, 4]},
+                        {first_train: "07:19", delta: [4, 3, 3, 3, 2, 4, 4, 3, 4, 4, 4, 1, 3, 3]},
+                        {first_train: "08:07", delta: [2, 3, [2, [2, 2, 5, 2, 2, 4]], 2, 3, 4, 2, 2]},
+                        {first_train: "09:03", delta: [2, 3, 2, 2, 3, 2, 3, 3, 3, 4, 4, 5, 3, [5, [5]]]},
+                        {first_train: "10:12", delta: [[12, [4, 5, 5, 5, 5, 5]], [8, [4]], 5, 3, 5, 4, 5]},
+                        {first_train: "16:59", delta: [4, 5, 4, 4, 2, [10, [3]], 2, 5, 2, 3, 5, 2, 2]},
+                        {first_train: "18:13", delta: [2, [4, [2, 3, 3]], 3, 3, 3, 3, 4, [6, [3]], 4, 4]},
+                        {first_train: "19:32", delta: [5, 4, 5, 3, 4, 3, 5, 4, 3, [28, [4]], 3, 4, 5, [5, [4]]]},
+                        {first_train: "22:36", delta: [[5, [8]], 10, 11, 9, 7, 7, 5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "南港始發空車", trains: ["06:00"]},
+                        {plan: "市政府始發空車", trains: ["06:08"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:12"]},
+                        {plan: "台北車站始發空車", trains: ["06:19"]},
+                        {plan: "新埔始發空車", trains: ["06:29"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:34", "06:39"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:55", skip_trains: 1, until: "08:31"},
+                        {plan: "亞東醫院始發空車", trains: ["08:40"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:48", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "09:08", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "09:42", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:50"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:10", skip_trains: 1, until: "17:16"},
+                        {plan: "亞東醫院始發空車", first_train: "17:18", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:39"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:48", skip_trains: 1, until: "19:15"},
+                        {plan: "亞東醫院始發空車", trains: ["19:25", "19:53", "20:08", "20:16", "20:32", "20:40"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:56", skip_trains: 1, until: "22:32"},
+                        {plan: "板橋始發空車", trains: ["00:54", "01:03"]}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [8, 4, 7, 9, 6, 10, [2, [9, 8, 9, 9]], 9, 9, 4]},
+                        {first_train: "08:21", delta: [5, 4, 6, [4, [4, 5, 5, 5, 5, 5]], 4, 5, [8, [4]], [39, [3, 5]], 3]},
+                        {first_train: "16:33", delta: [[2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:36", delta: [4, [21, [4, 5]], 4, 4, 4, 5, 4, 5, 4, 5, 5]},
+                        {first_train: "22:38", delta: [7, 9, 8, 8, 8, 8, 10, 10, 7, 7, 5, 8, 7, 8]},
+                        {first_train: "00:37", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "南港始發空車", trains: ["06:00"]},
+                        {plan: "市政府始發空車", trains: ["06:08"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:12"]},
+                        {plan: "台北車站始發空車", trains: ["06:19"]},
+                        {plan: "新埔始發空車", trains: ["06:28"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:34", "08:36"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:55", skip_trains: 1, until: "10:49"},
+                        {plan: "亞東醫院始發空車", trains: ["11:01", "11:09", "11:21", "11:29", "11:40", "11:48", "12:01", "12:09"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:20", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:57", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:32", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:09", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:44", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:21", skip_trains: 1, until: "16:54"},
+                        {plan: "亞東醫院始發空車", first_train: "17:05", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:29", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "18:08", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:33", skip_trains: 1, until: "19:25"},
+                        {plan: "亞東醫院始發空車", first_train: "19:43", skip_trains: 1, until: "22:24"},
+                        {plan: "府中始發空車", trains: ["08:16", "08:26", "10:53", "11:16", "11:32", "11:56"]},
+                        {plan: "府中始發空車", first_train: "12:17", skip_trains: 8, until: "15:16"},
+                        {plan: "府中始發空車", trains: ["16:58", "17:26", "18:01", "18:29"]},
+                        {plan: "板橋始發空車", trains: ["00:54", "01:03"]}
+                    ]
+                }
+            }
+        },
+        "南港展覽館": {
+            "東行": {
+                // 以+2min计算
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [8, 4, 7, 10, 5, 5, 4, 7, 5, 4, 4, 3, 5, 4]},
+                        {first_train: "07:21", delta: [4, 3, 3, 3, 2, 4, 4, 3, 4, 4, 4, 1, 3, 3]},
+                        {first_train: "08:09", delta: [2, 3, [2, [2, 2, 5, 2, 2, 4]], 2, 3, 4, 2, 2]},
+                        {first_train: "09:05", delta: [2, 3, 2, 2, 3, 2, 3, 3, 3, 4, 4, 5, 3, [5, [5]]]},
+                        {first_train: "10:14", delta: [[12, [4, 5, 5, 5, 5, 5]], [8, [4]], 5, 3, 5, 4, 5]},
+                        {first_train: "17:01", delta: [4, 5, 4, 4, 2, [10, [3]], 2, 5, 2, 3, 5, 2, 2]},
+                        {first_train: "18:15", delta: [2, [4, [2, 3, 3]], 3, 3, 3, 3, 4, [6, [3]], 4, 4]},
+                        {first_train: "19:34", delta: [5, 4, 5, 3, 4, 3, 5, 4, 3, [28, [4]], 3, 4, 5, [5, [4]]]},
+                        {first_train: "22:38", delta: [[5, [8]], 10, 11, 9, 7, 7, 5, 8, 7, 8, 9, 7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "南港始發空車", trains: ["06:02"]},
+                        {plan: "市政府始發空車", trains: ["06:10"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:14"]},
+                        {plan: "台北車站始發空車", trains: ["06:21"]},
+                        {plan: "新埔始發空車", trains: ["06:31"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:36", "06:41"]},
+                        {plan: "亞東醫院始發空車", first_train: "06:57", skip_trains: 1, until: "08:33"},
+                        {plan: "亞東醫院始發空車", trains: ["08:42"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:50", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "09:10", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "09:44", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", trains: ["10:52"]},
+                        {plan: "亞東醫院始發空車", first_train: "11:12", skip_trains: 1, until: "17:18"},
+                        {plan: "亞東醫院始發空車", first_train: "17:20", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", trains: ["17:41"]},
+                        {plan: "亞東醫院始發空車", first_train: "17:50", skip_trains: 1, until: "19:17"},
+                        {plan: "亞東醫院始發空車", trains: ["19:27", "19:55", "20:10", "20:18", "20:34", "20:42"]},
+                        {plan: "亞東醫院始發空車", first_train: "20:58", skip_trains: 1, until: "22:34"},
+                        {plan: "板橋始發空車", trains: ["00:56", "01:05"]}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [8, 4, 7, 9, 6, 10, [2, [9, 8, 9, 9]], 9, 9, 4]},
+                        {first_train: "08:23", delta: [5, 4, 6, [4, [4, 5, 5, 5, 5, 5]], 4, 5, [8, [4]], [39, [3, 5]], 3]},
+                        {first_train: "16:35", delta: [[2, [3, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4]]]},
+                        {first_train: "18:38", delta: [4, [21, [4, 5]], 4, 4, 4, 5, 4, 5, 4, 5, 5]},
+                        {first_train: "22:40", delta: [7, 9, 8, 8, 8, 8, 10, 10, 7, 7, 5, 8, 7, 8]},
+                        {first_train: "00:39", delta: [7, 10, 9]}
+                    ],
+                    filters: [
+                        {plan: "南港始發空車", trains: ["06:02"]},
+                        {plan: "市政府始發空車", trains: ["06:10"]},
+                        {plan: "忠孝復興始發空車", trains: ["06:14"]},
+                        {plan: "台北車站始發空車", trains: ["06:21"]},
+                        {plan: "新埔始發空車", trains: ["06:30"]},
+                        {plan: "亞東醫院始發空車", trains: ["06:36", "08:38"]},
+                        {plan: "亞東醫院始發空車", first_train: "08:57", skip_trains: 1, until: "10:51"},
+                        {plan: "亞東醫院始發空車", trains: ["11:03", "11:11", "11:23", "11:31", "11:42", "11:50", "12:03", "12:11"]},
+                        {plan: "亞東醫院始發空車", first_train: "12:22", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "12:59", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "13:34", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:11", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "14:46", skip_trains: 1, count: 4},
+                        {plan: "亞東醫院始發空車", first_train: "15:23", skip_trains: 1, until: "16:56"},
+                        {plan: "亞東醫院始發空車", first_train: "17:07", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "17:31", skip_trains: 1, count: 5},
+                        {plan: "亞東醫院始發空車", first_train: "18:10", skip_trains: 1, count: 3},
+                        {plan: "亞東醫院始發空車", first_train: "18:35", skip_trains: 1, until: "19:27"},
+                        {plan: "亞東醫院始發空車", first_train: "19:45", skip_trains: 1, until: "22:26"},
+                        {plan: "府中始發空車", trains: ["08:18", "08:28", "10:55", "11:18", "11:34", "11:58"]},
+                        {plan: "府中始發空車", first_train: "12:19", skip_trains: 8, until: "15:18"},
+                        {plan: "府中始發空車", trains: ["17:00", "17:28", "18:03", "18:31"]},
+                        {plan: "板橋始發空車", trains: ["00:56", "01:05"]}
+                    ]
+                }
+            }
+        }
     }
 }
