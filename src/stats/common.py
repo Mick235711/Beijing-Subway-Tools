@@ -448,6 +448,6 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
     if args.output is not None:
         with open(args.output, "w", newline="") as fp:
             writer = csv.writer(fp)
-            writer.writerow(sort_columns)
+            writer.writerow(sort_columns_key)
             writer.writerows(data)
             print(f"CSV Written to: {args.output}")

@@ -87,6 +87,7 @@
   - [x] 对接[beijing-subway-schedule](https://github.com/BoyInTheSun/beijing-subway-schedule)项目
 - [ ] 平均间隔，高峰平均间隔，平均全程车占比，高峰全程车占比
 - [ ] 首末班车线路模式（某一线路从头到尾每一站的首末班车，直观看交路）
+  - [ ] 高级单站模式：提示换乘到其他线路的最晚时间
 - [x] --reverse支持索引
 - [x] --show和--hide显示/隐藏列
 - [x] 换乘平均等车时间/>N min的比率 (TODO: Add example timing)
