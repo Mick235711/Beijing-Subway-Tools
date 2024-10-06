@@ -67,6 +67,34 @@
         "大橋頭": [
             // 只有一个站台，主支换乘相当于0时间
             {from: "中和新蘆線", to: "蘆洲線", minutes: 0}
+        ],
+        "西門": [
+            // 同向同台，叠岛
+            {from: "松山新店線", from_direction: "北行", to: "板南線", to_direction: "東行", minutes: 0},
+            {from: "松山新店線", from_direction: "南行", to: "板南線", to_direction: "西行", minutes: 0},
+            {from: "松山新店線", from_direction: "南行", to: "板南線", to_direction: "東行", minutes: 0.5},
+            {from: "松山新店線", from_direction: "北行", to: "板南線", to_direction: "西行", minutes: 0.5}
+        ],
+        "台北車站": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/051.pdf
+            // 共用T型站厅，淡水信义线站台-站厅2扶梯提升
+            {from: "淡水信義線", to: "板南線", minutes: 1.5}
+        ],
+        "忠孝新生": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/089.pdf
+            // T型节点，双向
+            {from: "中和新蘆線", to: "板南線", minutes: 0.5}
+        ],
+        "忠孝復興": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/010.pdf
+            // 2长扶梯+1短扶梯，3F到B4超级高差，文湖线北行需换向后才能开始换乘
+            {from: "文湖線", from_direction: "北行", to: "板南線", minutes: 4},
+            {from: "文湖線", from_direction: "南行", to: "板南線", minutes: 3}
+        ],
+        "南港展覽館": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/031.pdf
+            // 两线站厅间2扶梯+1通道
+            {from: "文湖線", to: "板南線", minutes: 2.5}
         ]
     },
     virtual_transfers: [
