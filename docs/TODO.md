@@ -83,7 +83,8 @@
 - [x] 多起点画图
 - [ ] 到某线路的画图（比如到10号线的平均时间）
 - [x] 画图contour强调选项-f
-- [ ] 各种格式导出dist_graph
+- [x] 各种格式导出dist_graph
+  - [ ] 扩展：每站列车数作为node weight
 - [ ] 区间旅速比较（某区间的旅速比其他区间快多少）
 - [ ] 某线某一时刻上线列车列表及位置
   - [x] 对接[beijing-subway-schedule](https://github.com/BoyInTheSun/beijing-subway-schedule)项目

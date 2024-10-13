@@ -1003,6 +1003,36 @@ Waiting time: 2.5 minutes
 15号线 东行 全程车 [6B] 望京 20:36 -> 俸伯 21:14 (11 stations, 38min, 28.67km)
 </pre>
 
+### [`export_graph.py`](/src/dist_graph/export_graph.py): Export the dist graph into various formats
+```
+usage: export_graph.py [-h] [-o OUTPUT] [--format {auto,adjlist,multiline_adjlist,dot,edgelist,gexf,gml,graphml,json,json_node_link,json_adj,json_cytoscape,graph6,pajek,net,network_text}]
+                       [--json-indent JSON_INDENT] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  --format {auto,adjlist,multiline_adjlist,dot,edgelist,gexf,gml,graphml,json,json_node_link,json_adj,json_cytoscape,graph6,pajek,net,network_text}
+                        Output format
+  --json-indent JSON_INDENT
+                        JSON Output indentation
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-single      Exclude single-direction lines
+```
+Export the distance graph into various format [supported by NetworkX](https://networkx.org/documentation/stable/reference/readwrite/index.html).
+
+If `--format` is not specified, the graph format will be automatically detected from the specified file extension.
+
+Example Usage:
+<pre>
+$ python3 src/dist_graph/export_graph.py -o test.gexf
+City default: &lt;北京: 24 lines&gt;
+</pre>
+
 # [`stats/`](/src/stats): Statistics of a city and its lines
 ### Common Arguments
 In all the programs in this section (except those that accept no arguments), the following arguments are supported:
