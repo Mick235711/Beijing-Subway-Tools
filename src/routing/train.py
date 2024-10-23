@@ -124,9 +124,18 @@ class Train:
         assert station in self.stations and station in self.arrival_time, station
         return get_time_str(*self.arrival_time[station])
 
-    def show_with(self, station: str) -> str:
+    def show_with(self, station: str, reverse: bool = False) -> str:
         """ String representation with stop time on station """
         base = f"{self.line.station_full_name(station)} {self.stop_time_repr(station)}"
+        if reverse:
+            if self.stations[0] != station:
+                base += f" <- {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}"
+            if self.loop_next is not None:
+                base = f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} <- " + base
+            elif self.stations[-1] != station:
+                base = f"{self.line.station_full_name(self.stations[-1])} {self.end_time_repr()} <- " + base
+            return base
+
         if self.stations[0] != station:
             base = f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " + base
         if self.loop_next is not None:
@@ -135,10 +144,19 @@ class Train:
             base += f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}"
         return base
 
-    def direction_repr(self) -> str:
-        """ Get string representation for routing """
+    def direction_repr(self, reverse: bool = False) -> str:
+        """ Get string representation for direction and routing """
+        if reverse:
+            return (f"[{self.train_code()}] " + "+".join(x.name for x in self.routes) +
+                    f" {self.direction} {self.line.full_name()}")
         return (f"{self.line.full_name()} {self.direction} " + "+".join(x.name for x in self.routes) +
                 f" [{self.train_code()}]")
+
+    def station_repr(self, station: str, reverse: bool = False) -> str:
+        """ Get full string representation for station """
+        if reverse:
+            return "(" + self.show_with(station, reverse) + ") " + self.direction_repr(reverse)
+        return self.direction_repr(reverse) + " (" + self.show_with(station, reverse) + ")"
 
     def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """

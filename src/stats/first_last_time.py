@@ -20,8 +20,7 @@ def first_train_station(
     processed_dict = sorted(processed_dict, key=lambda x: get_time_str(*x[1].arrival_time[x[0]]))
     display_first(
         processed_dict,
-        lambda data: f"{data[0]}: {data[1].stop_time_repr(data[0])} @ {data[2]} {data[1].direction_repr()}" +
-                     f" ({data[1].show_with(data[0])})",
+        lambda data: f"{data[0]}: {data[1].stop_time_repr(data[0])} @ {data[2]} {data[1].station_repr(data[0])})",
         limit_num=limit_num
     )
 
@@ -30,8 +29,7 @@ def display_trains(trains_dict: dict[str, tuple[str, Train]], *, limit_num: int 
     """ Display first/last N trains of the processed dictionary """
     display_first(
         [(station, train, date_group) for station, (date_group, train) in trains_dict.items()],
-        lambda data: f"{data[0]}: {data[1].stop_time_repr(data[0])} @ {data[2]} {data[1].direction_repr()}" +
-                     f" ({data[1].show_with(data[0])})",
+        lambda data: f"{data[0]}: {data[1].stop_time_repr(data[0])} @ {data[2]} {data[1].station_repr(data[0])})",
         limit_num=limit_num
     )
 
