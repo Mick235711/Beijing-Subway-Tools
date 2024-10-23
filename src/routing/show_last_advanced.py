@@ -34,7 +34,6 @@ def output_line_advanced(
 ) -> None:
     """ Output first/last train for a line in advanced mode """
     train_list = get_train_list(station, line, direction, cur_date)
-    print(f"\n{line.full_name()} - {direction}:")
 
     # Calculate the target for each crossing line
     all_stations = line.direction_stations(direction)
@@ -98,6 +97,8 @@ def output_line_advanced(
                     display_post[-1][1].append((new_station, new_line_name, post_dir))
                 else:
                     display_post.append((inner_post_train, [(new_station, new_line_name, post_dir)]))
+    if len(display_pre) == 0 or len(display_post) == 0:
+        return
     display_post = list(reversed(display_post))
 
     # Format: full_spec <-- new_time -- old_time
@@ -113,6 +114,8 @@ def output_line_advanced(
         if short_mode:
             return f"- {new_time_str} -> {train.line.full_name()} {train.direction}"
         return f"-- {new_time_str} --> {full_spec}"
+
+    print(f"\n{line.full_name()} - {direction}:")
 
     # Calculate max length for each section
     max_pre_spec_len = max([chin_len(
