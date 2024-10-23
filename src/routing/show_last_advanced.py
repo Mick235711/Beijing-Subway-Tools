@@ -103,6 +103,14 @@ def output_line_advanced(
 
     # Format: full_spec <-- new_time --< x minutes >-- old_time
     # Short format: direction line <- new_time - old_time and use |
+    max_minute_pre = max([diff_time_tuple(
+        v[0][1].arrival_time[ns],
+        last_dict[ns][k][0][1].arrival_time_virtual(station)[ns]  # type: ignore
+    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[0][1] is not None])
+    max_minute_post = max([diff_time_tuple(
+        v[1][1].arrival_time[ns],
+        last_dict[ns][k][1][1].arrival_time_virtual(station)[ns]  # type: ignore
+    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None])
     def get_spec(train: Train, next_station: str, minute: int, reverse: bool = False) -> str:
         """ Get the partial spec """
         full_spec = train.station_repr(next_station, reverse)
@@ -110,10 +118,14 @@ def output_line_advanced(
         if reverse:
             if short_mode:
                 return f"{train.direction} {train.line.full_name()} <- {new_time_str} -"
-            return f"{full_spec} <-- {new_time_str} --< " + suffix_s("minute", f"{minute:>2}") + " >--"
+            return f"{full_spec} <-- {new_time_str} --< " + suffix_s(
+                "minute", f"{minute:>{len(str(max_minute_pre))}}"
+            ) + " >--"
         if short_mode:
             return f"- {new_time_str} -> {train.line.full_name()} {train.direction}"
-        return "--< " + suffix_s("minute", f"{minute:>2}") + f" >-- {new_time_str} --> {full_spec}"
+        return "--< " + suffix_s(
+            "minute", f"{minute:>{len(str(max_minute_post))}}"
+        ) + f" >-- {new_time_str} --> {full_spec}"
 
     print(f"\n{line.full_name()} - {direction}:")
 
