@@ -90,7 +90,7 @@
   - [x] 对接[beijing-subway-schedule](https://github.com/BoyInTheSun/beijing-subway-schedule)项目
 - [ ] 平均间隔，高峰平均间隔，平均全程车占比，高峰全程车占比
 - [x] 首末班车线路模式（某一线路从头到尾每一站的首末班车，直观看交路）
-  - [ ] 高级单站模式：提示换乘到其他线路的最晚时间
+  - [x] 高级单站模式：提示换乘到其他线路的最晚时间
 - [ ] 阶梯状一线内所有站点对行车时间表
 - [x] --reverse支持索引
 - [x] --show和--hide显示/隐藏列
@@ -147,3 +147,4 @@
 - 暂时不支持以站数或者距离为基准的k-最短路
 - 最少换乘路线暂未实现
 - 由于argparse限制，--level, --focus和--style-spec的第二参数不能以-开头（例如-15,15不行，要换成15,-15）
+- show_first_time高级模式未考虑虚拟换乘和special_time边界情况

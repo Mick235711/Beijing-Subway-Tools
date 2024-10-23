@@ -398,11 +398,11 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
 ```
-usage: show_first_train.py [-h] [-m {station,line,advanced}]
+usage: show_first_train.py [-h] [-m {station,line}]
 
 options:
   -h, --help            show this help message and exit
-  -m {station,line,advanced}, --mode {station,line,advanced}
+  -m {station,line}, --mode {station,line}
                         First/Last Train Mode
 ```
 Show the first/last train for a station. Displays are for each line and direction.
@@ -410,7 +410,6 @@ Show the first/last train for a station. Displays are for each line and directio
 For `--mode`:
 - The default (`station`) shows the first/last time for a single station
 - `line` shows the first/last time for all stations in a line
-- `advanced` shows the first/last time for all stations in a line, with additional information on connection
 
 Example Usage:
 <pre>
@@ -443,6 +442,69 @@ City default: &lt;北京: 24 lines&gt;
     出城 - 全日:
       First Train: 05:56 (北新桥 05:56 -> 2号航站楼 06:36)
        Last Train: 22:26 (北新桥 22:26 -> 2号航站楼 23:10)
+</pre>
+
+### [`show_last_advanced.py`](/src/routing/show_last_advanced.py): Show advanced last train time of a line
+```
+usage: show_last_advanced.py [-h] [--output-format {long,short}] [--exclude-edge]
+
+options:
+  -h, --help            show this help message and exit
+  --output-format {long,short}
+                        Display Format
+  --exclude-edge        Exclude edge case in transfer
+```
+Show the advanced last train information for a line with connection info.
+Passing `--output-format long` will show more detailed information.
+
+Example Usage:
+<pre>
+$ python3 src/routing/show_last_advanced.py
+City default: &lt;北京: 24 lines&gt;
+? Please select a station: <i>安河桥北</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2024-10-24</i>
+
+4号线 - 南行:
+                                                                                              Station
+-------------------------+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++============+++++++++++++++++++++++++++++++------------------------
+                          22:48 22:40 22:48 22:22 22:48 22:35 22:48 22:22 22:40 22:16 22:40   安河桥北   22:16 22:40 22:48 22:40 22:48
+                            |     |     |     |     |     |     |     |     |     |     |      北宫门      |     |     |     |     |
+   南行 16号线 &lt;- 23:01 - 22:51 22:45 22:51 22:30 22:51 22:39 22:51 22:30 22:45 22:23 22:45     西苑     22:23 22:45 22:51 22:45 22:51 - 23:25 -&gt; 16号线 北行
+                                  |     |     |     |     |     |     |     |     |     |      圆明园      |     |     |     |     |
+                                  |     |     |     |     |     |     |     |     |     |   北京大学东门   |     |     |     |     |
+                                  |     |     |     |     |     |     |     |     |     |      中关村      |     |     |     |     |
+   内环 10号线 &lt;- 22:59 ------- 22:54 23:00 22:39 23:00 22:47 23:00 22:39 22:54 22:32 22:54   海淀黄庄   22:32 22:54 23:00 22:54 23:00 - 24:15 -&gt; 10号线 外环
+                                        |     |     |     |     |     |     |     |     |     人民大学     |     |     |     |
+                                        |     |     |     |     |     |     |     |     |      魏公村      |     |     |     |
+    南行 9号线 &lt;- 23:18 ------------- 23:07 22:46 23:07 22:54 23:07 22:46 23:01 22:39 23:01  国家图书馆  22:39 23:01 23:07 23:01
+   南行 16号线 &lt;- 23:15 ----------------|     |     |     |     |     |     |     |     |   ------------   |     |     |---------------- 23:11 -&gt; 16号线 北行
+                                              |     |     |     |     |     |     |     |      动物园      |     |     |
+    外环 2号线 &lt;- 22:59 ------------------- 22:51 23:12 22:59 23:12 22:51 23:06 22:44 23:06    西直门    22:44 23:06 23:12 ------------- 23:43 -&gt; 2号线 内环
+   东行 13号线 &lt;- 23:54 ----------------------------|     |     |     |     |     |     |   ------------   |     |     |
+                                                    |     |     |     |     |     |     |      新街口      |     |     |
+    东行 6号线 &lt;- 24:07 ------------------------- 23:17 23:04 23:17 22:56 23:10 22:49 23:10    平安里    22:49 23:10 23:17 ------------- 24:23 -&gt; 6号线 西行
+   南行 19号线 &lt;- 23:17 ----------------------------------|     |     |     |     |     |   ------------   |     |     |---------------- 23:44 -&gt; 19号线 北行
+                                                                |     |     |     |     |       西四       |     |     |
+                                                                |     |     |     |     |     灵境胡同     |     |     |
+    东行 1号线 &lt;- 24:01 ------------------------------------- 23:23 23:02 23:16 22:55 23:16     西单     22:55 23:16 23:23 ------------- 23:53 -&gt; 1号线 西行
+    外环 2号线 &lt;- 23:11 ------------------------------------------- 23:04 23:19 22:57 23:19    宣武门    22:57 23:19 23:25 ------------- 23:32 -&gt; 2号线 内环
+    东行 7号线 &lt;- 23:24 ------------------------------------------------- 23:21 22:59 23:21    菜市口    22:59 23:21 23:27 ------------- 23:58 -&gt; 7号线 西行
+                                                                                  |     |      陶然亭      |     |
+ 东北行 14号线 &lt;- 23:12 ------------------------------------------------------- 23:04 23:26   北京南站   23:04 23:26 ------------------- 23:33 -&gt; 14号线 西南行
+                                                                                        |      马家堡      |
+   内环 10号线 &lt;- 23:37 ------------------------------------------------------------- 23:31    角门西    23:09 ------------------------- 23:13 -&gt; 10号线 外环
+                                                                                              公益西桥     |
+                                                                                                新宫       |---------------------------- 23:24 -&gt; 19号线 北行
+                                                                                               西红门
+                                                                                              高米店北
+                                                                                              高米店南
+                                                                                                枣园
+                                                                                               清源路
+                                                                                             黄村西大街
+                                                                                             黄村火车站
+                                                                                               义和庄
+                                                                                            生物医药基地
+                                                                                               天宫院
 </pre>
 
 ### [`show_station_time.py`](/src/routing/show_station_time.py): Show time needed for trains to travel between two stations on a line

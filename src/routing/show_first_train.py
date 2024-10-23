@@ -5,10 +5,8 @@
 
 # Libraries
 import argparse
-from datetime import date
 
-from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_line, ask_for_direction, ask_for_date_group, \
-    ask_for_date
+from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_line, ask_for_direction, ask_for_date_group
 from src.city.date_group import DateGroup
 from src.city.line import Line
 from src.common.common import get_time_str, chin_len
@@ -68,29 +66,11 @@ def output_line(line: Line, direction: str, date_group: DateGroup) -> None:
         print(last_train.stop_time_str(station))
 
 
-def get_train_list(station: str, line: Line, direction: str, cur_date: date) -> list[Train]:
-    """ Get list of trains passing a station in a given line """
-    train_list: list[Train] = []
-    for date_group, inner_list in parse_trains(line)[direction].items():
-        if not line.date_groups[date_group].covers(cur_date):
-            continue
-        for train in inner_list:
-            if station in train.arrival_time and station not in train.skip_stations:
-                train_list.append(train)
-    return sorted(train_list, key=lambda t: t.stop_time_str(station))
-
-
-def output_line_advanced(station: str, line: Line, direction: str, cur_date: date) -> None:
-    """ Output first/last train for a line in advanced mode """
-    train_list = get_train_list(station, line, direction, cur_date)
-    print(f"\n{line.full_name()} - {direction}:")
-
-
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mode", choices=["station", "line", "advanced"], default="station",
-                        help="First/Last Train Mode")
+    parser.add_argument("-m", "--mode", choices=["station", "line"],
+                        default="station", help="First/Last Train Mode")
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -98,17 +78,11 @@ def main() -> None:
         station, lines = ask_for_station(city)
         for line in sorted(lines, key=lambda x: x.index):
             output_station_line(line, station)
-    elif args.mode == "line":
+    else:
         line = ask_for_line(city)
         direction = ask_for_direction(line)
         date_group = ask_for_date_group(line)
         output_line(line, direction, date_group)
-    else:
-        station, lines = ask_for_station(city)
-        cur_date = ask_for_date()
-        for line in sorted(lines, key=lambda x: x.index):
-            for direction in line.directions.keys():
-                output_line_advanced(station, line, direction, cur_date)
 
 
 # Call main
