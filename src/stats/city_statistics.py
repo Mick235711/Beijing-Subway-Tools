@@ -77,6 +77,11 @@ def display_station_info(city: City) -> None:
         f"{ch} ({cnt})" for ch, cnt in most_common([name[-1] for name in names])[:10]))
     print("Unique words: " + " ".join(sorted(
         [ch for ch, cnt in name_counter if cnt == 1], key=lambda x: to_pinyin(x)[0])))
+    print("Average # of name characters in each line:")
+    display_first(
+        sorted(list(city.lines.values()), key=lambda l: sum(len(name) for name in l.stations) / len(l.stations)),
+        lambda x: f"{sum(len(name) for name in x.stations) / len(x.stations):.2f} characters: {x}"
+    )
 
 
 def display_transfer_info(city: City) -> None:
@@ -125,14 +130,14 @@ def display_transfer_info(city: City) -> None:
 
     print("Number of transfer stations:")
     display_first(
-        sorted(transfer_dict.items(), key=lambda x: x[1], reverse=True),
+        sorted(transfer_dict.items(), key=lambda x: (-x[1], lines[x[0]].index)),
         lambda x: suffix_s("station", x[1]) + f": {lines[x[0]]} " +
                   f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)"
     )
     print(f"Average # of transfer stations per line: {sum(transfer_dict.values()) / len(lines):.2f}")
     print("Percentage of transfer stations:")
     display_first(
-        sorted(transfer_dict.items(), key=lambda x: x[1] / len(lines[x[0]].stations), reverse=True),
+        sorted(transfer_dict.items(), key=lambda x: (-x[1] / len(lines[x[0]].stations), lines[x[0]].index)),
         lambda x: f"{x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers: {lines[x[0]]} " +
                   f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)"
     )
