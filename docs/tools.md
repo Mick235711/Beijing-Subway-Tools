@@ -397,9 +397,20 @@ City default: &lt;北京: 24 lines&gt;
 </pre>
 
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
-(This program has no command-line arguments.)
+```
+usage: show_first_train.py [-h] [-m {station,line,advanced}]
 
+options:
+  -h, --help            show this help message and exit
+  -m {station,line,advanced}, --mode {station,line,advanced}
+                        First/Last Train Mode
+```
 Show the first/last train for a station. Displays are for each line and direction.
+
+For `--mode`:
+- The default (`station`) shows the first/last time for a single station
+- `line` shows the first/last time for all stations in a line
+- `advanced` shows the first/last time for all stations in a line, with additional information on connection
 
 Example Usage:
 <pre>
