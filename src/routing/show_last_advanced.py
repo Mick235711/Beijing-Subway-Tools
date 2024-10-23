@@ -78,11 +78,11 @@ def output_line_advanced(
                                     train.arrival_time_virtual(station) and diff_time_tuple(
                     train.arrival_time_virtual(station)[new_station],
                     (pre_time, pre_day)
-                ) < 0], key=lambda t: get_time_str(*t.arrival_time_virtual(station)[new_station]))[-1]
+                ) <= 0], key=lambda t: get_time_str(*t.arrival_time_virtual(station)[new_station]))[-1]
                 temp[i] = (new_direction, pre_train)
             last_dict[new_station][new_line.name] = tuple(temp)
 
-    # Populate list of trains to display
+    # Populate list of trains to display -> (station, line_name, direction)
     display_pre: list[tuple[Train, list[tuple[str, str, str]]]] = []
     display_post: list[tuple[Train, list[tuple[str, str, str]]]] = []
     for new_station, inner in last_dict.items():
@@ -97,7 +97,7 @@ def output_line_advanced(
                     display_post[-1][1].append((new_station, new_line_name, post_dir))
                 else:
                     display_post.append((inner_post_train, [(new_station, new_line_name, post_dir)]))
-    if len(display_pre) == 0 or len(display_post) == 0:
+    if len(display_pre) == 0 and len(display_post) == 0:
         return
     display_post = list(reversed(display_post))
 
@@ -106,11 +106,11 @@ def output_line_advanced(
     max_minute_pre = max([diff_time_tuple(
         v[0][1].arrival_time[ns],
         last_dict[ns][k][0][1].arrival_time_virtual(station)[ns]  # type: ignore
-    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[0][1] is not None])
+    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[0][1] is not None], default=0)
     max_minute_post = max([diff_time_tuple(
         v[1][1].arrival_time[ns],
         last_dict[ns][k][1][1].arrival_time_virtual(station)[ns]  # type: ignore
-    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None])
+    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None], default=0)
     def get_spec(train: Train, next_station: str, minute: int, reverse: bool = False) -> str:
         """ Get the partial spec """
         full_spec = train.station_repr(next_station, reverse)
@@ -135,7 +135,7 @@ def output_line_advanced(
             v[0][1].arrival_time[ns],
             last_dict[ns][k][0][1].arrival_time_virtual(station)[ns]  # type: ignore
         ), True)
-    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[0][1] is not None]) + 1
+    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[0][1] is not None], default=0) + 1
     max_pre_len = 6 * len(display_pre) + 1
     max_station_len = max([6] + [chin_len(line.station_full_name(s)) for s in stations])
     max_post_len = 6 * len(display_post) + 1
@@ -144,7 +144,7 @@ def output_line_advanced(
             v[1][1].arrival_time[ns],
             last_dict[ns][k][1][1].arrival_time_virtual(station)[ns]  # type: ignore
         ))
-    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None])
+    ) for ns, inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None], default=0)
     print(" " * (max_pre_spec_len + max_pre_len) + f"{'Station':^{max_station_len}}"
           + " " * (max_post_len + max_post_spec_len))
     print("-" * max_pre_spec_len + "+" * max_pre_len + "=" * max_station_len +
@@ -154,10 +154,14 @@ def output_line_advanced(
     passed_pre = [0 for _ in display_pre]
     passed_post = [0 for _ in display_post]
     for new_station in stations:
-        def display_center(display_station: bool = True,
-                           have_pre_spec: bool = False, have_post_spec: bool = False) -> None:
+        def display_center(
+            display_station: bool = True,
+            have_pre_spec: bool = False, have_post_spec: bool = False,
+            any_pre_spec: bool = False, any_post_spec: bool = False,
+            filter_tuple: tuple[str, str, str] | None = None
+        ) -> None:
             """ Display center parts """
-            hidden_mode = short_mode and not have_pre_spec and new_station != station
+            hidden_mode = short_mode and not any_pre_spec and new_station != station
             first_pre = True
             for j, (display_train, pre_list) in enumerate(display_pre):
                 cur_active = False
@@ -179,7 +183,10 @@ def output_line_advanced(
                         cur_active = True
                     print(get_time_str(*display_train.arrival_time_virtual(station)[new_station]) + " ", end="")
                 first_pre = False
-                if new_station in [x[0] for x in pre_list] and cur_active:
+                if filter_tuple is None:
+                    if new_station in [x[0] for x in pre_list] and cur_active:
+                        passed_pre[j] += 1
+                elif (new_station, filter_tuple[0], filter_tuple[1]) in pre_list and cur_active:
                     passed_pre[j] += 1
             if not display_station or first_pre or hidden_mode:
                 print(" ", end="")
@@ -191,7 +198,7 @@ def output_line_advanced(
             else:
                 print("-" * max_station_len, end="")
 
-            hidden_mode = short_mode and not have_post_spec and new_station != station
+            hidden_mode = short_mode and not any_post_spec and new_station != station
             last_post = False
             if not display_station or hidden_mode:
                 print(" ", end="")
@@ -216,7 +223,10 @@ def output_line_advanced(
                     if last_post:
                         print(" ", end="")
                         cur_active = True
-                if new_station in [x[0] for x in post_list] and cur_active:
+                if filter_tuple is None:
+                    if new_station in [x[0] for x in post_list] and cur_active:
+                        passed_post[j] += 1
+                elif (new_station, filter_tuple[0], filter_tuple[2]) in post_list and cur_active:
                     passed_post[j] += 1
 
         if new_station not in crossing_dict:
@@ -226,6 +236,8 @@ def output_line_advanced(
             continue
 
         first = True
+        any_pre = any(ipt is not None for ((_, ipt), _) in crossing_dict[new_station].values())
+        any_post = any(ipt is not None for (_, (_, ipt)) in crossing_dict[new_station].values())
         for new_line_name, (
             (pre_dir, inner_pre_train), (post_dir, inner_post_train)
         ) in crossing_dict[new_station].items():
@@ -239,7 +251,8 @@ def output_line_advanced(
                 ), True)
                 print(" " * (max_pre_spec_len - chin_len(pre_spec)) + pre_spec, end="")
 
-            display_center(first, inner_pre_train is not None, inner_post_train is not None)
+            display_center(first, inner_pre_train is not None, inner_post_train is not None, any_pre, any_post,
+                           (new_line_name, pre_dir, post_dir))
             if first:
                 first = False
 
