@@ -70,7 +70,7 @@ def output_line_advanced(
     station_lines: dict[str, set[Line]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     station: str, line: Line, direction: str, cur_date: date, *,
-    short_mode: bool = True, exclude_edge: bool = False
+    short_mode: bool = True, exclude_edge: bool = False, exclude_virtual: bool = False
 ) -> None:
     """ Output first/last train for a line in advanced mode """
     train_list = get_train_list(station, line, direction, cur_date)
@@ -86,6 +86,8 @@ def output_line_advanced(
         if station1 not in virtual_station_dict:
             virtual_station_dict[station1] = []
         virtual_station_dict[station1].append((station2, transfer))
+    if exclude_virtual:
+        virtual_station_dict = {}
 
     # Calculate the target for each crossing line
     virtual_stations: dict[str, set[Line]] = {}
@@ -360,6 +362,7 @@ def main() -> None:
     parser.add_argument("--output-format", choices=["long", "short"],
                         default="short", help="Display Format")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
+    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -372,7 +375,8 @@ def main() -> None:
             output_line_advanced(
                 city.station_lines, city.transfers, city.virtual_transfers,
                 station, line, direction, cur_date,
-                short_mode=args.output_format.endswith("short"), exclude_edge=args.exclude_edge
+                short_mode=args.output_format.endswith("short"), exclude_edge=args.exclude_edge,
+                exclude_virtual=args.exclude_virtual
             )
 
 
