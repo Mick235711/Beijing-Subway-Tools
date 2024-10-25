@@ -73,6 +73,26 @@ def analyze_transfer(
     return result1, tuple(temp)
 
 
+def get_spec(train: Train, next_station: str, minute: int, reverse: bool = False,
+             *, short_mode: bool = True, max_minute_pre: int, max_minute_post: int) -> str:
+    """ Get the partial spec """
+    # Format: full_spec <-- new_time --< x minutes >-- old_time
+    # Short format: direction line <- new_time - old_time and use |
+    full_spec = train.station_repr(next_station, reverse)
+    new_time_str = get_time_str(*train.arrival_time[next_station])
+    if reverse:
+        if short_mode:
+            return f"{train.direction} {train.line.full_name()} <- {new_time_str} -"
+        return f"{full_spec} <-- {new_time_str} --< " + suffix_s(
+            "minute", f"{minute:>{len(str(max_minute_pre))}}"
+        ) + " >--"
+    if short_mode:
+        return f"- {new_time_str} -> {train.line.full_name()} {train.direction}"
+    return "--< " + suffix_s(
+        "minute", f"{minute:>{len(str(max_minute_post))}}"
+    ) + f" >-- {new_time_str} --> {full_spec}"
+
+
 def output_line_advanced(
     station_lines: dict[str, set[Line]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
@@ -176,8 +196,6 @@ def output_line_advanced(
         return
     display_post = list(reversed(display_post))
 
-    # Format: full_spec <-- new_time --< x minutes >-- old_time
-    # Short format: direction line <- new_time - old_time and use |
     max_minute_pre = max([diff_time_tuple(
         v[0][1].arrival_time[ns],
         last_dict[(bs, ns)][k][0][1].arrival_time_virtual(station)[bs]  # type: ignore
@@ -186,21 +204,6 @@ def output_line_advanced(
         v[1][1].arrival_time[ns],
         last_dict[(bs, ns)][k][1][1].arrival_time_virtual(station)[bs]  # type: ignore
     ) for (bs, ns), inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None], default=0)
-    def get_spec(train: Train, next_station: str, minute: int, reverse: bool = False) -> str:
-        """ Get the partial spec """
-        full_spec = train.station_repr(next_station, reverse)
-        new_time_str = get_time_str(*train.arrival_time[next_station])
-        if reverse:
-            if short_mode:
-                return f"{train.direction} {train.line.full_name()} <- {new_time_str} -"
-            return f"{full_spec} <-- {new_time_str} --< " + suffix_s(
-                "minute", f"{minute:>{len(str(max_minute_pre))}}"
-            ) + " >--"
-        if short_mode:
-            return f"- {new_time_str} -> {train.line.full_name()} {train.direction}"
-        return "--< " + suffix_s(
-            "minute", f"{minute:>{len(str(max_minute_post))}}"
-        ) + f" >-- {new_time_str} --> {full_spec}"
 
     print(f"\n{line.full_name()} - {direction}:")
 
@@ -209,7 +212,7 @@ def output_line_advanced(
         get_spec(v[0][1], ns, diff_time_tuple(
             v[0][1].arrival_time[ns],
             last_dict[(bs, ns)][k][0][1].arrival_time_virtual(station)[bs]  # type: ignore
-        ), True)
+        ), True, short_mode=short_mode, max_minute_pre=max_minute_pre, max_minute_post=max_minute_post)
     ) for (bs, ns), inner in crossing_dict.items() for k, v in inner.items() if v[0][1] is not None], default=0) + 1
     max_pre_len = 6 * len(display_pre) + 1
     max_station_len = max(
@@ -223,7 +226,7 @@ def output_line_advanced(
         get_spec(v[1][1], ns, diff_time_tuple(
             v[1][1].arrival_time[ns],
             last_dict[(bs, ns)][k][1][1].arrival_time_virtual(station)[bs]  # type: ignore
-        ))
+        ), short_mode=short_mode, max_minute_pre=max_minute_pre, max_minute_post=max_minute_post)
     ) for (bs, ns), inner in crossing_dict.items() for k, v in inner.items() if v[1][1] is not None], default=0)
     print(" " * (max_pre_spec_len + max_pre_len) + f"{'Station':^{max_station_len}}"
           + " " * (max_post_len + max_post_spec_len))
@@ -344,7 +347,7 @@ def output_line_advanced(
                     inner_pre_train.arrival_time[new_station],
                     last_dict[(base_station, new_station)][new_line_name][0][1]  # type: ignore
                     .arrival_time_virtual(station)[base_station]
-                ), True)
+                ), True, short_mode=short_mode, max_minute_pre=max_minute_pre, max_minute_post=max_minute_post)
                 print(" " * (max_pre_spec_len - chin_len(pre_spec)) + pre_spec, end="")
 
             display_center(
@@ -362,7 +365,7 @@ def output_line_advanced(
                     inner_post_train.arrival_time[new_station],
                     last_dict[(base_station, new_station)][new_line_name][1][1]  # type: ignore
                     .arrival_time_virtual(station)[base_station]
-                ))
+                ), short_mode=short_mode, max_minute_pre=max_minute_pre, max_minute_post=max_minute_post)
                 print(post_spec + " " * (max_post_spec_len - chin_len(post_spec)))
 
 

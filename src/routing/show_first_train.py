@@ -35,7 +35,7 @@ def get_first_last(
 def output_station_line(line: Line, station: str, *, full_mode: str = "direction") -> None:
     """ Output first/last train for a station in line """
     train_dict = parse_trains(line)
-    full_str = "Full" if full_mode == "true_full" else "Full Direction"
+    full_str = "Full" if full_mode == "true_full" else "Full-Dir"
     print(f"\n{line.full_name()}:")
     for direction, direction_dict in train_dict.items():
         for date_group, train_list in direction_dict.items():
