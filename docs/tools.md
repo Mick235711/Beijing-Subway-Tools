@@ -446,16 +446,27 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_last_advanced.py`](/src/routing/show_last_advanced.py): Show advanced last train time of a line
 ```
-usage: show_last_advanced.py [-h] [--output-format {long,short}] [--exclude-edge]
+usage: show_last_advanced.py [-h] [--output-format {long,short}] [--exclude-edge] [--exclude-virtual] [-f {direction,true_full}] [--this-full-only] [--show-all]
 
 options:
   -h, --help            show this help message and exit
   --output-format {long,short}
                         Display Format
   --exclude-edge        Exclude edge case in transfer
+  --exclude-virtual     Exclude virtual transfers
+  -f {direction,true_full}, --full-only {direction,true_full}
+                        Only include train that runs the full journey
+  --this-full-only      Only include train in this line that runs the full journey
+  --show-all            Show all results (including impossible cases)
 ```
 Show the advanced last train information for a line with connection info.
 Passing `--output-format long` will show more detailed information.
+
+`--show-all` will show all possible transfer directions, regardless of whether it is actually possible to board.
+
+`-f` and `--this-full-only` will only include trains that run the full journey.
+The different is that `-f` controls the transferred-to lines, while `--this-full-only` controls the current line.
+Also, `-f` use full-distance mode (only care about reachability of final destination) by default.
 
 Example Usage:
 <pre>
