@@ -398,18 +398,24 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_first_train.py`](/src/routing/show_first_train.py): Show first/last train time of a station
 ```
-usage: show_first_train.py [-h] [-m {station,line}]
+usage: show_first_train.py [-h] [-m {station,line}] [--full-mode {direction,true_full}]
 
 options:
   -h, --help            show this help message and exit
   -m {station,line}, --mode {station,line}
                         First/Last Train Mode
+  --full-mode {direction,true_full}
+                        Only include train that runs the full journey
 ```
 Show the first/last train for a station. Displays are for each line and direction.
 
 For `--mode`:
 - The default (`station`) shows the first/last time for a single station
 - `line` shows the first/last time for all stations in a line
+
+For `--full-mode`, `direction` means that "full train" here only considers whether the last station is reachable.
+`true_full` forces all the train to run the full journey (equivalent to `--full-only` in other programs).
+The default is `direction`.
 
 Example Usage:
 <pre>
@@ -446,7 +452,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_last_advanced.py`](/src/routing/show_last_advanced.py): Show advanced last train time of a line
 ```
-usage: show_last_advanced.py [-h] [--output-format {long,short}] [--exclude-edge] [--exclude-virtual] [-f {direction,true_full}] [--this-full-only] [--show-all]
+usage: show_last_advanced.py [-h] [--output-format {long,short}] [--exclude-edge] [--exclude-virtual] [--full-mode {direction,true_full}] [--this-full-only] [--show-all]
 
 options:
   -h, --help            show this help message and exit
@@ -454,7 +460,7 @@ options:
                         Display Format
   --exclude-edge        Exclude edge case in transfer
   --exclude-virtual     Exclude virtual transfers
-  -f {direction,true_full}, --full-only {direction,true_full}
+  --full-mode {direction,true_full}
                         Only include train that runs the full journey
   --this-full-only      Only include train in this line that runs the full journey
   --show-all            Show all results (including impossible cases)
@@ -464,9 +470,9 @@ Passing `--output-format long` will show more detailed information.
 
 `--show-all` will show all possible transfer directions, regardless of whether it is actually possible to board.
 
-`-f` and `--this-full-only` will only include trains that run the full journey.
-The different is that `-f` controls the transferred-to lines, while `--this-full-only` controls the current line.
-Also, `-f` use full-distance mode (only care about reachability of final destination) by default.
+`--full-mode` and `--this-full-only` will only include trains that run the full journey.
+The different is that `--full-mode` controls the transferred-to lines, while `--this-full-only` controls the current line.
+Also, `--full-mode` use full-distance mode (only care about reachability of final destination) by default.
 
 Example Usage:
 <pre>

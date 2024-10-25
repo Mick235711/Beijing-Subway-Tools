@@ -101,8 +101,6 @@
   - [x] create a new line
   - [x] tools
 - [ ] 中文文档
-- [ ] 开通日期（optional，毕竟有换乘，wb东管头南有统计）
-- [ ] Use color to represent different train routes (optional)
 - [ ] 其他城市特性
   - [ ] 多语言支持
   - [x] 车站/线路编号
@@ -140,6 +138,8 @@
 - [ ] 更多城市
 - [x] 最长路算法
 - [x] 在地图上绘制最短路
+- [ ] 开通日期（optional，毕竟有换乘，wb东管头南有统计）
+- [ ] Use color to represent different train routes (optional)
 
 ## Known Bugs
 - 本质上时刻表上的最短路是NP-Hard（因为不满足最优子结构），所以BFS其实不成立

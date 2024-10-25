@@ -16,7 +16,7 @@ from src.routing.train import parse_trains, Train
 
 
 def get_train_list(station: str, line: Line, direction: str, cur_date: date, *,
-                   full_only: str | None = None) -> list[Train]:
+                   full_mode: str | None = None) -> list[Train]:
     """ Get list of trains passing a station in a given line """
     train_list: list[Train] = []
     for date_group, inner_list in parse_trains(line)[direction].items():
@@ -25,9 +25,9 @@ def get_train_list(station: str, line: Line, direction: str, cur_date: date, *,
         for train in inner_list:
             if station not in train.arrival_time or station in train.skip_stations:
                 continue
-            if full_only == "direction" and line.direction_stations(direction)[-1] not in train.arrival_time:
+            if full_mode == "direction" and line.direction_stations(direction)[-1] not in train.arrival_time:
                 continue
-            if full_only == "true_full" and not train.is_full():
+            if full_mode == "true_full" and not train.is_full():
                 continue
             train_list.append(train)
     return sorted(train_list, key=lambda t: t.stop_time_str(station))
@@ -37,12 +37,12 @@ def analyze_transfer(
     train_list: list[Train],
     station: str, line: Line, direction: str, cur_date: date,
     base_station: str, new_station: str, new_line: Line, transfer: Transfer,
-    *, exclude_edge: bool = False, full_only: str | None = None, this_full_only: bool = False, show_all: bool = False
+    *, exclude_edge: bool = False, full_mode: str | None = None, this_full_only: bool = False, show_all: bool = False
 ) -> tuple[tuple[tuple[str, Train | None], ...], tuple[tuple[str, Train | None], ...]]:
     """ Analyze a single transfer """
     temp: list[tuple[str, Train | None]] = []
     for new_direction in new_line.directions.keys():
-        new_trains = get_train_list(new_station, new_line, new_direction, cur_date, full_only=full_only)
+        new_trains = get_train_list(new_station, new_line, new_direction, cur_date, full_mode=full_mode)
         if len(new_trains) == 0 or (
             not new_line.loop and not show_all and new_station == new_line.direction_stations(new_direction)[-1]
         ):
@@ -78,7 +78,7 @@ def output_line_advanced(
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     station: str, line: Line, direction: str, cur_date: date, *,
     short_mode: bool = True, exclude_edge: bool = False, exclude_virtual: bool = False,
-    full_only: str | None = None, this_full_only: bool = False, show_all: bool = False
+    full_mode: str | None = None, this_full_only: bool = False, show_all: bool = False
 ) -> None:
     """ Output first/last train for a line in advanced mode """
     train_list = get_train_list(station, line, direction, cur_date)
@@ -114,7 +114,7 @@ def output_line_advanced(
                 train_list, station, line, direction, cur_date,
                 new_station, new_station, new_line, transfer_dict[new_station],
                 exclude_edge=exclude_edge,
-                full_only=full_only, this_full_only=this_full_only, show_all=show_all
+                full_mode=full_mode, this_full_only=this_full_only, show_all=show_all
             )
             crossing_dict[(new_station, new_station)][new_line.name] = cross
             last_dict[(new_station, new_station)][new_line.name] = last
@@ -139,7 +139,7 @@ def output_line_advanced(
                     train_list, station, line, direction, cur_date,
                     new_station, virtual_station, new_line, transfer,
                     exclude_edge=exclude_edge,
-                    full_only=full_only, this_full_only=this_full_only, show_all=show_all
+                    full_mode=full_mode, this_full_only=this_full_only, show_all=show_all
                 )
                 crossing_dict[(new_station, virtual_station)][new_line.name] = cross
                 last_dict[(new_station, virtual_station)][new_line.name] = last
@@ -373,7 +373,7 @@ def main() -> None:
                         default="short", help="Display Format")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
-    parser.add_argument("-f", "--full-only", choices=["direction", "true_full"], required=False,
+    parser.add_argument("--full-mode", choices=["direction", "true_full"], required=False,
                         help="Only include train that runs the full journey")
     parser.add_argument("--this-full-only", action="store_true",
                         help="Only include train in this line that runs the full journey")
@@ -392,7 +392,7 @@ def main() -> None:
                 station, line, direction, cur_date,
                 short_mode=args.output_format.endswith("short"),
                 exclude_edge=args.exclude_edge, exclude_virtual=args.exclude_virtual,
-                full_only=args.full_only, this_full_only=args.this_full_only, show_all=args.show_all
+                full_mode=args.full_mode, this_full_only=args.this_full_only, show_all=args.show_all
             )
 
 
