@@ -15,7 +15,10 @@ from src.dist_graph.shortest_path import Graph, all_shortest
 from src.stats.common import display_first
 
 
-def furthest_stations(city: City, graph: Graph, *, limit_num: int = 5, data_source: str = "station") -> None:
+def furthest_stations(
+    city: City, graph: Graph, *,
+    limit_num: int = 5, data_source: str = "station", sort_by: str = "sum", reverse: bool = False
+) -> None:
     """ Print the smallest/largest sum of stations needed """
     path_dict = all_shortest(city, graph, data_source=data_source)
     shortest_dict: dict[str, tuple[str, int]] = {}
@@ -34,7 +37,9 @@ def furthest_stations(city: City, graph: Graph, *, limit_num: int = 5, data_sour
     display_first(
         sorted([
             (k, sum([x[0] for x in v.values()]), stddev([x[0] for x in v.values()])) for k, v in path_dict.items()
-        ], key=lambda x: x[1]),
+        ], key=lambda x: ({
+            "sum": x[1], "stddev": x[2], "shortest": shortest_dict[x[0]][1], "longest": longest_dict[x[0]][1]
+        }[sort_by], x[1]), reverse=reverse),
         lambda data:
         city.station_full_name(data[0]) + ": " + display_data(data[1]) +
         f" (avg = {display_data(data[1] / len(list(path_dict.keys())))}) (stddev = {data[2]:.2f}) (" +
@@ -52,6 +57,9 @@ def main() -> None:
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     parser.add_argument("-d", "--data-source", choices=["station", "distance"],
                         default="station", help="Shortest path criteria")
+    parser.add_argument("-b", "--sort-by", choices=["sum", "stddev", "shortest", "longest"],
+                        default="sum", help="Sort by this column")
+    parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
     shortest_path_args(parser, have_single=True, have_express=False, have_edge=False)
     args = parser.parse_args()
     city = ask_for_city()
@@ -59,7 +67,8 @@ def main() -> None:
         city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
     )
-    furthest_stations(city, graph, limit_num=args.limit_num, data_source=args.data_source)
+    furthest_stations(city, graph, limit_num=args.limit_num, data_source=args.data_source,
+                      sort_by=args.sort_by, reverse=args.reverse)
 
 
 # Call main

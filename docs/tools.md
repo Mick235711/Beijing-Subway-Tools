@@ -1652,7 +1652,7 @@ Notice that `->` indicated single-direction journey only.
 
 ### [`furthest_station.py`](/src/stats/furthest_station.py): Station with the smallest/largest station sums
 ```
-usage: furthest_station.py [-h] [-n LIMIT_NUM] [-d {station,distance}] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
+usage: furthest_station.py [-h] [-n LIMIT_NUM] [-d {station,distance}] [-b {sum,stddev,shortest,longest}] [-r] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
@@ -1660,6 +1660,9 @@ options:
                         Limit number of output
   -d {station,distance}, --data-source {station,distance}
                         Shortest path criteria
+  -b {sum,stddev,shortest,longest}, --sort-by {sum,stddev,shortest,longest}
+                        Sort by this column
+  -r, --reverse         Reverse sorting
   -i INCLUDE_LINES, --include-lines INCLUDE_LINES
                         Include lines
   -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
