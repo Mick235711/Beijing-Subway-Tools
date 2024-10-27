@@ -263,7 +263,7 @@ Current Timetable:
 
 There are many possible prompts. The most common ones are:
 - Directly enter a single hour's specification line. For example, `05|11 (22) 33` will delete all previous trains in the 05 line, and then insert those three trains.
-- Add/minute minutes. For example, `05|+2` will add 2 minutes to all trains in the 05 line.
+- Add/minus minutes. For example, `05|+2` will add 2 minutes to all trains in the 05 line.
 - Segmented addition/subtraction. For example, `05|+1[:5]` will add 1 minute to the first 5 trains in the 05 line. Other Python slice syntax such as step is also supported.
 
 After each modification, the then-current timetable will be shown again. When the timetable matches the real one, you can simply
@@ -405,7 +405,16 @@ to draw new versions of the equ-time map.
 
 ## 6. Advanced Topics
 ### 6.1. Branch
-Unfortunately, this is currently not implemented since Beijing does not have branch lines. PRs are welcome :)
+Currently, Branch lines are handled as a special kind of [Through Service](#63-through-train).
+For example, for a line that looks like `A -> B -> C -> D -> E`, where a branch from `C` like `C -> F -> G` exists,
+the usual practice is to simply select a "main line", and record the main line (such as `A -> ... -> E`) as normal.
+Then, record the "branch line" (in this case, `C -> ... -> G`) as its own normal line, and specify all the trains
+to the branch line as a through train from the main line to the branch line. For instance, in the given example,
+through trains should be documented as trains that ends at station C in the main line, and full service in the
+branch line. After adding a through service key in `metadata.json5`, most things should work.
+
+However, this is not a perfect solution, as through services are still a bit buggy. For instance, most
+programs in `stats/` will not consider through trains. PRs are welcome :)
 
 ### 6.2. Single-Direction Service
 Occasionally, a line will only run in one direction at the end:
