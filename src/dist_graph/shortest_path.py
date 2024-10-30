@@ -24,7 +24,27 @@ def get_path(parents: dict[str, tuple[str, Line | None] | None], station: str) -
         if parent is None:
             return list(reversed(path))
         path.append(parent)
-        station = parent[0]
+        station, _ = parent
+
+
+def get_path_index(
+    parents: dict[str, tuple[str, Line | None] | None], station: str, new_entry: tuple[str, Line | None] | None = None
+) -> tuple[int, int]:
+    """ Get the sorting index for path """
+    if new_entry is not None:
+        parent2 = {k: v for k, v in parents.items()}
+        parent2[station] = new_entry
+    else:
+        parent2 = parents
+    path = get_path(parent2, station)
+
+    # Calculate total transfer
+    total_transfer = 1
+    for i in range(1, len(path)):
+        prev, cur = path[i - 1][1], path[i][1]
+        if cur is None or (prev is not None and prev.name != cur.name):
+            total_transfer += 1
+    return total_transfer, len(path)
 
 
 def shortest_path(graph: Graph, from_station: str, *, ignore_dists: bool = False) -> dict[str, tuple[int, Path]]:
@@ -52,7 +72,10 @@ def shortest_path(graph: Graph, from_station: str, *, ignore_dists: bool = False
                 new_dist = dist + 1
             else:
                 new_dist = dist + edge_dist
-            if distances[to_station] == -1 or new_dist < distances[to_station]:
+            if distances[to_station] == -1 or new_dist < distances[to_station] or (
+                new_dist == distances[to_station] and
+                get_path_index(parents, to_station) > get_path_index(parents, to_station, (station, line))
+            ):
                 distances[to_station] = new_dist
                 parents[to_station] = (station, line)
                 heappush(heap, (new_dist, to_station))
