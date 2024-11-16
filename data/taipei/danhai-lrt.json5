@@ -33,6 +33,8 @@
             aliases: ["Southbound"],
             reversed: true,
             "全程車": {},
+            "淡金北新始發空車": {starts_with: "淡金北新"},
+            "濱海義山始發空車": {starts_with: "濱海義山"},
             "藍海線貫通車": {starts_with: "濱海沙崙"}
         }
     },
@@ -83,6 +85,47 @@
                         {plan: "藍海線貫通車", first_train: "23:15", skip_trains: 1, count: 3}
                     ]
                 }
+            },
+            "南行": {
+                // 以+2min计算
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [8, 10, 11, 7, 9, 11, 7, [2, [6, 6, 5, 4, 6]], 6]},
+                        {first_train: "08:20", delta: [5, 9, 7, 9, 11, 7, 12, 11, 7, 11, 7, 11, 10, 8]},
+                        {first_train: "10:35", delta: [11, 7, [2, [11, 7, 11, 10]], 11, [2, [7, 11, 7, 14, 7, 11, 7, 11, 10, 11, 7, 11, 7, 14]]]},
+                        {first_train: "16:59", delta: [11, 4, 8, 9, 10, 11, [2, [4, 6, 8, 4, 6, 8, 4, 9, 8]]]},
+                        {first_train: "19:50", delta: [8, 10, 11, [2, [7, 14, 7, 14, 7, 11, 7, 11, 7, 14]]]},
+                        {first_train: "23:47", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:08"]},
+                        {plan: "濱海義山始發空車", trains: ["06:16"]},
+                        {plan: "藍海線貫通車", trains: ["06:37", "07:04"]},
+                        {plan: "藍海線貫通車", first_train: "07:28", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:34", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:49", skip_trains: 1, until: "17:22"},
+                        {plan: "藍海線貫通車", trains: ["17:31"]},
+                        {plan: "藍海線貫通車", first_train: "17:52", skip_trains: 2, until: "19:46"},
+                        {plan: "藍海線貫通車", first_train: "19:58", skip_trains: 1, until: "00:01"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:08", delta: [15, 20, 10, 9, 11, 10, 11, 7, 12, 14, 10, 14, 7, 17]},
+                        {first_train: "09:08", delta: [14, 13, 11, 7, 9, 9, 11, 7, 11, 7, 14, [2, [7, 11, 7, 11, 10, 11]]]},
+                        {first_train: "13:02", delta: [11, 7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 11, 7]},
+                        {first_train: "15:43", delta: [10, [7, [11, 7]], 9, 11, 7, 11, 7, 11, 7, 11, 10, [4, [11, 7]]]},
+                        {first_train: "20:49", delta: [[4, [7, 11]], 10, 11, 10, 11, 7, 8, 10, 11, 7, 14]},
+                        {first_train: "23:47", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:08"]},
+                        {plan: "藍海線貫通車", trains: ["06:43", "07:13", "07:34"]},
+                        {plan: "藍海線貫通車", first_train: "08:07", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:22", skip_trains: 1, until: "17:52"},
+                        {plan: "藍海線貫通車", first_train: "18:19", skip_trains: 1, until: "00:01"}
+                    ]
+                }
             }
         },
         "竿蓁林": {
@@ -125,6 +168,46 @@
                         {plan: "藍海線貫通車", first_train: "08:23", skip_trains: 1, until: "18:08"},
                         {plan: "藍海線貫通車", first_train: "18:35", skip_trains: 1, until: "22:41"},
                         {plan: "藍海線貫通車", first_train: "23:17", skip_trains: 1, count: 3}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [8, 10, 11, 7, 9, 11, 7, [2, [6, 6, 5, 4, 6]], 6]},
+                        {first_train: "08:18", delta: [5, 9, 7, 9, 11, 7, 12, 11, 7, 11, 7, 11, 10, 8]},
+                        {first_train: "10:33", delta: [11, 7, [2, [11, 7, 11, 10]], 11, [2, [7, 11, 7, 14, 7, 11, 7, 11, 10, 11, 7, 11, 7, 14]]]},
+                        {first_train: "16:57", delta: [11, 4, 8, 9, 10, 11, [2, [4, 6, 8, 4, 6, 8, 4, 9, 8]]]},
+                        {first_train: "19:48", delta: [8, 10, 11, [2, [7, 14, 7, 14, 7, 11, 7, 11, 7, 14]]]},
+                        {first_train: "23:45", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:06"]},
+                        {plan: "濱海義山始發空車", trains: ["06:14"]},
+                        {plan: "藍海線貫通車", trains: ["06:35", "07:02"]},
+                        {plan: "藍海線貫通車", first_train: "07:26", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:32", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:47", skip_trains: 1, until: "17:20"},
+                        {plan: "藍海線貫通車", trains: ["17:29"]},
+                        {plan: "藍海線貫通車", first_train: "17:50", skip_trains: 2, until: "19:44"},
+                        {plan: "藍海線貫通車", first_train: "19:56", skip_trains: 1, until: "23:59"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [15, 20, 10, 9, 11, 10, 11, 7, 12, 14, 10, 14, 7, 17]},
+                        {first_train: "09:06", delta: [14, 13, 11, 7, 9, 9, 11, 7, 11, 7, 14, [2, [7, 11, 7, 11, 10, 11]]]},
+                        {first_train: "13:00", delta: [11, 7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 11, 7]},
+                        {first_train: "15:41", delta: [10, [7, [11, 7]], 9, 11, 7, 11, 7, 11, 7, 11, 10, [4, [11, 7]]]},
+                        {first_train: "20:47", delta: [[4, [7, 11]], 10, 11, 10, 11, 7, 8, 10, 11, 7, 14]},
+                        {first_train: "23:45", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:06"]},
+                        {plan: "藍海線貫通車", trains: ["06:41", "07:11", "07:32"]},
+                        {plan: "藍海線貫通車", first_train: "08:05", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:20", skip_trains: 1, until: "17:50"},
+                        {plan: "藍海線貫通車", first_train: "18:17", skip_trains: 1, until: "23:59"}
                     ]
                 }
             }
@@ -171,6 +254,46 @@
                         {plan: "藍海線貫通車", first_train: "23:19", skip_trains: 1, count: 3}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [8, 10, 11, 7, 9, 11, 7, [2, [6, 6, 5, 4, 6]], 6]},
+                        {first_train: "08:16", delta: [5, 9, 7, 9, 11, 7, 12, 11, 7, 11, 7, 11, 10, 8]},
+                        {first_train: "10:31", delta: [11, 7, [2, [11, 7, 11, 10]], 11, [2, [7, 11, 7, 14, 7, 11, 7, 11, 10, 11, 7, 11, 7, 14]]]},
+                        {first_train: "16:55", delta: [11, 4, 8, 9, 10, 11, [2, [4, 6, 8, 4, 6, 8, 4, 9, 8]]]},
+                        {first_train: "19:46", delta: [8, 10, 11, [2, [7, 14, 7, 14, 7, 11, 7, 11, 7, 14]]]},
+                        {first_train: "23:43", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:04"]},
+                        {plan: "濱海義山始發空車", trains: ["06:12"]},
+                        {plan: "藍海線貫通車", trains: ["06:33", "07:00"]},
+                        {plan: "藍海線貫通車", first_train: "07:24", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:30", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:45", skip_trains: 1, until: "17:18"},
+                        {plan: "藍海線貫通車", trains: ["17:27"]},
+                        {plan: "藍海線貫通車", first_train: "17:48", skip_trains: 2, until: "19:42"},
+                        {plan: "藍海線貫通車", first_train: "19:54", skip_trains: 1, until: "23:57"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:04", delta: [15, 20, 10, 9, 11, 10, 11, 7, 12, 14, 10, 14, 7, 17]},
+                        {first_train: "09:04", delta: [14, 13, 11, 7, 9, 9, 11, 7, 11, 7, 14, [2, [7, 11, 7, 11, 10, 11]]]},
+                        {first_train: "12:58", delta: [11, 7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 11, 7]},
+                        {first_train: "15:39", delta: [10, [7, [11, 7]], 9, 11, 7, 11, 7, 11, 7, 11, 10, [4, [11, 7]]]},
+                        {first_train: "20:45", delta: [[4, [7, 11]], 10, 11, 10, 11, 7, 8, 10, 11, 7, 14]},
+                        {first_train: "23:43", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:04"]},
+                        {plan: "藍海線貫通車", trains: ["06:39", "07:09", "07:30"]},
+                        {plan: "藍海線貫通車", first_train: "08:03", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:18", skip_trains: 1, until: "17:48"},
+                        {plan: "藍海線貫通車", first_train: "18:15", skip_trains: 1, until: "23:57"}
+                    ]
+                }
             }
         },
         "淡江大學": {
@@ -213,6 +336,46 @@
                         {plan: "藍海線貫通車", first_train: "08:27", skip_trains: 1, until: "18:12"},
                         {plan: "藍海線貫通車", first_train: "18:39", skip_trains: 1, until: "22:45"},
                         {plan: "藍海線貫通車", first_train: "23:21", skip_trains: 1, count: 3}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [8, 10, 11, 7, 9, 11, 7, [2, [6, 6, 5, 4, 6]], 6]},
+                        {first_train: "08:14", delta: [5, 9, 7, 9, 11, 7, 12, 11, 7, 11, 7, 11, 10, 8]},
+                        {first_train: "10:29", delta: [11, 7, [2, [11, 7, 11, 10]], 11, [2, [7, 11, 7, 14, 7, 11, 7, 11, 10, 11, 7, 11, 7, 14]]]},
+                        {first_train: "16:53", delta: [11, 4, 8, 9, 10, 11, [2, [4, 6, 8, 4, 6, 8, 4, 9, 8]]]},
+                        {first_train: "19:44", delta: [8, 10, 11, 6, 15, 7, 14, 7, 11, 6, 12, 7, 14]},
+                        {first_train: "21:59", delta: [14, 7, 14, 7, 11, 7, 11, 7, 14, 10, 14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:02"]},
+                        {plan: "濱海義山始發空車", trains: ["06:10"]},
+                        {plan: "藍海線貫通車", trains: ["06:31", "06:58"]},
+                        {plan: "藍海線貫通車", first_train: "07:22", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:28", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:43", skip_trains: 1, until: "17:16"},
+                        {plan: "藍海線貫通車", trains: ["17:25"]},
+                        {plan: "藍海線貫通車", first_train: "17:46", skip_trains: 2, until: "19:40"},
+                        {plan: "藍海線貫通車", first_train: "19:52", skip_trains: 1, until: "23:55"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:02", delta: [15, 20, 10, 9, 11, 10, 11, 7, 12, 14, 10, 14, 7, 17]},
+                        {first_train: "09:02", delta: [14, 13, 11, 7, 9, 9, 11, 7, 11, 7, 14, [2, [7, 11, 7, 11, 10, 11]]]},
+                        {first_train: "12:56", delta: [11, 7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 11, 7]},
+                        {first_train: "15:37", delta: [10, [7, [11, 7]], 9, 11, 7, 11, 7, 11, 7, 11, 10, [4, [11, 7]]]},
+                        {first_train: "20:43", delta: [[4, [7, 11]], 10, 11, 10, 11, 7, 8, 10, 11, 7, 14]},
+                        {first_train: "23:41", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:02"]},
+                        {plan: "藍海線貫通車", trains: ["06:37", "07:07", "07:28"]},
+                        {plan: "藍海線貫通車", first_train: "08:01", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:16", skip_trains: 1, until: "17:46"},
+                        {plan: "藍海線貫通車", first_train: "18:13", skip_trains: 1, until: "23:55"}
                     ]
                 }
             }
@@ -259,6 +422,46 @@
                         {plan: "藍海線貫通車", first_train: "23:23", skip_trains: 1, count: 3}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [8, 10, 11, 7, 9, 11, 7, [2, [6, 6, 5, 4, 6]], 6]},
+                        {first_train: "08:12", delta: [5, 9, 7, 9, 11, 7, 12, 11, 7, 11, 7, 11, 10, 8]},
+                        {first_train: "10:27", delta: [11, 7, [2, [11, 7, 11, 10]], 11, [2, [7, 11, 7, 14, 7, 11, 7, 11, 10, 11, 7, 11, 7, 14]]]},
+                        {first_train: "16:51", delta: [11, 4, 8, 9, 10, 11, [2, [4, 6, 8, 4, 6, 8, 4, 9, 8]]]},
+                        {first_train: "19:42", delta: [8, 10, 11, [2, [7, 14, 7, 14, 7, 11, 7, 11, 7, 14]]]},
+                        {first_train: "23:39", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:00"]},
+                        {plan: "濱海義山始發空車", trains: ["06:08"]},
+                        {plan: "藍海線貫通車", trains: ["06:29", "06:56"]},
+                        {plan: "藍海線貫通車", first_train: "07:20", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:26", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:41", skip_trains: 1, until: "17:14"},
+                        {plan: "藍海線貫通車", trains: ["17:23"]},
+                        {plan: "藍海線貫通車", first_train: "17:44", skip_trains: 2, until: "19:38"},
+                        {plan: "藍海線貫通車", first_train: "19:50", skip_trains: 1, until: "23:53"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [15, 20, 10, 9, 11, 10, 11, 7, 12, 14, 10, 14, 7, 17]},
+                        {first_train: "09:00", delta: [14, 13, 11, 7, 9, 9, 11, 7, 11, 7, 14, [2, [7, 11, 7, 11, 10, 11]]]},
+                        {first_train: "12:54", delta: [11, 7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 11, 7]},
+                        {first_train: "15:35", delta: [10, [7, [11, 7]], 9, 11, 7, 11, 7, 11, 7, 11, 10, [4, [11, 7]]]},
+                        {first_train: "20:41", delta: [[4, [7, 11]], 10, 11, 10, 11, 7, 8, 10, 11, 7, 14]},
+                        {first_train: "23:39", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "淡金北新始發空車", trains: ["06:00"]},
+                        {plan: "藍海線貫通車", trains: ["06:35", "07:05", "07:26"]},
+                        {plan: "藍海線貫通車", first_train: "07:59", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:14", skip_trains: 1, until: "17:44"},
+                        {plan: "藍海線貫通車", first_train: "18:11", skip_trains: 1, until: "23:53"}
+                    ]
+                }
             }
         },
         "新市一路": {
@@ -301,6 +504,45 @@
                         {plan: "藍海線貫通車", first_train: "08:32", skip_trains: 1, until: "18:17"},
                         {plan: "藍海線貫通車", first_train: "18:44", skip_trains: 1, until: "22:50"},
                         {plan: "藍海線貫通車", first_train: "23:26", skip_trains: 1, count: 3}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [10, 11, 7, 9, 11, 7, [2, [6, 6, 5, 4, 6]], 6, 9]},
+                        {first_train: "08:15", delta: [9, 7, 9, 11, 7, 12, 11, 7, 11, 7, 11, 10, 8, 10]},
+                        {first_train: "10:36", delta: [7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 14, 7, 11, 7]},
+                        {first_train: "13:27", delta: [10, 11, 7, 11, 6, 15, 7, 11, 7, 14, 6, 12, 7, 11]},
+                        {first_train: "15:52", delta: [11, 7, 11, 7, 14, 7, 11, 4, 8, 9, 10, 11, [2, [4, 6, 8, 4, 6, 8, 4, 9, 8]]]},
+                        {first_train: "19:40", delta: [8, 10, 11, [2, [7, 14, 7, 14, 7, 11, 7, 11, 7, 14]]]},
+                        {first_train: "23:37", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "濱海義山始發空車", trains: ["06:06"]},
+                        {plan: "藍海線貫通車", trains: ["06:27", "06:54"]},
+                        {plan: "藍海線貫通車", first_train: "07:18", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:24", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:39", skip_trains: 1, until: "17:12"},
+                        {plan: "藍海線貫通車", trains: ["17:21"]},
+                        {plan: "藍海線貫通車", first_train: "17:42", skip_trains: 2, until: "19:36"},
+                        {plan: "藍海線貫通車", first_train: "19:48", skip_trains: 1, until: "23:51"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:13", delta: [20, 10, 9, 11, 10, 11, 7, 12, 14, 10, 14, 7, 17, 13]},
+                        {first_train: "09:12", delta: [13, 11, 7, 9, 9, 11, 7, 11, 7, 14, [2, [7, 11, 7, 11, 10, 11]]]},
+                        {first_train: "12:52", delta: [11, 7, [2, [11, 7, 11, 10]], 11, 7, 11, 7, 11, 7]},
+                        {first_train: "15:33", delta: [10, [7, [11, 7]], 9, 11, 7, 11, 7, 11, 7, 11, 10, [4, [11, 7]]]},
+                        {first_train: "20:39", delta: [[4, [7, 11]], 10, 11, 10, 11, 7, 8, 10, 11, 7, 14]},
+                        {first_train: "23:37", delta: [14, 22]}
+                    ],
+                    filters: [
+                        {plan: "藍海線貫通車", trains: ["06:33", "07:03", "07:24"]},
+                        {plan: "藍海線貫通車", first_train: "07:57", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:12", skip_trains: 1, until: "17:42"},
+                        {plan: "藍海線貫通車", first_train: "18:09", skip_trains: 1, until: "23:51"}
                     ]
                 }
             }
@@ -347,6 +589,44 @@
                         {plan: "藍海線貫通車", first_train: "23:28", skip_trains: 1, count: 3}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [11, 10, 8, 9, 10, 8, [2, [6, 6, 4, 5, 6]], 6, 9]},
+                        {first_train: "08:12", delta: [9, 8, 9, 10, 8, 12, 10, 8, 10, 8, 10, 11, 7, 11]},
+                        {first_train: "10:33", delta: [8, [2, [10, 8, 10, 11]], 10, [2, [8, 10, 8, 13, 8, 10, 8, 10, 11, 10, 8, 10, 8, 13]]]},
+                        {first_train: "16:47", delta: [10, 5, 7, 9, 11, 10, [2, [5, 6, 7, 5, 6, 7, 5, 9, 7]]]},
+                        {first_train: "19:38", delta: [7, 11, 10, [2, [8, 13, 8, 13, 8, 10, 8, 10, 8, 13]]]},
+                        {first_train: "23:35", delta: [13, 23]}
+                    ],
+                    filters: [
+                        {plan: "濱海義山始發空車", trains: ["06:03"]},
+                        {plan: "藍海線貫通車", trains: ["06:24", "06:51"]},
+                        {plan: "藍海線貫通車", first_train: "07:15", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:21", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:36", skip_trains: 1, until: "17:09"},
+                        {plan: "藍海線貫通車", trains: ["17:18"]},
+                        {plan: "藍海線貫通車", first_train: "17:39", skip_trains: 2, until: "19:33"},
+                        {plan: "藍海線貫通車", first_train: "19:45", skip_trains: 1, until: "23:48"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:11", delta: [19, 11, 9, 10, 11, 10, 8, 12, 13, 11, 13, 8, 16, 14]},
+                        {first_train: "09:09", delta: [14, 10, 8, 9, 9, 10, 8, 10, 8, 13, [2, [8, 10, 8, 10, 11, 10]]]},
+                        {first_train: "12:50", delta: [10, 8, [2, [10, 8, 10, 11]], 10, 8, 10, 8, 10, 8]},
+                        {first_train: "15:30", delta: [11, [7, [10, 8]], 9, 10, 8, 10, 8, 10, 8, 10, 11, [4, [10, 8]]]},
+                        {first_train: "20:36", delta: [[4, [8, 10]], 11, 10, 11, 10, 8, 7, 11, 10, 8, 13]},
+                        {first_train: "23:35", delta: [13, 23]}
+                    ],
+                    filters: [
+                        {plan: "藍海線貫通車", trains: ["06:30", "07:00", "07:21"]},
+                        {plan: "藍海線貫通車", first_train: "07:54", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:09", skip_trains: 1, until: "17:39"},
+                        {plan: "藍海線貫通車", first_train: "18:06", skip_trains: 1, until: "23:48"}
+                    ]
+                }
             }
         },
         "濱海義山": {
@@ -389,6 +669,44 @@
                         {plan: "藍海線貫通車", first_train: "08:37", skip_trains: 1, until: "18:22"},
                         {plan: "藍海線貫通車", first_train: "18:49", skip_trains: 1, until: "22:55"},
                         {plan: "藍海線貫通車", first_train: "23:31", skip_trains: 1, count: 3}
+                    ]
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:01", delta: [11, 10, 8, 9, 10, 8, [2, [6, 6, 4, 5, 6]], 6, 9]},
+                        {first_train: "08:10", delta: [9, 8, 9, 10, 8, 12, 10, 8, 10, 8, 10, 11, 7, 11]},
+                        {first_train: "10:31", delta: [8, [2, [10, 8, 10, 11]], 10, [2, [8, 10, 8, 13, 8, 10, 8, 10, 11, 10, 8, 10, 8, 13]]]},
+                        {first_train: "16:45", delta: [10, 5, 7, 9, 11, 10, [2, [5, 6, 7, 5, 6, 7, 5, 9, 7]]]},
+                        {first_train: "19:36", delta: [7, 11, 10, [2, [8, 13, 8, 13, 8, 10, 8, 10, 8, 13]]]},
+                        {first_train: "23:33", delta: [13, 23]}
+                    ],
+                    filters: [
+                        {plan: "濱海義山始發空車", trains: ["06:01"]},
+                        {plan: "藍海線貫通車", trains: ["06:22", "06:49"]},
+                        {plan: "藍海線貫通車", first_train: "07:13", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:19", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:34", skip_trains: 1, until: "17:07"},
+                        {plan: "藍海線貫通車", trains: ["17:16"]},
+                        {plan: "藍海線貫通車", first_train: "17:37", skip_trains: 2, until: "19:31"},
+                        {plan: "藍海線貫通車", first_train: "19:43", skip_trains: 1, until: "23:46"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:09", delta: [19, 11, 9, 10, 11, 10, 8, 12, 13, 11, 13, 8, 16, 14]},
+                        {first_train: "09:07", delta: [14, 10, 8, 9, 9, 10, 8, 10, 8, 13, [2, [8, 10, 8, 10, 11, 10]]]},
+                        {first_train: "12:48", delta: [10, 8, [2, [10, 8, 10, 11]], 10, 8, 10, 8, 10, 8]},
+                        {first_train: "15:28", delta: [11, [7, [10, 8]], 9, 10, 8, 10, 8, 10, 8, 10, 11, [4, [10, 8]]]},
+                        {first_train: "20:34", delta: [[4, [8, 10]], 11, 10, 11, 10, 8, 7, 11, 10, 8, 13]},
+                        {first_train: "23:33", delta: [13, 23]}
+                    ],
+                    filters: [
+                        {plan: "藍海線貫通車", trains: ["06:28", "06:58", "07:19"]},
+                        {plan: "藍海線貫通車", first_train: "07:52", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:07", skip_trains: 1, until: "17:37"},
+                        {plan: "藍海線貫通車", first_train: "18:04", skip_trains: 1, until: "23:46"}
                     ]
                 }
             }
@@ -434,6 +752,43 @@
                         {plan: "藍海線貫通車", first_train: "23:33", skip_trains: 1, count: 3}
                     ]
                 }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:09", delta: [10, 8, 9, 10, 8, [2, [6, 6, 4, 5, 6]], 6, 9, 4]},
+                        {first_train: "08:16", delta: [8, 9, 10, 8, 12, 10, 8, 10, 8, 10, 11, 7, 11, 10]},
+                        {first_train: "10:36", delta: [[2, [10, 8, 10, 11]], 10, [2, [8, 10, 8, 13, 8, 10, 8, 10, 11, 10, 8, 10, 8, 13]]]},
+                        {first_train: "16:42", delta: [10, 5, 7, 9, 11, 10, [2, [5, 6, 7, 5, 6, 7, 5, 9, 7]]]},
+                        {first_train: "19:33", delta: [7, 11, 10, [2, [8, 13, 8, 13, 8, 10, 8, 10, 8, 13]]]},
+                        {first_train: "23:30", delta: [13, 23]}
+                    ],
+                    filters: [
+                        {plan: "藍海線貫通車", trains: ["06:19", "06:46"]},
+                        {plan: "藍海線貫通車", first_train: "07:10", skip_trains: 4, count: 3},
+                        {plan: "藍海線貫通車", first_train: "08:16", skip_trains: 2, count: 3},
+                        {plan: "藍海線貫通車", first_train: "09:31", skip_trains: 1, until: "17:04"},
+                        {plan: "藍海線貫通車", trains: ["17:13"]},
+                        {plan: "藍海線貫通車", first_train: "17:34", skip_trains: 2, until: "19:28"},
+                        {plan: "藍海線貫通車", first_train: "19:40", skip_trains: 1, until: "23:43"}
+                    ]
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [19, 11, 9, 10, 11, 10, 8, 12, 13, 11, 13, 8, 16, 14]},
+                        {first_train: "09:04", delta: [14, 10, 8, 9, 9, 10, 8, 10, 8, 13, [2, [8, 10, 8, 10, 11, 10]]]},
+                        {first_train: "12:45", delta: [10, 8, [2, [10, 8, 10, 11]], 10, 8, 10, 8, 10, 8]},
+                        {first_train: "15:25", delta: [11, [7, [10, 8]], 9, 10, 8, 10, 8, 10, 8, 10, 11, [4, [10, 8]]]},
+                        {first_train: "20:31", delta: [[4, [8, 10]], 11, 10, 11, 10, 8, 7, 11, 10, 8, 13]},
+                        {first_train: "23:30", delta: [13, 23]}
+                    ],
+                    filters: [
+                        {plan: "藍海線貫通車", trains: ["06:25", "06:55", "07:16"]},
+                        {plan: "藍海線貫通車", first_train: "07:49", skip_trains: 1, count: 5},
+                        {plan: "藍海線貫通車", first_train: "10:04", skip_trains: 1, until: "17:34"},
+                        {plan: "藍海線貫通車", first_train: "18:01", skip_trains: 1, until: "23:43"}
+                    ]
+                }
             }
         },
         "淡海新市鎮": {
@@ -452,6 +807,26 @@
                         {first_train: "06:41", delta: [30, 9, 21, 21, 21, 12, 21, 27, 27, 21, 18, 18, 21, 18, 18, 18, 21]},
                         {first_train: "12:41", delta: [[4, [18, 21, 18]], 18, 18, 21, 18, 18, 18, 18, 9, [7, [18]]]},
                         {first_train: "21:14", delta: [18, 18, 18, 21, 21, 18, 9, 12, 18, 18, 30, 18]}
+                    ],
+                    filters: []
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:06", delta: [18, 9, 18, [2, [6, 6, 9, 6]], 6, 9, 21, 9, 18, 12, 18, 18, 21, 18, 18, 18, 21]},
+                        {first_train: "11:30", delta: [[2, [21, 18, 18, 21, 18]], 21, 18, 21, 18, 18, 21, 15, 27]},
+                        {first_train: "17:36", delta: [[2, [6, 12, 6, 12, 9, 12]], [2, [18, 18, 21, 21]], 21, 18]},
+                        {first_train: "23:03", delta: [24, 36]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [30, 9, 21, 18, 12, 24, 21, 30, 27, 18, 9, 9, 18, 18]},
+                        {first_train: "10:48", delta: [18, 21, [2, [18, 18, 21, 18]], [2, [21, 18, 18, 18]], 18, 18]},
+                        {first_train: "17:21", delta: [18, 9, [2, [18, 18, 18, 21, 18]], 18, 18, 21, 21, 18, 18]},
+                        {first_train: "23:06", delta: [21, 36]}
                     ],
                     filters: []
                 }
@@ -474,6 +849,26 @@
                         {first_train: "06:44", delta: [30, 9, 21, 21, 21, 12, 21, 27, 27, 21, 18, 18, 21, 18, 18, 18, 21]},
                         {first_train: "12:44", delta: [[4, [18, 21, 18]], 18, 18, 21, 18, 18, 18, 18, 9, [7, [18]]]},
                         {first_train: "21:17", delta: [18, 18, 18, 21, 21, 18, 9, 12, 18, 18, 30, 18]}
+                    ],
+                    filters: []
+                }
+            },
+            "南行": {
+                "平常日": {
+                    schedule: [
+                        {first_train: "06:03", delta: [18, 9, 18, [2, [6, 6, 9, 6]], 6, 9, 21, 9, 18, 12, 18, 18, 21, 18, 18, 18, 21]},
+                        {first_train: "11:27", delta: [[2, [21, 18, 18, 21, 18]], 21, 18, 21, 18, 18, 21, 15, 27]},
+                        {first_train: "17:33", delta: [[2, [6, 12, 6, 12, 9, 12]], [2, [18, 18, 21, 21]], 21, 18]},
+                        {first_train: "23:00", delta: [24, 36]}
+                    ],
+                    filters: []
+                },
+                "例假日": {
+                    schedule: [
+                        {first_train: "06:00", delta: [30, 9, 21, 18, 12, 24, 21, 30, 27, 18, 9, 9, 18, 18]},
+                        {first_train: "10:45", delta: [18, 21, [2, [18, 18, 21, 18]], [2, [21, 18, 18, 18]], 18, 18]},
+                        {first_train: "17:18", delta: [18, 9, [2, [18, 18, 18, 21, 18]], 18, 18, 21, 21, 18, 18]},
+                        {first_train: "23:03", delta: [21, 36]}
                     ],
                     filters: []
                 }
