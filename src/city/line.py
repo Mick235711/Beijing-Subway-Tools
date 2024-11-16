@@ -179,11 +179,11 @@ class Line:
 def station_full_name(station: str, lines: dict[str, Line] | set[Line]) -> str:
     """ Get full name for station """
     if isinstance(lines, set):
-        processed_lines = lines
+        processed_lines = set(sorted(list(lines), key=lambda x: x.index))
     else:
-        processed_lines = set(x for x in lines.values() if station in x.stations)
-    if all(x.code is not None for x in processed_lines):
-        return station + " (" + "/".join(set(x.station_code(station) for x in processed_lines)) + ")"
+        processed_lines = set(sorted([x for x in lines.values() if station in x.stations], key=lambda x: x.index))
+    if any(x.code is not None for x in processed_lines):
+        return station + " (" + "/".join(set(x.station_code(station) for x in processed_lines if x.code is not None)) + ")"
     return station
 
 
