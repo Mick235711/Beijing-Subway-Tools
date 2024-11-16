@@ -95,6 +95,13 @@
             // 参考：https://web.metro.taipei/img/ALL/INFOPDF/031.pdf
             // 两线站厅间2扶梯+1通道
             {from: "文湖線", to: "板南線", minutes: 2.5}
+        ],
+        "紅樹林": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/070.pdf
+            // 出站之后参考：https://www.youtube.com/watch?v=W2Kx8AUpbnc
+            // 淡海轻轨站台到入闸处1分钟，随后直接扶梯下淡水信义线北行站台，南行需换向后才能开始换乘
+            {from: "淡水信義線", from_direction: "北行", to: "淡海輕軌", minutes: 1.5},
+            {from: "淡水信義線", from_direction: "南行", to: "淡海輕軌", minutes: 2}
         ]
     },
     virtual_transfers: [
