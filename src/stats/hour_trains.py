@@ -9,6 +9,7 @@ import json
 import os
 import sys
 
+from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import add_min_tuple, get_time_str, suffix_s
 from src.routing.through_train import ThroughTrain, get_train_set
@@ -17,6 +18,7 @@ from src.stats.common import display_first, divide_by_line, parse_args, parse_ar
 
 
 def hour_trains(
+    lines: dict[str, Line],
     date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     *, use_capacity: bool = False
 ) -> None:
@@ -40,7 +42,7 @@ def hour_trains(
         lambda data: f"{data[0]:02}:00 - {data[0]:02}:59: " +
                      (suffix_s("people", sum(t.train_capacity() for t in data[1])) if use_capacity else
                       suffix_s("train", len(data[1]))) +
-                     f" ({divide_by_line(data[1], use_capacity)})",
+                     f" ({divide_by_line(lines, data[1], use_capacity)})",
         show_cardinal=False
     )
 
@@ -102,8 +104,8 @@ def main() -> None:
             with open(args.output, "w", encoding="utf-8") as fp:
                 json.dump(data, fp, indent=4, ensure_ascii=False)
     else:
-        date_group_dict, through_dict, args, *_ = parse_args_through(append_arg, include_limit=False)
-        hour_trains(date_group_dict, through_dict, use_capacity=args.capacity)
+        date_group_dict, through_dict, args, _, lines = parse_args_through(append_arg, include_limit=False)
+        hour_trains(lines, date_group_dict, through_dict, use_capacity=args.capacity)
 
 
 # Call main

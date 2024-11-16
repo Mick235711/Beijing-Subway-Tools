@@ -90,7 +90,9 @@ def get_all_trains_from_set(
     return dict(sorted(list(all_trains.items()), key=lambda x: len(x[1]), reverse=True))
 
 
-def divide_by_line(trains: Iterable[Train | ThroughTrain], use_capacity: bool = False) -> str:
+def divide_by_line(
+    lines: dict[str, Line], trains: Iterable[Train | ThroughTrain], use_capacity: bool = False
+) -> str:
     """ Divide train number by line """
     res = ""
     first = True
@@ -99,12 +101,13 @@ def divide_by_line(trains: Iterable[Train | ThroughTrain], use_capacity: bool = 
             first = False
         else:
             res += ", "
+        line_name = lines[line].full_name() if line in lines else line
         if use_capacity:
-            res += f"{line} {sum(sum(t.train_capacity() for t in x) for x in new_line_dict.values())} ("
+            res += f"{line_name} {sum(sum(t.train_capacity() for t in x) for x in new_line_dict.values())} ("
             res += ", ".join(f"{direction} {sum(train.train_capacity() for train in sub_trains)}"
                              for direction, sub_trains in new_line_dict.items())
         else:
-            res += f"{line} {sum(len(x) for x in new_line_dict.values())} ("
+            res += f"{line_name} {sum(len(x) for x in new_line_dict.values())} ("
             res += ", ".join(f"{direction} {len(sub_trains)}" for direction, sub_trains in new_line_dict.items())
         res += ")"
     return res
