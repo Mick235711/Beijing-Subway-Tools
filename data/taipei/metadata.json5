@@ -102,12 +102,18 @@
             // 淡海轻轨站台到入闸处1分钟，随后直接扶梯下淡水信义线北行站台，南行需换向后才能开始换乘
             {from: "淡水信義線", from_direction: "北行", to: "淡海輕軌", minutes: 1.5},
             {from: "淡水信義線", from_direction: "南行", to: "淡海輕軌", minutes: 2}
+        ],
+        "濱海沙崙": [
+            // 所有方向均同台
+            {from: "淡海輕軌", to: "藍海線", minutes: 0}
         ]
     },
     virtual_transfers: [
     ],
     through_trains: [
         // 支线按跨线记载
-        {lines: ["中和新蘆線", "蘆洲線"], route: "蘆洲線貫通車"}
+        {lines: ["中和新蘆線", "蘆洲線"], route: "蘆洲線貫通車"},
+        {lines: ["淡海輕軌", "藍海線"], directions: ["北行", "南行"], route: "藍海線貫通車"},
+        {lines: ["藍海線", "淡海輕軌"], directions: ["北行", "南行"], route: "藍海線貫通車"}
     ]
 }
