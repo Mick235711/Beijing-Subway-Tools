@@ -85,6 +85,14 @@ def to_pinyin(text: str) -> list[str]:
             result[i].append(PINYIN_DICT[text[j]])
         i += 1
         j += 1
+
+    # Avoid O(k^n) algorithm for large text, use O(kn) instead
+    if len(text) > 6:
+        max_len = max(len(entry) for entry in result)
+        for entry in result:
+            if len(entry) < max_len:
+                entry += [entry[0]] * (max_len - len(entry))
+        return ["".join(row).capitalize() for row in zip(*result)]
     return ["".join(entry).capitalize() for entry in itertools.product(*result)]
 
 
