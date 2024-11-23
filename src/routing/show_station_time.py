@@ -71,9 +71,10 @@ def main() -> None:
     direction, time_dict = get_time_between(
         line, date_group, start, end, with_direction=with_direction)
     line.timetables()[start][direction][date_group.name].pretty_print(with_time=time_dict)
+    minutes = [x for x in time_dict.values() if x is not None]
     print("Total " + suffix_s("train", len(time_dict)) + ". Average time = " +
-          f"{average(x for x in time_dict.values() if x is not None):.2f}" +
-          f" minutes (stddev = {stddev(x for x in time_dict.values() if x is not None):.2f})")
+          f"{average(minutes):.2f} minutes (stddev = {stddev(minutes):.2f})" +
+          f" (min {min(minutes)} - max {max(minutes)})")
 
 
 # Call main
