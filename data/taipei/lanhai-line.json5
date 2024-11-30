@@ -16,6 +16,7 @@
         {name: "台北海洋大學", dist: 1121, aliases: ["Taipei University of Marine Technology"]},
         {name: "濱海沙崙", index: "09", dist: 532}
     ],
+    force_start: true,
     train_routes: {
         "北行": {
             aliases: ["Northbound"],

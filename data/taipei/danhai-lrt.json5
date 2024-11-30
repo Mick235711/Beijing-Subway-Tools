@@ -23,6 +23,7 @@
         {name: "淡海新市鎮", dist: 651, aliases: ["Danhai New Town"]},
         {name: "崁頂", dist: 624}
     ],
+    force_start: true,
     train_routes: {
         "北行": {
             aliases: ["Northbound"],
