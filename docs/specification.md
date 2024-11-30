@@ -68,6 +68,7 @@ A train route refers to a regularly scheduled train visiting several predetermin
 | starts_with           | No                    | string | The first station | Specify that those trains starts at this station.                                            |
 | ends_with             | No                    | string | The last station  | Specify that those trains ends at this station.                                              |
 | skip                  | No                    | array  | []                | Specify that those station will be skipped.                                                  |
+| skip_timetable        | No                    | bool   | false             | Specify if skipped station still have passing time entry in the timetable.                   |
 | stations              | No                    | array  |                   | Specify the stations that this route stops at. If present, all other attributes are ignored. |
 | real_end              | No                    | string | The last station  | Specify that this route actually runs (without passenger) to another station.                |
 | carriage_num          | No                    | int    | Same as line      | Specify that this route use fewer carriages.                                                 |

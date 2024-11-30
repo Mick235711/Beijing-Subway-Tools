@@ -28,6 +28,8 @@ class Train:
         self.stations, end_route = route_stations(self.routes)
         self.real_end = end_route.real_end
         self.skip_stations = route_skip_stations(self.routes)
+        skip_temp = route_skip_stations(self.routes, True)
+        self.without_timetable = set(s for s in self.skip_stations if s not in skip_temp)
         self.arrival_time = arrival_time
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
@@ -274,6 +276,9 @@ class Train:
         # Pre-run
         reprs: list[str] = []
         for station in self.stations:
+            if station not in self.arrival_time:
+                assert station in self.without_timetable, station
+                continue
             reprs.append(f"{self.line.station_full_name(station)} {get_time_repr(*self.arrival_time[station])}")
         if self.loop_next is not None:
             reprs.append(
@@ -290,7 +295,12 @@ class Train:
         for i, station_repr in enumerate(reprs):
             if self.loop_next is None or i < len(reprs) - 1:
                 station = self.stations[i]
-                arrival_time, next_day = self.arrival_time[station]
+                if station in self.arrival_time:
+                    arrival_time, next_day = self.arrival_time[station]
+                else:
+                    # This shouldn't be necessary
+                    assert station in self.without_timetable, station
+                    arrival_time, next_day = self.start_time()
             else:
                 station = stations[0]
                 arrival_time, next_day = self.loop_next.arrival_time[station]

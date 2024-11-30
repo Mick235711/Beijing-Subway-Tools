@@ -20,6 +20,7 @@ class TrainRoute:
         self.stations = stations
         self.real_end = real_end
         self.skip_stations: set[str] = set()
+        self.skip_timetable = False
         self.carriage_num = carriage_num
         self.loop = loop
 
@@ -72,6 +73,10 @@ def parse_train_route(direction: str, base: list[str],
     if "skip" in spec:
         route.skip_stations = set(spec["skip"])
         assert all(ss in route.stations for ss in route.skip_stations), spec
+    if "skip_timetable" in spec:
+        if len(route.skip_stations) == 0:
+            print("Warning: skip_timetable is set but no skip stations are defined")
+        route.skip_timetable = spec["skip_timetable"]
     if route.stations[-1] != base[-1]:
         route.loop = False
     return route

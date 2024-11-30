@@ -88,6 +88,8 @@ def get_section_data(
         if train.line.name not in processed_dict:
             processed_dict[train.line.name] = {}
         for station in train.stations:
+            if station in train.without_timetable:
+                continue
             key = (date_group, train.direction, station)
             if key not in processed_dict[train.line.name]:
                 processed_dict[train.line.name][key] = []

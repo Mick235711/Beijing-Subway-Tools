@@ -17,7 +17,7 @@ from src.routing.train import parse_trains, Train
 
 def get_train_list(station: str, line: Line, direction: str, cur_date: date, *,
                    full_mode: str | None = None) -> list[Train]:
-    """ Get list of trains passing a station in a given line """
+    """ Get a list of trains passing a station in a given line """
     train_list: list[Train] = []
     for date_group, inner_list in parse_trains(line)[direction].items():
         if not line.date_groups[date_group].covers(cur_date):
