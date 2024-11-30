@@ -116,7 +116,9 @@ class Line:
     def direction_str(self, direction: str | None = None) -> str:
         """ Get the string representation of a direction """
         stations = self.direction_stations(direction)
-        return f"{stations[0]} " + ("-" if direction is None else "->") + f" {stations[-1]}"
+        return f"{self.station_full_name(stations[0])} " + (
+            "-" if direction is None else "->"
+        ) + f" {self.station_full_name(stations[-1])}"
 
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
