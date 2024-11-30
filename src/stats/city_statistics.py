@@ -4,6 +4,7 @@
 """ Show basic statistics for a city """
 
 # Libraries
+import argparse
 from collections import Counter
 from typing import Any
 
@@ -57,7 +58,7 @@ def display_line_info(city: City) -> None:
 
 
 def display_station_info(city: City) -> None:
-    """ Display station and station name info """
+    """ Display station info """
     print("\n====> Station Information <=====")
     station_lines = city.station_lines
     print(f"Total # of stations: {len(station_lines)}")
@@ -66,7 +67,11 @@ def display_station_info(city: City) -> None:
     print(f"Average # of lines per station: {recount_sum / len(station_lines):.2f}")
     print_cnt(station_lines, "Station", "line", 3)
 
+
+def display_station_name_info(city: City) -> None:
+    """ Display station name info """
     print("\n=====> Station Name Information <=====")
+    station_lines = city.station_lines
     names = set(list(station_lines.keys()))
     name_sum = sum(len(name) for name in names)
     print(f"Average # of name characters per station: {name_sum / len(names):.2f}")
@@ -84,17 +89,29 @@ def display_station_info(city: City) -> None:
     )
 
 
-def display_transfer_info(city: City) -> None:
+def display_transfer_info(city: City, exclude_virtual: bool = False) -> None:
     """ Display transfer info """
     lines = city.lines
     station_lines = city.station_lines
+    virtual_transfers: set[str] = set()
+    for (s, t) in city.virtual_transfers:
+        virtual_transfers.add(s)
+        virtual_transfers.add(t)
+
     print("\n=====> Transfer Information <=====")
-    transfer_dict: dict[str, int] = {}
+    transfer_dict: dict[str, float] = {}
     consecutive_dict: dict[str, list[str]] = {}
     for name, line in lines.items():
-        transfer_stations = [(index, station) for index, station in enumerate(line.stations)
-                             if len(station_lines[station]) > 1]
-        transfer_dict[name] = len(transfer_stations)
+        if exclude_virtual:
+            transfer_stations = [(index, station) for index, station in enumerate(line.stations)
+                                 if len(station_lines[station]) > 1]
+            transfer_dict[name] = len(transfer_stations)
+        else:
+            transfer_stations = [(index, station) for index, station in enumerate(line.stations)
+                                 if len(station_lines[station]) > 1 or station in virtual_transfers]
+            virtual_stations = [station for station in line.stations
+                                if station in virtual_transfers and len(station_lines[station]) == 1]
+            transfer_dict[name] = len(transfer_stations) - 0.5 * len(virtual_stations)
         count = 1
         max_sequence: list[str] = [transfer_stations[0][1]]
         for i, (index, _) in enumerate(transfer_stations):
@@ -155,10 +172,24 @@ def display_transfer_info(city: City) -> None:
 
 def main() -> None:
     """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--omit-line-info", action="store_true", help="Don't show line info")
+    parser.add_argument("--omit-station-info", action="store_true", help="Don't show station info")
+    parser.add_argument("--omit-station-name-info", action="store_true", help="Don't show station name info")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--omit-transfer-info", action="store_true", help="Don't show transfer info")
+    group.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+    args = parser.parse_args()
+
     city = ask_for_city()
-    display_line_info(city)
-    display_station_info(city)
-    display_transfer_info(city)
+    if not args.omit_line_info:
+        display_line_info(city)
+    if not args.omit_station_info:
+        display_station_info(city)
+    if not args.omit_station_name_info:
+        display_station_name_info(city)
+    if not args.omit_transfer_info:
+        display_transfer_info(city, args.exclude_virtual)
 
 
 # Call main

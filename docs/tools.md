@@ -1132,9 +1132,22 @@ In all the programs in this section (except those that accept no arguments), the
 - `-e L1,L2,L3`: Exclude those lines from the result
 
 ### [`city_statistics.py`](/src/stats/city_statistics.py): Basic statistics for a city
-(This program has no command-line arguments.)
+```
+usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info | --exclude-virtual]
+
+options:
+  -h, --help            show this help message and exit
+  --omit-line-info      Don't show line info
+  --omit-station-info   Don't show station info
+  --omit-station-name-info
+                        Don't show station name info
+  --omit-transfer-info  Don't show transfer info
+  --exclude-virtual     Exclude virtual transfers
+```
 
 Show some basic data on a city, such as number of lines, total rail distance, and number of transfer stations.
+
+Note: In the transfer info section, each virtual transfer is counted as 0.5 station. Pass `--exclude-virtual` to disable this behavior.
 
 Example Usage:
 <pre>
