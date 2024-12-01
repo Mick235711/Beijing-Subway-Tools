@@ -164,17 +164,24 @@ def route_stations(routes: TrainRoute | list[TrainRoute]) -> tuple[list[str], Tr
     return stations, end_route
 
 
-def route_skip_stations(routes: TrainRoute | list[TrainRoute], have_timetable: bool = False) -> set[str]:
+def route_skip_stations(routes: TrainRoute | list[TrainRoute], skip_timetable: bool = False) -> set[str]:
     """ Return the skipped stations of this route """
     if isinstance(routes, TrainRoute):
         return routes.skip_stations
     stations, _ = route_stations(routes)
     skipped: set[str] = set()
     for route in routes:
-        if have_timetable and not route.skip_timetable:
+        if skip_timetable and not route.skip_timetable:
             continue
         skipped.update(route.skip_stations)
     return set(skip for skip in skipped if skip in stations)
+
+
+def route_without_timetable(routes: TrainRoute | list[TrainRoute]) -> set[str]:
+    """ Return the stations of this route that does not have a timetable """
+    skip_stations = route_skip_stations(routes)
+    skip_temp = route_skip_stations(routes, True)
+    return set(s for s in skip_stations if s not in skip_temp)
 
 
 def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:

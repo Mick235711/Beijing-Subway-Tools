@@ -413,14 +413,14 @@ def ask_for_through_train(
     return city, train_dict, line, through_dict[through_spec_candidate[0]]
 
 
-def ask_for_timetable() -> tuple[str, Timetable]:
+def ask_for_timetable() -> tuple[Line, str, str, DateGroup, Timetable]:
     """ Ask for a specific station's timetable """
     city = ask_for_city()
     line = ask_for_line(city)
     direction = ask_for_direction(line)
     station = ask_for_station_in_line(line, with_timetable=True, with_direction=direction)
     date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
-    return station, line.timetables()[station][direction][date_group.name]
+    return line, station, direction, date_group, line.timetables()[station][direction][date_group.name]
 
 
 def ask_for_date() -> date:

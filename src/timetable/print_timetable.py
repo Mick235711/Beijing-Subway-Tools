@@ -20,7 +20,7 @@ def main() -> None:
     group.add_argument("-x", "--exclude-routes", help="Exclude routes")
     args = parser.parse_args()
 
-    station, timetable = ask_for_timetable()
+    _, station, _, _, timetable = ask_for_timetable()
     include_routes = parse_comma(args.include_routes)
     exclude_routes = parse_comma(args.exclude_routes)
     def in_route(train_route: list[TrainRoute]) -> bool:

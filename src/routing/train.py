@@ -12,7 +12,7 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
 from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
     distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple
-from src.timetable.timetable import Timetable, route_stations, route_skip_stations
+from src.timetable.timetable import Timetable, route_stations, route_skip_stations, route_without_timetable
 
 
 class Train:
@@ -28,8 +28,7 @@ class Train:
         self.stations, end_route = route_stations(self.routes)
         self.real_end = end_route.real_end
         self.skip_stations = route_skip_stations(self.routes)
-        skip_temp = route_skip_stations(self.routes, True)
-        self.without_timetable = set(s for s in self.skip_stations if s not in skip_temp)
+        self.without_timetable = route_without_timetable(self.routes)
         self.arrival_time = arrival_time
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
