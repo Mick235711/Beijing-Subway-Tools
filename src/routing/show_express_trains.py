@@ -34,9 +34,9 @@ def main() -> None:
     train = cast(Train, ask_for_train(train_list_express, with_speed=True))
 
     # Find all the overtaken trains
-    overtaken: list[Train] = []
+    overtaken: list[tuple[str, str, Train]] = []
     for candidate in train_list:
-        candidate_stations = list(candidate.arrival_time.keys())
+        candidate_stations = [station for station in candidate.arrival_time.keys() if station in train.arrival_time]
         for station1, station2 in zip(candidate_stations[:-1], candidate_stations[1:]):
             # if at station1 train > candidate, and at station2 train < candidate, then overtaken
             if diff_time_tuple(
@@ -44,7 +44,7 @@ def main() -> None:
             ) > 0 > diff_time_tuple(
                 train.arrival_time[station2], candidate.arrival_time[station2]
             ):
-                overtaken.append(candidate)
+                overtaken.append((station1, station2, candidate))
 
     # Print
     print("Train basic info:")
@@ -62,10 +62,11 @@ def main() -> None:
     print(f"Segment speed: {format_duration(express_duration)}, {speed_str(express_speed)}")
 
     print("\nThis train overtakes " + suffix_s("train", len(overtaken)) + ".")
-    for i, overtake in enumerate(overtaken):
-        print(f"Overtake #{i + 1}: {overtake.two_station_str(route_start, route_end)}")
+    for i, (station1, station2, overtake) in enumerate(overtaken):
+        print(f"Overtake #{i + 1}: {overtake.two_station_str(route_start, route_end)} " +
+              f"(overtake at {station1} -> {station2})")
     if len(overtaken) > 0:
-        _, overtake_duration, overtake_speed = average_speed(overtaken, route_start, route_end)
+        _, overtake_duration, overtake_speed = average_speed([x[2] for x in overtaken], route_start, route_end)
         print(f"Overtaken train's average segment speed: {format_duration(overtake_duration)}, " +
               speed_str(overtake_speed))
 
