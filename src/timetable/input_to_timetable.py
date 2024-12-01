@@ -300,6 +300,15 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     return res
 
 
+def get_prev(next_train: Timetable.Train, cur_station: str) -> str:
+    """ Get previous station """
+    skip_set = route_without_timetable(next_train.route_iter())
+    new_stations = [s for s in next_train.route_stations() if s not in skip_set]
+    index = new_stations.index(cur_station)
+    assert index > 0, (cur_station, new_stations, skip_set)
+    return new_stations[index - 1]
+
+
 def without_criteria(routes: list[TrainRoute], stations: list[str], prev_station: str, next_station: str) -> bool:
     """ Return if this route list satisfies the without criteria """
     skip_set = route_without_timetable(routes)
@@ -325,11 +334,42 @@ def filter_without(
         if next_station not in route_without_timetable(cur_train.route_iter())
     }
     if not skip_prev:
-        trains |= {
-            cur_time: cur_train for station in direction_stations[:index]
-            for cur_time, cur_train in line.timetables()[station][direction][date_group.name].trains.items()
-            if without_criteria(cur_train.route_iter(), direction_stations, station, next_station)
-        }
+        min_diff: dict[str, int] = {}
+        for station in direction_stations[:index]:
+            for cur_time, cur_train in line.timetables()[station][direction][date_group.name].trains.items():
+                if not without_criteria(cur_train.route_iter(), direction_stations, station, next_station):
+                    continue
+
+                if station not in min_diff:
+                    # Try to determine a minutes between station and prev_station
+                    # The basic idea is that base route trains are always available and the same
+                    candidates = [
+                        train for train in line.timetables()[station][direction][date_group.name].trains.values()
+                        if train.route_iter() == [line.direction_base_route[direction]]
+                    ]
+                    candidates_next = [
+                        train for train in prev.trains.values()
+                        if train.route_iter() == [line.direction_base_route[direction]]
+                    ]
+                    if len(candidates) == 0:
+                        print(f"There are no available base trains between {station} and {prev_station}.")
+                        min_diff[station] = int(input("Please input the guessed time difference: "))
+                    else:
+                        assert len(candidates) == len(candidates_next), (
+                            candidates, candidates_next, prev_station, station)
+                        min_diff[station] = round(average([
+                            diff_time(c1.leaving_time, c2.leaving_time, c1.next_day, c2.next_day)
+                            for c1, c2 in zip(candidates_next, candidates)
+                        ]))
+                        print("Deducing from " + suffix_s("train", len(candidates)) +
+                              f", the determined time diff between {station} and {prev_station} is " +
+                              suffix_s("minute", min_diff[station]) + ".")
+
+                cur_time, _ = add_min(cur_time, min_diff[station])
+                while cur_time in trains:
+                    cur_time, _ = add_min(cur_time, -1)
+                print(f"Insert at {get_time_str(cur_time)}:", cur_train)
+                trains[cur_time] = cur_train
     return Timetable(trains, prev.base_route)
 
 
@@ -350,27 +390,37 @@ def insert_end_trains(
     # Insert calculated trains
     cnt = 0
     prev_cnt = 0
+    min_diff: dict[str, int] = {}
     for i, cur_train in enumerate(prev_sorted):
         if list(cur_train.route_iter()) != [prev.base_route] and (
             (not cur_train.is_loop()) and cur_train.route_stations()[-1] == cur_station
         ):
-            # Calculate delta before/after
-            deltas_train: list[tuple[Timetable.Train, Timetable.Train]] = []
-            if prev_cnt > 0:
-                deltas_train.append((no_end_sorted[prev_cnt - 1], cur_sorted[prev_cnt - 1]))
-            if prev_cnt < len(no_end_sorted) - 1:
-                deltas_train.append((no_end_sorted[prev_cnt], cur_sorted[prev_cnt]))
-            print("\n".join(f"{train1} -> {train2}" for train1, train2 in deltas_train))
-
-            assert len(deltas_train) > 0, (i, prev_sorted)
-            deltas = [diff_time(
-                new_train.leaving_time, prev_train.leaving_time,
-                new_train.next_day, prev_train.next_day
-            ) for prev_train, new_train in deltas_train]
-            if len(deltas) > 1:
-                delta_common = round(average(deltas))
+            train_prev = get_prev(cur_train, cur_station)
+            if cur_train.route_stations()[-2] != train_prev:
+                if train_prev not in min_diff:
+                    # Have skipped stations, ask for diff time manually
+                    min_diff[train_prev] = int(input(
+                        f"Please input the guessed time difference between {train_prev} and {cur_station}: "
+                    ))
+                delta_common = min_diff[train_prev]
             else:
-                delta_common = deltas[0]
+                # Calculate delta before/after
+                deltas_train: list[tuple[Timetable.Train, Timetable.Train]] = []
+                if prev_cnt > 0:
+                    deltas_train.append((no_end_sorted[prev_cnt - 1], cur_sorted[prev_cnt - 1]))
+                if prev_cnt < len(no_end_sorted) - 1:
+                    deltas_train.append((no_end_sorted[prev_cnt], cur_sorted[prev_cnt]))
+                print("\n".join(f"{train1} -> {train2}" for train1, train2 in deltas_train))
+
+                assert len(deltas_train) > 0, (i, prev_sorted)
+                deltas = [diff_time(
+                    new_train.leaving_time, prev_train.leaving_time,
+                    new_train.next_day, prev_train.next_day
+                ) for prev_train, new_train in deltas_train]
+                if len(deltas) > 1:
+                    delta_common = round(average(deltas))
+                else:
+                    delta_common = deltas[0]
 
             new_time, new_day = add_min(cur_train.leaving_time, delta_common, cur_train.next_day)
             new_train = Timetable.Train(
@@ -412,7 +462,7 @@ def validate_timetable(
     if tolerate:
         # assign the corresponding route to every train in current
         # first let's sort everything by time
-        prev_sorted = prev.trains_sorted()
+        prev_sorted = [x[1] for x in sorted(list(prev.trains.items()), key=lambda x: get_time_str(x[0], x[1].next_day))]
         new_table = Timetable({
             cur_time: cur_train for cur_time, cur_train in current.trains.items()
             if list(cur_train.route_iter()) == [current.base_route]
@@ -469,11 +519,7 @@ def validate_timetable(
             next_train = timetable_trains[i]
             new_time = next_train.leaving_time
             new_day = next_train.next_day
-            skip_set = route_without_timetable(next_train.route_iter())
-            new_stations = [s for s in next_train.route_stations() if s not in skip_set]
-            index = new_stations.index(cur_station)
-            assert index > 0, (cur_station, new_stations, skip_set)
-            train_prev = new_stations[index - 1]
+            train_prev = get_prev(next_train, cur_station)
             diff = diff_time(new_time, prev_time, new_day, prev_day)
             if train_prev not in initial_diff:
                 initial_diff[train_prev] = diff

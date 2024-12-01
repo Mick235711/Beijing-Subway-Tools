@@ -277,6 +277,7 @@ class Train:
         for station in self.stations:
             if station not in self.arrival_time:
                 assert station in self.without_timetable, station
+                reprs.append(f"{self.line.station_full_name(station)}")
                 continue
             reprs.append(f"{self.line.station_full_name(station)} {get_time_repr(*self.arrival_time[station])}")
         if self.loop_next is not None:
@@ -377,7 +378,7 @@ def filter_route(
         routes_dict = []
     processed_dict: dict[int, list[Timetable.Train]] = {}
     for train in timetable.trains.values():
-        routes = list(train.route_iter())
+        routes = list(sorted(train.route_iter(), key=lambda r: r.name))
         if routes not in routes_dict:
             routes_dict.append(routes)
         route_id = routes_dict.index(routes)
