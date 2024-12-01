@@ -125,7 +125,7 @@ def compose_delta(entry: list[tuple[int, int] | list]) -> list[int | list[int | 
 
 def divide_schedule(trains: list[Timetable.Train],
                     break_entries: int = 15) -> Iterable[tuple[time, list[int | list]]]:
-    """ Divide train list into several schedule entries """
+    """ Divide a train list into several schedule entries """
     # first, compute all the delta entries
     delta: list[tuple[int, int]] = []  # delta, index
     for i, train in enumerate(trains):
@@ -309,22 +309,28 @@ def without_criteria(routes: list[TrainRoute], stations: list[str], prev_station
     return new_stations.index(prev_station) + 1 == new_stations.index(next_station)
 
 
-def filter_without(line: Line, prev: Timetable, prev_station: str, direction: str, date_group: DateGroup) -> Timetable:
+def filter_without(
+    line: Line, prev: Timetable, prev_station: str, direction: str, date_group: DateGroup,
+    skip_prev: bool = False
+) -> Timetable:
     """ Filter out all without_timetable trains """
     direction_stations = line.direction_stations(direction)
     index = direction_stations.index(prev_station)
     if index == len(direction_stations) - 1:
         return prev
     next_station = direction_stations[index + 1]
-    return Timetable({
+    trains = {
         cur_time: cur_train
         for cur_time, cur_train in prev.trains.items()
         if next_station not in route_without_timetable(cur_train.route_iter())
-    } | {
-        cur_time: cur_train for station in direction_stations[:index]
-        for cur_time, cur_train in line.timetables()[station][direction][date_group.name].trains.items()
-        if without_criteria(cur_train.route_iter(), direction_stations, station, next_station)
-    }, prev.base_route)
+    }
+    if not skip_prev:
+        trains |= {
+            cur_time: cur_train for station in direction_stations[:index]
+            for cur_time, cur_train in line.timetables()[station][direction][date_group.name].trains.items()
+            if without_criteria(cur_train.route_iter(), direction_stations, station, next_station)
+        }
+    return Timetable(trains, prev.base_route)
 
 
 def insert_end_trains(
@@ -385,7 +391,7 @@ def insert_end_trains(
 
 def validate_timetable(
     line: Line, prev: Timetable, prev_station: str, direction: str, date_group: DateGroup,
-    current: Timetable, tolerate: bool = False
+    current: Timetable, *, tolerate: bool = False, skip_prev: bool = False
 ) -> Timetable:
     """ Validate two timetables. Throw if not valid. """
     # Basically, we validate if each route has the same number,
@@ -402,7 +408,7 @@ def validate_timetable(
     prev.trains = new_prev
 
     # Filter
-    prev = filter_without(line, prev, prev_station, direction, date_group)
+    prev = filter_without(line, prev, prev_station, direction, date_group, skip_prev)
     if tolerate:
         # assign the corresponding route to every train in current
         # first let's sort everything by time
@@ -491,18 +497,24 @@ def main(timetable: Timetable | None = None, args: argparse.Namespace | None = N
                             help="Validate the result")
         parser.add_argument("-e", "--empty", action="store_true",
                             help="Store empty timetable")
+        parser.add_argument("--skip-prev", action="store_true",
+                            help="Skip checking for stations more than 1")
         args = parser.parse_args()
+        if args.skip_prev and not args.validate:
+            print("Warning: skip_prev set without validation enabled!")
     level = vars(args).get("level", False)
     break_entries = vars(args).get("break_entries", False)
     validate = vars(args).get("validate", False)
     empty = vars(args).get("empty", False)
+    skip_prev = vars(args).get("skip_prev", False)
 
     if timetable is None:
         timetable = parse_input(validate)
 
     if validate:
         line, station, direction, date_group, prev_timetable = ask_for_timetable()
-        timetable = validate_timetable(line, prev_timetable, station, direction, date_group, timetable, empty)
+        timetable = validate_timetable(line, prev_timetable, station, direction, date_group, timetable,
+                                       tolerate=empty, skip_prev=skip_prev)
     print(to_json_format(timetable, level=level, break_entries=break_entries))
 
 

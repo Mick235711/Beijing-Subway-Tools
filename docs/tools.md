@@ -84,7 +84,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`input_to_timetable.py`](/src/timetable/input_to_timetable.py): Parse text input into timetable description
 ```
-usage: input_to_timetable.py [-h] [-l LEVEL] [-b BREAK_ENTRIES] [-v] [-e]
+usage: input_to_timetable.py [-h] [-l LEVEL] [-b BREAK_ENTRIES] [-v] [-e] [--skip-prev]
 
 options:
   -h, --help            show this help message and exit
@@ -94,6 +94,7 @@ options:
                         Entry break
   -v, --validate        Validate the result
   -e, --empty           Store empty timetable
+  --skip-prev           Skip checking for stations more than 1
 ```
 Parse a text input into a timetable JSON5 specification.
 See [here](a-new-line-from-scratch.md#31-first-station) for a detailed description of its usage.
