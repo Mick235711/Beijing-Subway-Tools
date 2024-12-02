@@ -30,7 +30,7 @@ def get_path(parents: dict[str, tuple[str, Line | None] | None], station: str) -
 def get_path_index(
     parents: dict[str, tuple[str, Line | None] | None], station: str, new_entry: tuple[str, Line | None] | None = None
 ) -> tuple[int, int]:
-    """ Get the sorting index for path """
+    """ Get the sorting index for a path """
     if new_entry is not None:
         parent2 = {k: v for k, v in parents.items()}
         parent2[station] = new_entry
@@ -73,7 +73,7 @@ def shortest_path(graph: Graph, from_station: str, *, ignore_dists: bool = False
             else:
                 new_dist = dist + edge_dist
             if distances[to_station] == -1 or new_dist < distances[to_station] or (
-                new_dist == distances[to_station] and
+                new_dist == distances[to_station] and station not in visited and
                 get_path_index(parents, to_station) > get_path_index(parents, to_station, (station, line))
             ):
                 distances[to_station] = new_dist
