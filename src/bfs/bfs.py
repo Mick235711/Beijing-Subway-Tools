@@ -266,7 +266,7 @@ def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTr
         through = find_through_train(through_dict, train)
         if through is None:
             continue
-        if next_train in through[1].trains.values():
+        if next_train in through[1].trains.values() and total_len > 0:
             total_len -= 1
     return total_len
 
