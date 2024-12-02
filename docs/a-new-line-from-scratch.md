@@ -42,7 +42,7 @@ within mainland China, so you can copy that file over and modify on top of that.
 
 ## 2. Populate Line Metadata
 Create a new JSON5 file under the city folder (name can be anything as long as it
-does not clash with metadata, carriage type or starts with `map_`).
+does not clash with metadata or carriage type files).
 Then, you need to fill out the basic metadata for this line, like follows:
 (specs available [here](specification.md#line-specification-format))
 ```json5
@@ -382,11 +382,11 @@ Transfer time data can come from various sources. For Beijing Subway, I used the
 ## 5. Chart on Maps
 Finally, to finalize the addition, you need to chart your new line on a map to enable drawing equ-time images.
 To do this for a new city, put a high-resolution image of the official route map under `data/<city>/maps/`,
-and then create a new JSON5 file starting with `map_`, containing the follows:
+and then create a new JSON5 file in the `maps/` directory, containing the follows:
 ```json5
 {
     name: "Official Map",
-    path: "maps/<your-map>.png",
+    path: "<your-map>.png",
     radius: 34, // radius of the station circle in pixels
     transfer_radius: 57, // radius of the transfer station circle in pixels
     coordinates: {
@@ -400,7 +400,7 @@ and then create a new JSON5 file starting with `map_`, containing the follows:
 ```
 The equ-time visualization works by drawing white circles on station coordinates, and then filling in the average minute number.
 
-After specifying all the coordinates of the new stations, you should be able to run [`src/graph/draw_map.py`](tools.md#draw_mappy-draw-equ-time-map-originating-from-a-station)
+After specifying all the coordinates of the new stations, you should be able to run [`src/graph/draw_map.py`](tools.md#draw_mappy-draw-equ-time-maps-originating-from-a-station)
 to draw new versions of the equ-time map.
 
 ## 6. Advanced Topics

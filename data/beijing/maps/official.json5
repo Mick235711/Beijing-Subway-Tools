@@ -1,6 +1,6 @@
 {
     name: "Official Map",
-    path: "maps/official.png",
+    path: "official.png",
     radius: 34,
     transfer_radius: 57,
     coordinates: {

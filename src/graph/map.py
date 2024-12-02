@@ -201,7 +201,7 @@ def get_all_maps(city: City) -> dict[str, Map]:
     """ Get all the maps present """
     # Construct station → lines mapping
     res: dict[str, Map] = {}
-    for map_file in glob(os.path.join(city.root, "map*.json5")):
+    for map_file in glob(os.path.join(city.root, "maps", "*.json5")):
         map_obj = parse_map(map_file, city.station_lines)
         res[map_obj.name] = map_obj
     return res

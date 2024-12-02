@@ -1,6 +1,6 @@
 {
     name: "Official Map",
-    path: "maps/official.jpg",
+    path: "official.jpg",
     type: "rectangle",
     width: 67,
     transfer_width: 153,
