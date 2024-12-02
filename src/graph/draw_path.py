@@ -75,7 +75,7 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
 
 def get_edge_wide(map_obj: Map) -> float:
     """ Get edge wide (the minimum radius of all coordinates """
-    return min(x.max_width() / 2 for x in map_obj.coordinates.values())
+    return min(x.max_width() / 2 for x in map_obj.coordinates.values() if x is not None)
 
 
 def draw_path(
@@ -84,8 +84,14 @@ def draw_path(
 ) -> None:
     """ Draw a path on map """
     start_shape = map_obj.coordinates[start_station]
+    if start_shape is None:
+        print(f"Warning: cannot draw path starting from {start_station} since no coordinates are specified!")
+        return
     start_x, start_y = start_shape.center_point()
     end_shape = map_obj.coordinates[end_station]
+    if end_shape is None:
+        print(f"Warning: cannot draw path ending at {end_station} since no coordinates are specified!")
+        return
     end_x, end_y = end_shape.center_point()
 
     # Calculate the upper and lower edge

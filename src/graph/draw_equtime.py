@@ -10,25 +10,11 @@ from matplotlib.colors import Colormap, LinearSegmentedColormap
 from scipy.interpolate import griddata  # type: ignore
 
 from src.city.ask_for_city import ask_for_station_pair, ask_for_city, ask_for_date, ask_for_map
-from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, Color, convert_color, \
-    get_levels_from_source, get_map_data
-from src.graph.map import Map
+from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_contour_wrap, get_levels_from_source, \
+    get_map_data, draw_station_filled
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
-
-
-def draw_station_filled(
-    draw: ImageDraw.ImageDraw, station: str, color: Color,
-    map_obj: Map, **kwargs
-) -> None:
-    """ Draw filled circle onto the station """
-    map_obj.coordinates[station].draw(
-        draw,
-        outline="black",
-        fill=convert_color(color),  # type: ignore
-        **kwargs
-    )
 
 
 def main() -> None:

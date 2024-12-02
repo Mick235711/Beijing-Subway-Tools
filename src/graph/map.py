@@ -129,7 +129,7 @@ class Map:
 
     def __init__(
         self, name: str, path: str, radius: int, transfer_radius: int,
-        coordinates: dict[str, Shape]
+        coordinates: dict[str, Shape | None]
     ) -> None:
         """ Constructor """
         self.name = name
@@ -164,8 +164,12 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
         height = map_dict.get("height")
         transfer_width = map_dict.get("transfer_width", width)
         transfer_height = map_dict.get("transfer_height", height)
-    coords: dict[str, Shape] = {}
+    coords: dict[str, Shape | None] = {}
     for station, spec in map_dict["coordinates"].items():
+        if spec is None:
+            coords[station] = None
+            continue
+
         x, y = spec["x"], spec["y"]
         single_type = spec.get("type", shape_type)
         if single_type == "circle":

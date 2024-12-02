@@ -97,13 +97,32 @@ def draw_station(
     if station not in map_obj.coordinates:
         print(f"Warning: {station} ignored since no coordinates are specified!")
         return
+
     shape = map_obj.coordinates[station]
+    if shape is None:
+        return
     shape.draw(draw)
     font_size = find_font_size(draw, text, shape.max_width())
     kwargs["font_size"] = font_size
     kwargs["anchor"] = "mm"
     kwargs["fill"] = convert_color(color)
     draw.text(shape.center_point(), text, *args, **kwargs)
+
+
+def draw_station_filled(
+    draw: ImageDraw.ImageDraw, station: str, color: Color,
+    map_obj: Map, **kwargs
+) -> None:
+    """ Draw filled circle onto the station """
+    shape = map_obj.coordinates[station]
+    if shape is None:
+        return
+    shape.draw(
+        draw,
+        outline="black",
+        fill=convert_color(color),  # type: ignore
+        **kwargs
+    )
 
 
 def draw_all_station(
@@ -137,8 +156,11 @@ def draw_contours(
     z: list[float] = []
     for station, shortest in avg_shortest.items():
         if station not in map_obj.coordinates:
+            print(f"Warning: {station} not considered in contours since no coordinates are specified!")
             continue
         station_shape = map_obj.coordinates[station]
+        if station_shape is None:
+            continue
         center_x, center_y = station_shape.center_point()
         x.append(center_x)
         y.append(center_y)
