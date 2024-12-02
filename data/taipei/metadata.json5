@@ -106,9 +106,30 @@
         "濱海沙崙": [
             // 所有方向均同台
             {from: "淡海輕軌", to: "藍海線", minutes: 0}
+        ],
+        "三重": [
+            // 参考：中和新芦线部分：https://web.metro.taipei/img/ALL/INFOPDF/125.pdf
+            // 机场捷运部分：https://www.tymetro.com.tw/tymetro-new/upload/station/20211006021826_1.png
+            // POV: https://www.youtube.com/watch?v=4XIP12vJvBA
+            // 4扶梯+出入闸各一次+两个短通道
+            {from: "中和新蘆線", to: "桃園機場捷運", minutes: 4}
         ]
     },
     virtual_transfers: [
+        // 机场捷运A1换乘时间参考blog
+        {
+            from_station: "台北車站", to_station: "台北車站(機捷)",
+            times: [
+                {from: "淡水信義線", to: "桃園機場捷運", minutes: 8},
+                {from: "板南線", to: "桃園機場捷運", minutes: 8}
+            ]
+        },
+        {
+            from_station: "北門", to_station: "台北車站(機捷)",
+            times: [
+                {from: "松山新店線", to: "桃園機場捷運", minutes: 6}
+            ]
+        }
     ],
     through_trains: [
         // 支线按跨线记载
