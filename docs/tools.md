@@ -179,7 +179,7 @@ City default: &lt;北京: 24 lines&gt;
 ? Please select a direction: <i>北行</i>
 ? Please select a station (default: 安河桥北): <i>生物医药基地</i>
 ? Please select a date group: <i>工作日</i>
-? What is the running time (in minutes) to next station? <i>3</i>
+? What is the running time (in minutes) from 生物医药基地 to 义和庄? <i>3</i>
 Current Timetable:
 05| 10 17 23 29 34 38 42 46 50 54
 06| 00 06 12 18 24 30 34 38 42 46 50 54 58

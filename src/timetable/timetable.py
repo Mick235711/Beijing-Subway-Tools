@@ -59,6 +59,10 @@ class Timetable:
             """ Return the stations of this train """
             return route_stations(self.train_route)[0]
 
+        def route_without_timetable(self) -> set[str]:
+            """ Return the stations of this train that does not have a timetable """
+            return route_without_timetable(self.train_route)
+
         def is_loop(self) -> bool:
             """ Return true if this train's route is loop """
             return all(route.loop for route in self.route_iter())

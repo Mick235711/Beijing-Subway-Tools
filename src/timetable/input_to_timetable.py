@@ -15,7 +15,7 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.common.common import get_time_str, diff_time, parse_brace, TimeSpec, suffix_s, add_min, average
 from src.routing.train import filter_route
-from src.timetable.timetable import Timetable, route_without_timetable
+from src.timetable.timetable import Timetable
 
 
 def parse_input(tolerate: bool = False) -> Timetable:
@@ -309,16 +309,15 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
 
 def get_prev(next_train: Timetable.Train, cur_station: str) -> str:
     """ Get previous station """
-    skip_set = route_without_timetable(next_train.route_iter())
+    skip_set = next_train.route_without_timetable()
     new_stations = [s for s in next_train.route_stations() if s not in skip_set]
     index = new_stations.index(cur_station)
     assert index > 0, (cur_station, new_stations, skip_set)
     return new_stations[index - 1]
 
 
-def without_criteria(routes: list[TrainRoute], stations: list[str], prev_station: str, next_station: str) -> bool:
+def without_criteria(skip_set: set[str], stations: list[str], prev_station: str, next_station: str) -> bool:
     """ Return if this route list satisfies the without criteria """
-    skip_set = route_without_timetable(routes)
     new_stations = [s for s in stations if s not in skip_set]
     if prev_station not in new_stations or next_station not in new_stations:
         return False
@@ -338,13 +337,13 @@ def filter_without(
     trains = {
         cur_time: cur_train
         for cur_time, cur_train in prev.trains.items()
-        if next_station not in route_without_timetable(cur_train.route_iter())
+        if next_station not in cur_train.route_without_timetable()
     }
     if not skip_prev:
         min_diff: dict[str, int] = {}
         for station in direction_stations[:index]:
             for cur_time, cur_train in line.timetables()[station][direction][date_group.name].trains.items():
-                if not without_criteria(cur_train.route_iter(), direction_stations, station, next_station):
+                if not without_criteria(cur_train.route_without_timetable(), direction_stations, station, next_station):
                     continue
 
                 if station not in min_diff:

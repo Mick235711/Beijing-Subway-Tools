@@ -162,6 +162,17 @@ def ask_question(msg: str, func: Callable[[str], T], *args,
         else func(real_answer)
 
 
+def ask_for_int(msg: str, *, with_default: int | None = None) -> int:
+    """ Ask a question with a positive integer answer """
+    def validator(answer: str) -> int:
+        """ Validator """
+        if with_default is not None and answer == "":
+            return with_default
+        assert int(answer) >= 0, f"Answer {answer} must be an positive integer!"
+        return int(answer)
+    return ask_question(msg, validator)
+
+
 def distance_str(distance: int | float) -> str:
     """ Get proper distance string from a meter distance """
     if distance < 1000:
