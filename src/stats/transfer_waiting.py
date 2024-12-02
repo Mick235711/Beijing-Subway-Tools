@@ -25,7 +25,7 @@ def key_list_str(
     base += f" / {result_key[2][0]} ({result_key[2][1]}) -> {result_key[2][2]} ({result_key[2][3]}): "
     base += f"Average = {criteria:.2f} minutes (stddev = {sd_crit:.2f})"\
         if not percentage else f"Percentage = {criteria * 100:.2f}%"
-    base += f", max = {max(values):.2f} minutes, min = {min(values):.2f} minutes"
+    base += f", min = {min(values):.2f} minutes, max = {max(values):.2f} minutes"
     return base
 
 
