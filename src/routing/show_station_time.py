@@ -4,17 +4,22 @@
 """ Print timetable of time between stations """
 
 # Libraries
+import argparse
+
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, \
     ask_for_station_pair_in_line, ask_for_date_group
 from src.city.date_group import DateGroup
 from src.city.line import Line
-from src.common.common import get_time_str, diff_time, suffix_s, average, stddev
+from src.common.common import get_time_str, diff_time, suffix_s, average, stddev, parse_comma
 from src.routing.train import parse_trains
+from src.timetable.print_timetable import in_route
 
 
 def get_time_between(
     line: Line, date_group: DateGroup, start: str, end: str,
-    *, with_direction: str | None = None
+    *, with_direction: str | None = None,
+    include_routes: set[str] | None = None, exclude_routes: set[str] | None = None,
+    exclude_express: bool = False
 ) -> tuple[str, dict[str, int | None]]:
     """ Get time between two stations """
     # First determine the direction
@@ -42,6 +47,12 @@ def get_time_between(
         if end not in train.arrival_time:
             time_dict[time_str] = None
             continue
+        if not in_route(train.routes, include_routes=include_routes, exclude_routes=exclude_routes):
+            time_dict[time_str] = None
+            continue
+        if exclude_express and train.is_express():
+            time_dict[time_str] = None
+            continue
         arrival_keys = list(train.arrival_time.keys())
         start_index = arrival_keys.index(start)
         end_index = arrival_keys.index(end)
@@ -60,6 +71,15 @@ def get_time_between(
 
 def main() -> None:
     """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exclude-express", action="store_true", help="Exclude express trains")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--include-routes", help="Include routes")
+    group.add_argument("-x", "--exclude-routes", help="Exclude routes")
+    args = parser.parse_args()
+    include_routes = parse_comma(args.include_routes)
+    exclude_routes = parse_comma(args.exclude_routes)
+
     city = ask_for_city()
     line = ask_for_line(city)
     if line.loop:
@@ -69,7 +89,10 @@ def main() -> None:
     start, end = ask_for_station_pair_in_line(line, with_timetable=True)
     date_group = ask_for_date_group(line)
     direction, time_dict = get_time_between(
-        line, date_group, start, end, with_direction=with_direction)
+        line, date_group, start, end, with_direction=with_direction,
+        include_routes=include_routes, exclude_routes=exclude_routes,
+        exclude_express=args.exclude_express
+    )
     line.timetables()[start][direction][date_group.name].pretty_print(with_time=time_dict)
     minutes = [x for x in time_dict.values() if x is not None]
     print("Total " + suffix_s("train", len(time_dict)) + ". Average time = " +

@@ -524,11 +524,23 @@ City default: &lt;北京: 24 lines&gt;
 </pre>
 
 ### [`show_station_time.py`](/src/routing/show_station_time.py): Show time needed for trains to travel between two stations on a line
-(This program has no command-line arguments.)
+```
+usage: show_station_time.py [-h] [--exclude-express] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES]
+
+options:
+  -h, --help            show this help message and exit
+  --exclude-express     Exclude express trains
+  -i INCLUDE_ROUTES, --include-routes INCLUDE_ROUTES
+                        Include routes
+  -x EXCLUDE_ROUTES, --exclude-routes EXCLUDE_ROUTES
+                        Exclude routes
+```
 
 Show the time needed between two stations in a line. This is intended to show the different time needed to travel
 between the same station pair by all trains in a line, so the time will be displayed similar to a timetable.
 Each entry represents that the corresponding train needs this much time to travel.
+
+See [`print_timetable.py`](#print_timetablepy-print-any-stations-timetable) for usage of command-line arguments.
 
 Example Usage:
 <pre>
