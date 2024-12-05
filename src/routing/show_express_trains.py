@@ -13,16 +13,20 @@ from src.routing.show_trains import ask_for_train
 from src.routing.train import Train
 
 
-def average_speed(trains: Sequence[Train], start: str, end: str) -> tuple[int, float, float]:
+def average_speed(
+    trains: Sequence[Train], start: str | Sequence[str], end: str | Sequence[str]
+) -> tuple[int, float, float]:
     """ Return average minutes and speed between two stations in all trains """
     total_cnt, total_duration, total_speed = 0, 0, 0.0
-    for train in trains:
-        if start not in train.arrival_time or end not in train.arrival_time:
+    for i, train in enumerate(trains):
+        start_elem = start if isinstance(start, str) else start[i]
+        end_elem = end if isinstance(end, str) else end[i]
+        if start_elem not in train.arrival_time or end_elem not in train.arrival_time:
             continue
         total_cnt += 1
-        single_duration = diff_time_tuple(train.arrival_time[end], train.arrival_time[start])
+        single_duration = diff_time_tuple(train.arrival_time[end_elem], train.arrival_time[start_elem])
         total_duration += single_duration
-        total_speed += segment_speed(train.two_station_dist(start, end), single_duration)
+        total_speed += segment_speed(train.two_station_dist(start_elem, end_elem), single_duration)
     return total_cnt, total_duration / total_cnt, total_speed / total_cnt
 
 
@@ -62,15 +66,25 @@ def main() -> None:
     print(f"Segment speed: {format_duration(express_duration)}, {speed_str(express_speed)}")
 
     print("\nThis train overtakes " + suffix_s("train", len(overtaken)) + ".")
+    route_start_list: list[str] = []
+    route_end_list: list[str] = []
     for i, (station1, station2, overtake) in enumerate(overtaken):
-        print(f"Overtake #{i + 1}: {overtake.two_station_str(route_start, route_end)} " +
+        over_start = route_start if route_start in overtake.arrival_time else overtake.stations[0]
+        over_end = route_end if route_end in overtake.arrival_time else overtake.stations[-1]
+        route_start_list.append(over_start)
+        route_end_list.append(over_end)
+        print(f"Overtake #{i + 1}: {overtake.two_station_str(over_start, over_end)} " +
               f"(overtake at {station1} -> {station2})")
     if len(overtaken) > 0:
-        _, overtake_duration, overtake_speed = average_speed([x[2] for x in overtaken], route_start, route_end)
+        _, overtake_duration, overtake_speed = average_speed(
+            [x[2] for x in overtaken], route_start_list, route_end_list
+        )
         print(f"Overtaken train's average segment speed: {format_duration(overtake_duration)}, " +
               speed_str(overtake_speed))
 
-    overall_cnt, overall_duration, overall_speed = average_speed(train_list, route_start, route_end)
+    overall_cnt, overall_duration, overall_speed = average_speed(
+        [train for train in train_list if not train.is_express()], route_start, route_end
+    )
     print("\nAverage over all " + suffix_s("train", overall_cnt) +
           f", segment speed: {format_duration(overall_duration)}, {speed_str(overall_speed)}")
 
