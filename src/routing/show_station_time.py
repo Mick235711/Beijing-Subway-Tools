@@ -24,7 +24,7 @@ def get_time_between(
     """ Get time between two stations """
     # First determine the direction
     assert not (line.loop and with_direction is None), line
-    assert start != end, (start, end)
+    assert line.loop or start != end, (start, end)
     if with_direction is None:
         for direction, direction_stations in line.directions.items():
             start_index = direction_stations.index(start)
@@ -57,9 +57,12 @@ def get_time_between(
         start_index = arrival_keys.index(start)
         end_index = arrival_keys.index(end)
         start_time, start_day = train.arrival_time[start]
-        if end_index < start_index:
+        if end_index <= start_index:
             assert line.loop, line
             if train.loop_next is None:
+                time_dict[time_str] = None
+                continue
+            if end not in train.loop_next.arrival_time:
                 time_dict[time_str] = None
                 continue
             end_time, end_day = train.loop_next.arrival_time[end]

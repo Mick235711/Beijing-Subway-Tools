@@ -238,7 +238,7 @@ def ask_for_station_pair_in_line(
         line, message="Please select a starting station:", with_timetable=with_timetable)
     result2 = ask_for_station_in_line(
         line, message="Please select an ending station:",
-        exclude={result1}, with_timetable=with_timetable)
+        exclude=(None if line.loop else {result1}), with_timetable=with_timetable)
     return result1, result2
 
 
