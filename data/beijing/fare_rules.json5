@@ -1,0 +1,81 @@
+// 北京地铁计价规则
+// 0-6km ¥3，6-12km ¥4，12-22km ¥5，22-32km ¥6，32km以上每加20km +¥1
+{
+    currency: "CN¥",
+    rule_groups: [
+        {
+            name: "大路网",
+            basis: "distance",
+            rules: [
+                // 100m为赠送里程，不多收费
+                // 目前全网最高票价为10
+                {fare: 3, end: 6099},
+                {fare: 4, start: 6100, end: 12099},
+                {fare: 5, start: 12100, end: 22099},
+                {fare: 6, start: 22100, end: 32099},
+                {fare: 7, start: 32100, end: 52099},
+                {fare: 8, start: 52100, end: 72099},
+                {fare: 9, start: 72100, end: 92099},
+                {fare: 10, start: 92100},
+            ]
+        },
+        {
+            // 24个站工作日07:00之前进站可优惠50%
+            name: "大路网 - 低峰优惠",
+            basis: "distance",
+            inner_basis: "entry",
+            apply_time: [{date_group: "工作日", end: "07:00"}],
+            starting_stations: [
+                "土桥", "临河里", "梨园", "九棵树", "果园", "通州北苑", "八里桥", "管庄", "双桥", "传媒大学", "高碑店",
+                "南邵", "沙河高教园", "沙河", "巩华城", "朱辛庄",
+                "北运河西", "通州北关", "物资学院路", "常营", "草房", "黄渠", "褡裢坡", "青年路"
+            ],
+            rules: [
+                // 100m为赠送里程，不多收费
+                // 目前全网最高票价为10
+                {fare: 1.5, end: 6099},
+                {fare: 2, start: 6100, end: 12099},
+                {fare: 2.5, start: 12100, end: 22099},
+                {fare: 3, start: 22100, end: 32099},
+                {fare: 3.5, start: 32100, end: 52099},
+                {fare: 4, start: 52100, end: 72099},
+                {fare: 4.5, start: 72100, end: 92099},
+                {fare: 5, start: 92100},
+            ]
+        },
+        {
+            name: "有轨电车",
+            lines: ["西郊线"],
+            basis: "distance",
+            rules: [
+                // 100m为赠送里程，不多收费
+                // 目前全网最高票价为10
+                {fare: 3, end: 6099},
+                {fare: 4, start: 6100, end: 12099},
+                {fare: 5, start: 12100, end: 22099},
+                {fare: 6, start: 22100, end: 32099},
+                {fare: 7, start: 32100, end: 52099},
+                {fare: 8, start: 52100, end: 72099},
+                {fare: 9, start: 72100, end: 92099},
+                {fare: 10, start: 92100},
+            ]
+        },
+        {
+            name: "首都机场线",
+            lines: ["首都机场线"],
+            basis: "single",
+            rules: [{fare: 25}]
+        },
+        {
+            name: "大兴机场线",
+            lines: ["大兴机场线"],
+            basis: "distance",
+            rules: [
+                // 草桥-大兴新城13028m，10元；大兴新城-大兴机场25303m，25元；全程35元
+                {fare: 10, end: 13099},
+                {fare: 25, start: 13100, end: 25399},
+                {fare: 35, start: 25400}
+            ]
+        }
+    ]
+}

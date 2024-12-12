@@ -213,17 +213,19 @@ For different `type`s, the possible radius specification (fields for `coordinate
 # Fare Rule Specification Format
 This specification describes the key-values within `fare_rules.json5`.
 
-| Key                | Required | Type   | Default  | Value                               |
-|--------------------|----------|--------|----------|-------------------------------------|
-| currency           | No       | string | ""       | Currency symbol                     |
-| rule_groups        | Yes      | array  |          | Rule groups                         |
-| Within each group: |          |        |          |                                     |
-| name               | Yes      | string |          | Name for this group                 |
-| lines              | No       | array  | All left | Applicable lines                    |
-| starting_stations  | No       | array  | []       | Applicable starting stations        |
-| ending_stations    | No       | array  | []       | Applicable ending stations          |
-| basis              | Yes      | string |          | Fare rule basis (see below)         |
-| rules              | Yes      | array  |          | Fare rule specification (see below) |
+| Key                | Required                     | Type   | Default  | Value                                                                       |
+|--------------------|------------------------------|--------|----------|-----------------------------------------------------------------------------|
+| currency           | No                           | string | ""       | Currency symbol                                                             |
+| rule_groups        | Yes                          | array  |          | Rule groups                                                                 |
+| Within each group: |                              |        |          |                                                                             |
+| name               | Yes                          | string |          | Name for this group                                                         |
+| lines              | No                           | array  | All left | Applicable lines                                                            |
+| starting_stations  | No                           | array  | []       | Applicable starting stations                                                |
+| ending_stations    | No                           | array  | []       | Applicable ending stations                                                  |
+| basis              | Yes                          | string |          | Fare rule basis (see below)                                                 |
+| rules              | Yes                          | array  |          | Fare rule specification (see below)                                         |
+| inner_basis        | If `apply_time` is not empty | string |          | Whether the apply_time field applies to entries (`entry`) or exits (`exit`) |
+| apply_time         | No                           | array  | []       | Applicable date and time                                                    |
 
 In general, the fare rules for a city are specified by several groups; each group denotes the fare rule
 for a set of lines denoted by the `lines` field. When `lines` is not present, this group will apply to all lines
@@ -238,13 +240,15 @@ Currently, there are three types of a fare basis supported as `basis` field:
 In cases other than `single`, the `rules` field should be supplied as an array of objects, each describing one fare type.
 Each object should contain the following fields:
 
-| Key        | Required | Type   | Default          | Value                                                                       |
-|------------|----------|--------|------------------|-----------------------------------------------------------------------------|
-| fare       | Yes      | float  |                  | Fare for this group                                                         |
-| start      | No       | int    | 0                | Starting station/distance in meter (inclusive)                              |
-| end        | No       | int    | Largest possible | Ending station/distance in meter (inclusive)                                |
-| basis      | Yes      | string |                  | Whether the apply_time field applies to entries (`entry`) or exits (`exit`) |
-| apply_time | No       | array  | []               | Applicable date and time                                                    |
+| Key        | Required                     | Type   | Default          | Value                                                                       |
+|------------|------------------------------|--------|------------------|-----------------------------------------------------------------------------|
+| fare       | Yes                          | float  |                  | Fare for this group                                                         |
+| start      | No                           | int    | 0                | Starting station/distance in meter (inclusive)                              |
+| end        | No                           | int    | Largest possible | Ending station/distance in meter (inclusive)                                |
+| basis      | If `apply_time` is not empty | string |                  | Whether the apply_time field applies to entries (`entry`) or exits (`exit`) |
+| apply_time | No                           | array  | []               | Applicable date and time                                                    |
 
 The `apply_time` field allows you to specify that this fare rule only applies on specific date and/or time.
 The format of this field is the same as it in [the metadata section](#metadata-specification-format).
+
+Note that if all fares in a rule group have the same `apply_time` specification, you can specify it in the group itself.

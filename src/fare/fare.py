@@ -26,11 +26,12 @@ class FareRule:
     class Rule:
         """ A class for single rules """
 
-        def __init__(self, parent: FareRule, fare: float, basis: str, start: int = 0, end: int | None = None,
+        def __init__(self, parent: FareRule, fare: float, basis: str | None = None,
+                     start: int = 0, end: int | None = None,
                      apply_time: TimeInterval | None = None) -> None:
             """ Constructor """
             assert fare >= 0, fare
-            assert basis in ["entry", "exit"], basis
+            assert apply_time is None or basis in ["entry", "exit"], basis
             self.parent = parent
             self.fare = fare
             self.basis = basis
@@ -41,14 +42,14 @@ class FareRule:
         def __repr__(self) -> str:
             """ String representation """
             result = f"<Rule: {self.parent.parent.currency_str(self.fare)} for " +\
-                     self.fare_str() + ", basis={self.basis}"
+                     self.fare_str() + f", basis={self.basis or 'N/A'}"
             if self.apply_time is not None:
                 result += f", applicable at {self.apply_time}"
             return result + ">"
 
         def fare_str(self) -> str:
             """ Return the simple string representation of this fare """
-            if self.parent.basis == "simple":
+            if self.parent.basis == "single":
                 return "all"
             if self.parent.basis == "distance":
                 return distance_str(self.start) + " - " + ("max" if self.end is None else distance_str(self.end))
@@ -69,7 +70,7 @@ class FareRule:
                 return self.start <= station_cnt and (self.end is None or station_cnt <= self.end)
             assert False, self.parent
 
-    def __init__(self, parent: Fare, name: str, basis: str, lines: set[str], rules: list[Rule],
+    def __init__(self, parent: Fare, name: str, basis: str, lines: list[str], rules: list[Rule],
                  starting: set[str] | None = None, ending: set[str] | None = None) -> None:
         """ Constructor """
         self.parent = parent
@@ -95,7 +96,7 @@ class FareRule:
         """ Determine the fare for the given condition """
         for rule in self.rules:
             # For now, use the first applicable fare
-            if rule.basis == "entry":
+            if rule.basis is None or rule.basis == "entry":
                 if rule.applicable(distance, station_cnt, cur_date, start_time, start_day):
                     return rule.fare
             elif rule.basis == "exit":
@@ -236,7 +237,7 @@ def get_fare_single(
     return candidate.get_fare(distance, station_cnt, cur_date, start_time, start_day, end_time, end_day)
 
 
-def parse_fare_rules(fare_file: str, date_groups: dict[str, DateGroup]) -> Fare:
+def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[str, DateGroup]) -> Fare:
     """ Pare fare rule file """
     assert os.path.exists(fare_file), fare_file
     with open(fare_file) as fp:
@@ -244,21 +245,32 @@ def parse_fare_rules(fare_file: str, date_groups: dict[str, DateGroup]) -> Fare:
     currency = fare_dict.get("currency", "")
     fill_index: int | None = None
     fare = Fare([], currency)
+    filled: set[str] = set()
     for inner_dict in fare_dict["rule_groups"]:
         name = inner_dict["name"]
         basis = inner_dict["basis"]
         assert basis in ["single", "distance", "station"], basis
-        rule_lines = set(inner_dict.get("lines", []))
+        rule_lines = sorted(inner_dict.get("lines", []), key=lambda l: lines[l].index)
         if len(rule_lines) == 0:
             assert fill_index is None, (fare.rule_groups, fill_index)
             fill_index = len(fare.rule_groups)
+        else:
+            assert all(line in lines for line in rule_lines), rule_lines
+            for rule_line in rule_lines:
+                filled.add(rule_line)
         starting = set(inner_dict.get("starting_stations", []))
         ending = set(inner_dict.get("ending_stations", []))
+        inner_basis_group = inner_dict.get("inner_basis", None)
+        if "apply_time" in inner_dict:
+            assert inner_basis_group in ["entry", "exit"], inner_dict
+            apply_time_group = parse_time_interval(date_groups, inner_dict["apply_time"])
+        else:
+            apply_time_group = None
         fare.rule_groups.append(FareRule(fare, name, basis, rule_lines, [], starting, ending))
         for rule_dict in inner_dict["rules"]:
             inner_fare = float(rule_dict["fare"])
-            inner_basis = rule_dict["basis"]
-            assert inner_basis in ["entry", "exit"], inner_basis
+            inner_basis = rule_dict.get("basis", inner_basis_group)
+            assert inner_basis is None or inner_basis in ["entry", "exit"], inner_basis
             start = int(rule_dict.get("start", 0))
             if "end" in rule_dict:
                 end = int(rule_dict["end"])
@@ -267,5 +279,12 @@ def parse_fare_rules(fare_file: str, date_groups: dict[str, DateGroup]) -> Fare:
             fare.rule_groups[-1].rules.append(FareRule.Rule(
                 fare.rule_groups[-1], inner_fare, inner_basis, start, end,
                 parse_time_interval(date_groups, rule_dict["apply_time"])
+                if "apply_time" in rule_dict else apply_time_group
             ))
+
+    if fill_index is not None:
+        fare.rule_groups[fill_index].lines = sorted(
+            [line for line in lines if line not in filled],
+            key=lambda l: lines[l].index
+        )
     return fare

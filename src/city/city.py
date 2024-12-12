@@ -87,7 +87,7 @@ def parse_city(city_root: str) -> City:
 
     fare = os.path.join(city_root, FARE_RULE_FILE)
     if os.path.exists(fare):
-        city.fare_rules = parse_fare_rules(fare, city.all_date_groups())
+        city.fare_rules = parse_fare_rules(fare, city.lines, city.all_date_groups())
 
     if "transfers" in city_dict:
         city.transfers = parse_transfer(city.lines, city_dict["transfers"])
