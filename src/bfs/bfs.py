@@ -204,7 +204,7 @@ class BFSResult:
         for i in range(1, len(splits)):
             last_index, cur_index = split_indexes[i - 1], split_indexes[i]
             for j in range(last_index, cur_index):
-                if j == last_index + (cur_index - last_index) // 2:
+                if j == last_index + (cur_index - last_index) // 2 and (j != last_index or j == 0):
                     if fare_rules is None:
                         preamble = continuer
                     else:
@@ -217,7 +217,8 @@ class BFSResult:
         if len(line_list) == 2:
             preamble = continuer
         elif len(line_list) - split_indexes[-2] <= 2:
-            preamble = continuer if fare_rules is None else total_fare + " "
+            preamble = continuer if fare_rules is None else\
+                f"{fare_rules.currency_str(fare_splits[-1][-1]):>{len(total_fare)}}" + " "
         else:
             preamble = splitter
         print(indent_str + preamble + line_list[-1])

@@ -93,7 +93,7 @@ class FareRule:
 
     def get_fare(self, distance: int, station_cnt: int, cur_date: date | DateGroup,
                  start_time: time, start_day: bool,
-                 end_time: time, end_day: bool) -> float:
+                 end_time: time, end_day: bool) -> float | None:
         """ Determine the fare for the given condition """
         for rule in self.rules:
             # For now, use the first applicable fare
@@ -105,7 +105,7 @@ class FareRule:
                     return rule.fare
             else:
                 assert False, rule
-        assert False, self.rules
+        return None
 
 
 class Fare:
@@ -160,20 +160,18 @@ class Fare:
                 last_time, last_day = last_train.arrival_time[path[last_index][0]]
                 if old_index is not None:
                     end_station = path[old_index + 1][0]
-                    old_train = path[old_index][1]
+                    fetch_index = old_index
                 else:
                     end_station = station
-                    old_train = path[i - 1][1]
+                    fetch_index = i - 1
+                old_train = path[fetch_index][1]
                 assert isinstance(old_train, Train), (path, old_index, i)
-                if train is None and station not in old_train.arrival_time:
-                    end_time, end_day = old_train.arrival_time[path[-1][0]]
-                else:
-                    end_time, end_day = old_train.arrival_time[station]
+                end_time, end_day = old_train.arrival_time_virtual(path[fetch_index][0])[end_station]
                 last_train = path[last_index][1]
                 assert isinstance(last_train, Train), (path, last_index, i)
                 splits.append((path[last_index][0], last_train.line.name, station,
                                None if train is None else train.line.name, get_fare_single(
-                    cur_candidates, lines, to_abstract(path[last_index:i]), end_station,
+                    cur_candidates, lines, to_abstract(path[last_index:fetch_index + 1]), end_station,
                     cur_date, last_time, last_day, end_time, end_day
                 )))
                 last_index = i
@@ -209,6 +207,8 @@ def get_fare_single(
             continue
         if start_station in rule.starting or len(rule.starting) == 0:
             if end_station in rule.ending or len(rule.ending) == 0:
+                if rule.get_fare(0, 0, cur_date, start_time, start_day, end_time, end_day) is None:
+                    continue
                 candidate_group.append((rule, len(rule.starting), len(rule.ending)))
     assert len(candidate_group) > 0, rule_groups
     candidate_group = sorted(candidate_group, key=lambda x: (x[1] == 0, x[2] == 0, x[1], x[2]))
@@ -232,7 +232,10 @@ def get_fare_single(
         if delta < 0:
             delta += len(direction_stations)
         station_cnt += delta
-    return candidate.get_fare(distance, station_cnt, cur_date, start_time, start_day, end_time, end_day)
+    result = candidate.get_fare(distance, station_cnt, cur_date, start_time, start_day, end_time, end_day)
+    assert result is not None, (
+        candidate, cur_date, get_time_str(start_time, start_day), get_time_str(end_time, end_day))
+    return result
 
 
 def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[str, DateGroup]) -> Fare:
