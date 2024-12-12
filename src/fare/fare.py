@@ -153,7 +153,7 @@ class Fare:
                 new_candidates = cur_candidates
             else:
                 new_candidates = [candidate for candidate in cur_candidates if train.line.name in candidate.lines]
-            if len(new_candidates) == 0:
+            if len(new_candidates) == 0 or train is None:
                 # New segment
                 last_train = path[last_index][1]
                 assert isinstance(last_train, Train), (path, last_index)
@@ -166,8 +166,6 @@ class Fare:
                     old_train = path[i - 1][1]
                 assert isinstance(old_train, Train), (path, old_index, i)
                 end_time, end_day = old_train.arrival_time[station]
-                print("New split from", path[last_index][0], f"({get_time_str(last_time, last_day)})",
-                      "to", end_station, f"({get_time_str(end_time, end_day)})", "actually", station)
                 splits.append((path[last_index][0], station, get_fare_single(
                     cur_candidates, lines, to_abstract(path[last_index:i]), end_station,
                     cur_date, last_time, last_day, end_time, end_day
@@ -198,29 +196,17 @@ def get_fare_single(
 ) -> float:
     """ Get fare for a single, continuous region """
     start_station = path[0][0]
-    candidate_group: list[FareRule] = []
-    force_candidate: FareRule | None = None
-    path_lines = [x[1][1] for x in path if x[1] is not None]
+    candidate_group: list[tuple[FareRule, int, int]] = []
+    path_lines = [x[1][0] for x in path if x[1] is not None]
     for rule in rule_groups:
         if any(line not in rule.lines for line in path_lines):
             continue
-        if start_station in rule.starting:
-            if end_station in rule.ending and force_candidate is None:
-                force_candidate = rule
-            candidate_group.append(rule)
-        if end_station in rule.ending:
-            candidate_group.append(rule)
-    if force_candidate is not None:
-        candidate_group = [force_candidate]
-    if len(candidate_group) == 0:
-        candidate_group = rule_groups[:]
+        if start_station in rule.starting or len(rule.starting) == 0:
+            if end_station in rule.ending or len(rule.ending) == 0:
+                candidate_group.append((rule, len(rule.starting), len(rule.ending)))
     assert len(candidate_group) > 0, rule_groups
-    if len(candidate_group) > 1:
-        print("Warning: multiple fare candidates detected:")
-        for i, candidate in enumerate(candidate_group):
-            print(f"#{i}:", candidate)
-        print("First one is chosen.")
-    candidate = candidate_group[0]
+    candidate_group = sorted(candidate_group, key=lambda x: (x[1] == 0, x[2] == 0, x[1], x[2]))
+    candidate = candidate_group[0][0]
 
     # Calculate distance and station count
     distance = 0
@@ -277,7 +263,7 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
                 assert derived.name == fill_index, (group_dict, derived, fill_index)
             else:
                 assert fill_index is None, (group_dict, fill_index)
-            fill_index = name
+                fill_index = name
             to_fill.append(name)
         else:
             assert all(line in lines for line in rule_lines), rule_lines
@@ -312,7 +298,7 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
                 if "apply_time" in rule_dict else apply_time_group
             ))
 
-    if fill_index is not None:
+    for fill_index in to_fill:
         group_dict[fill_index].lines = sorted(
             [line for line in lines if line not in filled],
             key=lambda l: lines[l].index

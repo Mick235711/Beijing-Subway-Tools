@@ -198,7 +198,7 @@ def main() -> None:
     )
     print()
     print("Longest Route Possible:")
-    result.pretty_print_path(bfs_path, city.transfers, through_dict=through_dict)
+    result.pretty_print_path(bfs_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
 
 
 # Call main

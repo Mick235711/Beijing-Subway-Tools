@@ -16,6 +16,7 @@ from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer
 from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
     distance_str, get_time_repr, from_minutes
+from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, find_through_train
 from src.routing.train import Train
 
@@ -74,7 +75,7 @@ class BFSResult:
 
     def total_duration_str(
         self, path: Path, indent: int = 0,
-        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, fare_str: str | None = None
     ) -> str:
         """ Return string representation of the total transfer, etc. """
         indent_str = "    " * indent
@@ -82,25 +83,33 @@ class BFSResult:
                 f"{indent_str}Total time: {format_duration(self.total_duration())}, " +
                 f"total distance: {distance_str(self.total_distance(path))}, " +
                 suffix_s("station", len(expand_path(path, self.station))) + ", " +
-                suffix_s("transfer", total_transfer(path, through_dict=through_dict)) + ".")
+                suffix_s("transfer", total_transfer(path, through_dict=through_dict)) +
+                ("" if fare_str is None else ", fare = " + fare_str) + ".")
 
     def pretty_print(
-        self, results: dict[str, BFSResult], transfer_dict: dict[str, Transfer], indent: int = 0,
-        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+        self, results: dict[str, BFSResult], lines: dict[str, Line], transfer_dict: dict[str, Transfer], indent: int = 0,
+        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, fare_rules: Fare | None = None
     ) -> None:
         """ Print the shortest path to this station """
         path = self.shortest_path(results)
-        self.pretty_print_path(path, transfer_dict, indent, through_dict=through_dict)
+        self.pretty_print_path(path, lines, transfer_dict, indent, through_dict=through_dict, fare_rules=fare_rules)
 
     def pretty_print_path(
-        self, path: Path, transfer_dict: dict[str, Transfer], indent: int = 0,
-        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+        self, path: Path, lines: dict[str, Line], transfer_dict: dict[str, Transfer], indent: int = 0,
+        *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, fare_rules: Fare | None = None
     ) -> None:
         """ Print the shortest path """
         indent_str = "    " * indent
+        if fare_rules is None:
+            fare_splits = []
+            total_fare = None
+        else:
+            fare_splits = fare_rules.get_fare(lines, path, self.station, self.start_date)
+            assert len(fare_splits) > 0, path
+            total_fare = fare_rules.currency_str(sum(x[2] for x in fare_splits))
 
         # Print total time, station, etc.
-        print(self.total_duration_str(path, indent, through_dict=through_dict) + "\n")
+        print(self.total_duration_str(path, indent, through_dict=through_dict, fare_str=total_fare) + "\n")
 
         if isinstance(path[0][1], Train):
             first_time, first_day = path[0][1].arrival_time[path[0][0]]

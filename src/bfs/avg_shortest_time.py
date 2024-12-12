@@ -283,10 +283,16 @@ def print_station_info(
 
     if not isinstance(show_path_transfers, bool):
         print("\nMaximum time path:")
-        max_info[2].pretty_print_path(max_info[1], show_path_transfers, indent=1, through_dict=through_dict)
+        max_info[2].pretty_print_path(
+            max_info[1], city.lines, show_path_transfers, indent=1,
+            through_dict=through_dict, fare_rules=city.fare_rules
+        )
 
         print("\nMinimum time path:")
-        min_info[2].pretty_print_path(min_info[1], show_path_transfers, indent=1, through_dict=through_dict)
+        min_info[2].pretty_print_path(
+            min_info[1], city.lines, show_path_transfers, indent=1,
+            through_dict=through_dict, fare_rules=city.fare_rules
+        )
         print()
 
 

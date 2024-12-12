@@ -122,7 +122,7 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
     # Print results
     for i, (k_result, k_path) in enumerate(results):
         print(f"\nShortest Path #{i + 1}:")
-        k_result.pretty_print_path(k_path, city.transfers, through_dict=through_dict)
+        k_result.pretty_print_path(k_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
 
     return city, start[0], end[0], results
 
