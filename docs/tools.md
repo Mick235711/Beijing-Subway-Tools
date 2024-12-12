@@ -846,7 +846,7 @@ When determining the shortest route, the following criteria are considered in th
 
 ### [`avg_shortest_time.py`](/src/bfs/avg_shortest_time.py): Calculate the average time needed between two stations
 ```
-usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-d {time,stddev,transfer,station,distance,max,min}] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
+usage: avg_shortest_time.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-d {time,stddev,transfer,station,distance,fare,max,min}] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
                             [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
@@ -855,7 +855,7 @@ options:
                         Limit start time of the search
   -e LIMIT_END, --limit-end LIMIT_END
                         Limit end time of the search
-  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
+  -d {time,stddev,transfer,station,distance,fare,max,min}, --data-source {time,stddev,transfer,station,distance,fare,max,min}
                         Station sort criteria
   -v, --verbose         Increase verbosity
   -p, --show-path       Show detailed path
@@ -1985,8 +1985,8 @@ Longest/Shortest Train Segments:
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
-usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec] [-n LABEL_NUM]
-                   [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
+usage: draw_map.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,fare,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec]
+                   [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
   -h, --help            show this help message and exit
@@ -1998,7 +1998,7 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
+  -d {time,stddev,transfer,station,distance,fare,max,min}, --data-source {time,stddev,transfer,station,distance,fare,max,min}
                         Graph data source
   --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
@@ -2056,8 +2056,8 @@ Drawing contours done! Saving...
 
 ### [`draw_avg.py`](/src/graph/draw_avg.py): Draw average time maps originating from several stations
 ```
-usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec] [-n LABEL_NUM]
-                   [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--strategy {avg,min,max}]
+usage: draw_avg.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,fare,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec]
+                   [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--strategy {avg,min,max}]
 
 options:
   -h, --help            show this help message and exit
@@ -2069,7 +2069,7 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
+  -d {time,stddev,transfer,station,distance,fare,max,min}, --data-source {time,stddev,transfer,station,distance,fare,max,min}
                         Graph data source
   --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS
@@ -2131,7 +2131,7 @@ Drawing contours done! Saving...
 
 ### [`draw_equtime.py`](/src/graph/draw_equtime.py): Draw equ-time maps from two stations
 ```
-usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec]
+usage: draw_equtime.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [-d {time,stddev,transfer,station,distance,fare,max,min}] [--dpi DPI] [-l LEVELS] [-f FOCUS] [--style-spec style spec]
                        [-n LABEL_NUM] [-w LINE_WIDTH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express]
 
 options:
@@ -2144,7 +2144,7 @@ options:
                         Override default colormap
   -o OUTPUT, --output OUTPUT
                         Output path
-  -d {time,stddev,transfer,station,distance,max,min}, --data-source {time,stddev,transfer,station,distance,max,min}
+  -d {time,stddev,transfer,station,distance,fare,max,min}, --data-source {time,stddev,transfer,station,distance,fare,max,min}
                         Graph data source
   --dpi DPI             DPI of output image
   -l LEVELS, --levels LEVELS

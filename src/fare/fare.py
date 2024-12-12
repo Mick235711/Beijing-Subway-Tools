@@ -129,13 +129,13 @@ class Fare:
     def get_fare(
         self, lines: dict[str, Line], path: Path, end_station: str,
         cur_date: date | DateGroup,
-    ) -> list[tuple[str, str, float]]:
+    ) -> list[tuple[str, str, str, str | None, float]]:
         """ Get fare, returns splits (start, end) -> fare """
         assert len(self.rule_groups) > 0, self
         if len(path) == 0:
             return []
         cur_candidates: list[FareRule] = self.rule_groups[:]
-        splits: list[tuple[str, str, float]] = []
+        splits: list[tuple[str, str, str, str | None, float]] = []
         last_index = 0
         while last_index < len(path) and not isinstance(path[last_index][1], Train):
             last_index += 1
@@ -165,8 +165,14 @@ class Fare:
                     end_station = station
                     old_train = path[i - 1][1]
                 assert isinstance(old_train, Train), (path, old_index, i)
-                end_time, end_day = old_train.arrival_time[station]
-                splits.append((path[last_index][0], station, get_fare_single(
+                if train is None and station not in old_train.arrival_time:
+                    end_time, end_day = old_train.arrival_time[path[-1][0]]
+                else:
+                    end_time, end_day = old_train.arrival_time[station]
+                last_train = path[last_index][1]
+                assert isinstance(last_train, Train), (path, last_index, i)
+                splits.append((path[last_index][0], last_train.line.name, station,
+                               None if train is None else train.line.name, get_fare_single(
                     cur_candidates, lines, to_abstract(path[last_index:i]), end_station,
                     cur_date, last_time, last_day, end_time, end_day
                 )))

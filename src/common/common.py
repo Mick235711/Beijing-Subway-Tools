@@ -204,10 +204,10 @@ def parse_time(time_str: str, next_day: bool = False) -> TimeSpec:
     return time.fromisoformat(time_str), next_day
 
 
-def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time | None, bool]:
+def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time, bool] | None:
     """ Parse time as hh:mm with optional None """
     if time_str is None:
-        return None, next_day
+        return None
     return parse_time(time_str, next_day)
 
 

@@ -20,6 +20,7 @@ from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin
+from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 
@@ -89,7 +90,7 @@ def all_time_bfs(
     return results
 
 
-data_criteria = ["time", "stddev", "transfer", "station", "distance", "max", "min"]
+data_criteria = ["time", "stddev", "transfer", "station", "distance", "fare", "max", "min"]
 
 
 def calculate_shortest(
@@ -97,20 +98,23 @@ def calculate_shortest(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, *,
-    limit_start: time | None = None, limit_start_day: bool = False,
-    limit_end: time | None = None, limit_end_day: bool = False,
+    limit_start_tuple: tuple[time, bool] | None = None,
+    limit_end_tuple: tuple[time, bool] | None = None,
     exclude_edge: bool = False, include_express: bool = False,
-    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
-) -> dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None,
+    fare_rules: Fare | None = None
+) -> dict[str, tuple[float, float, float, float, float, float | None, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station (return type: avg time, transfer, station, distance) """
     results = all_time_bfs(
         lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
-        limit_start=limit_start, limit_start_day=limit_start_day,
-        limit_end=limit_end, limit_end_day=limit_end_day,
+        limit_start=(None if limit_start_tuple is None else limit_start_tuple[0]),
+        limit_start_day=(False if limit_start_tuple is None else limit_start_tuple[1]),
+        limit_end=(None if limit_end_tuple is None else limit_end_tuple[0]),
+        limit_end_day=(False if limit_end_tuple is None else limit_end_tuple[1]),
         exclude_edge=exclude_edge, include_express=include_express
     )
-    result_dict: dict[str, tuple[float, float, float, float, float, PathInfo, PathInfo,
+    result_dict: dict[str, tuple[float, float, float, float, float, float | None, PathInfo, PathInfo,
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
@@ -123,6 +127,11 @@ def calculate_shortest(
             average(total_transfer(path, through_dict=through_dict) for _, path, _ in times_paths),
             average(len(expand_path(path, result.station)) for _, path, result in times_paths),
             average(result.total_distance(path) for _, path, result in times_paths),
+            None if fare_rules is None else
+            average(
+                sum(x[-1] for x in fare_rules.get_fare(lines, path, result.station, start_date))
+                for _, path, result in times_paths
+            ),
             max(times_paths, key=lambda x: x[0]),
             min(times_paths, key=lambda x: x[0]),
             coverage
@@ -137,7 +146,7 @@ def shortest_in_city(
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
     exclude_virtual: bool = False, exclude_edge: bool = False, include_express: bool = False
 ) -> tuple[City, str, dict[ThroughSpec, list[ThroughTrain]], dict[str,
-           tuple[float, float, float, float, float, PathInfo, PathInfo,
+           tuple[float, float, float, float, float, float | None, PathInfo, PathInfo,
                  list[tuple[float, AbstractPath, list[PathInfo]]]]
      ]]:
     """ Find the shortest path in the city """
@@ -150,15 +159,13 @@ def shortest_in_city(
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()), include_lines=include_lines, exclude_lines=exclude_lines)
     _, through_dict = parse_through_train(train_dict, city.through_specs)
-    ls_time, ls_day = parse_time_opt(limit_start)
-    le_time, le_day = parse_time_opt(limit_end)
     virtual_transfers = city.virtual_transfers if not exclude_virtual else {}
     return city, start, through_dict, calculate_shortest(
         lines, train_dict, city.transfers, virtual_transfers, start_date, start,
-        limit_start=ls_time, limit_start_day=ls_day,
-        limit_end=le_time, limit_end_day=le_day,
+        limit_start_tuple=parse_time_opt(limit_start),
+        limit_end_tuple=parse_time_opt(limit_end),
         exclude_edge=exclude_edge, include_express=include_express,
-        through_dict=through_dict
+        through_dict=through_dict, fare_rules=city.fare_rules
     )
 
 
@@ -261,7 +268,7 @@ def shortest_path_args(
 
 def print_station_info(
     city: City, station: str,
-    avg_time: float, stddev_time: float, avg_transfer: float, avg_station: float, avg_dist: float,
+    avg_info: tuple[float, float, float, float, float, float | None],
     max_info: PathInfo, min_info: PathInfo, path_coverage: list[tuple[float, AbstractPath, list[PathInfo]]],
     *, index: int | None = None, show_path_transfers: dict[str, Transfer] | bool = False,
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
@@ -269,10 +276,14 @@ def print_station_info(
     """ Print percentage info on a station """
     if index is not None:
         print(f"#{index + 1}", end=": ")
-    print(f"{city.station_full_name(station)}, " + suffix_s("minute", f"{avg_time:.2f}") +
-          f" (stddev = {stddev_time:.2f}) (min {min_info[0]} - max {max_info[0]})" +
-          f" (avg: transfer = {avg_transfer:.2f}, station = {avg_station:.2f}, distance = " +
-          distance_str(avg_dist) + ")")
+    result = f"{city.station_full_name(station)}, " + suffix_s("minute", f"{avg_info[0]:.2f}") +\
+             f" (stddev = {avg_info[1]:.2f}) (min {min_info[0]} - max {max_info[0]})" +\
+             f" (avg: transfer = {avg_info[2]:.2f}, station = {avg_info[3]:.2f}, distance = " +\
+             distance_str(avg_info[4])
+    if avg_info[5] is not None:
+        assert city.fare_rules is not None, city
+        result += ", fare = " + city.fare_rules.currency_str(avg_info[5])
+    print(result + ")")
     if isinstance(show_path_transfers, bool) and not show_path_transfers:
         return
 
@@ -316,7 +327,7 @@ def main() -> None:
     city, _, through_dict, result_dict = shortest_in_city(
         args.limit_start, args.limit_end,
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express,
     )
     result_dict = dict(sorted(list(result_dict.items()),
                               key=lambda x: (x[1][data_criteria.index(args.data_source)], x[1][0], to_pinyin(x[0])[0])))
@@ -328,8 +339,10 @@ def main() -> None:
             if i == args.limit_num:
                 print("...")
             continue
+        avg_info = data[:6]
         print_station_info(
-            city, station, *data, index=i, show_path_transfers=(city.transfers if args.show_path else args.verbose),
+            city, station, avg_info, *data[6:], index=i,
+            show_path_transfers=(city.transfers if args.show_path else args.verbose),
             through_dict=through_dict
         )
 

@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+import sys
 from collections.abc import Callable
 from datetime import date
 from typing import cast, Any
@@ -67,7 +68,8 @@ def get_levels(kind: str = "time") -> list[int]:
         "station": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100],
         "distance": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 140, 160],
         "max": [0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 150, 180, 210, 240],
-        "min": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120, 135, 150]
+        "min": [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120, 135, 150],
+        "fare": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     }[kind]
 
 
@@ -322,13 +324,16 @@ def get_levels_from_source(args: argparse.Namespace, have_minus: bool = False) -
 def get_map_data(
     args: argparse.Namespace, city_station: tuple[City, str, date] | None = None
 ) -> tuple[City, str, dict]:
-    """ Get data necessary for drawing map """
+    """ Get data necessary for drawing a map """
     city, start, _, result_dict_temp = shortest_in_city(
         args.limit_start, args.limit_end, city_station,
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     data_index = data_criteria.index(args.data_source)
+    if any(x[data_index] is None for x in result_dict_temp.values()):
+        print(f"Error: no {args.data_source} information recorded!")
+        sys.exit(1)
     result_dict: dict[str, float] = {station: cast(float, x[data_index]) / (
         1000 if args.data_source == "distance" else 1
     ) for station, x in result_dict_temp.items()}

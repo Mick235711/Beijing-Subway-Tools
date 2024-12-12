@@ -64,7 +64,9 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
 
     data = result_dict[end[0]]
     print(f"{start[0]} -> ", end="")
-    print_station_info(city, end[0], *data, show_path_transfers=city.transfers, through_dict=through_dict)
+    avg_info = data[:6]
+    print_station_info(city, end[0], avg_info, *data[6:],
+                       show_path_transfers=city.transfers, through_dict=through_dict)
 
     path_coverage = data[-1]
     draw_dict: DrawDict = []
