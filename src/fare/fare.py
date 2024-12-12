@@ -218,9 +218,14 @@ def get_fare_single(
         next_station = path[i + 1][0] if i + 1 < len(path) else end_station
         distance += line.two_station_dist(direction, station, next_station)
         direction_stations = line.direction_stations(direction)
-        assert direction_stations.index(next_station) > direction_stations.index(station), (
-            station, next_station, direction_stations)
-        station_cnt += direction_stations.index(next_station) - direction_stations.index(station)
+        if not line.loop:
+            assert direction_stations.index(next_station) > direction_stations.index(station), (
+                station, next_station, direction_stations
+            )
+        delta = direction_stations.index(next_station) - direction_stations.index(station)
+        if delta < 0:
+            delta += len(direction_stations)
+        station_cnt += delta
     return candidate.get_fare(distance, station_cnt, cur_date, start_time, start_day, end_time, end_day)
 
 

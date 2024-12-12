@@ -49,8 +49,9 @@ def merge_path(path1: Path, path2: Path) -> Path:
     if not isinstance(path2[0][1], Train):
         return path1 + path2
     if path2[0][1].line == path1[-1][1].line:
-        assert path2[0][1].direction == path1[-1][1].direction, (path1, path2)
-        if path2[0][1] == path1[-1][1].loop_next:
+        assert path2[0][1].line.end_circle_start is not None or\
+               path2[0][1].direction == path1[-1][1].direction, (path1, path2)
+        if path2[0][1] == path1[-1][1].loop_next or path2[0][1].line.end_circle_start is not None:
             return path1 + path2[1:]
         assert path1[-1][0] in path2[0][1].arrival_time, (path1, path2)
         return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
@@ -144,8 +145,12 @@ def k_shortest_path(
                 prev_station, prev_train = prev_trace[i]
                 if prev_station == station:
                     if isinstance(prev_train, Train):
-                        exclude_edges[prev_station].add((prev_train.line, prev_train.direction))
-                    elif i == len(prev_trace) - 1:
+                        if prev_train.line.end_circle_start is not None:
+                            for direction in prev_train.line.directions.keys():
+                                exclude_edges[prev_station].add((prev_train.line, direction))
+                        else:
+                            exclude_edges[prev_station].add((prev_train.line, prev_train.direction))
+                    elif i == len(prev_trace) - 1 or lines[prev_train[2][2]].end_circle_start is not None:
                         # Special case the ending + virtual transfer case
                         for direction in lines[prev_train[2][2]].directions.keys():
                             exclude_edges[prev_station].add((lines[prev_train[2][2]], direction))

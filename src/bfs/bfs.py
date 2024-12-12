@@ -84,7 +84,7 @@ class BFSResult:
                 f"total distance: {distance_str(self.total_distance(path))}, " +
                 suffix_s("station", len(expand_path(path, self.station))) + ", " +
                 suffix_s("transfer", total_transfer(path, through_dict=through_dict)) +
-                ("" if fare_str is None else ", fare = " + fare_str) + ".")
+                ("" if fare_str is None or fare_str == "" else ", fare = " + fare_str) + ".")
 
     def pretty_print(
         self, results: dict[str, BFSResult], lines: dict[str, Line], transfer_dict: dict[str, Transfer], indent: int = 0,
@@ -102,31 +102,48 @@ class BFSResult:
         indent_str = "    " * indent
         if fare_rules is None:
             fare_splits = []
-            total_fare = None
+            splits = [0]
+            total_fare = ""
+            splitter = ""
+            separator = ""
+            continuer = ""
         else:
             fare_splits = fare_rules.get_fare(lines, path, self.station, self.start_date)
+            splits = [x[0] for x in fare_splits]
             assert len(fare_splits) > 0, path
             total_fare = fare_rules.currency_str(sum(x[2] for x in fare_splits))
+            splitter = "-" * len(total_fare) + " "
+            half = (len(total_fare) - 1) // 2
+            separator = "-" * half + "+" + "-" * (len(total_fare) - 1 - half) + " "
+            continuer = " " * half + "|" + " " * (len(total_fare) - 1 - half) + " "
 
         # Print total time, station, etc.
         print(self.total_duration_str(path, indent, through_dict=through_dict, fare_str=total_fare) + "\n")
 
+        line_list: list[str] = []
         if isinstance(path[0][1], Train):
             first_time, first_day = path[0][1].arrival_time[path[0][0]]
             first_waiting = diff_time(first_time, self.initial_time, first_day, self.initial_day)
             assert first_waiting >= 0, (path[0], self.initial_time, self.initial_day)
             if first_waiting > 0:
-                print(indent_str + "Waiting time: " + suffix_s("minute", first_waiting))
+                line_list.append("Waiting time: " + suffix_s("minute", first_waiting))
 
         last_station: str | None = None
         last_train: Train | None = None
         last_virtual: VTSpec | None = None
         cur_date = self.start_date
+        split_indexes: list[int] = [0]
         for i, (station, train) in enumerate(path):
             if not isinstance(train, Train):
                 # Print virtual transfer information only
-                print(f"{indent_str}Virtual transfer: {train[0]}[{train[2][0]}] -> {train[1]}[{train[2][2]}], " +
-                      suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
+                start_station = lines[train[2][0]].station_full_name(train[0])
+                start_line = lines[train[2][0]].full_name()
+                end_station = lines[train[2][2]].station_full_name(train[1])
+                end_line = lines[train[2][2]].full_name()
+                if train[0] in splits:
+                    split_indexes.append(len(line_list))
+                line_list.append(f"Virtual transfer: {start_station}[{start_line}] -> {end_station}[{end_line}], " +
+                                 suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
                 last_virtual = train
                 continue
 
@@ -164,19 +181,46 @@ class BFSResult:
                     full_name = station_full_name(station, {last_train.line, train.line})
                     if last_through is not None and train in last_through[1].trains.values():
                         # We have a through-train transfer
-                        print(f"{indent_str}(Pass-through at {full_name})")
+                        line_list.append(f"(Pass-through at {full_name})")
                     else:
-                        print(f"{indent_str}Transfer at {full_name}: " +
-                              f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
-                              suffix_s("minute", transfer_time) + (" (special time)" if special else ""))
+                        if station in splits:
+                            split_indexes.append(len(line_list))
+                        line_list.append(f"Transfer at {full_name}: " +
+                                         f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
+                                         suffix_s("minute", transfer_time) +
+                                         (" (special time)" if special else ""))
                 if total_waiting > transfer_time:
-                    print(indent_str + "Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
+                    line_list.append("Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
 
             # Display train information
             next_station = self.station if i == len(path) - 1 else path[i + 1][0]
-            print(indent_str + train.two_station_str(station, next_station))
+            line_list.append(train.two_station_str(station, next_station))
             last_station = station
             last_train = train
+
+        assert len(split_indexes) == len(splits), (splits, split_indexes)
+        splits.append(self.station)
+        split_indexes.append(len(line_list) - 1)
+        for i in range(1, len(splits)):
+            last_index, cur_index = split_indexes[i - 1], split_indexes[i]
+            for j in range(last_index, cur_index):
+                if j == last_index + (cur_index - last_index) // 2:
+                    if fare_rules is None:
+                        preamble = continuer
+                    else:
+                        preamble = f"{fare_rules.currency_str(fare_splits[i - 1][2]):>{len(total_fare)}}" + " "
+                elif j == last_index:
+                    preamble = splitter if j == 0 else separator
+                else:
+                    preamble = continuer
+                print(indent_str + preamble + line_list[j])
+        if len(line_list) - split_indexes[-2] <= 2:
+            preamble = continuer if fare_rules is None else total_fare + " "
+        elif len(line_list) == 2:
+            preamble = continuer
+        else:
+            preamble = splitter
+        print(indent_str + preamble + line_list[-1])
 
 
 def get_all_trains_single(
