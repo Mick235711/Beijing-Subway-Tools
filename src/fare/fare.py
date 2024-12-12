@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import os
+from copy import deepcopy
 from datetime import date, time
 
 import pyjson5
@@ -78,6 +79,8 @@ class FareRule:
         self.basis = basis
         self.lines = lines
         self.rules = rules
+        for rule in self.rules:
+            rule.parent = self
         self.starting = starting or set()
         self.ending = ending or set()
 
@@ -243,31 +246,60 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
     with open(fare_file) as fp:
         fare_dict = pyjson5.decode_io(fp)
     currency = fare_dict.get("currency", "")
-    fill_index: int | None = None
+    fill_index: str | None = None
+    to_fill: list[str] = []
     fare = Fare([], currency)
+    group_dict: dict[str, FareRule] = {}
     filled: set[str] = set()
     for inner_dict in fare_dict["rule_groups"]:
         name = inner_dict["name"]
-        basis = inner_dict["basis"]
+        assert name not in group_dict, (group_dict, name)
+        if "derive_from" in inner_dict:
+            derived = group_dict[inner_dict["derive_from"]["name"]]
+            portion = float(inner_dict["derive_from"].get("portion", 1.0))
+            basis = inner_dict.get("basis", derived.basis)
+            derived_lines = derived.lines
+            derived_starting = derived.starting
+            derived_ending = derived.ending
+            derived_rules = deepcopy(derived.rules) if "rules" not in inner_dict else []
+            for derived_rule in derived_rules:
+                derived_rule.fare *= portion
+        else:
+            derived = None
+            basis = inner_dict["basis"]
+            derived_lines = []
+            derived_starting = set()
+            derived_ending = set()
+            derived_rules = []
+            assert "rules" in inner_dict, inner_dict
         assert basis in ["single", "distance", "station"], basis
-        rule_lines = sorted(inner_dict.get("lines", []), key=lambda l: lines[l].index)
+        rule_lines = sorted(inner_dict.get("lines", derived_lines), key=lambda l: lines[l].index)
         if len(rule_lines) == 0:
-            assert fill_index is None, (fare.rule_groups, fill_index)
-            fill_index = len(fare.rule_groups)
+            if derived is not None:
+                assert derived.name == fill_index, (group_dict, derived, fill_index)
+            else:
+                assert fill_index is None, (group_dict, fill_index)
+            fill_index = name
+            to_fill.append(name)
         else:
             assert all(line in lines for line in rule_lines), rule_lines
             for rule_line in rule_lines:
                 filled.add(rule_line)
-        starting = set(inner_dict.get("starting_stations", []))
-        ending = set(inner_dict.get("ending_stations", []))
+        starting = set(inner_dict.get("starting_stations", derived_starting))
+        ending = set(inner_dict.get("ending_stations", derived_ending))
         inner_basis_group = inner_dict.get("inner_basis", None)
+        assert inner_basis_group is None or inner_basis_group in ["entry", "exit"], inner_basis_group
         if "apply_time" in inner_dict:
             assert inner_basis_group in ["entry", "exit"], inner_dict
             apply_time_group = parse_time_interval(date_groups, inner_dict["apply_time"])
         else:
             apply_time_group = None
-        fare.rule_groups.append(FareRule(fare, name, basis, rule_lines, [], starting, ending))
-        for rule_dict in inner_dict["rules"]:
+        group_dict[name] = FareRule(fare, name, basis, rule_lines, derived_rules, starting, ending)
+        if len(derived_rules) != 0 and apply_time_group is not None:
+            for inner_rule in group_dict[name].rules:
+                inner_rule.basis = inner_basis_group
+                inner_rule.apply_time = apply_time_group
+        for rule_dict in inner_dict.get("rules", []):
             inner_fare = float(rule_dict["fare"])
             inner_basis = rule_dict.get("basis", inner_basis_group)
             assert inner_basis is None or inner_basis in ["entry", "exit"], inner_basis
@@ -276,15 +308,15 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
                 end = int(rule_dict["end"])
             else:
                 end = None
-            fare.rule_groups[-1].rules.append(FareRule.Rule(
-                fare.rule_groups[-1], inner_fare, inner_basis, start, end,
+            group_dict[name].rules.append(FareRule.Rule(
+                group_dict[name], inner_fare, inner_basis, start, end,
                 parse_time_interval(date_groups, rule_dict["apply_time"])
                 if "apply_time" in rule_dict else apply_time_group
             ))
 
     if fill_index is not None:
-        fare.rule_groups[fill_index].lines = sorted(
+        group_dict[fill_index].lines = sorted(
             [line for line in lines if line not in filled],
             key=lambda l: lines[l].index
         )
-    return fare
+    return Fare(list(group_dict.values()), currency)

@@ -76,9 +76,9 @@ class TimeInterval:
         """ Get string representation """
         return "<" + ", ".join(
             ("" if date_group is None else f"{date_group.name} ") +
-            ("" if start is None else get_time_repr(*start)) +
-            "-" +
-            ("" if end is None else get_time_repr(*end))
+            ("start" if start is None else get_time_repr(*start)) +
+            " - " +
+            ("end" if end is None else get_time_repr(*end))
             for date_group, start, end in self.time_intervals
         ) + ">"
 
