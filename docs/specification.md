@@ -5,7 +5,7 @@ data/<city>/
 - <line x>.json5: station definition and train schedule for the line
 - metadata.json5: transfer station and other metadata
 - carriage_types.json5: carriage types for this city
-- maps_*.json5: subway map metadata
+- fare_rules.json5: fare rules for this city
 - maps/: directory for subway maps
 ```
 
@@ -190,7 +190,7 @@ In the global dict, key is the code for this carriage type, value is specified a
 
 
 # Map Specification Format
-This specification describes the key-values within `map_*.json5`.
+This specification describes the key-values within `maps/*.json5`.
 
 | Key                | Required | Type   | Default  | Value                                                                             |
 |--------------------|----------|--------|----------|-----------------------------------------------------------------------------------|
@@ -209,3 +209,42 @@ the circle center, but the upper-left corner of the bounding box too.
 For different `type`s, the possible radius specification (fields for `coordinates` beside `x` and `y`) are different:
 - For `circle`, can be either `r` or both `rx` and `ry` (for ellipse, in this case `radius` and `transfer_radius` must be 2-tuples).
 - For `rectangle`, must be `w` and `h`. Optionally `r` can be included to indicate rounded corners.
+
+# Fare Rule Specification Format
+This specification describes the key-values within `fare_rules.json5`.
+
+| Key                | Required | Type   | Default  | Value                               |
+|--------------------|----------|--------|----------|-------------------------------------|
+| currency           | No       | string | ""       | Currency symbol                     |
+| rule_groups        | Yes      | array  |          | Rule groups                         |
+| Within each group: |          |        |          |                                     |
+| name               | Yes      | string |          | Name for this group                 |
+| lines              | No       | array  | All left | Applicable lines                    |
+| starting_stations  | No       | array  | []       | Applicable starting stations        |
+| ending_stations    | No       | array  | []       | Applicable ending stations          |
+| basis              | Yes      | string |          | Fare rule basis (see below)         |
+| rules              | Yes      | array  |          | Fare rule specification (see below) |
+
+In general, the fare rules for a city are specified by several groups; each group denotes the fare rule
+for a set of lines denoted by the `lines` field. When `lines` is not present, this group will apply to all lines
+not described by other groups. (There can be at most one group without a `lines` field.)
+
+Currently, there are three types of a fare basis supported as `basis` field:
+- `single`: Fare is constant regardless of how far you traveled.
+    - In this case, the `rules` field can simply be `[{fare: N}]`. You can also optionally supply the `apply_time` fields.
+- `distance`: Fare is calculated based on the distance traveled.
+- `station`: Fare is calculated based on the number of stations traveled.
+
+In cases other than `single`, the `rules` field should be supplied as an array of objects, each describing one fare type.
+Each object should contain the following fields:
+
+| Key        | Required | Type   | Default          | Value                                                                       |
+|------------|----------|--------|------------------|-----------------------------------------------------------------------------|
+| fare       | Yes      | float  |                  | Fare for this group                                                         |
+| start      | No       | int    | 0                | Starting station/distance in meter (inclusive)                              |
+| end        | No       | int    | Largest possible | Ending station/distance in meter (inclusive)                                |
+| basis      | Yes      | string |                  | Whether the apply_time field applies to entries (`entry`) or exits (`exit`) |
+| apply_time | No       | array  | []               | Applicable date and time                                                    |
+
+The `apply_time` field allows you to specify that this fare rule only applies on specific date and/or time.
+The format of this field is the same as it in [the metadata section](#metadata-specification-format).

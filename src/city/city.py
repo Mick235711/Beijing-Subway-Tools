@@ -15,9 +15,11 @@ from src.city.date_group import DateGroup
 from src.city.line import Line, parse_line, station_full_name
 from src.city.through_spec import ThroughSpec, parse_through_spec
 from src.city.transfer import Transfer, parse_transfer, parse_virtual_transfer
+from src.fare.fare import Fare, parse_fare_rules
 
 METADATA_FILE = "metadata.json5"
 CARRIAGE_FILE = "carriage_types.json5"
+FARE_RULE_FILE = "fare_rules.json5"
 
 
 class City:
@@ -37,6 +39,7 @@ class City:
         self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
         self.through_specs: list[ThroughSpec] = []
         self.carriages: dict[str, Carriage] | None = None
+        self.fare_rules: Fare | None = None
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -67,9 +70,7 @@ def parse_city(city_root: str) -> City:
 
     # Insert lines
     for line in glob(os.path.join(city_root, "*.json5")):
-        if os.path.basename(line) in [METADATA_FILE, CARRIAGE_FILE]:
-            continue
-        if os.path.basename(line).startswith("map"):
+        if os.path.basename(line) in [METADATA_FILE, CARRIAGE_FILE, FARE_RULE_FILE]:
             continue
         city.line_files.append(line)
 
@@ -83,6 +84,10 @@ def parse_city(city_root: str) -> City:
         if force_start:
             city.force_set.add(line_obj)
         city.lines[line_obj.name] = line_obj
+
+    fare = os.path.join(city_root, FARE_RULE_FILE)
+    if os.path.exists(fare):
+        city.fare_rules = parse_fare_rules(fare, city.all_date_groups())
 
     if "transfers" in city_dict:
         city.transfers = parse_transfer(city.lines, city_dict["transfers"])

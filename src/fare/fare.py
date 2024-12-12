@@ -1,0 +1,271 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" Store map metadata """
+
+# Libraries
+from __future__ import annotations
+
+import os
+from datetime import date, time
+
+import pyjson5
+
+from src.bfs.bfs import Path
+from src.city.date_group import TimeInterval, DateGroup, parse_time_interval
+from src.city.line import Line
+from src.common.common import suffix_s, distance_str, get_time_str
+from src.routing.train import Train
+
+AbstractPath = list[tuple[str, tuple[str, str] | None]]
+
+
+class FareRule:
+    """ A class for storing a single fare rule """
+
+    class Rule:
+        """ A class for single rules """
+
+        def __init__(self, parent: FareRule, fare: float, basis: str, start: int = 0, end: int | None = None,
+                     apply_time: TimeInterval | None = None) -> None:
+            """ Constructor """
+            assert fare >= 0, fare
+            assert basis in ["entry", "exit"], basis
+            self.parent = parent
+            self.fare = fare
+            self.basis = basis
+            self.start = start
+            self.end = end
+            self.apply_time = apply_time
+
+        def __repr__(self) -> str:
+            """ String representation """
+            result = f"<Rule: {self.parent.parent.currency_str(self.fare)} for " +\
+                     self.fare_str() + ", basis={self.basis}"
+            if self.apply_time is not None:
+                result += f", applicable at {self.apply_time}"
+            return result + ">"
+
+        def fare_str(self) -> str:
+            """ Return the simple string representation of this fare """
+            if self.parent.basis == "simple":
+                return "all"
+            if self.parent.basis == "distance":
+                return distance_str(self.start) + " - " + ("max" if self.end is None else distance_str(self.end))
+            if self.parent.basis == "station":
+                return f"{self.start} - {self.end or 'max'} stations"
+            assert False, self.parent
+
+        def applicable(self, distance: int, station_cnt: int,
+                       cur_date: date | DateGroup, cur_time: time, cur_day: bool = False) -> bool:
+            """ Determine if this rule is applicable for the given path """
+            if self.apply_time is not None and not self.apply_time.covers(cur_date, cur_time, cur_day):
+                return False
+            if self.parent.basis == "single":
+                return True
+            if self.parent.basis == "distance":
+                return self.start <= distance and (self.end is None or distance <= self.end)
+            if self.parent.basis == "station":
+                return self.start <= station_cnt and (self.end is None or station_cnt <= self.end)
+            assert False, self.parent
+
+    def __init__(self, parent: Fare, name: str, basis: str, lines: set[str], rules: list[Rule],
+                 starting: set[str] | None = None, ending: set[str] | None = None) -> None:
+        """ Constructor """
+        self.parent = parent
+        self.name = name
+        self.basis = basis
+        self.lines = lines
+        self.rules = rules
+        self.starting = starting or set()
+        self.ending = ending or set()
+
+    def __repr__(self) -> str:
+        """ String representation """
+        result = f"<Fare rule {self.name} for lines " + ", ".join(self.lines)
+        if len(self.starting) > 0:
+            result += " (starting at " + suffix_s("station", len(self.starting)) + ")"
+        if len(self.ending) > 0:
+            result += " (ending at " + suffix_s("station", len(self.ending)) + ")"
+        return result + f": basis={self.basis}, " + suffix_s("rule", len(self.rules)) + ">"
+
+    def get_fare(self, distance: int, station_cnt: int, cur_date: date | DateGroup,
+                 start_time: time, start_day: bool,
+                 end_time: time, end_day: bool) -> float:
+        """ Determine the fare for the given condition """
+        for rule in self.rules:
+            # For now, use the first applicable fare
+            if rule.basis == "entry":
+                if rule.applicable(distance, station_cnt, cur_date, start_time, start_day):
+                    return rule.fare
+            elif rule.basis == "exit":
+                if rule.applicable(distance, station_cnt, cur_date, end_time, end_day):
+                    return rule.fare
+            else:
+                assert False, rule
+        assert False, self.rules
+
+
+class Fare:
+    """ A class for storing fare rules """
+
+    def __init__(self, rule_groups: list[FareRule], currency: str = "") -> None:
+        """ Constructor """
+        self.currency = currency
+        self.rule_groups = rule_groups
+        for rule in self.rule_groups:
+            rule.parent = self
+
+    def __repr__(self) -> str:
+        """ String representation """
+        return "<Fare: " + suffix_s("rule", len(self.rule_groups)) + ">"
+
+    def currency_str(self, fare: float) -> str:
+        """ Determine the string representation of fare """
+        return self.currency + f"{fare:.2f}"
+
+    def get_fare(
+        self, lines: dict[str, Line], path: Path, end_station: str,
+        cur_date: date | DateGroup,
+    ) -> list[tuple[str, str, float]]:
+        """ Get fare, returns splits (start, end) -> fare """
+        assert len(self.rule_groups) > 0, self
+        if len(path) == 0:
+            return []
+        cur_candidates: list[FareRule] = self.rule_groups[:]
+        splits: list[tuple[str, str, float]] = []
+        last_index = 0
+        while last_index < len(path) and not isinstance(path[last_index][1], Train):
+            last_index += 1
+        if last_index == len(path):
+            return []
+        old_index: int | None = None
+        for i, (station, train) in enumerate(path[last_index:] + [(end_station, None)]):
+            # FIXME: support virtual transfer that have fare discontinuity
+            if train is not None and not isinstance(train, Train):
+                old_index = i - 1
+                continue
+
+            # Filter for lines
+            if train is None:
+                new_candidates = cur_candidates
+            else:
+                new_candidates = [candidate for candidate in cur_candidates if train.line.name in candidate.lines]
+            if len(new_candidates) == 0:
+                # New segment
+                last_train = path[last_index][1]
+                assert isinstance(last_train, Train), (path, last_index)
+                last_time, last_day = last_train.arrival_time[path[last_index][0]]
+                if old_index is not None:
+                    end_station = path[old_index + 1][0]
+                    old_train = path[old_index][1]
+                else:
+                    end_station = station
+                    old_train = path[i - 1][1]
+                assert isinstance(old_train, Train), (path, old_index, i)
+                end_time, end_day = old_train.arrival_time[station]
+                print("New split from", path[last_index][0], f"({get_time_str(last_time, last_day)})",
+                      "to", end_station, f"({get_time_str(end_time, end_day)})", "actually", station)
+                splits.append((path[last_index][0], station, get_fare_single(
+                    cur_candidates, lines, to_abstract(path[last_index:i]), end_station,
+                    cur_date, last_time, last_day, end_time, end_day
+                )))
+                last_index = i
+                if train is not None:
+                    cur_candidates = [
+                        candidate for candidate in self.rule_groups[:] if train.line.name in candidate.lines
+                    ]
+            else:
+                cur_candidates = new_candidates
+            old_index = None
+        return splits
+
+
+def to_abstract(path: Path) -> AbstractPath:
+    """ Convert a path to an abstract path """
+    return [(station, (train.line.name, train.direction) if isinstance(train, Train) else None)
+            for station, train in path]
+
+
+def get_fare_single(
+    rule_groups: list[FareRule], lines: dict[str, Line],
+    path: AbstractPath, end_station: str,
+    cur_date: date | DateGroup,
+    start_time: time, start_day: bool,
+    end_time: time, end_day: bool
+) -> float:
+    """ Get fare for a single, continuous region """
+    start_station = path[0][0]
+    candidate_group: list[FareRule] = []
+    force_candidate: FareRule | None = None
+    path_lines = [x[1][1] for x in path if x[1] is not None]
+    for rule in rule_groups:
+        if any(line not in rule.lines for line in path_lines):
+            continue
+        if start_station in rule.starting:
+            if end_station in rule.ending and force_candidate is None:
+                force_candidate = rule
+            candidate_group.append(rule)
+        if end_station in rule.ending:
+            candidate_group.append(rule)
+    if force_candidate is not None:
+        candidate_group = [force_candidate]
+    if len(candidate_group) == 0:
+        candidate_group = rule_groups[:]
+    assert len(candidate_group) > 0, rule_groups
+    if len(candidate_group) > 1:
+        print("Warning: multiple fare candidates detected:")
+        for i, candidate in enumerate(candidate_group):
+            print(f"#{i}:", candidate)
+        print("First one is chosen.")
+    candidate = candidate_group[0]
+
+    # Calculate distance and station count
+    distance = 0
+    station_cnt = 0
+    for i, (station, ld) in enumerate(path):
+        if ld is None:
+            continue
+        line, direction = lines[ld[0]], ld[1]
+        next_station = path[i + 1][0] if i + 1 < len(path) else end_station
+        distance += line.two_station_dist(direction, station, next_station)
+        direction_stations = line.direction_stations(direction)
+        assert direction_stations.index(next_station) > direction_stations.index(station), (
+            station, next_station, direction_stations)
+        station_cnt += direction_stations.index(next_station) - direction_stations.index(station)
+    return candidate.get_fare(distance, station_cnt, cur_date, start_time, start_day, end_time, end_day)
+
+
+def parse_fare_rules(fare_file: str, date_groups: dict[str, DateGroup]) -> Fare:
+    """ Pare fare rule file """
+    assert os.path.exists(fare_file), fare_file
+    with open(fare_file) as fp:
+        fare_dict = pyjson5.decode_io(fp)
+    currency = fare_dict.get("currency", "")
+    fill_index: int | None = None
+    fare = Fare([], currency)
+    for inner_dict in fare_dict["rule_groups"]:
+        name = inner_dict["name"]
+        basis = inner_dict["basis"]
+        assert basis in ["single", "distance", "station"], basis
+        rule_lines = set(inner_dict.get("lines", []))
+        if len(rule_lines) == 0:
+            assert fill_index is None, (fare.rule_groups, fill_index)
+            fill_index = len(fare.rule_groups)
+        starting = set(inner_dict.get("starting_stations", []))
+        ending = set(inner_dict.get("ending_stations", []))
+        fare.rule_groups.append(FareRule(fare, name, basis, rule_lines, [], starting, ending))
+        for rule_dict in inner_dict["rules"]:
+            inner_fare = float(rule_dict["fare"])
+            inner_basis = rule_dict["basis"]
+            assert inner_basis in ["entry", "exit"], inner_basis
+            start = int(rule_dict.get("start", 0))
+            if "end" in rule_dict:
+                end = int(rule_dict["end"])
+            else:
+                end = None
+            fare.rule_groups[-1].rules.append(FareRule.Rule(
+                fare.rule_groups[-1], inner_fare, inner_basis, start, end,
+                parse_time_interval(date_groups, rule_dict["apply_time"])
+            ))
+    return fare

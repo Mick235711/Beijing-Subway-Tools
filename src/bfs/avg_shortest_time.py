@@ -19,10 +19,10 @@ from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin
+from src.fare.fare import AbstractPath
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 
-AbstractPath = list[tuple[str, tuple[str, str] | None]]
 PathInfo = tuple[int, Path, BFSResult]
 
 
