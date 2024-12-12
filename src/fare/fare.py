@@ -12,13 +12,11 @@ from datetime import date, time
 
 import pyjson5
 
-from src.bfs.bfs import Path
+from src.bfs.common import AbstractPath, Path
 from src.city.date_group import TimeInterval, DateGroup, parse_time_interval
 from src.city.line import Line
 from src.common.common import suffix_s, distance_str, get_time_str
 from src.routing.train import Train
-
-AbstractPath = list[tuple[str, tuple[str, str] | None]]
 
 
 class FareRule:

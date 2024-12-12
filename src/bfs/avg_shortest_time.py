@@ -11,7 +11,8 @@ from functools import partial
 
 from tqdm import tqdm
 
-from src.bfs.bfs import bfs_wrap, get_all_trains_single, Path, BFSResult, total_transfer, expand_path
+from src.bfs.bfs import bfs_wrap, get_all_trains_single, BFSResult, total_transfer, expand_path
+from src.bfs.common import AbstractPath, Path
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_station_list
 from src.city.city import City
 from src.city.line import Line, station_full_name
@@ -19,7 +20,6 @@ from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
     percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin
-from src.fare.fare import AbstractPath
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 

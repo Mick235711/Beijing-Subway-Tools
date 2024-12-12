@@ -7,13 +7,13 @@
 from datetime import date, time, timedelta
 from math import floor, ceil
 
-from src.bfs.bfs import BFSResult, Path as BFSPath, expand_path
+from src.bfs.bfs import BFSResult, expand_path
+from src.bfs.common import AbstractPath, Path as BFSPath
 from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import add_min_tuple, get_time_str, diff_time_tuple
 from src.dist_graph.shortest_path import Graph, Path
-from src.fare.fare import AbstractPath
 from src.routing.train import Train
 
 
