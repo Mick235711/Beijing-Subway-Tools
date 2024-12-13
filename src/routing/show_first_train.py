@@ -9,7 +9,7 @@ import argparse
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_line, ask_for_direction, ask_for_date_group
 from src.city.date_group import DateGroup
 from src.city.line import Line
-from src.common.common import get_time_str, chin_len
+from src.common.common import get_time_str, chin_len, pad_to
 from src.routing.train import parse_trains, Train
 
 
@@ -68,8 +68,7 @@ def output_line(line: Line, direction: str, date_group: DateGroup, full_mode: st
 
     # Print for each station
     for station in line.direction_stations(direction):
-        full_name = line.station_full_name(station)
-        print(" " * (max_station_len - chin_len(full_name)) + full_name, end=" ")
+        print(pad_to(line.station_full_name(station), max_station_len), end=" ")
         first_train, first_full, last_full, last_train = get_first_last(station, train_list, full_mode=full_mode)
         print(first_train.stop_time_str(station), end=" ")
         print(first_full.stop_time_str(station), end=" ")

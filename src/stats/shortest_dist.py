@@ -4,47 +4,115 @@
 """ Print the shortest/longest distance between all stations """
 
 # Libraries
-from src.city.line import Line
+import argparse
+from collections.abc import Callable
+
+from src.bfs.avg_shortest_time import path_shorthand, reverse_path
+from src.bfs.common import AbstractPath
+from src.city.ask_for_city import ask_for_date, ask_for_time
+from src.city.city import City
+from src.common.common import suffix_s, pad_to
+from src.dist_graph.adaptor import get_dist_graph, simplify_path, to_trains, all_bfs_path
+from src.dist_graph.shortest_path import Path, Graph, all_shortest
+from src.routing.train import parse_all_trains
 from src.stats.common import display_first, parse_args
 
 
+def get_single_station_paths(graph: Graph) -> dict[str, dict[str, list[tuple[int | float, Path]]]]:
+    """ Get paths between every adjacent station pair """
+    processed_dict: dict[str, dict[str, list[tuple[int | float, Path]]]] = {}
+    for start, inner_dict in graph.items():
+        for (end, line), dist in inner_dict.items():
+            if start not in processed_dict:
+                processed_dict[start] = {}
+            if end not in processed_dict[start]:
+                processed_dict[start][end] = []
+            processed_dict[start][end].append((dist, [(start, line)]))
+    return processed_dict
+
+
+AbstractPathKey = tuple[tuple[str, tuple[str, str] | None], ...]
+
+
 def shortest_dists(
-    lines: dict[str, Line], *, limit_num: int = 5
+    city: City, paths: dict[str, dict[str, list[tuple[int | float, Path]]]], unit: Callable[[int | float], str],
+    *, limit_num: int = 5
 ) -> None:
     """ Print the shortest/longest N distances of the whole city """
-    print("Shortest/Longest Station Distances:")
-    processed_dict: dict[tuple[str, str, str], int] = {}
-    double_edge: set[tuple[str, str]] = set()
-    for line in lines.values():
-        for direction in line.directions.keys():
-            stations = line.direction_stations(direction)
-            dists = line.direction_dists(direction)
-            for i, station in enumerate(stations):
-                if i == len(stations) - 1:
-                    if not line.loop:
-                        break
-                    next_station = stations[0]
-                else:
-                    next_station = stations[i + 1]
-                station = line.station_full_name(station)
-                next_station = line.station_full_name(next_station)
-                if (line.full_name(), next_station, station) not in processed_dict:
-                    processed_dict[(line.full_name(), station, next_station)] = dists[i]
-                else:
-                    double_edge.add((next_station, station))
+    processed_dict: dict[tuple[int | float, AbstractPathKey, str, str], AbstractPath] = {}
+    for start, inner_dict in paths.items():
+        for end, path_list in inner_dict.items():
+            for dist, path in path_list:
+                abstract_path = simplify_path(path, end)
+                reversed_path = reverse_path(end, city, abstract_path)
+                if reversed_path is not None and (dist, tuple(reversed_path), end, start) in processed_dict:
+                    continue
+                processed_dict[(dist, tuple(abstract_path), start, end)] = abstract_path
+
     display_first(
-        sorted([(l, s1, s2, d) for (l, s1, s2), d in processed_dict.items()], key=lambda x: x[3]),
-        lambda data: f"{data[3]}m: {data[0]} {data[1]} " + (
-            "<->" if (data[1], data[2]) in double_edge else "->"
-        ) + f" {data[2]}",
+        sorted(processed_dict.items(), key=lambda x: (x[0][0], tuple(
+            city.lines[l[1][0]].index for l in x[0][1] if l[1] is not None
+        ))),
+        lambda data: f"{unit(data[0][0])}: {city.station_full_name(data[0][2])} " + (
+            "<->" if reverse_path(data[0][3], city, data[1]) is not None else "->"
+        ) + f" {city.station_full_name(data[0][3])} ({path_shorthand(data[0][3], city, data[1], line_only=True)})",
         limit_num=limit_num
     )
 
 
 def main() -> None:
     """ Main function """
-    _, args, _, lines = parse_args(include_passing_limit=False, include_train_ctrl=False)
-    shortest_dists(lines, limit_num=args.limit_num)
+    def append_arg(parser: argparse.ArgumentParser) -> None:
+        """ Append more arguments """
+        parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+        parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
+        parser.add_argument("-d", "--data-source", choices=["single_station", "station", "distance", "fare"],
+                            default="single_station", help="Path criteria")
+    _, args, city, lines = parse_args(append_arg, include_passing_limit=False, include_train_ctrl=False)
+
+    graph = get_dist_graph(
+        city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+        include_virtual=(not args.exclude_virtual and args.data_source != "single_station"),
+        include_circle=(not args.exclude_single)
+    )
+    if args.data_source == "station":
+        unit = lambda num: suffix_s("station", num)
+    elif args.data_source == "fare":
+        def unit(num: int | float) -> str:
+            """ Get currency str """
+            assert city.fare_rules is not None, city
+            return city.fare_rules.currency_str(num)
+    else:
+        unit = lambda num: f"{num}m"
+
+    if args.data_source == "single_station":
+        print("Shortest/Longest Station Distances:")
+        shortest_dists(city, get_single_station_paths(graph), unit, limit_num=args.limit_num)
+    else:
+        if args.data_source == "fare":
+            train_dict = parse_all_trains(
+                list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
+            )
+            assert city.fare_rules is not None, city
+            start_date = ask_for_date()
+            start_time, start_day = ask_for_time()
+            bfs_dict = all_bfs_path(
+                city, graph, train_dict, start_date, start_time, start_day, data_source=args.data_source
+            )
+            processed_dict: dict[str, dict[str, list[tuple[int | float, Path]]]] = {}
+            for start, inner_dict in bfs_dict.items():
+                processed_dict[start] = {}
+                for end, (path, _, bfs_path) in inner_dict.items():
+                    fare = city.fare_rules.get_total_fare(lines, bfs_path, end, start_date)
+                    processed_dict[start][end] = [(fare, path)]
+        else:
+            shortest_dict = all_shortest(city, graph, data_source=args.data_source)
+            processed_dict = {
+                start: {end: [elem] for end, elem in inner_dict.items()}
+                for start, inner_dict in shortest_dict.items()
+            }
+        print("Shortest/Longest Path " + args.data_source.capitalize() + "s:")
+        shortest_dists(city, processed_dict, unit, limit_num=args.limit_num)
 
 
 # Call main

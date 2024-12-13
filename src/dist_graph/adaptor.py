@@ -5,7 +5,11 @@
 
 # Libraries
 from datetime import date, time, timedelta
+from functools import partial
 from math import floor, ceil
+import multiprocessing as mp
+
+from tqdm import tqdm
 
 from src.bfs.bfs import BFSResult, expand_path
 from src.bfs.common import AbstractPath, Path as BFSPath
@@ -13,7 +17,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import add_min_tuple, get_time_str, diff_time_tuple
-from src.dist_graph.shortest_path import Graph, Path
+from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.train import Train
 
 
@@ -109,7 +113,11 @@ def simplify_path(path: Path, end_station: str) -> AbstractPath:
         new_path.append(
             (station, None if line is None else (line.name, line.determine_direction(station, next_station)))
         )
-        last_line = line
+        if line is None or not line.in_end_circle(station) or line.in_end_circle(next_station) or (
+            i == len(path) - 1 or line != path[i + 1][1] or
+            not line.in_end_circle(end_station if i == len(path) - 2 else path[i + 2][0])
+        ):
+            last_line = line
     return new_path
 
 
@@ -154,6 +162,7 @@ def to_trains(
 
         # Normal line, find a suitable train
         line_name, direction = line_direction
+        line = lines[line_name]
         next_date = cur_date + timedelta(days=1)
         cur_candidates: list[Train] = []
         next_candidates: list[Train] = []
@@ -164,20 +173,20 @@ def to_trains(
                  and (station != next_station or train.loop_next is not None)],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )
-            if lines[line_name].date_groups[date_group].covers(next_date):
+            if line.date_groups[date_group].covers(next_date):
                 if len(trains) == 0:
                     continue
                 next_candidates.append(trains[0])
-            if lines[line_name].date_groups[date_group].covers(cur_date):
+            if line.date_groups[date_group].covers(cur_date):
                 trains = [train for train in trains if diff_time_tuple(train.arrival_time[station], cur_tuple) >= 0]
                 if len(trains) == 0:
                     continue
                 cur_candidates.append(trains[0])
-        assert len(cur_candidates) <= 1, (cur_candidates, station, line_direction, direction, cur_tuple)
+        assert len(cur_candidates) <= 1, (cur_candidates, station, line, direction, cur_tuple)
         if len(cur_candidates) > 0:
             candidate = cur_candidates[0]
         else:
-            assert len(next_candidates) == 1, (next_candidates, station, line_direction, direction, cur_tuple)
+            assert len(next_candidates) == 1, (next_candidates, station, line, direction, cur_tuple)
             candidate = next_candidates[0]
             cur_date = next_date
             force_next_day = True
@@ -193,7 +202,7 @@ def to_trains(
             continue
         transfer = transfer_dict[next_station]
         transfer_time, is_special = transfer.get_transfer_time(
-            lines[line_name], direction,
+            line, direction,
             lines[new_path[i + 1][1][0]], new_path[i + 1][1][1],  # type: ignore
             cur_date, cur_tuple[0], cur_tuple[1]
         )
@@ -203,6 +212,45 @@ def to_trains(
         end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1],
         force_next_day=force_next_day
     ), final_new_path
+
+
+global single_station_bfs
+def single_station_bfs(
+    city: City, graph: Graph, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    start_date: date, start_time: time, start_day: bool, start_station: str,
+    *, data_source: str = "station"
+) -> tuple[str, dict[str, tuple[Path, BFSResult, BFSPath]]]:
+    """ BFS single-source from a single station """
+    shortest_dict = shortest_path(graph, start_station, ignore_dists=(data_source == "station"))
+    result: dict[str, tuple[Path, BFSResult, BFSPath]] = {}
+    for end_station, (dist, path) in shortest_dict.items():
+        bfs_result, bfs_path = to_trains(
+            city.lines, train_dict, city.transfers, city.virtual_transfers,
+            path, end_station, start_date, start_time, start_day
+        )
+        result[end_station] = (path, bfs_result, bfs_path)
+    return start_station, result
+
+
+def all_bfs_path(
+    city: City, graph: Graph, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    start_date: date, start_time: time, start_day: bool = False,
+    *, data_source: str = "station"
+) -> dict[str, dict[str, tuple[Path, BFSResult, BFSPath]]]:
+    """ Get BFS paths between all pairs of stations """
+    with tqdm(desc="Calculating Paths", total=len(list(graph.keys()))) as bar:
+        with mp.Pool() as pool:
+            processed_dict: dict[str, dict[str, tuple[Path, BFSResult, BFSPath]]] = {}
+            for start_station, result in pool.imap_unordered(
+                partial(
+                    single_station_bfs, city, graph, train_dict,
+                    start_date, start_time, start_day, data_source=data_source
+                ), list(graph.keys()), chunksize=50
+            ):
+                bar.set_description("Calculating " + city.station_full_name(start_station))
+                bar.update()
+                processed_dict[start_station] = result
+    return processed_dict
 
 
 def reduce_path(bfs_path: BFSPath, end_station: str) -> Path:

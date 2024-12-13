@@ -146,6 +146,19 @@ class Line:
             start_station, end_station
         )
 
+    def in_end_circle(self, station: str, direction: str | None = None) -> bool:
+        """ Determine if the station is inside the end circle """
+        if self.end_circle_start is None:
+            return False
+        result = False
+        for inner_dir in ([direction] if direction else self.end_circle_spec.keys()):
+            stations = self.direction_stations(inner_dir)
+            if stations == self.stations:
+                result = result or stations.index(station) < stations.index(self.end_circle_start)
+            else:
+                result = result or stations.index(station) > stations.index(self.end_circle_start)
+        return result
+
     def timetables(self) -> dict[str, dict[str, dict[str, Timetable]]]:
         """ Get timetables """
         if self.timetables_processed is not None:

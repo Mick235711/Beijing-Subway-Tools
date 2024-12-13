@@ -129,7 +129,7 @@ def calculate_shortest(
             average(result.total_distance(path) for _, path, result in times_paths),
             None if fare_rules is None else
             average(
-                sum(x[-1] for x in fare_rules.get_fare(lines, path, result.station, start_date))
+                fare_rules.get_total_fare(lines, path, result.station, start_date)
                 for _, path, result in times_paths
             ),
             max(times_paths, key=lambda x: x[0]),
@@ -236,15 +236,46 @@ def avg_shortest_in_city(
     return city, stations, result_dict
 
 
-def path_shorthand(end_station: str, city: City, path: AbstractPath) -> str:
+def reverse_path(end_station: str, city: City, path: AbstractPath) -> AbstractPath | None:
+    """ Reverse the entire path """
+    new_path: AbstractPath = []
+    for i, (station, line_direction) in enumerate(path):
+        next_station = path[i + 1][0] if i + 1 < len(path) else end_station
+        if line_direction is None:
+            new_ld = None
+        else:
+            line = city.lines[line_direction[0]]
+            direction = line_direction[1]
+            if line.in_end_circle(station, direction) or line.in_end_circle(next_station, direction):
+                return None
+            else:
+                new_direction_candidates = [d for d in line.directions.keys() if d != direction]
+                assert len(new_direction_candidates) == 1, line
+                new_ld = (line_direction[0], new_direction_candidates[0])
+        new_path = [(next_station, new_ld)] + new_path
+    return new_path
+
+
+def path_shorthand(end_station: str, city: City, path: AbstractPath, *, line_only: bool = False) -> str:
     """ One-line representation of a path """
     result = ""
     for station, line_direction in path:
         if line_direction is None:
-            result += f"{city.station_full_name(station)} --- (virtual) --> "
+            if line_only:
+                result += "[virtual]-"
+            else:
+                result += f"{city.station_full_name(station)} --- (virtual) --> "
         else:
-            result += (f"{city.station_full_name(station)} --- " +
-                       f"{city.lines[line_direction[0]].full_name()} ({line_direction[1]}) --> ")
+            line = city.lines[line_direction[0]]
+            if line_only:
+                result += line.full_name()
+                if line.loop:
+                    result += f"({line_direction[1]})"
+                result += "-"
+            else:
+                result += f"{city.station_full_name(station)} --- {line.full_name()} ({line_direction[1]}) --> "
+    if line_only:
+        return result.rstrip("-")
     return result + city.station_full_name(end_station)
 
 

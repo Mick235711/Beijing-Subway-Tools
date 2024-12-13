@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
 from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
-    distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple
+    distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple, pad_to
 from src.timetable.timetable import Timetable, route_stations, route_skip_stations, route_without_timetable
 
 
@@ -315,7 +315,7 @@ class Train:
                 print(")")
                 current_dist += dist
 
-            print(f"{station_repr}" + " " * (max_length - chin_len(station_repr)), end=" ")
+            print(pad_to(station_repr, max_length), end=" ")
             if station in self.skip_stations:
                 print("(passing)")
                 continue

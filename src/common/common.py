@@ -107,6 +107,12 @@ def chin_len(s: str) -> int:
     return sum(2 if is_chinese(ch) else 1 for ch in s)
 
 
+def pad_to(s: str, target: int) -> str:
+    """ Pad the string to a given target (align to the right) """
+    assert len(s) <= target, (s, target)
+    return " " * (target - chin_len(s)) + s
+
+
 def complete_pinyin(message: str, meta_information: dict[str, str],
                     aliases: dict[str, list[str]] | None = None, *,
                     sort: bool = True, allow_empty: bool = False) -> str:

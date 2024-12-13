@@ -126,6 +126,13 @@ class Fare:
         """ Determine the string representation of fare """
         return self.currency + f"{fare:.2f}"
 
+    def get_total_fare(
+        self, lines: dict[str, Line], path: Path, end_station: str,
+        cur_date: date | DateGroup,
+    ) -> float:
+        """ Get total fare without splits """
+        return sum(x[-1] for x in self.get_fare(lines, path, end_station, cur_date))
+
     def get_fare(
         self, lines: dict[str, Line], path: Path, end_station: str,
         cur_date: date | DateGroup,
@@ -141,11 +148,12 @@ class Fare:
             last_index += 1
         if last_index == len(path):
             return []
+        orig_delta = last_index
         old_index: int | None = None
         for i, (station, train) in enumerate(path[last_index:] + [(end_station, None)]):
             # FIXME: support virtual transfer that have fare discontinuity
             if train is not None and not isinstance(train, Train):
-                old_index = i - 1
+                old_index = orig_delta + i - 1
                 continue
 
             # Filter for lines
@@ -163,7 +171,8 @@ class Fare:
                     fetch_index = old_index
                 else:
                     end_station = station
-                    fetch_index = i - 1
+                    fetch_index = orig_delta + i - 1
+                    assert 0 <= fetch_index < len(path), (path, fetch_index, orig_delta, i, end_station, station)
                 old_train = path[fetch_index][1]
                 assert isinstance(old_train, Train), (path, old_index, i)
                 end_time, end_day = old_train.arrival_time_virtual(path[fetch_index][0])[end_station]
@@ -174,7 +183,7 @@ class Fare:
                     cur_candidates, lines, to_abstract(path[last_index:fetch_index + 1]), end_station,
                     cur_date, last_time, last_day, end_time, end_day
                 )))
-                last_index = i
+                last_index = orig_delta + i
                 if train is not None:
                     cur_candidates = [
                         candidate for candidate in self.rule_groups[:] if train.line.name in candidate.lines
@@ -210,7 +219,7 @@ def get_fare_single(
                 if rule.get_fare(0, 0, cur_date, start_time, start_day, end_time, end_day) is None:
                     continue
                 candidate_group.append((rule, len(rule.starting), len(rule.ending)))
-    assert len(candidate_group) > 0, rule_groups
+    assert len(candidate_group) > 0, (path, rule_groups)
     candidate_group = sorted(candidate_group, key=lambda x: (x[1] == 0, x[2] == 0, x[1], x[2]))
     candidate = candidate_group[0][0]
 
