@@ -218,10 +218,12 @@ global single_station_bfs
 def single_station_bfs(
     city: City, graph: Graph, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     start_date: date, start_time: time, start_day: bool, start_station: str,
-    *, data_source: str = "station"
+    *, data_source: str = "station", fare_mode: bool = False
 ) -> tuple[str, dict[str, tuple[Path, BFSResult, BFSPath]]]:
     """ BFS single-source from a single station """
-    shortest_dict = shortest_path(graph, start_station, ignore_dists=(data_source == "station"))
+    shortest_dict = shortest_path(
+        graph, start_station, ignore_dists=(data_source == "station"), fare_mode=fare_mode
+    )
     result: dict[str, tuple[Path, BFSResult, BFSPath]] = {}
     for end_station, (dist, path) in shortest_dict.items():
         bfs_result, bfs_path = to_trains(
@@ -235,7 +237,7 @@ def single_station_bfs(
 def all_bfs_path(
     city: City, graph: Graph, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     start_date: date, start_time: time, start_day: bool = False,
-    *, data_source: str = "station"
+    *, data_source: str = "station", fare_mode: bool = False
 ) -> dict[str, dict[str, tuple[Path, BFSResult, BFSPath]]]:
     """ Get BFS paths between all pairs of stations """
     with tqdm(desc="Calculating Paths", total=len(list(graph.keys()))) as bar:
@@ -244,7 +246,7 @@ def all_bfs_path(
             for start_station, result in pool.imap_unordered(
                 partial(
                     single_station_bfs, city, graph, train_dict,
-                    start_date, start_time, start_day, data_source=data_source
+                    start_date, start_time, start_day, data_source=data_source, fare_mode=fare_mode
                 ), list(graph.keys()), chunksize=50
             ):
                 bar.set_description("Calculating " + city.station_full_name(start_station))

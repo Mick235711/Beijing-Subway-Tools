@@ -11,8 +11,8 @@ from src.bfs.avg_shortest_time import path_shorthand, reverse_path
 from src.bfs.common import AbstractPath
 from src.city.ask_for_city import ask_for_date, ask_for_time
 from src.city.city import City
-from src.common.common import suffix_s, pad_to
-from src.dist_graph.adaptor import get_dist_graph, simplify_path, to_trains, all_bfs_path
+from src.common.common import suffix_s, to_pinyin
+from src.dist_graph.adaptor import get_dist_graph, simplify_path, all_bfs_path
 from src.dist_graph.shortest_path import Path, Graph, all_shortest
 from src.routing.train import parse_all_trains
 from src.stats.common import display_first, parse_args
@@ -40,8 +40,8 @@ def shortest_dists(
 ) -> None:
     """ Print the shortest/longest N distances of the whole city """
     processed_dict: dict[tuple[int | float, AbstractPathKey, str, str], AbstractPath] = {}
-    for start, inner_dict in paths.items():
-        for end, path_list in inner_dict.items():
+    for start, inner_dict in sorted(paths.items(), key=lambda x: to_pinyin(x[0])[0]):
+        for end, path_list in sorted(inner_dict.items(), key=lambda x: to_pinyin(x[0])[0]):
             for dist, path in path_list:
                 abstract_path = simplify_path(path, end)
                 reversed_path = reverse_path(end, city, abstract_path)
@@ -52,7 +52,7 @@ def shortest_dists(
     display_first(
         sorted(processed_dict.items(), key=lambda x: (x[0][0], tuple(
             city.lines[l[1][0]].index for l in x[0][1] if l[1] is not None
-        ))),
+        ), tuple(to_pinyin(l[0])[0] for l in x[0][1]))),
         lambda data: f"{unit(data[0][0])}: {city.station_full_name(data[0][2])} " + (
             "<->" if reverse_path(data[0][3], city, data[1]) is not None else "->"
         ) + f" {city.station_full_name(data[0][3])} ({path_shorthand(data[0][3], city, data[1], line_only=True)})",
@@ -90,14 +90,15 @@ def main() -> None:
         shortest_dists(city, get_single_station_paths(graph), unit, limit_num=args.limit_num)
     else:
         if args.data_source == "fare":
+            assert city.fare_rules is not None, city
             train_dict = parse_all_trains(
                 list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
             )
-            assert city.fare_rules is not None, city
             start_date = ask_for_date()
             start_time, start_day = ask_for_time()
             bfs_dict = all_bfs_path(
-                city, graph, train_dict, start_date, start_time, start_day, data_source=args.data_source
+                city, graph, train_dict, start_date, start_time, start_day,
+                data_source=args.data_source, fare_mode=True
             )
             processed_dict: dict[str, dict[str, list[tuple[int | float, Path]]]] = {}
             for start, inner_dict in bfs_dict.items():

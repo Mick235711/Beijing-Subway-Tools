@@ -105,11 +105,15 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
     else:
         if args.num_path is not None:
             print("Warning: --num-path ignored in non-time criteria.")
+        if args.data_source == "fare":
+            assert city.fare_rules is not None, city
         graph = get_dist_graph(
             city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
             include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
         )
-        path_dict = shortest_path(graph, start[0], ignore_dists=(args.data_source == "station"))
+        path_dict = shortest_path(
+            graph, start[0], ignore_dists=(args.data_source == "station"), fare_mode=(args.data_source == "fare")
+        )
         if end[0] not in path_dict:
             print("Unreachable!")
             sys.exit(0)
@@ -130,7 +134,7 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance"],
+    parser.add_argument("-d", "--data-source", choices=["time", "transfer", "station", "distance", "fare"],
                         default="time", help="Shortest path criteria")
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
     shortest_path_args(parser, have_single=True)

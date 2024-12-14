@@ -701,11 +701,11 @@ Average over all 223 trains, segment speed: 26.38min, 42.67km/h
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
 ```
-usage: shortest_path.py [-h] [-d {time,transfer,station,distance}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+usage: shortest_path.py [-h] [-d {time,transfer,station,distance,fare}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+  -d {time,transfer,station,distance,fare}, --data-source {time,transfer,station,distance,fare}
                         Shortest path criteria
   -k NUM_PATH, --num-path NUM_PATH
                         Show first k path
@@ -1613,7 +1613,7 @@ Earliest -> Latest Last Trains:
 
 ### [`shortest_dist.py`](/src/stats/shortest_dist.py): Show the shortest/longest distance between stations
 ```
-usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
+usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [-d {single_station,station,distance,fare}]
 
 options:
   -h, --help            show this help message and exit
@@ -1623,9 +1623,21 @@ options:
                         Include lines
   -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
                         Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-single      Exclude single-direction lines
+  -d {single_station,station,distance,fare}, --data-source {single_station,station,distance,fare}
+                        Path criteria
 ```
 
 Show the shortest/longest N station distance figures. Do not consider trains, so no parameter like `-a` and `-f`.
+
+Specifying `--data-source` can affect how the station distances are computed:
+- `single_station` only shows the distance between adjacent stations
+- `station` shows the distance between all stations, measured by stations traveled
+- `distance` shows the distance between all stations, measured by meters
+- `fare` shows the fare between all stations
+
+**NOTE: Fare mode may require several minutes to compute.**
 
 Example Usage:
 <pre>
