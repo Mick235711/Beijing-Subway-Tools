@@ -172,6 +172,16 @@
         "崁頂": {x: 932, y: 166, type: "circle", r: 30},
         "淡水漁人碼頭": {x: 127, y: 605, type: "circle", r: 30},
         "沙崙": {x: 270, y: 460, type: "circle", r: 30},
-        "台北海洋大學": {x: 524, y: 411, type: "circle", r: 30}
+        "台北海洋大學": {x: 524, y: 411, type: "circle", r: 30},
+
+        // Ankeng LRT
+        "雙城": {x: 1596, y: 7501, type: "circle", r: 30},
+        "玫瑰中國城": {x: 1811, y: 7501, type: "circle", r: 30},
+        "台北小城": {x: 2026, y: 7501, type: "circle", r: 30},
+        "耕莘安康院區": {x: 2241, y: 7501, type: "circle", r: 30},
+        "景文科大": {x: 2372, y: 7367, type: "circle", r: 30},
+        "安康": {x: 2496, y: 7198, type: "circle", r: 30},
+        "陽光運動公園": {x: 2496, y: 6995, type: "circle", r: 30},
+        "新和國小": {x: 2496, y: 6791, type: "circle", r: 30}
     }
 }
