@@ -96,6 +96,39 @@
             // 两线站厅间2扶梯+1通道
             {from: "文湖線", to: "板南線", minutes: 2.5}
         ],
+        "大坪林": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/036.pdf
+            // 共用T型站厅，1短扶梯+1长扶梯（三层）
+            {from: "松山新店線", to: "環狀線", minutes: 1.5}
+        ],
+        "景安": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/047.pdf
+            // POV: https://www.bilibili.com/video/BV1peyRY5E5d/
+            // 奇葩换乘，B6到6F跨越12层天地换
+            // 中和新芦线北行位于B4，南行位于B6，南行需先两层长扶梯到北行站台再换乘
+            // 从北行站台开始，连续5个短扶梯从B4上到5F，然后走较长联络通道到环状线外环站台
+            // 环状线内环站台需先上到6F天桥下到外环站台再开始换乘
+            // 北行-外环最短时间：5扶梯=2.5min，通道=1min，附加=0.5min，加起来4min
+            {from: "中和新蘆線", from_direction: "北行", to: "環狀線", to_direction: "外環", minutes: 4},
+            {from: "中和新蘆線", from_direction: "北行", to: "環狀線", to_direction: "內環", minutes: 5},
+            {from: "中和新蘆線", from_direction: "南行", to: "環狀線", to_direction: "外環", minutes: 5},
+            {from: "中和新蘆線", from_direction: "南行", to: "環狀線", to_direction: "內環", minutes: 6}
+        ],
+        "板橋": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/209.pdf
+            // 出闸换乘，奇远无比，板南线站台上两层，出3A口，走超长的地下街+通道到达环状线5号口
+            // 最后一段还只有楼梯，到达环状线后只能去往内环方向站台，外环需先走4F天桥到内环
+            // 时间参考：https://www.youtube.com/watch?v=m0ECRuTytCc
+            {from: "板南線", to: "環狀線", to_direction: "內環", minutes: 7.5},
+            {from: "板南線", to: "環狀線", to_direction: "外環", minutes: 8.5}
+        ],
+        "頭前庄": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/123.pdf
+            // 环状线内环3F站台-短通道-2段短扶梯-1F-短扶梯-短通道-B1中和新芦线站厅-短扶梯-B2站台
+            // 外环方向需走4F天桥到达内环后再开始换乘
+            {from: "中和新蘆線", to: "環狀線", to_direction: "內環", minutes: 3},
+            {from: "中和新蘆線", to: "環狀線", to_direction: "外環", minutes: 4}
+        ],
         "紅樹林": [
             // 参考：https://web.metro.taipei/img/ALL/INFOPDF/070.pdf
             // 出站之后参考：https://www.youtube.com/watch?v=W2Kx8AUpbnc
@@ -113,6 +146,13 @@
             // POV: https://www.youtube.com/watch?v=4XIP12vJvBA
             // 4扶梯+出入闸各一次+两个短通道
             {from: "中和新蘆線", to: "桃園機場捷運", minutes: 4}
+        ],
+        "新北產業園區": [
+            // 参考：环状线部分：https://web.metro.taipei/img/ALL/INFOPDF/213.pdf
+            // 机场捷运部分：https://www.tymetro.com.tw/tymetro-new/upload/station/20211006021946_1.png
+            // 环状线6F站台-短扶梯-5F站厅-大致两分钟的长通道-机场捷运3F站厅-楼梯-2F站台
+            // POV：https://www.youtube.com/watch?v=Nt85GAKYZbk
+            {from: "環狀線", to: "桃園機場捷運", minutes: 3}
         ]
     },
     virtual_transfers: [
@@ -128,6 +168,14 @@
             from_station: "北門", to_station: "台北車站(機捷)",
             times: [
                 {from: "松山新店線", to: "桃園機場捷運", minutes: 6}
+            ]
+        },
+        {
+            // 讽刺的是倒是比板桥近点
+            // POV：https://www.youtube.com/watch?v=FV8D4MvxJRc
+            from_station: "新埔", to_station: "新埔民生",
+            times: [
+                {from: "板南線", to: "環狀線", minutes: 6},
             ]
         }
     ],
