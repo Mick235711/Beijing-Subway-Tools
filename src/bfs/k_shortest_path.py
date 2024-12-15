@@ -43,7 +43,7 @@ def merge_path(path1: Path, path2: Path) -> Path:
     if not isinstance(path1[-1][1], Train):
         # Detect if a multi-virtual-transfer exists
         if not isinstance(path2[0][1], Train) and path1[-1][1][0] == path2[0][1][1]:
-            return path1[:-1] + path2[1:]
+            return merge_path(path1[:-1], path2[1:])
         return path1 + path2
     assert path2[0][0] in path1[-1][1].line.stations, (path1, path2)
     if not isinstance(path2[0][1], Train):
@@ -53,8 +53,10 @@ def merge_path(path1: Path, path2: Path) -> Path:
                path2[0][1].direction == path1[-1][1].direction, (path1, path2)
         if path2[0][1] == path1[-1][1].loop_next or path2[0][1].line.end_circle_start is not None:
             return path1 + path2[1:]
-        assert path1[-1][0] in path2[0][1].arrival_time, (path1, path2)
-        return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
+        if path1[-1][0] in path2[0][1].arrival_time:
+            return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
+        assert path2[0][0] in path1[-1][1].arrival_time, (path1, path2)
+        return path1 + path2[1:]
     return path1 + path2
 
 
@@ -118,7 +120,8 @@ def k_shortest_path(
     )
     if end_station not in bfs_result:
         return result
-    result.append((bfs_result[end_station], bfs_result[end_station].shortest_path(bfs_result)))
+    first_path = bfs_result[end_station].shortest_path(bfs_result)
+    result.append((bfs_result[end_station], first_path))
     print(f"Found {len(result)}-th shortest path!")
 
     # Main loop
@@ -189,7 +192,7 @@ def k_shortest_path(
             fixed_path = fix_path(final_path, virtual_dict, start_date)
             new_candidate = (new_result, fixed_path)
 
-            found = False
+            found = equivalent_path(new_candidate[1], first_path)
             for j, (cur_result, cur_candidate) in enumerate(candidate):
                 if equivalent_path(new_candidate[1], cur_candidate):
                     found = True

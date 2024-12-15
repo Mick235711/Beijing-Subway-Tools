@@ -382,6 +382,7 @@ def bfs(
         station, queue = queue[0], queue[1:]
         in_queue.remove(station)
         exclude_tuple: set[tuple[Line, str]] = set()
+        prev_is_virtual = False
         if station == start_station:
             cur_time, cur_day = start_time, start_day
             prev_line, prev_direction = initial_line_direction or (None, None)
@@ -395,6 +396,7 @@ def bfs(
                 for direction in prev_line.directions.keys():
                     exclude_tuple.add((prev_line, direction))
             else:
+                prev_is_virtual = True
                 prev_line = lines[prev_train[2][2]]
                 prev_direction = prev_train[2][3]
 
@@ -402,7 +404,7 @@ def bfs(
         if exclude_edges is not None and station in exclude_edges:
             exclude_tuple |= exclude_edges[station]
         for next_train_start, next_train in find_next_train(
-            lines, train_dict, transfer_dict, virtual_dict, start_date, station,
+            lines, train_dict, transfer_dict, {} if prev_is_virtual else virtual_dict, start_date, station,
             cur_time, cur_day, prev_line, prev_direction,
             exclude_tuple=exclude_tuple, exclude_edge=exclude_edge
         ):
@@ -412,7 +414,8 @@ def bfs(
                 initial_line_direction[0] == next_train.line
             ) and not include_express:
                 next_stations = [
-                    (st, next_train_virtual[st]) for st in next_train.line.must_include if st in next_train_virtual
+                    (st, next_train_virtual[st]) for st in next_train.line.must_include
+                    if st in next_train_virtual and st != next_train_start
                 ]
             else:
                 next_stations = list(next_train_virtual.items())[1:]
