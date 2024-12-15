@@ -106,7 +106,9 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
         if args.num_path is not None:
             print("Warning: --num-path ignored in non-time criteria.")
         if args.data_source == "fare":
-            assert city.fare_rules is not None, city
+            if city.fare_rules is None:
+                print("Data source fare is not available since this city does not have fare rules defined!")
+                sys.exit(1)
         graph = get_dist_graph(
             city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
             include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)

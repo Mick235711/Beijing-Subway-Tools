@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+import sys
 from collections.abc import Callable
 
 from src.bfs.avg_shortest_time import path_shorthand, reverse_path
@@ -90,7 +91,9 @@ def main() -> None:
         shortest_dists(city, get_single_station_paths(graph), unit, limit_num=args.limit_num)
     else:
         if args.data_source == "fare":
-            assert city.fare_rules is not None, city
+            if city.fare_rules is None:
+                print("Data source fare is not available since this city does not have fare rules defined!")
+                sys.exit(1)
             train_dict = parse_all_trains(
                 list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
             )

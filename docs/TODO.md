@@ -29,10 +29,11 @@
 
 
 # Taipei Metro
-台北+新北+桃园捷运。包括机场捷运，淡水轻轨，安坑轻轨，不包括维修中的环状线，台铁/高铁。数据来源：
+台北+新北+桃园捷运。包括环状线，机场捷运，淡水轻轨，安坑轻轨，不包括台铁/高铁。数据来源：
 - 时刻表（目前版本：2023/11公布）
   - R/G/O/BL: [台北捷运官方网站](https://www.metro.taipei/cp.aspx?n=91974F2B13D997F1)
   - BR: MetroMan地铁通非官方时刻表
+  - Y: 无时刻表，根据[新北捷运官网](https://www.ntmetro.com.tw/basic/?mode=detail&node=662)间隔数据推算，请勿过度依赖
   - 两条轻轨: [新北捷运官方网站](https://www.ntmetro.com.tw/basic/?mode=detail&node=460)
   - 机场捷运: [桃园捷运官方网站](https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable.php)
 - 换乘时间: [Blog](https://blog.transtaiwan.com/blog/transfer-time-settings/)
