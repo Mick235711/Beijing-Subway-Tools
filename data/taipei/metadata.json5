@@ -140,6 +140,12 @@
             // 所有方向均同台
             {from: "淡海輕軌", to: "藍海線", minutes: 0}
         ],
+        "十四張": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/201.pdf
+            // POV：https://www.bilibili.com/video/BV1j3yiY7EFw
+            // 环状线3F站台下扶梯至2F站厅，出闸后走行中等长度的通道即到达安坑轻轨站台
+            {from: "環狀線", to: "安坑輕軌", minutes: 2.5}
+        ],
         "三重": [
             // 参考：中和新芦线部分：https://web.metro.taipei/img/ALL/INFOPDF/125.pdf
             // 机场捷运部分：https://www.tymetro.com.tw/tymetro-new/upload/station/20211006021826_1.png
