@@ -113,6 +113,7 @@
 - [x] 支持画图中显示平均换乘次数/平均距离/平均站数
 - [ ] draw_equtime支持等距离等站数
 - [x] 多起点画图
+- [ ] 多颜色路径画图
 - [x] 画图contour强调选项-f
 - [x] 各种格式导出dist_graph
   - [ ] 扩展：每站列车数作为node weight
@@ -143,8 +144,10 @@
   - [x] 各线（连续）换乘站比例
   - [x] 车站字数
   - [x] 常用字统计
+  - [ ] 换乘时间
 - [x] 各类平均数的标准差支持 (`city_statistics.py` & `show_express_trains.py` not done)
 - [x] 最短/最长站间距
+- [ ] exotic path：两种metric（比如distance和time）路径差距最大的排行
 - [x] 车费支持
   - [x] 多种车费基础（距离，站数）+换乘连续计费
   - [x] 折扣/附加费
@@ -188,6 +191,7 @@
   - [ ] 苏州
 - [x] 最长路算法
 - [x] 在地图上绘制最短路
+- [ ] 距离metric的k-最短路
 - [ ] 开通日期（optional，毕竟有换乘，wb东管头南有统计）
 - [ ] Use color to represent different train routes (optional)
 
