@@ -82,7 +82,8 @@ def get_edge_wide(map_obj: Map) -> float:
 
 def draw_path(
     draw: ImageDraw.ImageDraw, map_obj: Map, start_station: str, end_station: str,
-    cmap: Colormap, index: float, alpha: float, edge_wide: float, is_index: bool = False
+    cmap: tuple[float, float, float] | Colormap, index: float, alpha: float, edge_wide: float,
+    is_index: bool = False
 ) -> None:
     """ Draw a path on map """
     start_shape = map_obj.coordinates[start_station]
@@ -104,7 +105,7 @@ def draw_path(
     draw.polygon(
         [(start_x - dx, start_y + dy), (start_x + dx, start_y - dy),
          (end_x + dx, end_y - dy), (end_x - dx, end_y + dy)],
-        fill=convert_color(cmap(alpha)[:-1] + (DRAW_ALPHA,))
+        fill=convert_color((cmap(alpha)[:-1] if isinstance(cmap, Colormap) else cmap) + (DRAW_ALPHA,))
     )
 
     # Draw an index in the middle
@@ -112,6 +113,12 @@ def draw_path(
     font_size = find_font_size(draw, index_str, edge_wide * 2)
     draw.text(((start_x + end_x) / 2, (start_y + end_y) / 2), index_str,
               fill="white", anchor="mm", font_size=font_size)
+
+
+def color_to_hex(color_str: str) -> tuple[float, float, float]:
+    """ Transform from hex color #AAAAAA to color tuple """
+    assert color_str.startswith("#") and len(color_str) == 7, color_str
+    return int(color_str[1:3], 16) / 255, int(color_str[3:5], 16) / 255, int(color_str[5:7], 16) / 255
 
 
 def main() -> None:
@@ -125,7 +132,11 @@ def main() -> None:
                             default="time", help="Shortest path criteria")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, have_single=True)
-    cmap = get_colormap(args.color_map or "Greys")
+    if args.color_map.startswith("#"):
+        # Assumes a manually specified color list
+        cmap: list[tuple[float, float, float]] | Colormap = [color_to_hex(s.strip()) for s in args.color_map.split(",")]
+    else:
+        cmap = get_colormap(args.color_map or "Greys")
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:
             print("Warning: --limit-start/end ignored in kth mode.")
@@ -166,9 +177,14 @@ def main() -> None:
             color_alpha = get_ordinal_alpha(int(alpha), len(draw_dict))
         else:
             color_alpha = get_percent_alpha(alpha)
+        if isinstance(cmap, Colormap):
+            color: tuple[float, float, float] | Colormap = cmap
+        else:
+            assert args.strategy == "kth", args.strategy
+            color = cmap[int(alpha)]
         draw_path(
             draw_new, map_obj, station, next_station,
-            cmap, alpha, color_alpha, edge_wide,
+            color, alpha, color_alpha, edge_wide,
             args.strategy == "kth"
         )
     img.paste(img_new, mask=img_new)
