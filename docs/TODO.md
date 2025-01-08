@@ -144,7 +144,7 @@
   - [x] 各线（连续）换乘站比例
   - [x] 车站字数
   - [x] 常用字统计
-  - [ ] 换乘时间
+  - [x] 换乘时间
 - [x] 各类平均数的标准差支持 (`city_statistics.py` & `show_express_trains.py` not done)
 - [x] 最短/最长站间距
 - [ ] exotic path：两种metric（比如distance和time）路径差距最大的排行

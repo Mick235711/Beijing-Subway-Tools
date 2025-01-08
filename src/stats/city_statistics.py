@@ -10,8 +10,9 @@ from typing import Any
 
 from src.city.ask_for_city import ask_for_city
 from src.city.city import City
-from src.common.common import distance_str, suffix_s, to_pinyin
-from src.stats.common import display_first
+from src.city.transfer import transfer_repr
+from src.common.common import distance_str, suffix_s, to_pinyin, average
+from src.stats.common import display_first, display_segment
 
 
 def print_cnt(values: dict[str, Any], name: str, word: str, threshold: int | None = None) -> None:
@@ -68,7 +69,7 @@ def display_station_info(city: City) -> None:
     print_cnt(station_lines, "Station", "line", 3)
 
 
-def display_station_name_info(city: City) -> None:
+def display_station_name_info(city: City, *, limit_num: int = 15) -> None:
     """ Display station name info """
     print("\n=====> Station Name Information <=====")
     station_lines = city.station_lines
@@ -85,11 +86,12 @@ def display_station_name_info(city: City) -> None:
     print("Average # of name characters in each line:")
     display_first(
         sorted(list(city.lines.values()), key=lambda l: sum(len(name) for name in l.stations) / len(l.stations)),
-        lambda x: f"{sum(len(name) for name in x.stations) / len(x.stations):.2f} characters: {x}"
+        lambda x: f"{sum(len(name) for name in x.stations) / len(x.stations):.2f} characters: {x}",
+        limit_num=limit_num
     )
 
 
-def display_transfer_info(city: City, exclude_virtual: bool = False) -> None:
+def display_transfer_info(city: City, *, exclude_virtual: bool = False, limit_num: int = 15) -> None:
     """ Display transfer info """
     lines = city.lines
     station_lines = city.station_lines
@@ -149,14 +151,16 @@ def display_transfer_info(city: City, exclude_virtual: bool = False) -> None:
     display_first(
         sorted(transfer_dict.items(), key=lambda x: (-x[1], lines[x[0]].index)),
         lambda x: suffix_s("station", x[1]) + f": {lines[x[0]]} " +
-                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)"
+                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)",
+        limit_num=limit_num
     )
     print(f"Average # of transfer stations per line: {sum(transfer_dict.values()) / len(lines):.2f}")
     print("Percentage of transfer stations:")
     display_first(
         sorted(transfer_dict.items(), key=lambda x: (-x[1] / len(lines[x[0]].stations), lines[x[0]].index)),
         lambda x: f"{x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers: {lines[x[0]]} " +
-                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)"
+                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)",
+        limit_num=limit_num
     )
     max_line = max(consecutive_dict.keys(), key=lambda x: (len(consecutive_dict[x]), lines[x].total_distance()))
     print("Line with max number of consecutive transfers: " +
@@ -170,15 +174,83 @@ def display_transfer_info(city: City, exclude_virtual: bool = False) -> None:
           f"{sum(len(x) for x in consecutive_dict.values()) / len(lines):.2f}")
 
 
+def display_transfer_time_info(
+    city: City, *,
+    exclude_virtual: bool = False, limit_num: int = 15, data_source: str = "pair"
+) -> None:
+    """ Display transfer time info """
+    print("\n=====> Transfer Time Information <=====")
+    transfers_list = list(city.transfers.values())
+    if not exclude_virtual:
+        transfers_list += list(city.virtual_transfers.values())
+
+    num_stations = len(set(x.station for x in transfers_list) | set(x.second_station for x in transfers_list))
+    print("Total # of transfer station involved:", num_stations)
+    num_pairs = len([x for t in transfers_list for x in t.transfer_time.values()])
+    print("Total # of transfer pairs:", num_pairs)
+    print(f"Average # of transfer pair per station: {num_pairs / num_stations:.2f}")
+    num_special = len([x for t in transfers_list for x in t.special_time.values()])
+    print("Total # of special transfer pairs:", num_special)
+    print(f"Average # of special transfer pair per station: {num_special / num_stations:.2f}")
+
+    if data_source == "pair":
+        data: Any = sorted([(t, k, v) for t in transfers_list for k, v in t.transfer_time.items()],
+                      key=lambda x: (x[-1], to_pinyin(x[0].station)[0], x[1]))
+        data_str = lambda t: f"{t[-1]:.2f} minutes: " + transfer_repr(t[0].station, t[0].second_station, t[1])
+    elif data_source == "station":
+        station_data: dict[str, list[float]] = {}
+        for transfer_obj in transfers_list:
+            if transfer_obj.station not in station_data:
+                station_data[transfer_obj.station] = []
+            station_data[transfer_obj.station] += list(transfer_obj.transfer_time.values())
+            if transfer_obj.second_station is not None:
+                if transfer_obj.second_station not in station_data:
+                    station_data[transfer_obj.second_station] = []
+                station_data[transfer_obj.second_station] += list(transfer_obj.transfer_time.values())
+        data = sorted([(s, l, average(l)) for s, l in station_data.items()],
+                      key=lambda x: (x[-1], -len(x[1]), to_pinyin(x[0])[0]))
+        data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
+    elif data_source == "line":
+        line_data: dict[str, list[float]] = {}
+        for transfer_obj in transfers_list:
+            for (from_l, _, to_l, _), t in transfer_obj.transfer_time.items():
+                if from_l not in line_data:
+                    line_data[from_l] = []
+                line_data[from_l].append(t)
+                if to_l not in line_data:
+                    line_data[to_l] = []
+                line_data[to_l].append(t)
+        data = sorted([(s, l, average(l)) for s, l in line_data.items()],
+                      key=lambda x: (x[-1], -len(x[1]), city.lines[x[0]].index))
+        data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
+    else:
+        assert False, data_source
+    times = [x[-1] for x in data]
+    print("Average transfer time:", suffix_s("minute", f"{average(times):.2f}"),
+          f"(over {suffix_s(data_source, len(times))})")
+    print("Segmented transfer time:")
+    display_segment(
+        times, lambda seg1, seg2, num:
+        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s("pair", num) + f" ({num * 100 / len(times):.2f}%)",
+        limit_num=limit_num
+    )
+    print("Max/Min " + suffix_s("transfer time", limit_num) + ":")
+    display_first(data, data_str, limit_num=limit_num)
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("--omit-line-info", action="store_true", help="Don't show line info")
     parser.add_argument("--omit-station-info", action="store_true", help="Don't show station info")
     parser.add_argument("--omit-station-name-info", action="store_true", help="Don't show station name info")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("--omit-transfer-info", action="store_true", help="Don't show transfer info")
-    group.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+    parser.add_argument("--omit-transfer-info", action="store_true", help="Don't show transfer info")
+    parser.add_argument("--omit-transfer-time-info", action="store_true", help="Don't show transfer time info")
+    parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+    parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=15)
+    parser.add_argument("-d", "--data-source", choices=[
+        "pair", "station", "line"
+    ], default="pair", help="Transfer time data source")
     args = parser.parse_args()
 
     city = ask_for_city()
@@ -187,9 +259,12 @@ def main() -> None:
     if not args.omit_station_info:
         display_station_info(city)
     if not args.omit_station_name_info:
-        display_station_name_info(city)
+        display_station_name_info(city, limit_num=args.limit_num)
     if not args.omit_transfer_info:
-        display_transfer_info(city, args.exclude_virtual)
+        display_transfer_info(city, exclude_virtual=args.exclude_virtual, limit_num=args.limit_num)
+    if not args.omit_transfer_time_info:
+        display_transfer_time_info(city, exclude_virtual=args.exclude_virtual,
+                                   limit_num=args.limit_num, data_source=args.data_source)
 
 
 # Call main

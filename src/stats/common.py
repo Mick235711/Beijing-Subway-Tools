@@ -128,6 +128,28 @@ def display_first(
         print(data_str(element))
 
 
+def display_segment(
+    data: list[float], data_str: Callable[[float, float, int], str],
+    *, segment_size: float = 1.0, segment_start: float = 0.0, limit_num: int | None = None, show_cardinal: bool = True
+) -> None:
+    """ Print elements based on segments """
+    data = sorted(data)
+    segment_num = 1
+    while segment_start + segment_num * segment_size <= data[-1]:
+        segment_num += 1
+    for i in range(segment_num):
+        if limit_num is not None and limit_num <= i < segment_num - limit_num:
+            if i == limit_num:
+                print("...")
+            continue
+        seg1 = segment_start + i * segment_size
+        seg2 = seg1 + segment_size
+        candidates = [d for d in data if seg1 <= d < seg2]
+        if show_cardinal:
+            print(f"#{i + 1}: ", end="")
+        print(data_str(seg1, seg2, len(candidates)))
+
+
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True, include_passing_limit: bool = True, include_train_ctrl: bool = True

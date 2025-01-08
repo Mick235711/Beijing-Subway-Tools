@@ -1146,7 +1146,7 @@ In all the programs in this section (except those that accept no arguments), the
 
 ### [`city_statistics.py`](/src/stats/city_statistics.py): Basic statistics for a city
 ```
-usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info | --exclude-virtual]
+usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info] [--omit-transfer-time-info] [--exclude-virtual] [-n LIMIT_NUM] [-d {pair,station,line}]
 
 options:
   -h, --help            show this help message and exit
@@ -1155,7 +1155,13 @@ options:
   --omit-station-name-info
                         Don't show station name info
   --omit-transfer-info  Don't show transfer info
+  --omit-transfer-time-info
+                        Don't show transfer time info
   --exclude-virtual     Exclude virtual transfers
+  -n LIMIT_NUM, --limit-num LIMIT_NUM
+                        Limit number of output
+  -d {pair,station,line}, --data-source {pair,station,line}
+                        Transfer time data source
 ```
 
 Show some basic data on a city, such as number of lines, total rail distance, and number of transfer stations.
@@ -1192,63 +1198,141 @@ Name with 5 characters: 30 (2号航站楼, 3号航站楼, 安德里北街, 八�
 Name with 6 characters: 10 (奥林匹克公园, 北京大学东门, 回龙观东大街, 惠新西街北口, 惠新西街南口, 良乡大学城北, 良乡大学城西, 清华东路西口, 森林公园南门, 生物医药基地)
 Top 10 used words: 桥 (36), 门 (35), 北 (33), 庄 (32), 东 (31), 西 (31), 园 (27), 大 (25), 路 (24), 南 (22)
 Top 10 ending: 桥 (30), 门 (26), 庄 (26), 园 (22), 路 (20), 口 (13), 街 (12), 东 (10), 营 (10), 城 (9)
-Unique words: 2 3 岸 巴 笆 百 葆 宝 碑 伯 茶 常 场 崇 传 椿 慈 磁 萃 崔 达 褡 灯 佃 钓 动 度 堆 法 垡 发 方 坊 坟 分 俸 福 富 复 甘 钢 巩 古 谷 官 光 郝 合 黑 后 呼 虎 欢 环 会 霍 技 济 积 基 纪 机 假 嘉 箭 健 建 将 教 焦 郊 结 劲 境 旧 局 军 看 坎 克 来 览 郎 栗 礼 丽 篱 裢 连 亮 廖 临 灵 陵 柳 刘 榴 潞 锣 茂 美 媒 庙 民 明 命 牡 泥 年 牛 潘 盆 棚 匹 苹 坡 蒲 旗 七 前 青 球 群 然 饶 人 森 刹 善 商 芍 什 神 事 士 术 书 顺 宋 孙 滩 坛 堂 陶 体 条 铁 图 团 瓦 旺 王 魏 温 武 务 坞 熙 夕 夏 巷 肖 信 心 星 宣 燕 杨 业 颐 怡 医 益 瀛 雍 游 峪 圆 元 渊 照 贞 植 忠 周 主 珠 朱 资 梓 自 紫
+Unique words: 2 3 岸 笆 巴 百 葆 宝 碑 伯 茶 常 场 崇 传 椿 慈 磁 萃 崔 褡 达 灯 佃 钓 动 度 堆 垡 发 法 方 坊 坟 分 俸 富 福 复 甘 钢 巩 谷 古 官 光 郝 合 黑 后 虎 呼 欢 环 会 霍 积 技 纪 基 济 机 假 嘉 健 建 箭 将 教 焦 郊 结 劲 境 旧 局 军 看 坎 克 来 览 郎 篱 礼 栗 丽 裢 连 亮 廖 临 灵 陵 刘 榴 柳 潞 锣 茂 美 媒 庙 民 命 明 牡 泥 年 牛 潘 盆 棚 匹 苹 坡 蒲 旗 七 前 青 球 群 然 饶 人 森 刹 善 商 芍 神 什 士 事 术 书 顺 宋 孙 坛 滩 堂 陶 体 条 铁 图 团 瓦 旺 王 魏 温 坞 武 务 熙 夕 夏 巷 肖 信 心 星 宣 燕 杨 业 怡 颐 医 益 瀛 雍 游 峪 渊 元 圆 照 贞 植 忠 周 珠 朱 主 自 紫 梓 资
+Average # of name characters in each line:
+#1: 2.62 characters: &lt;S1线: [6M] 石厂 - 苹果园, 8 stations, 9.66km&gt;
+#2: 2.71 characters: &lt;13号线: [6B-] 西直门 - 东直门, 17 stations, 40.40km&gt;
+#3: 2.80 characters: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt;
+#4: 2.89 characters: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt;
+#5: 3.00 characters: &lt;西郊线: [5LRT] 香山 - 巴沟, 6 stations, 8.69km&gt;
+#6: 3.00 characters: &lt;1号线: [6B-] 古城 - 环球度假区, 35 stations, 48.33km&gt;
+#7: 3.00 characters: &lt;7号线: [8B] 北京西站 - 环球度假区, 30 stations, 39.41km&gt;
+#8: 3.00 characters: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt;
+#9: 3.00 characters: &lt;15号线: [6B] 清华东路西口 - 俸伯, 20 stations, 40.35km&gt;
+#10: 3.00 characters: &lt;17号线: [8A] 十里河 - 嘉会湖, 7 stations, 15.78km&gt;
+#11: 3.00 characters: &lt;14号线: [6A] 张郭庄 - 善各庄, 33 stations, 46.68km&gt;
+#12: 3.02 characters: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt;
+#13: 3.06 characters: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt;
+#14: 3.09 characters: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt;
+#15: 3.23 characters: &lt;16号线: [8A] 北安河 - 榆树庄, 26 stations, 45.23km&gt;
+#16: 3.29 characters: &lt;亦庄线: [6B] 亦庄火车站 - 宋家庄, 14 stations, 22.72km&gt;
+#17: 3.33 characters: &lt;大兴机场线: [7D] 大兴机场 - 草桥, 3 stations, 38.33km&gt;
+#18: 3.38 characters: &lt;8号线: [6B] 朱辛庄 - 瀛海, 34 stations, 48.50km&gt;
+#19: 3.43 characters: &lt;4号线: [6B] 安河桥北 - 天宫院, 35 stations, 49.41km&gt;
+#20: 3.44 characters: &lt;昌平线: [6B] 昌平西山口 - 西土城, 18 stations, 42.94km&gt;
+#21: 3.50 characters: &lt;房山线: [6B] 阎村东 - 东管头南, 16 stations, 31.07km&gt;
+#22: 3.61 characters: &lt;5号线: [6B] 天通苑北 - 宋家庄, 23 stations, 27.06km&gt;
+#23: 3.80 characters: &lt;首都机场线: [4L] 3号航站楼 - 北新桥, 5 stations, 31.42km&gt;
+#24: 3.92 characters: &lt;9号线: [6B] 国家图书馆 - 郭公庄, 13 stations, 15.74km&gt;
 
 =====&gt; Transfer Information &lt;=====
 Number of transfer stations:
-#1: 22 stations: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22/45 = 48.89% transfers)
-#2: 12 stations: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt; (12/18 = 66.67% transfers)
-#3: 12 stations: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt; (12/34 = 35.29% transfers)
-#4: 12 stations: &lt;1号线: [6B-] 古城 - 环球度假区, 35 stations, 48.33km&gt; (12/35 = 34.29% transfers)
-#5: 11 stations: &lt;4号线: [6B] 安河桥北 - 天宫院, 35 stations, 49.41km&gt; (11/35 = 31.43% transfers)
-#6: 11 stations: &lt;5号线: [6B] 天通苑北 - 宋家庄, 23 stations, 27.06km&gt; (11/23 = 47.83% transfers)
-#7: 11 stations: &lt;14号线: [6A] 张郭庄 - 善各庄, 33 stations, 46.68km&gt; (11/33 = 33.33% transfers)
-#8: 10 stations: &lt;8号线: [6B] 朱辛庄 - 瀛海, 34 stations, 48.50km&gt; (10/34 = 29.41% transfers)
-#9: 9 stations: &lt;7号线: [8B] 北京西站 - 环球度假区, 30 stations, 39.41km&gt; (9/30 = 30.00% transfers)
-#10: 9 stations: &lt;13号线: [6B-] 西直门 - 东直门, 17 stations, 40.40km&gt; (9/17 = 52.94% transfers)
-#11: 8 stations: &lt;9号线: [6B] 国家图书馆 - 郭公庄, 13 stations, 15.74km&gt; (8/13 = 61.54% transfers)
-#12: 8 stations: &lt;16号线: [8A] 北安河 - 榆树庄, 26 stations, 45.23km&gt; (8/26 = 30.77% transfers)
-#13: 6 stations: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt; (6/10 = 60.00% transfers)
-#14: 5 stations: &lt;昌平线: [6B] 昌平西山口 - 西土城, 18 stations, 42.94km&gt; (5/18 = 27.78% transfers)
-#15: 5 stations: &lt;15号线: [6B] 清华东路西口 - 俸伯, 20 stations, 40.35km&gt; (5/20 = 25.00% transfers)
-#16: 4 stations: &lt;房山线: [6B] 阎村东 - 东管头南, 16 stations, 31.07km&gt; (4/16 = 25.00% transfers)
-#17: 3 stations: &lt;首都机场线: [4L] 3号航站楼 - 北新桥, 5 stations, 31.42km&gt; (3/5 = 60.00% transfers)
-#18: 2 stations: &lt;S1线: [6M] 石厂 - 苹果园, 8 stations, 9.66km&gt; (2/8 = 25.00% transfers)
-#19: 2 stations: &lt;亦庄线: [6B] 亦庄火车站 - 宋家庄, 14 stations, 22.72km&gt; (2/14 = 14.29% transfers)
-#20: 2 stations: &lt;17号线: [8A] 十里河 - 嘉会湖, 7 stations, 15.78km&gt; (2/7 = 28.57% transfers)
-#21: 1 station: &lt;西郊线: [5LRT] 香山 - 巴沟, 6 stations, 8.69km&gt; (1/6 = 16.67% transfers)
-#22: 1 station: &lt;大兴机场线: [7D] 大兴机场 - 草桥, 3 stations, 38.33km&gt; (1/3 = 33.33% transfers)
-#23: 1 station: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt; (1/9 = 11.11% transfers)
-#24: 1 station: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1/3 = 33.33% transfers)
-Average # of transfer stations per line: 7.00
+#1: 22.0 stations: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22.0/45 = 48.89% transfers)
+#2: 12.0 stations: &lt;1号线: [6B-] 古城 - 环球度假区, 35 stations, 48.33km&gt; (12.0/35 = 34.29% transfers)
+#3: 12.0 stations: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt; (12.0/18 = 66.67% transfers)
+#4: 12.0 stations: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt; (12.0/34 = 35.29% transfers)
+#5: 11.0 stations: &lt;4号线: [6B] 安河桥北 - 天宫院, 35 stations, 49.41km&gt; (11.0/35 = 31.43% transfers)
+#6: 11.0 stations: &lt;5号线: [6B] 天通苑北 - 宋家庄, 23 stations, 27.06km&gt; (11.0/23 = 47.83% transfers)
+#7: 11.0 stations: &lt;14号线: [6A] 张郭庄 - 善各庄, 33 stations, 46.68km&gt; (11.0/33 = 33.33% transfers)
+#8: 10.0 stations: &lt;8号线: [6B] 朱辛庄 - 瀛海, 34 stations, 48.50km&gt; (10.0/34 = 29.41% transfers)
+#9: 9.5 stations: &lt;7号线: [8B] 北京西站 - 环球度假区, 30 stations, 39.41km&gt; (9.5/30 = 31.67% transfers)
+#10: 9.0 stations: &lt;13号线: [6B-] 西直门 - 东直门, 17 stations, 40.40km&gt; (9.0/17 = 52.94% transfers)
+#11: 8.0 stations: &lt;9号线: [6B] 国家图书馆 - 郭公庄, 13 stations, 15.74km&gt; (8.0/13 = 61.54% transfers)
+#12: 8.0 stations: &lt;16号线: [8A] 北安河 - 榆树庄, 26 stations, 45.23km&gt; (8.0/26 = 30.77% transfers)
+#13: 7.0 stations: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt; (7.0/10 = 70.00% transfers)
+#14: 5.0 stations: &lt;15号线: [6B] 清华东路西口 - 俸伯, 20 stations, 40.35km&gt; (5.0/20 = 25.00% transfers)
+#15: 5.0 stations: &lt;昌平线: [6B] 昌平西山口 - 西土城, 18 stations, 42.94km&gt; (5.0/18 = 27.78% transfers)
+#16: 4.0 stations: &lt;房山线: [6B] 阎村东 - 东管头南, 16 stations, 31.07km&gt; (4.0/16 = 25.00% transfers)
+#17: 3.0 stations: &lt;首都机场线: [4L] 3号航站楼 - 北新桥, 5 stations, 31.42km&gt; (3.0/5 = 60.00% transfers)
+#18: 2.0 stations: &lt;17号线: [8A] 十里河 - 嘉会湖, 7 stations, 15.78km&gt; (2.0/7 = 28.57% transfers)
+#19: 2.0 stations: &lt;亦庄线: [6B] 亦庄火车站 - 宋家庄, 14 stations, 22.72km&gt; (2.0/14 = 14.29% transfers)
+#20: 2.0 stations: &lt;S1线: [6M] 石厂 - 苹果园, 8 stations, 9.66km&gt; (2.0/8 = 25.00% transfers)
+#21: 1.0 station: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1.0/3 = 33.33% transfers)
+#22: 1.0 station: &lt;西郊线: [5LRT] 香山 - 巴沟, 6 stations, 8.69km&gt; (1.0/6 = 16.67% transfers)
+#23: 1.0 station: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt; (1.0/9 = 11.11% transfers)
+#24: 1.0 station: &lt;大兴机场线: [7D] 大兴机场 - 草桥, 3 stations, 38.33km&gt; (1.0/3 = 33.33% transfers)
+Average # of transfer stations per line: 7.06
 Percentage of transfer stations:
-#1: 66.67% transfers: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt; (12/18 = 66.67% transfers)
-#2: 61.54% transfers: &lt;9号线: [6B] 国家图书馆 - 郭公庄, 13 stations, 15.74km&gt; (8/13 = 61.54% transfers)
-#3: 60.00% transfers: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt; (6/10 = 60.00% transfers)
-#4: 60.00% transfers: &lt;首都机场线: [4L] 3号航站楼 - 北新桥, 5 stations, 31.42km&gt; (3/5 = 60.00% transfers)
-#5: 52.94% transfers: &lt;13号线: [6B-] 西直门 - 东直门, 17 stations, 40.40km&gt; (9/17 = 52.94% transfers)
-#6: 48.89% transfers: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22/45 = 48.89% transfers)
-#7: 47.83% transfers: &lt;5号线: [6B] 天通苑北 - 宋家庄, 23 stations, 27.06km&gt; (11/23 = 47.83% transfers)
-#8: 35.29% transfers: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt; (12/34 = 35.29% transfers)
-#9: 34.29% transfers: &lt;1号线: [6B-] 古城 - 环球度假区, 35 stations, 48.33km&gt; (12/35 = 34.29% transfers)
-#10: 33.33% transfers: &lt;大兴机场线: [7D] 大兴机场 - 草桥, 3 stations, 38.33km&gt; (1/3 = 33.33% transfers)
-#11: 33.33% transfers: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1/3 = 33.33% transfers)
-#12: 33.33% transfers: &lt;14号线: [6A] 张郭庄 - 善各庄, 33 stations, 46.68km&gt; (11/33 = 33.33% transfers)
-#13: 31.43% transfers: &lt;4号线: [6B] 安河桥北 - 天宫院, 35 stations, 49.41km&gt; (11/35 = 31.43% transfers)
-#14: 30.77% transfers: &lt;16号线: [8A] 北安河 - 榆树庄, 26 stations, 45.23km&gt; (8/26 = 30.77% transfers)
-#15: 30.00% transfers: &lt;7号线: [8B] 北京西站 - 环球度假区, 30 stations, 39.41km&gt; (9/30 = 30.00% transfers)
-#16: 29.41% transfers: &lt;8号线: [6B] 朱辛庄 - 瀛海, 34 stations, 48.50km&gt; (10/34 = 29.41% transfers)
-#17: 28.57% transfers: &lt;17号线: [8A] 十里河 - 嘉会湖, 7 stations, 15.78km&gt; (2/7 = 28.57% transfers)
-#18: 27.78% transfers: &lt;昌平线: [6B] 昌平西山口 - 西土城, 18 stations, 42.94km&gt; (5/18 = 27.78% transfers)
-#19: 25.00% transfers: &lt;房山线: [6B] 阎村东 - 东管头南, 16 stations, 31.07km&gt; (4/16 = 25.00% transfers)
-#20: 25.00% transfers: &lt;15号线: [6B] 清华东路西口 - 俸伯, 20 stations, 40.35km&gt; (5/20 = 25.00% transfers)
-#21: 25.00% transfers: &lt;S1线: [6M] 石厂 - 苹果园, 8 stations, 9.66km&gt; (2/8 = 25.00% transfers)
-#22: 16.67% transfers: &lt;西郊线: [5LRT] 香山 - 巴沟, 6 stations, 8.69km&gt; (1/6 = 16.67% transfers)
-#23: 14.29% transfers: &lt;亦庄线: [6B] 亦庄火车站 - 宋家庄, 14 stations, 22.72km&gt; (2/14 = 14.29% transfers)
-#24: 11.11% transfers: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt; (1/9 = 11.11% transfers)
-Line with max number of consecutive transfers: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt; (鼓楼大街 - 车公庄, 4 consecutive)
+#1: 70.00% transfers: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt; (7.0/10 = 70.00% transfers)
+#2: 66.67% transfers: &lt;2号线: [6B-] 西直门 - 积水潭, 18 stations, 23.00km, loop&gt; (12.0/18 = 66.67% transfers)
+#3: 61.54% transfers: &lt;9号线: [6B] 国家图书馆 - 郭公庄, 13 stations, 15.74km&gt; (8.0/13 = 61.54% transfers)
+#4: 60.00% transfers: &lt;首都机场线: [4L] 3号航站楼 - 北新桥, 5 stations, 31.42km&gt; (3.0/5 = 60.00% transfers)
+#5: 52.94% transfers: &lt;13号线: [6B-] 西直门 - 东直门, 17 stations, 40.40km&gt; (9.0/17 = 52.94% transfers)
+#6: 48.89% transfers: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt; (22.0/45 = 48.89% transfers)
+#7: 47.83% transfers: &lt;5号线: [6B] 天通苑北 - 宋家庄, 23 stations, 27.06km&gt; (11.0/23 = 47.83% transfers)
+#8: 35.29% transfers: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt; (12.0/34 = 35.29% transfers)
+#9: 34.29% transfers: &lt;1号线: [6B-] 古城 - 环球度假区, 35 stations, 48.33km&gt; (12.0/35 = 34.29% transfers)
+#10: 33.33% transfers: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (1.0/3 = 33.33% transfers)
+#11: 33.33% transfers: &lt;14号线: [6A] 张郭庄 - 善各庄, 33 stations, 46.68km&gt; (11.0/33 = 33.33% transfers)
+#12: 33.33% transfers: &lt;大兴机场线: [7D] 大兴机场 - 草桥, 3 stations, 38.33km&gt; (1.0/3 = 33.33% transfers)
+#13: 31.67% transfers: &lt;7号线: [8B] 北京西站 - 环球度假区, 30 stations, 39.41km&gt; (9.5/30 = 31.67% transfers)
+#14: 31.43% transfers: &lt;4号线: [6B] 安河桥北 - 天宫院, 35 stations, 49.41km&gt; (11.0/35 = 31.43% transfers)
+#15: 30.77% transfers: &lt;16号线: [8A] 北安河 - 榆树庄, 26 stations, 45.23km&gt; (8.0/26 = 30.77% transfers)
+#16: 29.41% transfers: &lt;8号线: [6B] 朱辛庄 - 瀛海, 34 stations, 48.50km&gt; (10.0/34 = 29.41% transfers)
+#17: 28.57% transfers: &lt;17号线: [8A] 十里河 - 嘉会湖, 7 stations, 15.78km&gt; (2.0/7 = 28.57% transfers)
+#18: 27.78% transfers: &lt;昌平线: [6B] 昌平西山口 - 西土城, 18 stations, 42.94km&gt; (5.0/18 = 27.78% transfers)
+#19: 25.00% transfers: &lt;15号线: [6B] 清华东路西口 - 俸伯, 20 stations, 40.35km&gt; (5.0/20 = 25.00% transfers)
+#20: 25.00% transfers: &lt;房山线: [6B] 阎村东 - 东管头南, 16 stations, 31.07km&gt; (4.0/16 = 25.00% transfers)
+#21: 25.00% transfers: &lt;S1线: [6M] 石厂 - 苹果园, 8 stations, 9.66km&gt; (2.0/8 = 25.00% transfers)
+#22: 16.67% transfers: &lt;西郊线: [5LRT] 香山 - 巴沟, 6 stations, 8.69km&gt; (1.0/6 = 16.67% transfers)
+#23: 14.29% transfers: &lt;亦庄线: [6B] 亦庄火车站 - 宋家庄, 14 stations, 22.72km&gt; (2.0/14 = 14.29% transfers)
+#24: 11.11% transfers: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt; (1.0/9 = 11.11% transfers)
+Line with max number of consecutive transfers: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt; (积水潭 - 草桥, 6 consecutive)
 Line with min number of consecutive transfers: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt; (金安桥 - 金安桥, 1 consecutive)
-Average # of consecutive transfer stations per line: 2.21
+Average # of consecutive transfer stations per line: 2.42
+
+=====&gt; Transfer Time Information &lt;=====
+Total # of transfer station involved: 84
+Total # of transfer pairs: 816
+Average # of transfer pair per station: 9.71
+Total # of special transfer pairs: 20
+Average # of special transfer pair per station: 0.24
+Average transfer time: 3.05 minutes (over 816 pairs)
+Segmented transfer time:
+#1: 0.00 - 1.00 minutes: 104 pairs (12.75%)
+#2: 1.00 - 2.00 minutes: 154 pairs (18.87%)
+#3: 2.00 - 3.00 minutes: 210 pairs (25.74%)
+#4: 3.00 - 4.00 minutes: 108 pairs (13.24%)
+#5: 4.00 - 5.00 minutes: 108 pairs (13.24%)
+#6: 5.00 - 6.00 minutes: 44 pairs (5.39%)
+#7: 6.00 - 7.00 minutes: 32 pairs (3.92%)
+#8: 7.00 - 8.00 minutes: 0 pairs (0.00%)
+#9: 8.00 - 9.00 minutes: 24 pairs (2.94%)
+#10: 9.00 - 10.00 minutes: 0 pairs (0.00%)
+#11: 10.00 - 11.00 minutes: 16 pairs (1.96%)
+#12: 11.00 - 12.00 minutes: 16 pairs (1.96%)
+Max/Min 15 transfer times:
+#1: 0.00 minutes: 北京西站 / 7号线 (东行) -&gt; 9号线 (南行)
+#2: 0.00 minutes: 北京西站 / 7号线 (西行) -&gt; 9号线 (北行)
+#3: 0.00 minutes: 北京西站 / 9号线 (北行) -&gt; 7号线 (西行)
+#4: 0.00 minutes: 北京西站 / 9号线 (南行) -&gt; 7号线 (东行)
+#5: 0.00 minutes: 郭公庄 / 9号线 (北行) -&gt; 房山线 (进城)
+#6: 0.00 minutes: 郭公庄 / 9号线 (南行) -&gt; 房山线 (出城)
+#7: 0.00 minutes: 郭公庄 / 房山线 (出城) -&gt; 9号线 (南行)
+#8: 0.00 minutes: 郭公庄 / 房山线 (进城) -&gt; 9号线 (北行)
+#9: 0.00 minutes: 国家图书馆 / 4号线 (北行) -&gt; 9号线 (北行)
+#10: 0.00 minutes: 国家图书馆 / 4号线 (南行) -&gt; 9号线 (南行)
+#11: 0.00 minutes: 国家图书馆 / 9号线 (北行) -&gt; 4号线 (北行)
+#12: 0.00 minutes: 国家图书馆 / 9号线 (南行) -&gt; 4号线 (南行)
+#13: 0.00 minutes: 阎村东 / 房山线 (出城) -&gt; 燕房线 (出城)
+#14: 0.00 minutes: 阎村东 / 房山线 (进城) -&gt; 燕房线 (进城)
+#15: 0.00 minutes: 阎村东 / 燕房线 (出城) -&gt; 房山线 (出城)
+...
+#802: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 19号线 (北行) -&gt; 1号线 (西行)
+#803: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 19号线 (南行) -&gt; 1号线 (东行)
+#804: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 19号线 (南行) -&gt; 1号线 (西行)
+#805: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 1号线 (东行) -&gt; 19号线 (北行)
+#806: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 1号线 (东行) -&gt; 19号线 (南行)
+#807: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 1号线 (西行) -&gt; 19号线 (北行)
+#808: 11.00 minutes: 复兴门 -&gt; 太平桥 (virtual) / 1号线 (西行) -&gt; 19号线 (南行)
+#809: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 19号线 (北行) -&gt; 1号线 (东行)
+#810: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 19号线 (北行) -&gt; 1号线 (西行)
+#811: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 19号线 (南行) -&gt; 1号线 (东行)
+#812: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 19号线 (南行) -&gt; 1号线 (西行)
+#813: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 1号线 (东行) -&gt; 19号线 (北行)
+#814: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 1号线 (东行) -&gt; 19号线 (南行)
+#815: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 1号线 (西行) -&gt; 19号线 (北行)
+#816: 11.00 minutes: 太平桥 -&gt; 复兴门 (virtual) / 1号线 (西行) -&gt; 19号线 (南行)
 </pre>
 
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station

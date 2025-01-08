@@ -142,3 +142,10 @@ def parse_virtual_transfer(
         result[(key[1], key[0])] = parse_transfer_data(
             Transfer(key[1], key[0]), lines, transfer_dict["times"], reversed_line=True)
     return result
+
+
+def transfer_repr(station1: str, station2: str | None, transfer_spec: TransferSpec) -> str:
+    """ String representation for a transfer pair """
+    return station1 + (
+        f" -> {station2} (virtual)" if station2 is not None and station1 != station2 else ""
+    ) + f" / {transfer_spec[0]} ({transfer_spec[1]}) -> {transfer_spec[2]} ({transfer_spec[3]})"
