@@ -24,7 +24,7 @@
         {name: "二里沟", dist: 1589},
         {name: "甘家口", dist: 1046},
         {name: "玉渊潭东门", dist: 970, aliases: ["Yuyuantan Park East Gate"]},
-        {name: "木樨地", dist: 565},
+        {name: "木樨地(16号线)", dist: 565},
         {name: "达官营", dist: 2004},
         {name: "红莲南路", dist: 1552},
         {name: "东管头南", dist: 3044},
@@ -612,7 +612,7 @@
                 }
             }
         },
-        "木樨地": {
+        "木樨地(16号线)": {
             "南行": {
                 "工作日": {
                     schedule: [

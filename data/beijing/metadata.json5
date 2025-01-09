@@ -275,11 +275,6 @@
         "望京": [
             {from: "14号线", to: "15号线", minutes: 2.5}
         ],
-        // 参考：https://www.bilibili.com/video/BV1Fd4y1h7HJ/
-        "木樨地": [
-            {from: "1号线", to: "16号线", minutes: 8}
-            // 出站换乘
-        ],
         "西苑": [
             {from: "4号线", to: "16号线", minutes: 3.5}
         ],
@@ -403,6 +398,13 @@
             from_station: "广安门内", to_station: "牛街",
             times: [
                 {from: "7号线", to: "19号线", minutes: 8.5}
+            ]
+        },
+        // 参考：https://www.bilibili.com/video/BV1Fd4y1h7HJ/
+        {
+            from_station: "木樨地(1号线)", to_station: "木樨地(16号线)",
+            times: [
+                {from: "1号线", to: "16号线", minutes: 8}
             ]
         }
     ],

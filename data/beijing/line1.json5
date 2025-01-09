@@ -15,7 +15,7 @@
         {name: "万寿路", dist: 1778},
         {name: "公主坟", dist: 1313},
         {name: "军事博物馆", dist: 1172, aliases: ["Military Museum"]},
-        {name: "木樨地", dist: 1166},
+        {name: "木樨地(1号线)", dist: 1166},
         {name: "南礼士路", dist: 1291},
         {name: "复兴门", dist: 424},
         {name: "西单", dist: 1596},
@@ -1036,7 +1036,7 @@
                 }
             }
         },
-        "木樨地": {
+        "木樨地(1号线)": {
             "东行": {
                 "工作日": {
                     schedule: [
