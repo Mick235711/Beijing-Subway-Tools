@@ -231,7 +231,7 @@ def display_transfer_time_info(
     print("Segmented transfer time:")
     display_segment(
         times, lambda seg1, seg2, num:
-        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s("pair", num) + f" ({num * 100 / len(times):.2f}%)",
+        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s(data_source, num) + f" ({num * 100 / len(times):.2f}%)",
         limit_num=limit_num
     )
     print("Max/Min " + suffix_s("transfer time", limit_num) + ":")
