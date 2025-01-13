@@ -525,7 +525,7 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_station_time.py`](/src/routing/show_station_time.py): Show time needed for trains to travel between two stations on a line
 ```
-usage: show_station_time.py [-h] [--exclude-express] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES]
+usage: show_station_time.py [-h] [--exclude-express] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES] [--staircase {time,accurate_time,station,distance,fare,max,min}]
 
 options:
   -h, --help            show this help message and exit
@@ -534,6 +534,8 @@ options:
                         Include routes
   -x EXCLUDE_ROUTES, --exclude-routes EXCLUDE_ROUTES
                         Exclude routes
+  --staircase {time,accurate_time,station,distance,fare,max,min}
+                        Staircase mode
 ```
 
 Show the time needed between two stations in a line. This is intended to show the different time needed to travel
@@ -541,6 +543,9 @@ between the same station pair by all trains in a line, so the time will be displ
 Each entry represents that the corresponding train needs this much time to travel.
 
 See [`print_timetable.py`](#print_timetablepy-print-any-stations-timetable) for usage of command-line arguments.
+
+In addition, there is a `--staircase` option that allows outputting staircase-like information between every pair
+of stations in a line. Information that can be displayed includes average time, distance, fare, and more.
 
 Example Usage:
 <pre>
