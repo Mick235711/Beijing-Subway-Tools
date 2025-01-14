@@ -212,3 +212,5 @@
 - --exclude-virtual不考虑同站名出站换乘（木樨地）
 - 由于argparse限制，--level, --focus和--style-spec的第二参数不能以-开头（例如-15,15不行，要换成15,-15）
 - `derive_from`不会继承组中的`inner_basis`和`apply_time`，并且需要被继承的组在前面
+- BFS处理虚拟换乘时有时会直接使用更差的选择
+- k最短路无法正确处理快车，如果最短路选择快车将会直接忽略快车跳过的站

@@ -237,6 +237,7 @@ Currently, there are three types of a fare basis supported as `basis` field:
     - In this case, the `rules` field can simply be `[{fare: N}]`. You can also optionally supply the `apply_time` fields.
 - `distance`: Fare is calculated based on the distance traveled.
 - `station`: Fare is calculated based on the number of stations traveled.
+- `manual`: Fare is specified manually for each pair of stations.
 
 If `derive_from` is supplied, this group's info will be derived from another group.
 The `derived_from` format should be `{name: "some_group", ...}`, where the additional modifiers include:
@@ -255,5 +256,8 @@ Each object should contain the following fields:
 
 The `apply_time` field allows you to specify that this fare rule only applies on specific date and/or time.
 The format of this field is the same as it in [the metadata section](#metadata-specification-format).
+
+If `manual` is used, the `start` and `end` fields should be station names instead of distances.
+The fare specified will default to being the same for journey from end to start, except when there is a separate entry for end to start.
 
 Note that if all fares in a rule group have the same `apply_time` specification, you can specify it in the group itself.

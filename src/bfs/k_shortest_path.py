@@ -146,19 +146,32 @@ def k_shortest_path(
                 if len(prev_trace) <= i:
                     continue
                 prev_station, prev_train = prev_trace[i]
-                if prev_station == station:
-                    if isinstance(prev_train, Train):
-                        if prev_train.line.end_circle_start is not None:
-                            for direction in prev_train.line.directions.keys():
-                                exclude_edges[prev_station].add((prev_train.line, direction))
-                        else:
-                            exclude_edges[prev_station].add((prev_train.line, prev_train.direction))
-                    elif i == len(prev_trace) - 1 or lines[prev_train[2][2]].end_circle_start is not None:
-                        # Special case the ending + virtual transfer case
-                        for direction in lines[prev_train[2][2]].directions.keys():
-                            exclude_edges[prev_station].add((lines[prev_train[2][2]], direction))
+                if prev_station != station:
+                    continue
+                if i > 0:
+                    prev2_train = prev_trace[i - 1][1]
+                    if isinstance(prev2_train, Train):
+                        target_line = prev2_train.line
+                        target_direction = prev2_train.direction
                     else:
-                        exclude_edges[prev_station].add((lines[prev_train[2][2]], prev_train[2][3]))
+                        target_line = lines[prev2_train[2][0]]
+                        target_direction = prev2_train[2][1]
+                    for direction in target_line.directions.keys():
+                        if target_line.end_circle_start is None and direction == target_direction:
+                            continue
+                        exclude_edges[prev_station].add((target_line, direction))
+                if isinstance(prev_train, Train):
+                    if prev_train.line.end_circle_start is not None:
+                        for direction in prev_train.line.directions.keys():
+                            exclude_edges[prev_station].add((prev_train.line, direction))
+                    else:
+                        exclude_edges[prev_station].add((prev_train.line, prev_train.direction))
+                elif i == len(prev_trace) - 1 or lines[prev_train[2][2]].end_circle_start is not None:
+                    # Special case the ending + virtual transfer case
+                    for direction in lines[prev_train[2][2]].directions.keys():
+                        exclude_edges[prev_station].add((lines[prev_train[2][2]], direction))
+                else:
+                    exclude_edges[prev_station].add((lines[prev_train[2][2]], prev_train[2][3]))
 
             # Calculate deviate -> end and pin with start -> deviate together
             if station == start_station:

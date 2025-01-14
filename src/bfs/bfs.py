@@ -44,6 +44,13 @@ class BFSResult:
         path: Path = []
         while prev_station in results:
             assert prev_station is not None and prev_train is not None, self
+            if not isinstance(prev_train, Train) and len(path) > 0 and isinstance(path[0][1], Train):
+                # Try to fix virtual transfer
+                if prev_train[2][2] != path[0][1].line.name:
+                    # FIXME: this may make the path invalid if fixing to a longer wait
+                    prev_train = (prev_train[0], prev_train[1], (
+                        prev_train[2][0], prev_train[2][1], path[0][1].line.name, path[0][1].direction
+                    ), prev_train[3], prev_train[4])
             path = [(prev_station, prev_train)] + path
             prev_train = results[prev_station].prev_train
             prev_station = results[prev_station].prev_station
@@ -140,7 +147,7 @@ class BFSResult:
                 start_line = lines[train[2][0]].full_name()
                 end_station = lines[train[2][2]].station_full_name(train[1])
                 end_line = lines[train[2][2]].full_name()
-                if (train[0], train[2][0]) in splits:
+                if (train[1], train[2][2]) in splits:
                     split_indexes.append(len(line_list))
                 line_list.append(f"Virtual transfer: {start_station}[{start_line}] -> {end_station}[{end_line}], " +
                                  suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
