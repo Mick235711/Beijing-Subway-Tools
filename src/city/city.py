@@ -59,6 +59,17 @@ class City:
         return station_full_name(station, self.station_lines[station])
 
 
+def parse_station_lines(lines: dict[str, Line]) -> dict[str, set[Line]]:
+    """ Parse station_lines field from lines """
+    station_lines: dict[str, set[Line]] = {}
+    for line_obj in lines.values():
+        for station in line_obj.stations:
+            if station not in station_lines:
+                station_lines[station] = set()
+            station_lines[station].add(line_obj)
+    return station_lines
+
+
 def parse_city(city_root: str) -> City:
     """ Parse JSON5 files in a city directory """
     metadata_file = os.path.join(city_root, METADATA_FILE)
@@ -98,11 +109,7 @@ def parse_city(city_root: str) -> City:
         city.through_specs = [spec for spec_dict in city_dict["through_trains"]
                               for spec in parse_through_spec(city.lines, spec_dict)]
 
-    for line_obj in city.lines.values():
-        for station in line_obj.stations:
-            if station not in city.station_lines:
-                city.station_lines[station] = set()
-            city.station_lines[station].add(line_obj)
+    city.station_lines = parse_station_lines(city.lines)
     for line_obj in city.force_set:
         line_obj.must_include = set(x for x in line_obj.stations if all(
             l in city.force_set or x in l.must_include for l in city.station_lines[x]

@@ -9,11 +9,11 @@ from collections import Counter
 from typing import Any, TypeVar
 
 from src.city.ask_for_city import ask_for_city
-from src.city.city import City
+from src.city.city import parse_station_lines
 from src.city.line import Line
-from src.city.transfer import transfer_repr
+from src.city.transfer import transfer_repr, Transfer
 from src.common.common import distance_str, suffix_s, to_pinyin, average
-from src.stats.common import display_first, display_segment
+from src.stats.common import display_first, display_segment, filter_lines
 
 
 def print_cnt(values: dict[str, Any], name: str, word: str, threshold: int | None = None) -> None:
@@ -36,9 +36,8 @@ def most_common(names: list[str]) -> list[tuple[str, int]]:
     return sorted(Counter(names).most_common(), key=lambda x: (-x[1], to_pinyin(x[0])[0]))
 
 
-def display_line_info(city: City) -> None:
+def display_line_info(lines: dict[str, Line]) -> None:
     """ Display line information """
-    lines = city.lines
     loop_line = {name: line for name, line in lines.items() if line.loop}
     circle_line = {name: line for name, line in lines.items() if line.end_circle_start is not None}
     include_line = {name: line for name, line in lines.items() if len(line.must_include) > 0}
@@ -59,21 +58,21 @@ def display_line_info(city: City) -> None:
           " (avg " + distance_str(total_dist / (len(lines) - len(include_line))) + " per line)")
 
 
-def display_station_info(city: City) -> None:
+def display_station_info(lines: dict[str, Line]) -> None:
     """ Display station info """
     print("\n====> Station Information <=====")
-    station_lines = city.station_lines
+    station_lines = parse_station_lines(lines)
     print(f"Total # of stations: {len(station_lines)}")
-    recount_sum = sum(len(line.stations) for line in city.lines.values())
+    recount_sum = sum(len(line.stations) for line in lines.values())
     print(f"Total # of stations (recounting for each line): {recount_sum}")
     print(f"Average # of lines per station: {recount_sum / len(station_lines):.2f}")
     print_cnt(station_lines, "Station", "line", 3)
 
 
-def display_station_name_info(city: City, *, limit_num: int = 15) -> None:
+def display_station_name_info(lines: dict[str, Line], *, limit_num: int = 15) -> None:
     """ Display station name info """
     print("\n=====> Station Name Information <=====")
-    station_lines = city.station_lines
+    station_lines = parse_station_lines(lines)
     names = set(list(station_lines.keys()))
     name_sum = sum(len(name) for name in names)
     print(f"Average # of name characters per station: {name_sum / len(names):.2f}")
@@ -86,20 +85,20 @@ def display_station_name_info(city: City, *, limit_num: int = 15) -> None:
         [ch for ch, cnt in name_counter if cnt == 1], key=lambda x: to_pinyin(x)[0])))
     print("Average # of name characters in each line:")
     display_first(
-        sorted(list(city.lines.values()), key=lambda l: sum(len(name) for name in l.stations) / len(l.stations)),
+        sorted(list(lines.values()), key=lambda l: sum(len(name) for name in l.stations) / len(l.stations)),
         lambda x: f"{sum(len(name) for name in x.stations) / len(x.stations):.2f} characters: {x}",
         limit_num=limit_num
     )
 
 
-def display_transfer_info(city: City, *, exclude_virtual: bool = False, limit_num: int = 15) -> None:
+def display_transfer_info(lines: dict[str, Line], virtual_transfers: dict[tuple[str, str], Transfer],
+                          *, exclude_virtual: bool = False, limit_num: int = 15) -> None:
     """ Display transfer info """
-    lines = city.lines
-    station_lines = city.station_lines
-    virtual_transfers: set[str] = set()
-    for (s, t) in city.virtual_transfers:
-        virtual_transfers.add(s)
-        virtual_transfers.add(t)
+    station_lines = parse_station_lines(lines)
+    virtual_transfers_set: set[str] = set()
+    for (s, t) in virtual_transfers:
+        virtual_transfers_set.add(s)
+        virtual_transfers_set.add(t)
 
     print("\n=====> Transfer Information <=====")
     transfer_dict: dict[str, float] = {}
@@ -111,9 +110,9 @@ def display_transfer_info(city: City, *, exclude_virtual: bool = False, limit_nu
             transfer_dict[name] = len(transfer_stations)
         else:
             transfer_stations = [(index, station) for index, station in enumerate(line.stations)
-                                 if len(station_lines[station]) > 1 or station in virtual_transfers]
+                                 if len(station_lines[station]) > 1 or station in virtual_transfers_set]
             virtual_stations = [station for station in line.stations
-                                if station in virtual_transfers and len(station_lines[station]) == 1]
+                                if station in virtual_transfers_set and len(station_lines[station]) == 1]
             transfer_dict[name] = len(transfer_stations) - 0.5 * len(virtual_stations)
         count = 1
         max_sequence: list[str] = [transfer_stations[0][1]]
@@ -180,39 +179,39 @@ T = TypeVar("T")
 
 def filter_transfer_time(
     lines: dict[str, Line], station: str, second_station: str | None,
-    transfer_time: dict[tuple[str, str, str, str], T]
+    transfer_time: dict[tuple[str, str, str, str], T], *,
+    show_all: bool = False
 ) -> dict[tuple[str, str, str, str], T]:
     """ Filter transfer_time with show_all """
     result = {}
     for (from_l, from_d, to_l, to_d), t in transfer_time.items():
-        if not lines[from_l].loop and station == lines[from_l].direction_stations(from_d)[0]:
+        if from_l not in lines or to_l not in lines:
             continue
-        if not lines[to_l].loop and (second_station or station) == lines[to_l].direction_stations(to_d)[-1]:
-            continue
+        if not show_all:
+            if not lines[from_l].loop and station == lines[from_l].direction_stations(from_d)[0]:
+                continue
+            if not lines[to_l].loop and (second_station or station) == lines[to_l].direction_stations(to_d)[-1]:
+                continue
         result[(from_l, from_d, to_l, to_d)] = t
     return result
 
 
 def display_transfer_time_info(
-    city: City, *,
+    lines: dict[str, Line], transfers: dict[str, Transfer], virtual_transfers: dict[tuple[str, str], Transfer], *,
     exclude_virtual: bool = False, limit_num: int = 15, data_source: str = "pair", show_all: bool = False
 ) -> None:
     """ Display transfer time info """
     print("\n=====> Transfer Time Information <=====")
-    transfers_list = list(city.transfers.values())
+    transfers_list = list(transfers.values())
     if not exclude_virtual:
-        transfers_list += list(city.virtual_transfers.values())
+        transfers_list += list(virtual_transfers.values())
 
-    transfer_times = [(t.station, t.second_station, t.transfer_time, t.special_time) for t in transfers_list]
-    if not show_all:
-        # Filter out impossible cases
-        lines = city.lines
-        for i, (station, second_station, transfer_time, special_time) in enumerate(transfer_times):
-            transfer_times[i] = (
-                station, second_station,
-                filter_transfer_time(lines, station, second_station, transfer_time),
-                filter_transfer_time(lines, station, second_station, special_time)
-            )
+    # Filter by lines
+    transfer_times = [(
+        t.station, t.second_station,
+        filter_transfer_time(lines, t.station, t.second_station, t.transfer_time, show_all=show_all),
+        filter_transfer_time(lines, t.station, t.second_station, t.special_time, show_all=show_all)
+    ) for t in transfers_list]
 
     num_stations = len(set(x[0] for x in transfer_times) | set(x[1] for x in transfer_times))
     print("Total # of transfer station involved:", num_stations)
@@ -251,7 +250,7 @@ def display_transfer_time_info(
                     line_data[to_l] = []
                 line_data[to_l].append(t)
         data = sorted([(s, l, average(l)) for s, l in line_data.items()],
-                      key=lambda x: (x[-1], -len(x[1]), city.lines[x[0]].index))
+                      key=lambda x: (x[-1], -len(x[1]), lines[x[0]].index))
         data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
     else:
         assert False, data_source
@@ -276,6 +275,9 @@ def main() -> None:
     parser.add_argument("--omit-station-name-info", action="store_true", help="Don't show station name info")
     parser.add_argument("--omit-transfer-info", action="store_true", help="Don't show transfer info")
     parser.add_argument("--omit-transfer-time-info", action="store_true", help="Don't show transfer time info")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--include-lines", help="Include lines")
+    group.add_argument("-x", "--exclude-lines", help="Exclude lines")
     parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
     parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=15)
     parser.add_argument("-d", "--data-source", choices=[
@@ -290,18 +292,20 @@ def main() -> None:
         print("Warning: --show-all is ignored if you omit transfer time info")
 
     city = ask_for_city()
+    _, lines = filter_lines(None, city.lines, args.include_lines, args.exclude_lines)
     if not args.omit_line_info:
-        display_line_info(city)
+        display_line_info(lines)
     if not args.omit_station_info:
-        display_station_info(city)
+        display_station_info(lines)
     if not args.omit_station_name_info:
-        display_station_name_info(city, limit_num=args.limit_num)
+        display_station_name_info(lines, limit_num=args.limit_num)
     if not args.omit_transfer_info:
-        display_transfer_info(city, exclude_virtual=args.exclude_virtual, limit_num=args.limit_num)
+        display_transfer_info(lines, city.virtual_transfers,
+                              exclude_virtual=args.exclude_virtual, limit_num=args.limit_num)
     if not args.omit_transfer_time_info:
-        display_transfer_time_info(city, exclude_virtual=args.exclude_virtual,
-                                   limit_num=args.limit_num, data_source=args.data_source,
-                                   show_all=args.show_all)
+        display_transfer_time_info(lines, city.transfers, city.virtual_transfers,
+                                   exclude_virtual=args.exclude_virtual, limit_num=args.limit_num,
+                                   data_source=args.data_source, show_all=args.show_all)
 
 
 # Call main

@@ -1151,8 +1151,8 @@ In all the programs in this section (except those that accept no arguments), the
 
 ### [`city_statistics.py`](/src/stats/city_statistics.py): Basic statistics for a city
 ```
-usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info] [--omit-transfer-time-info] [--exclude-virtual] [-n LIMIT_NUM] [-d {pair,station,line}]
-                          [--show-all]
+usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info] [--omit-transfer-time-info] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual]
+                          [-n LIMIT_NUM] [-d {pair,station,line}] [--show-all]
 
 options:
   -h, --help            show this help message and exit
@@ -1163,6 +1163,10 @@ options:
   --omit-transfer-info  Don't show transfer info
   --omit-transfer-time-info
                         Don't show transfer time info
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
   --exclude-virtual     Exclude virtual transfers
   -n LIMIT_NUM, --limit-num LIMIT_NUM
                         Limit number of output
@@ -1174,6 +1178,11 @@ options:
 Show some basic data on a city, such as number of lines, total rail distance, and number of transfer stations.
 
 Note: In the transfer info section, each virtual transfer is counted as 0.5 station. Pass `--exclude-virtual` to disable this behavior.
+
+For the whole statistics displayed, several params can be used to customize the output:
+- `-i` and `-x` can be used to include/exclude specific lines.
+- `--exclude-virtual` can make virtual transfers not being considered.
+- `--show-all` will show all possible transfer directions, regardless of whether it is actually possible to board.
 
 Example Usage:
 <pre>

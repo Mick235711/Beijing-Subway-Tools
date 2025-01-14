@@ -150,6 +150,25 @@ def display_segment(
         print(data_str(seg1, seg2, len(candidates)))
 
 
+def filter_lines(
+    all_trains: dict[str, list[tuple[str, Train]]] | None, lines: dict[str, Line],
+    include_lines: str | None = None, exclude_lines: str | None = None
+) -> tuple[dict[str, list[tuple[str, Train]]] | None, dict[str, Line]]:
+    """ Filter lines based on command-line argument """
+    if include_lines is not None:
+        assert exclude_lines is None, (include_lines, exclude_lines)
+        include_lines_set = [x.strip() for x in include_lines.split(",")]
+        if all_trains is not None:
+            all_trains = {k: [e for e in v if e[1].line.name in include_lines_set] for k, v in all_trains.items()}
+        lines = {k: v for k, v in lines.items() if v.name in include_lines_set}
+    elif exclude_lines is not None:
+        exclude_lines_set = [x.strip() for x in exclude_lines.split(",")]
+        if all_trains is not None:
+            all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines_set] for k, v in all_trains.items()}
+        lines = {k: v for k, v in lines.items() if v.name not in exclude_lines_set}
+    return all_trains, lines
+
+
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True, include_passing_limit: bool = True, include_train_ctrl: bool = True
@@ -188,15 +207,9 @@ def parse_args(
         all_trains = {k: [e for e in v if e[1].is_full()] for k, v in all_trains.items()}
 
     # Parse include/exclude lines
-    if args.include_lines is not None:
-        assert args.exclude_lines is None, args
-        include_lines = [x.strip() for x in args.include_lines.split(",")]
-        all_trains = {k: [e for e in v if e[1].line.name in include_lines] for k, v in all_trains.items()}
-        lines = {k: v for k, v in lines.items() if v.name in include_lines}
-    elif args.exclude_lines is not None:
-        exclude_lines = [x.strip() for x in args.exclude_lines.split(",")]
-        all_trains = {k: [e for e in v if e[1].line.name not in exclude_lines] for k, v in all_trains.items()}
-        lines = {k: v for k, v in lines.items() if v.name not in exclude_lines}
+    all_trains_temp, lines = filter_lines(all_trains, lines, args.include_lines, args.exclude_lines)
+    assert all_trains_temp is not None, all_trains_temp
+    all_trains = all_trains_temp
 
     # Parse start/end limit time
     if include_passing_limit:
