@@ -10,16 +10,20 @@ from math import floor, ceil
 from src.city.city import City
 from src.city.date_group import DateGroup
 from src.city.transfer import Transfer, TransferSpec, transfer_repr
-from src.common.common import diff_time_tuple, average, stddev
+from src.common.common import diff_time_tuple, average, stddev, suffix_s
 from src.routing.train import Train
 from src.stats.common import display_first, parse_args
 
 
 def key_list_str(
-    result_key: tuple[str, str, TransferSpec], values: list[float], criteria: float, sd_crit: float, percentage: bool
+    result_key: tuple[str, str, TransferSpec] | str,
+    values: list[float], criteria: float, sd_crit: float, percentage: bool
 ) -> str:
     """ Obtain string representation """
-    base = transfer_repr(result_key[0], result_key[1], result_key[2])
+    if isinstance(result_key, str):
+        base = result_key + " (" + suffix_s("data point", len(values)) + ")"
+    else:
+        base = transfer_repr(result_key[0], result_key[1], result_key[2])
     base += f": Average = {criteria:.2f} minutes (stddev = {sd_crit:.2f})"\
         if not percentage else f"Percentage = {criteria * 100:.2f}%"
     base += f", min = {min(values):.2f} minutes, max = {max(values):.2f} minutes"
@@ -29,7 +33,8 @@ def key_list_str(
 def avg_waiting_time(
     all_trains: dict[str, list[tuple[str, Train]]], city: City,
     *, limit_num: int = 5, min_waiting: int | None = None, max_waiting: int | None = None,
-    exclude_edge: bool = False, show_all: bool = False, exclude_virtual: bool = False
+    exclude_edge: bool = False, exclude_virtual: bool = False,
+    data_source: str = "pair", show_all: bool = False
 ) -> None:
     """ Print the average waiting time for each transfer station """
     lines = city.lines
@@ -57,7 +62,7 @@ def avg_waiting_time(
     if not exclude_virtual:
         for (station1, station2), transfer_spec in virtual_dict.items():
             spec_dict.append((station1, station2, transfer_spec))
-    results: dict[tuple[str, str, TransferSpec], list[float]] = {}
+    results: dict[tuple[str, str, TransferSpec] | str, list[float]] = {}
     for station1, station2, transfer_spec in spec_dict:
         for transfer_key in transfer_spec.transfer_time.keys():
             from_l, from_d, to_l, to_d = transfer_key
@@ -82,15 +87,25 @@ def avg_waiting_time(
                     cur_index += 1
                 if cur_index == len(train_list2):
                     break
-                result_key = (
-                    city.station_full_name(station1), city.station_full_name(station2),
-                    (lines[from_l].full_name(), from_d, lines[to_l].full_name(), to_d)
-                )
-                if result_key not in results:
-                    results[result_key] = []
-                results[result_key].append(diff_time_tuple(
+                result_keys: list[tuple[str, str, TransferSpec] | str] = []
+                if data_source == "pair":
+                    result_keys.append((
+                        city.station_full_name(station1), city.station_full_name(station2),
+                        (lines[from_l].full_name(), from_d, lines[to_l].full_name(), to_d)
+                    ))
+                else:
+                    assert data_source in ["station", "station_entry", "station_exit"], data_source
+                    if data_source != "station_entry":
+                        result_keys.append(city.station_full_name(station1))
+                    if data_source != "station_exit" and (station1 != station2 or data_source == "station_entry"):
+                        result_keys.append(city.station_full_name(station2))
+                cur_diff = diff_time_tuple(
                     train_list2[cur_index][1].arrival_time[station2], train.arrival_time[station1]
-                ) - transfer_time)
+                ) - transfer_time
+                for result_key in result_keys:
+                    if result_key not in results:
+                        results[result_key] = []
+                    results[result_key].append(cur_diff)
 
     # Print results
     criteria = [(k, v, average(v), stddev(v)) for k, v in results.items()]
@@ -111,14 +126,18 @@ def main() -> None:
         """ Append more arguments """
         parser.add_argument("--min", type=int, help="Minimum waiting time")
         parser.add_argument("--max", type=int, help="Maximum waiting time")
-        parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
         parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
         parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+        parser.add_argument("-d", "--data-source", choices=[
+            "pair", "station", "station_entry", "station_exit"
+        ], default="pair", help="Transfer time data source")
+        parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
 
     all_trains, args, city, _ = parse_args(append_arg)
-    avg_waiting_time(all_trains, city, limit_num=args.limit_num, exclude_edge=args.exclude_edge,
-                     min_waiting=args.min, max_waiting=args.max, show_all=args.show_all,
-                     exclude_virtual=args.exclude_virtual)
+    avg_waiting_time(all_trains, city, limit_num=args.limit_num,
+                     min_waiting=args.min, max_waiting=args.max,
+                     exclude_edge=args.exclude_edge, exclude_virtual=args.exclude_virtual,
+                     data_source=args.data_source, show_all=args.show_all)
 
 
 # Call main

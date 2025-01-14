@@ -1425,7 +1425,8 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`transfer_waiting.py`](/src/stats/max_train_station.py): Average waiting time for each transfer station
 ```
-usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--show-all] [--exclude-edge] [--exclude-virtual]
+usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--exclude-edge] [--exclude-virtual]
+                           [-d {pair,station,station_entry,station_exit}] [--show-all]
 
 options:
   -h, --help            show this help message and exit
@@ -1443,15 +1444,20 @@ options:
                         Exclude lines
   --min MIN             Minimum waiting time
   --max MAX             Maximum waiting time
-  --show-all            Show all results (including impossible cases)
   --exclude-edge        Exclude edge case in transfer
   --exclude-virtual     Exclude virtual transfers
+  -d {pair,station,station_entry,station_exit}, --data-source {pair,station,station_entry,station_exit}
+                        Transfer time data source
+  --show-all            Show all results (including impossible cases)
 ```
 
 Show the average waiting time after you finish transfer.
 If `--min` and `--max` are specified, odds of satisfying the given bound are shown.
 By default, impossible cases (those that require getting off the train at the first station, for example) are not considered.
 If you want to see all results, use `--show-all`.
+
+`--data-source` can be used to change the output format.
+If `station` or `station_*` is specified, the output will be per station instead of per pair.
 
 Example Usage:
 <pre>
