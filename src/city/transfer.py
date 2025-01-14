@@ -37,7 +37,7 @@ class Transfer:
     def add_transfer_time(
         self, minutes: float, from_line: Line, to_line: Line,
         from_direction: str | None = None, to_direction: str | None = None,
-        time_interval: TimeInterval | None = None
+        time_interval: TimeInterval | None = None, *, allow_reverse: bool = True
     ) -> None:
         """ Add a transfer time pair """
         for from_d in (from_line.directions.keys() if from_direction is None else [from_direction]):
@@ -45,7 +45,7 @@ class Transfer:
                 if time_interval is None:
                     self.transfer_time[(from_line.name, from_d, to_line.name, to_d)] = minutes
                     reverse = (to_line.name, to_d, from_line.name, from_d)
-                    if reverse not in self.transfer_time:
+                    if allow_reverse and reverse not in self.transfer_time:
                         self.transfer_time[reverse] = minutes
                 else:
                     self.special_time[(from_line.name, from_d, to_line.name, to_d)] = (minutes, time_interval)
@@ -103,8 +103,8 @@ class Transfer:
         return min(results, key=lambda x: x[-2])
 
 
-def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_datas: list[dict[str, Any]],
-                        reversed_line: bool = False) -> Transfer:
+def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_datas: list[dict[str, Any]], *,
+                        reversed_line: bool = False, allow_reverse: bool = True) -> Transfer:
     """ Parse a single transfer metadata spec """
     for transfer_data in transfer_datas:
         from_s, to_s = transfer_data["from"], transfer_data["to"]
@@ -118,7 +118,8 @@ def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_dat
             from_d, to_d,
             parse_time_interval(
                 lines[from_s].date_groups, transfer_data["apply_time"]
-            ) if "apply_time" in transfer_data else None
+            ) if "apply_time" in transfer_data else None,
+            allow_reverse=allow_reverse
         )
     return transfer
 
@@ -138,9 +139,9 @@ def parse_virtual_transfer(
     result: dict[tuple[str, str], Transfer] = {}
     for transfer_dict in transfer_dicts:
         key = (transfer_dict["from_station"], transfer_dict["to_station"])
-        result[key] = parse_transfer_data(Transfer(key[0], key[1]), lines, transfer_dict["times"])
+        result[key] = parse_transfer_data(Transfer(key[0], key[1]), lines, transfer_dict["times"], allow_reverse=False)
         result[(key[1], key[0])] = parse_transfer_data(
-            Transfer(key[1], key[0]), lines, transfer_dict["times"], reversed_line=True)
+            Transfer(key[1], key[0]), lines, transfer_dict["times"], reversed_line=True, allow_reverse=False)
     return result
 
 

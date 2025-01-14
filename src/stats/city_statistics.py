@@ -6,10 +6,11 @@
 # Libraries
 import argparse
 from collections import Counter
-from typing import Any
+from typing import Any, TypeVar
 
 from src.city.ask_for_city import ask_for_city
 from src.city.city import City
+from src.city.line import Line
 from src.city.transfer import transfer_repr
 from src.common.common import distance_str, suffix_s, to_pinyin, average
 from src.stats.common import display_first, display_segment
@@ -174,9 +175,27 @@ def display_transfer_info(city: City, *, exclude_virtual: bool = False, limit_nu
           f"{sum(len(x) for x in consecutive_dict.values()) / len(lines):.2f}")
 
 
+T = TypeVar("T")
+
+
+def filter_transfer_time(
+    lines: dict[str, Line], station: str, second_station: str | None,
+    transfer_time: dict[tuple[str, str, str, str], T]
+) -> dict[tuple[str, str, str, str], T]:
+    """ Filter transfer_time with show_all """
+    result = {}
+    for (from_l, from_d, to_l, to_d), t in transfer_time.items():
+        if not lines[from_l].loop and station == lines[from_l].direction_stations(from_d)[0]:
+            continue
+        if not lines[to_l].loop and (second_station or station) == lines[to_l].direction_stations(to_d)[-1]:
+            continue
+        result[(from_l, from_d, to_l, to_d)] = t
+    return result
+
+
 def display_transfer_time_info(
     city: City, *,
-    exclude_virtual: bool = False, limit_num: int = 15, data_source: str = "pair"
+    exclude_virtual: bool = False, limit_num: int = 15, data_source: str = "pair", show_all: bool = False
 ) -> None:
     """ Display transfer time info """
     print("\n=====> Transfer Time Information <=====")
@@ -184,36 +203,47 @@ def display_transfer_time_info(
     if not exclude_virtual:
         transfers_list += list(city.virtual_transfers.values())
 
-    num_stations = len(set(x.station for x in transfers_list) | set(x.second_station for x in transfers_list))
+    transfer_times = [(t.station, t.second_station, t.transfer_time, t.special_time) for t in transfers_list]
+    if not show_all:
+        # Filter out impossible cases
+        lines = city.lines
+        for i, (station, second_station, transfer_time, special_time) in enumerate(transfer_times):
+            transfer_times[i] = (
+                station, second_station,
+                filter_transfer_time(lines, station, second_station, transfer_time),
+                filter_transfer_time(lines, station, second_station, special_time)
+            )
+
+    num_stations = len(set(x[0] for x in transfer_times) | set(x[1] for x in transfer_times))
     print("Total # of transfer station involved:", num_stations)
-    num_pairs = len([x for t in transfers_list for x in t.transfer_time.values()])
+    num_pairs = len([x for t in transfer_times for x in t[2].values()])
     print("Total # of transfer pairs:", num_pairs)
     print(f"Average # of transfer pair per station: {num_pairs / num_stations:.2f}")
-    num_special = len([x for t in transfers_list for x in t.special_time.values()])
+    num_special = len([x for t in transfer_times for x in t[3].values()])
     print("Total # of special transfer pairs:", num_special)
     print(f"Average # of special transfer pair per station: {num_special / num_stations:.2f}")
 
     if data_source == "pair":
-        data: Any = sorted([(t, k, v) for t in transfers_list for k, v in t.transfer_time.items()],
-                      key=lambda x: (x[-1], to_pinyin(x[0].station)[0], x[1]))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: " + transfer_repr(t[0].station, t[0].second_station, t[1])
+        data: Any = sorted([(s, s2, t, k, v) for s, s2, t, _ in transfer_times for k, v in t.items()],
+                           key=lambda x: (x[-1], to_pinyin(x[0])[0], x[-2]))
+        data_str = lambda t: f"{t[-1]:.2f} minutes: " + transfer_repr(t[0], t[1], t[-2])
     elif data_source == "station":
         station_data: dict[str, list[float]] = {}
-        for transfer_obj in transfers_list:
-            if transfer_obj.station not in station_data:
-                station_data[transfer_obj.station] = []
-            station_data[transfer_obj.station] += list(transfer_obj.transfer_time.values())
-            if transfer_obj.second_station is not None:
-                if transfer_obj.second_station not in station_data:
-                    station_data[transfer_obj.second_station] = []
-                station_data[transfer_obj.second_station] += list(transfer_obj.transfer_time.values())
+        for station, second_station, transfer_time, _ in transfer_times:
+            if station not in station_data:
+                station_data[station] = []
+            station_data[station] += list(transfer_time.values())
+            if second_station is not None:
+                if second_station not in station_data:
+                    station_data[second_station] = []
+                station_data[second_station] += list(transfer_time.values())
         data = sorted([(s, l, average(l)) for s, l in station_data.items()],
                       key=lambda x: (x[-1], -len(x[1]), to_pinyin(x[0])[0]))
         data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
     elif data_source == "line":
         line_data: dict[str, list[float]] = {}
-        for transfer_obj in transfers_list:
-            for (from_l, _, to_l, _), t in transfer_obj.transfer_time.items():
+        for _, _, transfer_time, _ in transfer_times:
+            for (from_l, _, to_l, _), t in transfer_time.items():
                 if from_l not in line_data:
                     line_data[from_l] = []
                 line_data[from_l].append(t)
@@ -251,7 +281,13 @@ def main() -> None:
     parser.add_argument("-d", "--data-source", choices=[
         "pair", "station", "line"
     ], default="pair", help="Transfer time data source")
+    parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
     args = parser.parse_args()
+
+    if args.omit_transfer_time_info and args.data_source != "pair":
+        print("Warning: --data-source is ignored if you omit transfer time info")
+    if args.omit_transfer_time_info and args.show_all:
+        print("Warning: --show-all is ignored if you omit transfer time info")
 
     city = ask_for_city()
     if not args.omit_line_info:
@@ -264,7 +300,8 @@ def main() -> None:
         display_transfer_info(city, exclude_virtual=args.exclude_virtual, limit_num=args.limit_num)
     if not args.omit_transfer_time_info:
         display_transfer_time_info(city, exclude_virtual=args.exclude_virtual,
-                                   limit_num=args.limit_num, data_source=args.data_source)
+                                   limit_num=args.limit_num, data_source=args.data_source,
+                                   show_all=args.show_all)
 
 
 # Call main

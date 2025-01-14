@@ -65,9 +65,9 @@ def avg_waiting_time(
                 station1, station2 = station2, station1
                 assert station1 in lines[from_l].stations, (station1, station2, transfer_spec, transfer_key)
             if not show_all:
-                if station1 == lines[from_l].direction_stations(from_d)[0]:
+                if not lines[from_l].loop and station1 == lines[from_l].direction_stations(from_d)[0]:
                     continue
-                if station2 == lines[to_l].direction_stations(to_d)[-1]:
+                if not lines[to_l].loop and station2 == lines[to_l].direction_stations(to_d)[-1]:
                     continue
             train_list1 = full_dict[station1][(from_l, from_d)]
             train_list2 = full_dict[station2][(to_l, to_d)]

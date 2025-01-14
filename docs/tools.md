@@ -1152,6 +1152,7 @@ In all the programs in this section (except those that accept no arguments), the
 ### [`city_statistics.py`](/src/stats/city_statistics.py): Basic statistics for a city
 ```
 usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info] [--omit-transfer-time-info] [--exclude-virtual] [-n LIMIT_NUM] [-d {pair,station,line}]
+                          [--show-all]
 
 options:
   -h, --help            show this help message and exit
@@ -1167,6 +1168,7 @@ options:
                         Limit number of output
   -d {pair,station,line}, --data-source {pair,station,line}
                         Transfer time data source
+  --show-all            Show all results (including impossible cases)
 ```
 
 Show some basic data on a city, such as number of lines, total rail distance, and number of transfer stations.
