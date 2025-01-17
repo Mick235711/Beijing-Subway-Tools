@@ -82,7 +82,7 @@ class Transfer:
             possible_from = [(from_line.name, from_direction)]
         if to_line is None:
             assert to_direction is None, (to_line, to_direction)
-            possible_to = list(set((x[0], x[1]) for x in self.transfer_time.keys()))
+            possible_to = list(set((x[2], x[3]) for x in self.transfer_time.keys()))
         elif to_direction is None:
             possible_to = [(to_line.name, x) for x in to_line.directions.keys()]
         else:
@@ -100,6 +100,7 @@ class Transfer:
                 else:
                     transfer_time = (self.transfer_time[(from_l, from_d, to_l, to_d)], False)
                 results.append((from_l, from_d, to_l, to_d, transfer_time[0], transfer_time[1]))
+        assert len(results) > 0, (self.station, self.second_station, possible_from, possible_to)
         return min(results, key=lambda x: x[-2])
 
 

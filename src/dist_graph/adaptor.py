@@ -98,6 +98,8 @@ def get_dist_graph(
     # Add transfers
     if include_virtual:
         for from_station, to_station in city.virtual_transfers.keys():
+            if from_station not in graph or to_station not in graph:
+                continue
             add_edge(graph, from_station, to_station, 0, None)
     return graph
 
@@ -170,6 +172,7 @@ def to_trains(
             trains = sorted(
                 [train for train in train_list if station in train.arrival_time.keys()
                  and next_station in train.arrival_time_virtual(station).keys()
+                 and next_station not in train.skip_stations
                  and (station != next_station or train.loop_next is not None)],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )

@@ -256,7 +256,8 @@ def reverse_path(end_station: str, city: City, path: AbstractPath) -> AbstractPa
     return new_path
 
 
-def path_shorthand(end_station: str, city: City, path: AbstractPath, *, line_only: bool = False) -> str:
+def path_shorthand(end_station: str, lines: dict[str, Line], path: AbstractPath,
+                   *, line_only: bool = False) -> str:
     """ One-line representation of a path """
     result = ""
     for station, line_direction in path:
@@ -264,19 +265,19 @@ def path_shorthand(end_station: str, city: City, path: AbstractPath, *, line_onl
             if line_only:
                 result += "[virtual]-"
             else:
-                result += f"{city.station_full_name(station)} --- (virtual) --> "
+                result += f"{station_full_name(station, lines)} --- (virtual) --> "
         else:
-            line = city.lines[line_direction[0]]
+            line = lines[line_direction[0]]
             if line_only:
                 result += line.full_name()
                 if line.loop:
                     result += f"({line_direction[1]})"
                 result += "-"
             else:
-                result += f"{city.station_full_name(station)} --- {line.full_name()} ({line_direction[1]}) --> "
+                result += f"{station_full_name(station, lines)} --- {line.full_name()} ({line_direction[1]}) --> "
     if line_only:
         return result.rstrip("-")
-    return result + city.station_full_name(end_station)
+    return result + station_full_name(end_station, lines)
 
 
 def shortest_path_args(
@@ -320,7 +321,7 @@ def print_station_info(
 
     print("Percentage of each path:")
     for percent, path, examples in path_coverage:
-        print("    " + percentage_str(percent) + " " + path_shorthand(station, city, path), end="")
+        print("    " + percentage_str(percent) + " " + path_shorthand(station, city.lines, path), end="")
         print(f" [Example: {examples[0][2].time_str()}]")
 
     if not isinstance(show_path_transfers, bool):
