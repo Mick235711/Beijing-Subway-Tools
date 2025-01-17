@@ -132,7 +132,7 @@ def main() -> None:
                             default="time", help="Shortest path criteria")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, have_single=True)
-    if args.color_map.startswith("#"):
+    if args.color_map is not None and args.color_map.startswith("#"):
         # Assumes a manually specified color list
         cmap: list[tuple[float, float, float]] | Colormap = [color_to_hex(s.strip()) for s in args.color_map.split(",")]
     else:
