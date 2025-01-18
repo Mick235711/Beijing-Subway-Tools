@@ -1109,6 +1109,99 @@ Waiting time: 2.5 minutes
 15号线 东行 全程车 [6B] 望京 20:36 -> 俸伯 21:14 (11 stations, 38min, 28.67km)
 </pre>
 
+### [`exotic_path.py`](/src/dist_graph/exotic_path.py): Find the weirdest path in a network
+```
+usage: exotic_path.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [--exclude-edge] [--include-express] [-p {all,line}] [-d {time,station,distance,fare}]
+                      [-c {time,station,distance,fare}] [--delta-metric DELTA_METRIC]
+
+options:
+  -h, --help            show this help message and exit
+  -n LIMIT_NUM, --limit-num LIMIT_NUM
+                        Limit number of output
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-single      Exclude single-direction lines
+  --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
+  -p {all,line}, --pair-source {all,line}
+                        Station pair source
+  -d {time,station,distance,fare}, --data-source {time,station,distance,fare}
+                        Path criteria
+  -c {time,station,distance,fare}, --compare-against {time,station,distance,fare}
+                        Criteria to be compare against
+  --delta-metric DELTA_METRIC
+                        Delta metric
+```
+
+Show the weirdest paths in a network. Weirdness is defined as paths between two stations that differ very greatly between two different metrics.
+For example, with the fare metric, the best path between Donghuqu and Lianhuaqiao stations
+is 14-15-13-10-5-2-6-9-1-10, while the best path between the same pair with the time metric will be simply 14-10.
+
+There are a lot of flags:
+- `-d` selects the basis path metric (the one being compared against)
+- `-c` selects the secondary path metric. The displayed delta will be sorted by first - second.
+- `--delta-metric` selects the delta metric, which is a comma-separated list of metrics.
+  - Valid metrics includes all those being accepted by `-d` and `-c`, together with `transfer` and `comprehensive` (a score-based metric combining several individual metrics).
+- `-i`, `-x`, `--exclude-*`, `--include-express` are the usual selective params.
+- `-p` determine the scope of start-end station pairs. The default (`all`) calculate all pairs, while `line` focuses on start/end station on the same line.
+- `-n` limits the number of items in the output.
+
+**NOTE: This may require several minutes to compute.**
+
+Example Usage:
+<pre>
+$ python3 src/dist_graph/exotic_path.py
+? Please select a city: <i>北京</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2025-01-17</i>
+? Please enter the travel time (hh:mm): <i>10:00</i>
+Calculating 天通苑南: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 375/375 [01:06&lt;00:00,  5.63it/s]
+Calculating 红莲南路: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 375/375 [01:27&lt;00:00,  4.27it/s]
+#1: -1h: 北安河 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#2: -1h: 北安河 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#3: -1h: 稻香湖路 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#4: -1h: 稻香湖路 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#5: -1h: 温阳路 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#6: -1h: 温阳路 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#7: -54min: 北京大学东门 -&gt; 北工大西门 (4号线-6号线-14号线 vs 4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#8: -54min: 北京大学东门 -&gt; 平乐园 (4号线-6号线-14号线 vs 4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#9: -54min: 马连洼 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#10: -54min: 马连洼 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#11: -54min: 农大南路 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#12: -54min: 农大南路 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#13: -54min: 屯佃 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#14: -54min: 屯佃 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#15: -54min: 西北旺 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#16: -54min: 西北旺 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#17: -54min: 永丰 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#18: -54min: 永丰 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#19: -54min: 永丰南 -&gt; 北工大西门 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+#20: -54min: 永丰南 -&gt; 平乐园 (16号线-6号线-14号线 vs 16号线-4号线-10号线(内环)-13号线-4号线-6号线-5号线-1号线-10号线(内环)-7号线-14号线)
+...
+#140230: 0min: 紫草坞 -&gt; 园博园 (燕房线-房山线-9号线-14号线 vs 燕房线-房山线-9号线-14号线)
+#140231: 0min: 紫草坞 -&gt; 圆明园 (燕房线-房山线-9号线-4号线 vs 燕房线-房山线-9号线-4号线)
+#140232: 0min: 紫草坞 -&gt; 玉泉路 (燕房线-房山线-9号线-10号线(内环)-1号线 vs 燕房线-房山线-9号线-10号线(内环)-1号线)
+#140233: 0min: 紫草坞 -&gt; 榆树庄 (燕房线-房山线-16号线 vs 燕房线-房山线-9号线-16号线)
+#140234: 0min: 紫草坞 -&gt; 育新 (燕房线-房山线-9号线-10号线(内环)-8号线 vs 燕房线-房山线-10号线(外环)-19号线-2号线(内环)-8号线)
+#140235: 0min: 紫草坞 -&gt; 玉渊潭东门 (燕房线-房山线-16号线 vs 燕房线-房山线-16号线)
+#140236: 0min: 紫草坞 -&gt; 枣园 (燕房线-房山线-10号线(外环)-4号线 vs 燕房线-房山线-10号线(外环)-19号线-4号线)
+#140237: 0min: 紫草坞 -&gt; 张郭庄 (燕房线-房山线-9号线-14号线 vs 燕房线-房山线-9号线-14号线)
+#140238: 0min: 紫草坞 -&gt; 长阳 (燕房线-房山线 vs 燕房线-房山线)
+#140239: 0min: 紫草坞 -&gt; 中关村 (燕房线-房山线-9号线-4号线 vs 燕房线-房山线-9号线-4号线)
+#140240: 0min: 紫草坞 -&gt; 珠市口 (燕房线-房山线-16号线-7号线 vs 燕房线-房山线-16号线-7号线)
+#140241: 2min: 北苑 -&gt; 动物园 (13号线-10号线(外环)-4号线 vs 13号线-10号线(外环)-5号线-2号线(外环)-4号线)
+#140242: 2min: 天通苑南 -&gt; 动物园 (5号线-10号线(外环)-4号线 vs 5号线-2号线(外环)-4号线)
+#140243: 3min: 稻田 -&gt; 北京大学东门 (房山线-16号线-4号线 vs 房山线-9号线-4号线)
+#140244: 3min: 稻田 -&gt; 海淀黄庄 (房山线-16号线-4号线 vs 房山线-9号线-4号线)
+#140245: 3min: 稻田 -&gt; 人民大学 (房山线-16号线-4号线 vs 房山线-9号线-4号线)
+#140246: 3min: 稻田 -&gt; 魏公村 (房山线-16号线-4号线 vs 房山线-9号线-4号线)
+#140247: 3min: 稻田 -&gt; 圆明园 (房山线-16号线-4号线 vs 房山线-9号线-4号线)
+#140248: 3min: 稻田 -&gt; 中关村 (房山线-16号线-4号线 vs 房山线-9号线-4号线)
+#140249: 6min: 五棵松 -&gt; 太平桥 (1号线-4号线-19号线 vs 1号线-9号线-6号线-19号线)
+</pre>
+
 ### [`export_graph.py`](/src/dist_graph/export_graph.py): Export the dist graph into various formats
 ```
 usage: export_graph.py [-h] [-o OUTPUT] [--format {auto,adjlist,multiline_adjlist,dot,edgelist,gexf,gml,graphml,json,json_node_link,json_adj,json_cytoscape,graph6,pajek,net,network_text}]

@@ -19,7 +19,7 @@ from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import diff_time, suffix_s, format_duration, distance_str, to_pinyin
+from src.common.common import diff_time, suffix_s, format_duration, distance_str, to_pinyin, parse_comma_list, to_list
 from src.dist_graph.adaptor import get_dist_graph, all_bfs_path
 from src.dist_graph.shortest_path import Graph
 from src.fare.fare import Fare, to_abstract
@@ -109,63 +109,76 @@ def paths_metrics(
     assert False, metric
 
 
-def print_paths(
-    path_basis: dict[str, dict[str, PathInfo]], path_compare: dict[str, dict[str, PathInfo]],
-    lines: dict[str, Line], exclude_stations: set[str], start_date: date,
-    through_dict: dict[ThroughSpec, list[ThroughTrain]], fare_rules: Fare | None = None,
-    *, delta_metric: str = "comprehensive", limit_num: int = 5
-) -> None:
-    """ Print sorted path deltas """
-    data: list[tuple[str, str, Path, Path, float]] = []
-    for from_station, to_dict in path_basis.items():
-        for to_station, path_info_basis in to_dict.items():
-            if to_station not in path_compare[from_station]:
-                assert to_station in exclude_stations, (from_station, to_station, exclude_stations)
-                continue
-            path_info_compare = path_compare[from_station][to_station]
-            def info_delta(metric: str) -> float:
-                """ Get delta between the basis and compare """
-                return paths_metrics(path_info_basis, lines, start_date, through_dict, fare_rules, metric=metric) - \
-                       paths_metrics(path_info_compare, lines, start_date, through_dict, fare_rules, metric=metric)
-            if delta_metric == "comprehensive":
-                # Simple comprehensive score
-                # We think that 1 more transfer = 2.5 more minutes
-                # TODO: consider fare and distance
-                delta_val = info_delta("transfer") * 2.5 + info_delta("time")
-            else:
-                delta_val = info_delta(delta_metric)
-            data.append((from_station, to_station, path_info_basis[1], path_info_compare[1], delta_val))
-
-    def display(from_st: str, to_st: str, path1: Path, path2: Path, delta: float) -> str:
-        """ Display function """
-        if delta_metric == "comprehensive":
+def display_single(
+    lines: dict[str, Line], from_st: str, to_st: str, path1: Path, path2: Path, delta_list: list[float],
+    fare_rules: Fare | None = None, *, delta_metric: str | list[str] = "comprehensive"
+) -> str:
+    """ Display single element """
+    basis_list: list[str] = []
+    for single_metric, delta in zip(to_list(delta_metric), delta_list):
+        if single_metric == "comprehensive":
             basis = f"Score = {delta:.2f}"
-        elif delta_metric == "time":
+        elif single_metric == "time":
             if delta < 0:
                 basis = "-" + format_duration(-delta)
             elif delta == 0:
                 basis = "0min"
             else:
                 basis = format_duration(delta)
-        elif delta_metric == "station":
+        elif single_metric == "station":
             basis = suffix_s("station", int(delta))
-        elif delta_metric == "distance":
+        elif single_metric == "distance":
             basis = distance_str(delta)
-        elif delta_metric == "fare":
+        elif single_metric == "fare":
             assert fare_rules is not None, fare_rules
             basis = fare_rules.currency_str(delta)
-        elif delta_metric == "transfer":
+        elif single_metric == "transfer":
             basis = suffix_s("transfer", int(delta))
         else:
-            assert False, delta_metric
-        basis += ": " + station_full_name(from_st, lines) + " -> " + station_full_name(to_st, lines)
-        basis += " (" + path_shorthand(to_st, lines, to_abstract(path1), line_only=True)
-        basis += " vs " + path_shorthand(to_st, lines, to_abstract(path2), line_only=True) + ")"
-        return basis
+            assert False, single_metric
+        basis_list.append(basis)
+    basis = ", ".join(basis_list)
+    basis += ": " + station_full_name(from_st, lines) + " -> " + station_full_name(to_st, lines)
+    basis += " (" + path_shorthand(to_st, lines, to_abstract(path1), line_only=True)
+    basis += " vs " + path_shorthand(to_st, lines, to_abstract(path2), line_only=True) + ")"
+    return basis
+
+
+def print_paths(
+    path_basis: dict[str, dict[str, PathInfo]], path_compare: dict[str, dict[str, PathInfo]],
+    lines: dict[str, Line], exclude_stations: set[str], start_date: date,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]], fare_rules: Fare | None = None,
+    *, pair_source: str = "all", delta_metric: str | list[str] = "comprehensive", limit_num: int = 5
+) -> None:
+    """ Print sorted path deltas """
+    data: list[tuple[str, str, Path, Path, list[float]]] = []
+    for from_station, to_dict in path_basis.items():
+        for to_station, path_info_basis in to_dict.items():
+            if to_station not in path_compare[from_station]:
+                assert to_station in exclude_stations, (from_station, to_station, exclude_stations)
+                continue
+            if pair_source == "line" and len(path_info_basis[1]) != 1:
+                continue
+            path_info_compare = path_compare[from_station][to_station]
+            def info_delta(metric: str) -> float:
+                """ Get delta between the basis and compare """
+                return paths_metrics(path_info_basis, lines, start_date, through_dict, fare_rules, metric=metric) - \
+                       paths_metrics(path_info_compare, lines, start_date, through_dict, fare_rules, metric=metric)
+            metrics: list[float] = []
+            for single_metric in to_list(delta_metric):
+                if single_metric == "comprehensive":
+                    # Simple comprehensive score
+                    # We think that 1 more transfer = 2.5 more minutes
+                    # TODO: consider fare and distance
+                    delta_val = info_delta("transfer") * 2.5 + info_delta("time")
+                else:
+                    delta_val = info_delta(single_metric)
+                metrics.append(delta_val)
+            data.append((from_station, to_station, path_info_basis[1], path_info_compare[1], metrics))
 
     display_first(sorted(data, key=lambda x: (
         x[-1], to_pinyin(x[0])[0], to_pinyin(x[1])[0]
-    )), lambda inner: display(*inner), limit_num=limit_num)
+    )), lambda inner: display_single(lines, *inner, fare_rules, delta_metric=delta_metric), limit_num=limit_num)
 
 
 def main() -> None:
@@ -184,13 +197,13 @@ def main() -> None:
                             default="time", help="Path criteria")
         parser.add_argument("-c", "--compare-against", choices=supported,
                             default="fare", help="Criteria to be compare against")
-        parser.add_argument("--delta-metric", choices=["comprehensive"] + supported + ["transfer"],
-                            default="comprehensive", help="Delta metric")
+        parser.add_argument("--delta-metric", default="comprehensive", help="Delta metric")
     _, args, city, _ = parse_args(append_arg, include_passing_limit=False, include_train_ctrl=False)
+    delta_metric = parse_comma_list(args.delta_metric)
     if args.data_source == args.compare_against:
         print("Error: data source and compare criteria cannot be the same!")
         return
-    if "fare" in [args.data_source, args.compare_against, args.delta_metric] and city.fare_rules is None:
+    if ("fare" in [args.data_source, args.compare_against] or "fare" in delta_metric) and city.fare_rules is None:
         print("Error: no fare rules defined for this city!")
         return
     if (args.exclude_edge or args.include_express) and "time" not in [args.data_source, args.compare_against]:
@@ -222,7 +235,7 @@ def main() -> None:
     if args.compare_against == "fare":
         exclude_stations = set(x[0] for x in city.virtual_transfers.keys()) | set(x[1] for x in city.virtual_transfers.keys())
     print_paths(paths_basis, paths_compare, city.lines, exclude_stations, start_date, through_dict, city.fare_rules,
-                delta_metric=args.delta_metric, limit_num=args.limit_num)
+                pair_source=args.pair_source, delta_metric=delta_metric, limit_num=args.limit_num)
 
 
 # Call main

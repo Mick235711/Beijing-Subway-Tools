@@ -506,6 +506,23 @@ def parse_comma(field: str | None) -> set[str]:
         return {field.strip()}
 
 
+def parse_comma_list(field: str | None) -> list[str]:
+    """ Parse comma-separated argument values """
+    if field is None:
+        return []
+    elif "," in field:
+        return [x.strip() for x in field.split(",")]
+    else:
+        return [field.strip()]
+
+
+def to_list(info: T | list[T]) -> list[T]:
+    """ Convert to list """
+    if isinstance(info, list):
+        return info
+    return [info]
+
+
 class Reverser:
     """ Reverse the comparison order """
 
