@@ -14,7 +14,7 @@ from src.city.date_group import DateGroup
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str, TimeSpec, \
-    to_pinyin
+    to_pinyin, parse_time_seq
 from src.graph.map import Map, get_all_maps
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_trains, parse_all_trains
@@ -450,6 +450,14 @@ def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
     if start_day:
         print("Warning: assuming next day!")
     return answer, start_day
+
+
+def ask_for_time_seq() -> set[tuple[time, bool]]:
+    """ Ask for a set of times """
+    return ask_question(
+        "Please enter the travel time (hh:mm or hh:mm-hh:mm):",
+        parse_time_seq, default=get_time_str(datetime.now().time())
+    )
 
 
 def ask_for_map(city: City, *, message: str | None = None) -> Map:

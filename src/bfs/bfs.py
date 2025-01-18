@@ -509,10 +509,10 @@ def bfs_wrap(lines: dict[str, Line],
 def single_bfs(lines: dict[str, Line],
                train_dict: dict[str, dict[str, dict[str, list[Train]]]],
                transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
-               start_date: date, start_time: time, start_day: bool, start_station: str,
-               *_, **kwargs) -> tuple[str, dict[str, BFSResult]]:
+               start_date: date, data: tuple[str, time, bool],
+               *_, **kwargs) -> tuple[tuple[str, time, bool], dict[str, BFSResult]]:
     """ Wrap around the bfs() method but with station at the end """
-    return start_station, bfs(
-        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station, start_time, start_day,
+    return data, bfs(
+        lines, train_dict, transfer_dict, virtual_dict, start_date, data[0], data[1], data[2],
         **kwargs
     )

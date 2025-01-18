@@ -210,6 +210,25 @@ def parse_time(time_str: str, next_day: bool = False) -> TimeSpec:
     return time.fromisoformat(time_str), next_day
 
 
+def parse_time_seq(time_seq_str: str) -> set[TimeSpec]:
+    """ Parse time seq as hh:mm or hh:mm:ss """
+    if "," in time_seq_str:
+        result = set()
+        for inner in time_seq_str.split(","):
+            result |= parse_time_seq(inner.strip())
+        return result
+
+    if "-" not in time_seq_str:
+        return {parse_time(time_seq_str)}
+    index = time_seq_str.index("-")
+    spec1 = parse_time(time_seq_str[:index].strip())
+    spec2 = parse_time(time_seq_str[index + 1:].strip())
+    result = set()
+    for minute in range(to_minutes(*spec1), to_minutes(*spec2) + 1):
+        result.add(from_minutes(minute))
+    return result
+
+
 def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time, bool] | None:
     """ Parse time as hh:mm with optional None """
     if time_str is None:
