@@ -706,11 +706,11 @@ Average over all 223 trains, segment speed: 26.38min, 42.67km/h
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
 ```
-usage: shortest_path.py [-h] [-d {time,transfer,station,distance,fare}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+usage: shortest_path.py [-h] [-d {time,station,distance,fare}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
-  -d {time,transfer,station,distance,fare}, --data-source {time,transfer,station,distance,fare}
+  -d {time,station,distance,fare}, --data-source {time,station,distance,fare}
                         Shortest path criteria
   -k NUM_PATH, --num-path NUM_PATH
                         Show first k path
@@ -2460,7 +2460,7 @@ Drawing contours done! Saving...
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
 usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
-                    [--strategy {kth,avg}] [-k NUM_PATH] [-d {time,transfer,station,distance}]
+                    [--strategy {kth,avg}] [-k NUM_PATH] [-d {time,station,distance,fare}]
 
 options:
   -h, --help            show this help message and exit
@@ -2484,7 +2484,7 @@ options:
   --strategy {kth,avg}  Strategy for combining station data
   -k NUM_PATH, --num-path NUM_PATH
                         Show first k path
-  -d {time,transfer,station,distance}, --data-source {time,transfer,station,distance}
+  -d {time,station,distance,fare}, --data-source {time,station,distance,fare}
                         Shortest path criteria
 ```
 Draw the first k-th shortest paths on the map.
