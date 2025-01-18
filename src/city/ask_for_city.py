@@ -432,7 +432,7 @@ def ask_for_date() -> date:
 
 
 def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
-                 allow_last: Callable[[], TimeSpec] | None = None) -> tuple[time, bool]:
+                 allow_last: Callable[[], TimeSpec] | None = None) -> TimeSpec:
     """ Ask for a time """
     valid_answer: dict[str, Callable[[], TimeSpec]] = {}
     if allow_first is not None:
@@ -452,7 +452,7 @@ def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
     return answer, start_day
 
 
-def ask_for_time_seq() -> set[tuple[time, bool]]:
+def ask_for_time_seq() -> set[TimeSpec]:
     """ Ask for a set of times """
     return ask_question(
         "Please enter the travel time (hh:mm or hh:mm-hh:mm):",

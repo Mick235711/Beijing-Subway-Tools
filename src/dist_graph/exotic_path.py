@@ -20,7 +20,7 @@ from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, suffix_s, format_duration, distance_str, to_pinyin, parse_comma_list, to_list, \
-    get_time_repr, to_minutes
+    get_time_repr, to_minutes, TimeSpec
 from src.dist_graph.adaptor import get_dist_graph, all_bfs_path
 from src.dist_graph.shortest_path import Graph
 from src.fare.fare import Fare, to_abstract
@@ -33,7 +33,7 @@ def all_station_bfs(
     stations: set[str], lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
-    start_date: date, time_set: set[tuple[time, bool]],
+    start_date: date, time_set: set[TimeSpec],
     *, exclude_edge: bool = False, include_express: bool = False
 ) -> dict[str, dict[str, dict[int, PathInfo]]]:
     """ Run BFS through all stations with a specific starting time """

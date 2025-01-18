@@ -229,7 +229,7 @@ def parse_time_seq(time_seq_str: str) -> set[TimeSpec]:
     return result
 
 
-def parse_time_opt(time_str: str | None, next_day: bool = False) -> tuple[time, bool] | None:
+def parse_time_opt(time_str: str | None, next_day: bool = False) -> TimeSpec | None:
     """ Parse time as hh:mm with optional None """
     if time_str is None:
         return None
@@ -289,6 +289,20 @@ def get_time_repr(time_obj: time, next_day: bool = False) -> str:
     """ Get representation from (time, next_day) """
     key = f"{time_obj.hour:>02}:{time_obj.minute:>02}"
     return key + (" (+1)" if next_day else "")
+
+
+def get_time_seq_str(time_set: set[TimeSpec]) -> str:
+    """ Get str from a set of (time, next_day) """
+    min_time = min(time_set, key=lambda x: get_time_str(*x))
+    max_time = max(time_set, key=lambda x: get_time_str(*x))
+    return get_time_str(*min_time) + "-" + get_time_str(*max_time)
+
+
+def get_time_seq_repr(time_set: set[TimeSpec]) -> str:
+    """ Get representation from a set of (time, next_day) """
+    min_time = min(time_set, key=lambda x: get_time_str(*x))
+    max_time = max(time_set, key=lambda x: get_time_str(*x))
+    return get_time_repr(*min_time) + " - " + get_time_repr(*max_time)
 
 
 def format_duration(duration: timedelta | int | float) -> str:

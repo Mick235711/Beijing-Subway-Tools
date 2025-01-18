@@ -19,7 +19,7 @@ from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, to_minutes, from_minutes, get_time_str, parse_time_opt, \
-    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin
+    percentage_coverage, percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin, TimeSpec
 from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
@@ -98,8 +98,7 @@ def calculate_shortest(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, *,
-    limit_start_tuple: tuple[time, bool] | None = None,
-    limit_end_tuple: tuple[time, bool] | None = None,
+    limit_start_tuple: TimeSpec | None = None, limit_end_tuple: TimeSpec | None = None,
     exclude_edge: bool = False, include_express: bool = False,
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None,
     fare_rules: Fare | None = None
