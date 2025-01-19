@@ -30,7 +30,7 @@
         {name: "红莲南路", dist: 1552},
         {name: "丽泽商务区", dist: 1241, aliases: ["Lize Business District"]},
         {name: "东管头南", dist: 1803},
-        {name: "丰台站", dist: 1794},
+        {name: "丰台站", dist: 1794, aliases: ["Fengtai Railway Station"]},
         {name: "丰台南路", dist: 1420},
         {name: "富丰桥", dist: 1187},
         {name: "看丹", dist: 1226},

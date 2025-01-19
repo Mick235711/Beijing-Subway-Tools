@@ -21,6 +21,12 @@
                 apply_time: [{end: "07:00"}, {start: "09:30", end: "16:30"}, {start: "19:00"}]
             }
         ],
+        // 参考：https://www.bilibili.com/video/BV1jMqRY2EZm
+        "东四十条": [
+            {from: "2号线", to: "3号线", minutes: 1.5},
+            {from: "3号线", to: "2号线", minutes: 2.5},
+            // 伪节点2->3
+        ],
         "西单": [
             {from: "1号线", to: "4号线", minutes: 3.5},
             {from: "4号线", to: "1号线", minutes: 4.5}
@@ -152,6 +158,10 @@
             {from: "1号线", to: "10号线", to_direction: "内环", minutes: 4},
             {from: "1号线", to: "10号线", to_direction: "外环", minutes: 4.5},
         ],
+        // 参考：https://www.bilibili.com/video/BV1Wj6JYNED8/
+        "团结湖": [
+            {from: "3号线", to: "10号线", minutes: 2.5}
+        ],
         "海淀黄庄": [
             {from: "4号线", to: "10号线", minutes: 1.5}
         ],
@@ -226,6 +236,12 @@
         "大望路": [
             {from: "1号线", to: "14号线", minutes: 5.5},
             {from: "14号线", to: "1号线", minutes: 5.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1HAqfYiEKy/
+        "朝阳公园": [
+            {from: "3号线", to: "14号线", minutes: 3},
+            {from: "14号线", to: "3号线", minutes: 1.5},
+            // 节点14->3
         ],
         "北京南站": [
             {from: "4号线", to: "14号线", minutes: 0.5},
@@ -303,6 +319,12 @@
             {from: "14号线", to: "16号线", minutes: 0.5},
             {from: "16号线", to: "14号线", minutes: 1}
             // 节点14->16
+        ],
+        // 参考：https://www.bilibili.com/video/BV1PVcBekEd1/
+        "工人体育场": [
+            {from: "3号线", to: "17号线北段", minutes: 1},
+            {from: "17号线北段", to: "3号线", minutes: 0.5}
+            // 节点17->3
         ],
         // 参考：https://www.bilibili.com/video/BV1LK41147SW/
         "太阳宫": [
