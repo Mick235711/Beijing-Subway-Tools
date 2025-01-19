@@ -294,6 +294,10 @@
         "丰台站": [
             {from: "10号线", to: "16号线", minutes: 2.5}
         ],
+        // 参考：https://www.bilibili.com/video/BV1LK41147SW/
+        "太阳宫": [
+            {from: "10号线", to: "17号线北段", minutes: 3}
+        ],
         // 参考：https://www.bilibili.com/video/BV18Y411a7Mc/
         "积水潭": [
             {from: "2号线", to: "19号线", minutes: 2.5},
