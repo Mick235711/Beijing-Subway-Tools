@@ -109,14 +109,14 @@ class BFSResult:
         indent_str = "    " * indent
         if fare_rules is None:
             fare_splits = []
-            splits = [(path[0][0], "")]
+            splits = [(path[0][0], "", "")]
             total_fare = ""
             splitter = ""
             separator = ""
             continuer = ""
         else:
             fare_splits = fare_rules.get_fare(lines, path, self.station, self.start_date)
-            splits = [(x[0], x[1]) for x in fare_splits]
+            splits = [(x[0], x[1], x[2]) for x in fare_splits]
             assert len(fare_splits) > 0, path
             total_fare = fare_rules.currency_str(sum(x[-1] for x in fare_splits))
             splitter = "-" * len(total_fare) + " "
@@ -147,7 +147,7 @@ class BFSResult:
                 start_line = lines[train[2][0]].full_name()
                 end_station = lines[train[2][2]].station_full_name(train[1])
                 end_line = lines[train[2][2]].full_name()
-                if (train[1], train[2][2]) in splits:
+                if (train[1], train[2][2], train[2][3]) in splits:
                     split_indexes.append(len(line_list))
                 line_list.append(f"Virtual transfer: {start_station}[{start_line}] -> {end_station}[{end_line}], " +
                                  suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
@@ -190,7 +190,7 @@ class BFSResult:
                         # We have a through-train transfer
                         line_list.append(f"(Pass-through at {full_name})")
                     else:
-                        if (station, train.line.name) in splits:
+                        if (station, train.line.name, train.direction) in splits:
                             split_indexes.append(len(line_list))
                         line_list.append(f"Transfer at {full_name}: " +
                                          f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
@@ -206,7 +206,7 @@ class BFSResult:
             last_train = train
 
         assert len(split_indexes) == len(splits), (splits, split_indexes)
-        splits.append((self.station, ""))
+        splits.append((self.station, "", ""))
         split_indexes.append(len(line_list) - 1)
         for i in range(1, len(splits)):
             last_index, cur_index = split_indexes[i - 1], split_indexes[i]
