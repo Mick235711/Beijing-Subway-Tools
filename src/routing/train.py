@@ -213,8 +213,17 @@ class Train:
                 f"{get_time_repr(*arrival_keys[end_station])}" +
                 f" ({self.two_station_duration_repr(start_station, end_station)})")
 
-    def two_station_interval(self, start_station: str, end_station: str) -> list[str]:
+    def two_station_interval(self, start_station: str, end_station: str, *, expand_all: bool = False) -> list[str]:
         """ Get all intermediate stations between two stations (left-closed, right-open) """
+        if expand_all:
+            stations = self.line.direction_stations(self.direction)
+            index1 = stations.index(start_station)
+            if self.line.loop:
+                stations = stations[index1:] + stations[:index1]
+                index1 = 0
+            index2 = stations.index(end_station)
+            assert index2 >= index1, (self, start_station, end_station)
+            return stations[index1:index2]
         return list(self.arrival_time_two_station(start_station, end_station).keys())
 
     def line_repr(self) -> str:

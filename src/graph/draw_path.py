@@ -82,16 +82,16 @@ def get_edge_wide(map_obj: Map) -> float:
 
 def draw_path(
     draw: ImageDraw.ImageDraw, map_obj: Map, start_station: str, end_station: str,
-    cmap: tuple[float, float, float] | Colormap, index: float, alpha: float, edge_wide: float,
+    cmap: tuple[float, float, float] | Colormap, index: float | str, alpha: float, edge_wide: float,
     is_index: bool = False
 ) -> None:
     """ Draw a path on map """
-    start_shape = map_obj.coordinates[start_station]
+    start_shape = map_obj.get_path_coords(start_station)
     if start_shape is None:
         print(f"Warning: cannot draw path starting from {start_station} since no coordinates are specified!")
         return
     start_x, start_y = start_shape.center_point()
-    end_shape = map_obj.coordinates[end_station]
+    end_shape = map_obj.get_path_coords(end_station)
     if end_shape is None:
         print(f"Warning: cannot draw path ending at {end_station} since no coordinates are specified!")
         return
@@ -99,6 +99,9 @@ def draw_path(
 
     # Calculate the upper and lower edge
     xy_length = sqrt((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y))
+    if abs(xy_length) < 1e-7:
+        print(f"Warning: cannot draw path between {start_station} and {end_station} as their coordinates are the same!")
+        return
     sin_theta = (end_y - start_y) / xy_length
     cos_theta = (end_x - start_x) / xy_length
     dx, dy = edge_wide * sin_theta, edge_wide * cos_theta
@@ -109,7 +112,10 @@ def draw_path(
     )
 
     # Draw an index in the middle
-    index_str = f"#{index + 1}" if is_index else f"{index * 100:.1f}%"
+    if isinstance(index, str):
+        index_str = index
+    else:
+        index_str = f"#{index + 1}" if is_index else f"{index * 100:.1f}%"
     font_size = find_font_size(draw, index_str, edge_wide * 2)
     draw.text(((start_x + end_x) / 2, (start_y + end_y) / 2), index_str,
               fill="white", anchor="mm", font_size=font_size)
@@ -192,7 +198,7 @@ def main() -> None:
     draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
     draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
 
-    print("Drawing done! Saving...")
+    print(f"Drawing done! Saving to {args.output}...")
     img.save(args.output, dpi=(args.dpi, args.dpi))
 
 

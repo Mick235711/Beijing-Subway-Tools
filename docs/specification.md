@@ -210,6 +210,9 @@ For different `type`s, the possible radius specification (fields for `coordinate
 - For `circle`, can be either `r` or both `rx` and `ry` (for ellipse, in this case `radius` and `transfer_radius` must be 2-tuples).
 - For `rectangle`, must be `w` and `h`. Optionally `r` can be included to indicate rounded corners.
 
+For each station's coordinate specification, it is also possible to specify `path_coords` field to indicate that
+this coordinates should be used instead when drawing paths.
+
 # Fare Rule Specification Format
 This specification describes the key-values within `fare_rules.json5`.
 

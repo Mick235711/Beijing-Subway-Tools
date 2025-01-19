@@ -129,7 +129,7 @@ class Map:
 
     def __init__(
         self, name: str, path: str, radius: int, transfer_radius: int,
-        coordinates: dict[str, Shape | None]
+        coordinates: dict[str, Shape | None], path_coords: dict[str, Shape | None]
     ) -> None:
         """ Constructor """
         self.name = name
@@ -137,12 +137,51 @@ class Map:
         self.path = path
         self.radius, self.transfer_radius = radius, transfer_radius
         self.coordinates = coordinates
+        self.path_coords = path_coords
         self.font_size: int | None = None
         self.transfer_font_size: int | None = None
 
     def __repr__(self) -> str:
         """ Get string representation """
         return f"<{self.name}: {self.path}>"
+
+    def get_path_coords(self, station: str) -> Shape | None:
+        """ Get path coordinates for a station """
+        if station in self.path_coords:
+            return self.path_coords[station]
+        return self.coordinates[station]
+
+
+def parse_coords(
+    station: str, spec: dict[str, int], station_lines: dict[str, set[Line]], *,
+    shape_type: str = "circle", radius: int, transfer_radius: int,
+    width: int | None = None, height: int | None = None,
+    transfer_width: int | None = None, transfer_height: int | None = None
+) -> Shape:
+    """ Parse coordinate specification """
+    x, y = spec["x"], spec["y"]
+    single_type = spec.get("type", shape_type)
+    if single_type == "circle":
+        default_radius = radius if len(station_lines[station]) == 1 else transfer_radius
+        if isinstance(default_radius, int):
+            r = spec.get("r", default_radius)
+            return Circle(x, y, r)
+        elif isinstance(default_radius, list):
+            rx = spec.get("rx", default_radius[0])
+            ry = spec.get("ry", default_radius[1])
+            assert len(default_radius) == 2, default_radius
+            return Ellipse(x, y, rx, ry)
+        else:
+            assert False, default_radius
+    elif single_type == "rectangle":
+        assert width is not None and height is not None and\
+               transfer_width is not None and transfer_height is not None, (width, height, transfer_width, transfer_height)
+        w = spec.get("w", width if len(station_lines[station]) == 1 else transfer_width)
+        h = spec.get("h", height if len(station_lines[station]) == 1 else transfer_height)
+        r = spec.get("r", radius if len(station_lines[station]) == 1 else transfer_radius)
+        return Rectangle(x, y, w, h, r or 0)
+    else:
+        assert False, single_type
 
 
 def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
@@ -153,45 +192,37 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
 
     path = os.path.join(os.path.dirname(map_file), map_dict["path"])
     shape_type = map_dict.get("type", "circle")
-    radius = map_dict.get("radius")
+    radius = map_dict["radius"]
     transfer_radius = map_dict.get("transfer_radius", radius)
     width: int | None = None
     height: int | None = None
     transfer_width: int | None = None
     transfer_height: int | None = None
     if shape_type == "rectangle":
-        width = map_dict.get("width")
-        height = map_dict.get("height")
+        width = map_dict["width"]
+        height = map_dict["height"]
         transfer_width = map_dict.get("transfer_width", width)
         transfer_height = map_dict.get("transfer_height", height)
     coords: dict[str, Shape | None] = {}
+    path_coords: dict[str, Shape | None] = {}
     for station, spec in map_dict["coordinates"].items():
-        if spec is None:
+        if spec is not None and "path_coords" in spec:
+            if spec["path_coords"] is None:
+                path_coords[station] = None
+            path_coords[station] = parse_coords(
+                station, spec["path_coords"], station_lines, shape_type=shape_type,
+                radius=radius, transfer_radius=transfer_radius,
+                width=width, height=height, transfer_width=transfer_width, transfer_height=transfer_height
+            )
+        if spec is None or ("x" not in spec and "y" not in spec):
             coords[station] = None
             continue
+        coords[station] = parse_coords(
+            station, spec, station_lines, shape_type=shape_type, radius=radius, transfer_radius=transfer_radius,
+            width=width, height=height, transfer_width=transfer_width, transfer_height=transfer_height
+        )
 
-        x, y = spec["x"], spec["y"]
-        single_type = spec.get("type", shape_type)
-        if single_type == "circle":
-            default_radius = radius if len(station_lines[station]) == 1 else transfer_radius
-            if isinstance(default_radius, int):
-                r = spec.get("r", default_radius)
-                coords[station] = Circle(x, y, r)
-            elif isinstance(default_radius, list):
-                rx = spec.get("rx", default_radius[0])
-                ry = spec.get("ry", default_radius[1])
-                assert len(default_radius) == 2, default_radius
-                coords[station] = Ellipse(x, y, rx, ry)
-            else:
-                raise ValueError(default_radius)
-        elif single_type == "rectangle":
-            w = spec.get("w", width if len(station_lines[station]) == 1 else transfer_width)
-            h = spec.get("h", height if len(station_lines[station]) == 1 else transfer_height)
-            r = spec.get("r", radius if len(station_lines[station]) == 1 else transfer_radius)
-            coords[station] = Rectangle(x, y, w, h, r or 0)
-        else:
-            raise ValueError(single_type)
-    map_obj = Map(map_dict["name"], path, radius, transfer_radius, coords)
+    map_obj = Map(map_dict["name"], path, radius, transfer_radius, coords, path_coords)
     map_obj.font_size = map_dict.get("font_size")
     map_obj.transfer_font_size = map_dict.get("transfer_font_size")
     return map_obj

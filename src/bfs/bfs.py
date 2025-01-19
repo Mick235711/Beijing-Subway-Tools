@@ -356,7 +356,7 @@ def superior_path(
     return path_index(result1, path1) < path_index(result2, path2)
 
 
-def expand_path(path: Path, end_station: str) -> Path:
+def expand_path(path: Path, end_station: str, *, expand_all: bool = False) -> Path:
     """ Expand a path to each station """
     trace: Path = []
     for i, (start_station, train) in enumerate(path):
@@ -364,7 +364,7 @@ def expand_path(path: Path, end_station: str) -> Path:
             trace.append((train[0], train))
             continue
         next_station = end_station if i == len(path) - 1 else path[i + 1][0]
-        for station in train.two_station_interval(start_station, next_station):
+        for station in train.two_station_interval(start_station, next_station, expand_all=expand_all):
             trace.append((station, train))
     return trace
 

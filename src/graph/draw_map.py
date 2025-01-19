@@ -286,7 +286,7 @@ def draw_contour_wrap(
             set(int(x) for x in parse_comma(cmd_args.focus)) if cmd_args.focus is not None else default_contours
         ), contour_styles=parse_contour_spec(cmd_args.style_spec)
     )
-    print("Drawing contours done! Saving...")
+    print(f"Drawing contours done! Saving to {output}...")
     fig.savefig(output, dpi=dpi)
 
 

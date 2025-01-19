@@ -2538,3 +2538,127 @@ Minimum time path:
 ? Please select a map: <i>Official Map</i>
 Drawing done! Saving...
 </pre>
+
+### [`draw_congestion.py`](/src/graph/draw_congestion.py): Draw and tally congestion stats for a network
+```
+usage: draw_congestion.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single] [-n LIMIT_NUM]
+                          [--have-no-direction] [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}] [--load-metric {passenger,congestion}]
+                          [--transfer-source {station,line,direction}]
+
+options:
+  -h, --help            show this help message and exit
+  -c COLOR_MAP, --color-map COLOR_MAP
+                        Override default colormap
+  -o OUTPUT, --output OUTPUT
+                        Output path
+  --dpi DPI             DPI of output image
+  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+                        Include lines
+  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
+  --exclude-single      Exclude single-direction lines
+  -n LIMIT_NUM, --limit-num LIMIT_NUM
+                        Limit number of output
+  --have-no-direction   Specify whether load & transfer stats source have direction
+  --line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}
+                        Line sort criteria
+  --load-metric {passenger,congestion}
+                        Load sort criteria
+  --transfer-source {station,line,direction}
+                        Specify transfer stats source
+```
+Simulate passenger flow on a network. By default, the model used is that every pair of stations has one passenger.
+Many stats will be outputted, including the passenger number for each line/station, maximum passenger interval, ...
+These stats can be controlled by `--have-no-direction`, `--line-metric`, `--load-metric`, and `--transfer-source`.
+All other parameters are the usual drawing parameters.
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_congestion.py -n 10 --have-no-direction -o ../test.png
+? Please select a city: <i>北京</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2025-01-17</i>
+? Please enter the travel time (hh:mm or hh:mm-hh:mm): <i>08:00</i>
+Calculating 霍营 at 08:00: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 375/375 [01:01&lt;00:00,  6.11it/s]
+
+=====&gt; Simulation Results &lt;=====
+Total ridden trains: 1795
+Total passenger: 384560 (= 141243 entry + 115478 transfer)
+Transfer coefficient: 2.7227
+
+=====&gt; Line Stats &lt;=====
+#1: 63774 peoples: &lt;10号线: [6B] 宋家庄 - 成寿寺, 45 stations, 56.80km, loop&gt;
+#2: 32703 peoples: &lt;6号线: [8B] 金安桥 - 潞城, 34 stations, 52.93km&gt;
+#3: 30224 peoples: &lt;14号线: [6A] 张郭庄 - 善各庄, 33 stations, 46.68km&gt;
+#4: 26644 peoples: &lt;4号线: [6B] 安河桥北 - 天宫院, 35 stations, 49.41km&gt;
+#5: 22342 peoples: &lt;8号线: [6B] 朱辛庄 - 瀛海, 34 stations, 48.50km&gt;
+#6: 21541 peoples: &lt;7号线: [8B] 北京西站 - 环球度假区, 30 stations, 39.41km&gt;
+#7: 21394 peoples: &lt;1号线: [6B-] 古城 - 环球度假区, 35 stations, 48.33km&gt;
+#8: 18323 peoples: &lt;13号线: [6B-] 西直门 - 东直门, 17 stations, 40.40km&gt;
+#9: 17484 peoples: &lt;5号线: [6B] 天通苑北 - 宋家庄, 23 stations, 27.06km&gt;
+#10: 16341 peoples: &lt;房山线: [6B] 阎村东 - 东管头南, 16 stations, 31.07km&gt;
+...
+#15: 12391 peoples: &lt;昌平线: [6B] 昌平西山口 - 西土城, 18 stations, 42.94km&gt;
+#16: 10717 peoples: &lt;19号线: [8A] 牡丹园 - 新宫, 10 stations, 20.84km&gt;
+#17: 8857 peoples: &lt;亦庄线: [6B] 亦庄火车站 - 宋家庄, 14 stations, 22.72km&gt;
+#18: 5928 peoples: &lt;燕房线: [4B] 燕山 - 阎村东, 9 stations, 13.25km&gt;
+#19: 5703 peoples: &lt;17号线: [8A] 十里河 - 嘉会湖, 7 stations, 15.78km&gt;
+#20: 4459 peoples: &lt;S1线: [6M] 石厂 - 苹果园, 8 stations, 9.66km&gt;
+#21: 3720 peoples: &lt;西郊线: [5LRT] 香山 - 巴沟, 6 stations, 8.69km&gt;
+#22: 1494 peoples: &lt;11号线: [4A] 金安桥 - 新首钢, 3 stations, 1.54km&gt;
+#23: 1494 peoples: &lt;大兴机场线: [7D] 大兴机场 - 草桥, 3 stations, 38.33km&gt;
+#24: 1493 peoples: &lt;首都机场线: [4L] 3号航站楼 - 北新桥, 5 stations, 31.42km&gt;
+
+=====&gt; Load Stats &lt;=====
+#1: 6918 peoples: 10号线 知春路 -&gt; 知春里 (43 trains, 08:00 - 09:24)
+#2: 6840 peoples: 10号线 草桥 -&gt; 纪家庙 (59 trains, 06:34 - 09:40)
+#3: 6802 peoples: 10号线 知春里 -&gt; 海淀黄庄 (43 trains, 08:01 - 09:25)
+#4: 6764 peoples: 房山线 大葆台 -&gt; 郭公庄 (18 trains, 08:01 - 09:03)
+#5: 6764 peoples: 房山线 郭公庄 -&gt; 大葆台 (37 trains, 08:01 - 09:55)
+#6: 6747 peoples: 10号线 知春里 -&gt; 知春路 (33 trains, 08:00 - 09:49)
+#7: 6743 peoples: 10号线 牡丹园 -&gt; 健德门 (37 trains, 08:00 - 09:56)
+#8: 6732 peoples: 10号线 健德门 -&gt; 北土城 (38 trains, 08:00 - 09:58)
+#9: 6701 peoples: 10号线 纪家庙 -&gt; 首经贸 (54 trains, 06:36 - 09:13)
+#10: 6631 peoples: 10号线 海淀黄庄 -&gt; 知春里 (33 trains, 08:00 - 09:47)
+...
+#876: 214 peoples: 7号线 环球度假区 -&gt; 花庄 (1 train, 08:00 - 08:00)
+#877: 199 peoples: Virtual transfer 牛街 -&gt; 广安门内 (08:00 - 08:38)
+#878: 196 peoples: Virtual transfer 木樨地(16号线) -&gt; 木樨地(1号线) (08:00 - 08:56)
+#879: 178 peoples: Virtual transfer 复兴门 -&gt; 太平桥 (08:00 - 09:02)
+#880: 169 peoples: Virtual transfer 太平桥 -&gt; 复兴门 (08:00 - 08:35)
+#881: 160 peoples: 1号线 环球度假区 -&gt; 花庄 (1 train, 08:00 - 08:00)
+#882: 133 peoples: 7号线 花庄 -&gt; 环球度假区 (25 trains, 08:02 - 10:31)
+#883: 54 peoples: 首都机场线 北新桥 -&gt; 东直门 (7 trains, 08:05 - 09:01)
+#884: 30 peoples: 首都机场线 东直门 -&gt; 北新桥 (2 trains, 08:26 - 08:35)
+#885: 7 peoples: S1线 金安桥 -&gt; 苹果园 (4 trains, 08:02 - 08:18)
+
+=====&gt; Transfer Stats &lt;=====
+#1: 9338 peoples: 首经贸 (10号线[内环] -&gt; 房山线[出城] 4363, 房山线[进城] -&gt; 10号线[外环] 3924, 10号线[外环] -&gt; 房山线[出城] 462, 10号线[内环] -&gt; 房山线[进城] 220, 房山线[出城] -&gt; 10号线[外环] 215, 房山线[进城] -&gt; 10号线[内环] 134, 10号线[外环] -&gt; 房山线[进城] 20)
+#2: 8443 peoples: 宋家庄 (亦庄线[进城] -&gt; 5号线[北行] 1610, 5号线[南行] -&gt; 亦庄线[出城] 1487, 10号线[外环] -&gt; 亦庄线[出城] 1392, 亦庄线[进城] -&gt; 10号线[内环] 1149, 亦庄线[进城] -&gt; 10号线[外环] 852, 10号线[内环] -&gt; 亦庄线[出城] 810, 10号线[外环] -&gt; 5号线[北行] 573, 5号线[南行] -&gt; 10号线[内环] 402, 5号线[南行] -&gt; 10号线[外环] 91, 10号线[内环] -&gt; 5号线[北行] 77)
+#3: 7944 peoples: 十里河 (17号线[北行] -&gt; 10号线[外环] 1408, 10号线[内环] -&gt; 17号线[南行] 1186, 14号线[西南行] -&gt; 10号线[内环] 1091, 14号线[东北行] -&gt; 17号线[南行] 771, 10号线[外环] -&gt; 14号线[东北行] 753, 14号线[西南行] -&gt; 17号线[南行] 494, 17号线[北行] -&gt; 14号线[西南行] 492, 17号线[北行] -&gt; 10号线[内环] 461, 17号线[北行] -&gt; 14号线[东北行] 457, 10号线[外环] -&gt; 17号线[南行] 287, 14号线[东北行] -&gt; 10号线[外环] 248, 10号线[内环] -&gt; 14号线[西南行] 211, 14号线[东北行] -&gt; 10号线[内环] 55, 10号线[外环] -&gt; 14号线[西南行] 22, 14号线[西南行] -&gt; 10号线[外环] 5, 10号线[内环] -&gt; 14号线[东北行] 3)
+#4: 7164 peoples: 金台路 (14号线[东北行] -&gt; 6号线[东行] 1192, 6号线[西行] -&gt; 14号线[西南行] 1166, 14号线[东北行] -&gt; 6号线[西行] 1148, 6号线[东行] -&gt; 14号线[东北行] 1091, 14号线[西南行] -&gt; 6号线[西行] 1069, 6号线[东行] -&gt; 14号线[西南行] 895, 6号线[西行] -&gt; 14号线[东北行] 311, 14号线[西南行] -&gt; 6号线[东行] 292)
+#5: 6473 peoples: 呼家楼 (6号线[西行] -&gt; 10号线[外环] 1212, 10号线[内环] -&gt; 6号线[东行] 1067, 10号线[外环] -&gt; 6号线[西行] 979, 10号线[外环] -&gt; 6号线[东行] 939, 6号线[东行] -&gt; 10号线[内环] 850, 6号线[西行] -&gt; 10号线[内环] 830, 6号线[东行] -&gt; 10号线[外环] 304, 10号线[内环] -&gt; 6号线[西行] 292)
+#6: 6233 peoples: 慈寿寺 (10号线[内环] -&gt; 6号线[西行] 1635, 6号线[东行] -&gt; 10号线[外环] 1260, 10号线[外环] -&gt; 6号线[西行] 1170, 6号线[东行] -&gt; 10号线[内环] 979, 10号线[外环] -&gt; 6号线[东行] 395, 6号线[西行] -&gt; 10号线[内环] 344, 10号线[内环] -&gt; 6号线[东行] 253, 6号线[西行] -&gt; 10号线[外环] 197)
+#7: 5856 peoples: 阎村东 (房山线[出城] -&gt; 燕房线[出城] 2928, 燕房线[进城] -&gt; 房山线[进城] 2928)
+#8: 5530 peoples: 望京 (15号线[西行] -&gt; 14号线[西南行] 2001, 14号线[东北行] -&gt; 15号线[东行] 1794, 15号线[东行] -&gt; 14号线[西南行] 539, 14号线[东北行] -&gt; 15号线[西行] 530, 15号线[东行] -&gt; 14号线[东北行] 312, 14号线[西南行] -&gt; 15号线[西行] 288, 15号线[西行] -&gt; 14号线[东北行] 33, 14号线[西南行] -&gt; 15号线[东行] 33)
+#9: 5448 peoples: 芍药居 (10号线[内环] -&gt; 13号线[西行] 1497, 10号线[外环] -&gt; 13号线[西行] 1476, 13号线[东行] -&gt; 10号线[内环] 1140, 13号线[东行] -&gt; 10号线[外环] 799, 10号线[内环] -&gt; 13号线[东行] 178, 10号线[外环] -&gt; 13号线[东行] 136, 13号线[西行] -&gt; 10号线[外环] 113, 13号线[西行] -&gt; 10号线[内环] 109)
+#10: 5371 peoples: 西直门 (13号线[西行] -&gt; 4号线[南行] 934, 4号线[北行] -&gt; 13号线[东行] 898, 2号线[内环] -&gt; 13号线[东行] 560, 4号线[南行] -&gt; 13号线[东行] 524, 2号线[外环] -&gt; 4号线[北行] 420, 13号线[西行] -&gt; 2号线[外环] 385, 13号线[西行] -&gt; 4号线[北行] 376, 4号线[南行] -&gt; 2号线[内环] 327, 2号线[内环] -&gt; 4号线[北行] 226, 2号线[外环] -&gt; 13号线[东行] 175, 4号线[南行] -&gt; 2号线[外环] 172, 13号线[西行] -&gt; 2号线[内环] 125, 2号线[外环] -&gt; 4号线[南行] 121, 4号线[北行] -&gt; 2号线[内环] 111, 4号线[北行] -&gt; 2号线[外环] 9, 2号线[内环] -&gt; 4号线[南行] 8)
+...
+#74: 948 peoples: 丰台南路 (16号线[北行] -&gt; 9号线[北行] 355, 9号线[南行] -&gt; 16号线[南行] 159, 16号线[南行] -&gt; 9号线[南行] 106, 9号线[北行] -&gt; 16号线[北行] 87, 9号线[北行] -&gt; 16号线[南行] 69, 16号线[北行] -&gt; 9号线[南行] 69, 9号线[南行] -&gt; 16号线[北行] 52, 16号线[南行] -&gt; 9号线[北行] 51)
+#75: 890 peoples: 三元桥 (10号线[外环] -&gt; 首都机场线[出城] 262, 首都机场线[进城] -&gt; 10号线[内环] 259, 首都机场线[进城] -&gt; 10号线[外环] 215, 10号线[内环] -&gt; 首都机场线[出城] 154)
+#76: 643 peoples: 木樨地(1号线) (1号线[西行] -&gt; virtual 393, virtual -&gt; 1号线[东行] 119, 1号线[东行] -&gt; virtual 76, virtual -&gt; 1号线[西行] 55)
+#77: 530 peoples: 木樨地(16号线) (virtual -&gt; 16号线[北行] 233, virtual -&gt; 16号线[南行] 159, 16号线[南行] -&gt; virtual 81, 16号线[北行] -&gt; virtual 57)
+#78: 439 peoples: 前门 (2号线[内环] -&gt; 8号线[南行] 133, 8号线[北行] -&gt; 2号线[外环] 108, 2号线[外环] -&gt; 8号线[南行] 73, 8号线[北行] -&gt; 2号线[内环] 72, 2号线[外环] -&gt; 8号线[北行] 26, 8号线[南行] -&gt; 2号线[内环] 24, 2号线[内环] -&gt; 8号线[北行] 2, 8号线[南行] -&gt; 2号线[外环] 1)
+#79: 383 peoples: 广安门内 (7号线[西行] -&gt; virtual 117, virtual -&gt; 7号线[东行] 113, 7号线[东行] -&gt; virtual 91, virtual -&gt; 7号线[西行] 62)
+#80: 344 peoples: 牛街 (virtual -&gt; 19号线[北行] 145, 19号线[南行] -&gt; virtual 107, virtual -&gt; 19号线[南行] 48, 19号线[北行] -&gt; virtual 44)
+#81: 305 peoples: 花庄 (1号线[东行] -&gt; 7号线[西行] 163, 7号线[东行] -&gt; 1号线[西行] 142)
+#82: 257 peoples: 太平桥 (19号线[北行] -&gt; virtual 94, virtual -&gt; 19号线[南行] 90, virtual -&gt; 19号线[北行] 43, 19号线[南行] -&gt; virtual 30)
+#83: 80 peoples: 北新桥 (5号线[北行] -&gt; 首都机场线[出城] 50, 首都机场线[进城] -&gt; 5号线[南行] 28, 5号线[南行] -&gt; 首都机场线[出城] 2)
+
+? Please select a map: <i>Official Map</i>
+Drawing paths... (min = 0.08, max = 13.66)
+Warning: cannot draw path between 木樨地(1号线) and 木樨地(16号线) as their coordinates are the same!
+Drawing done! Saving to ../test.png...
+</pre>

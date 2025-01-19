@@ -6,19 +6,22 @@
 # Libraries
 import argparse
 
-from PIL import Image
+from PIL import Image, ImageDraw
+from matplotlib.colors import Colormap
 from scipy.interpolate import griddata  # type: ignore
 
 from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import expand_path
 from src.bfs.common import VTSpec
-from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time_seq
+from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time_seq, ask_for_map
+from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.city.transfer import TransferSpec
 from src.common.common import suffix_s, TimeSpec, from_minutes, get_time_seq_repr, to_pinyin
 from src.dist_graph.adaptor import get_dist_graph
 from src.dist_graph.exotic_path import all_station_bfs
-from src.graph.draw_map import map_args
+from src.graph.draw_map import map_args, get_colormap
+from src.graph.draw_path import get_edge_wide, draw_path
 from src.routing.train import parse_all_trains, Train
 from src.stats.common import display_first
 
@@ -173,7 +176,7 @@ def get_congestion_stats(
                     all_stats = add_tuple(all_stats, delta)
                     train_set.add(path_train)
                     
-                expanded = expand_path(path, to_station)
+                expanded = expand_path(path, to_station, expand_all=True)
                 for i, (path_station, path_train) in enumerate(expanded):
                     next_station = to_station if i == len(expanded) - 1 else expanded[i + 1][0]
                     if have_direction:
@@ -189,17 +192,25 @@ def get_congestion_stats(
                         load_dict[load_key] = (0, set(), set())
                     load_dict[load_key] = (load_dict[load_key][0] + 1, load_dict[load_key][1], load_dict[load_key][2])
                     if isinstance(path_train, Train):
+                        if path_station in path_train.skip_stations:
+                            continue
                         if path_station not in path_train.arrival_time:
                             assert path_train.loop_next is not None and\
-                                   path_station in path_train.loop_next.arrival_time, (path_station, path_train)
+                                   path_station in path_train.loop_next.arrival_time, (expanded, path_station, path_train)
                             path_train = path_train.loop_next
                         load_dict[load_key][1].add(path_train.arrival_time[path_station])
                     elif i == 0:
                         load_dict[load_key][1].add((start_time, start_day))
                     else:
-                        prev_train = expanded[i - 1][1]
-                        assert isinstance(prev_train, Train), (expanded, i)
-                        load_dict[load_key][1].add(prev_train.arrival_time_virtual(expanded[i - 1][0])[path_station])
+                        index = i - 1
+                        prev_train = expanded[index][1]
+                        while index >= 0 and isinstance(
+                            prev_train, Train
+                        ) and expanded[index][0] in prev_train.skip_stations:
+                            index -= 1
+                            prev_train = expanded[index][1]
+                        assert index >= 0 and isinstance(prev_train, Train), (expanded, index, i, prev_train)
+                        load_dict[load_key][1].add(prev_train.arrival_time_virtual(expanded[index][0])[path_station])
                     load_dict[load_key][2].add(path_train)
     return line_stats, all_stats, load_dict, transfer_stats, virtual_stats, train_set
 
@@ -337,6 +348,38 @@ def print_congestion(
                   lambda x: suffix_s("people", x[0]) + f": {x[1]}", limit_num=limit_num)
 
 
+def draw_congestion(
+    paths: dict[str, dict[str, dict[int, PathInfo]]], city: City, cmap: Colormap,
+    *, output: str, dpi: int = 100
+) -> None:
+    """ Draw congestion on a given map """
+    _, _, load_dict, _, _, _ = get_congestion_stats(
+        paths, city.lines, have_direction=False
+    )
+
+    # Ask for a map
+    map_obj = ask_for_map(city)
+    img = Image.open(map_obj.path)
+    draw = ImageDraw.Draw(img)
+    img_new = Image.new("RGBA", img.size)
+    draw_new = ImageDraw.Draw(img_new)
+    edge_wide = get_edge_wide(map_obj)
+
+    # Draw paths
+    min_people = min([x[0] for x in load_dict.values()])
+    max_people = max([x[0] for x in load_dict.values()])
+    print(f"Drawing paths... (min = {min_people / 1000:.2f}, max = {max_people / 1000:.2f})")
+    for (from_station, to_station, _), (people, _, _) in load_dict.items():
+        alpha = (people - min_people) / (max_people - min_people)
+        draw_path(
+            draw_new, map_obj, from_station, to_station,
+            cmap, f"{people / 1000:.2f}", alpha, edge_wide
+        )
+    img.paste(img_new, mask=img_new)
+    print(f"Drawing done! Saving to {output}...")
+    img.save(output, dpi=(dpi, dpi))
+
+
 def main() -> None:
     """ Main function """
     def append_arg(parser: argparse.ArgumentParser) -> None:
@@ -374,6 +417,9 @@ def main() -> None:
     print_congestion(paths, city.lines, limit_num=args.limit_num, have_direction=(not args.have_no_direction),
                      line_metric=args.line_metric, load_metric=args.load_metric,
                      transfer_source=args.transfer_source)
+    print()
+    cmap = get_colormap(args.color_map)
+    draw_congestion(paths, city, cmap, output=args.output, dpi=args.dpi)
 
 
 # Call main
