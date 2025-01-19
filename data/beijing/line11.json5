@@ -7,7 +7,7 @@
     carriage_type: "A",
     design_speed: 100,
     stations: [
-        {name: "模式口"}
+        {name: "模式口"},
         {name: "金安桥", dist: 1366},
         {name: "北辛安", dist: 850},
         {name: "新首钢", dist: 689}
@@ -28,5 +28,127 @@
         "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
     },
     timetable: {
+        "模式口": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:38", delta: [[5, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [14, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:38", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                // 以+3min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:36", delta: [[6, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [13, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:36", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "金安桥": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [[6, [10]], [7, [8, 9]], 9, [52, [10]], [9, [9, 8]], 10, 9, [13, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:41", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:33", delta: [[6, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [13, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:33", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "北辛安": {
+            "南行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [[5, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [14, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:44", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [[6, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [13, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:31", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        },
+        "新首钢": {
+            "南行": {
+                // 以+3min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [[5, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [14, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:47", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            },
+            "北行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [[7, [10]], [7, [8, 9]], 9, [52, [10]], [9, [9, 8]], 10, 9, [12, [10]]]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:28", delta: [[101, [10]]]}
+                    ],
+                    filters: []
+                }
+            }
+        }
     }
 }
