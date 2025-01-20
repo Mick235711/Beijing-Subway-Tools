@@ -208,6 +208,42 @@
             {from: "6号线", to: "S1线", minutes: 2},
             {from: "11号线", to: "S1线", minutes: 4},
         ],
+        "东坝北": [
+            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "东行", minutes: 0},
+            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "西行", minutes: 0},
+            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "西行", minutes: 1},
+            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "东行", minutes: 1}
+            // 同向同台
+        ],
+        // 参考：https://www.bilibili.com/video/BV15LBKYrEGW/
+        "人民大学": [
+            {from: "4号线", to: "12号线", minutes: 1.5},
+            {from: "12号线", to: "4号线", minutes: 2.5}
+            // 节点4->12
+        ],
+        // 参考：https://www.bilibili.com/video/BV1fDqfYYE22
+        "和平西桥": [
+            {from: "5号线", to: "12号线", to_direction: "东行", minutes: 3},
+            {from: "5号线", to: "12号线", to_direction: "西行", minutes: 3.5}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1NrqfY6EAU
+        "安华桥": [
+            {from: "8号线", to: "12号线", minutes: 3.5},
+            {from: "12号线", to: "8号线", minutes: 4.5}
+            // 超长伪节点8->12
+        ],
+        // 参考：https://www.bilibili.com/video/BV1XEBKYBEPV
+        "长春桥": [
+            {from: "10号线", to: "12号线", minutes: 2}
+        ],
+        // 10-CAE参考：https://www.bilibili.com/video/BV1Xm4y1W743/
+        // 10-12参考：https://www.bilibili.com/video/BV1MaqfYmEQQ
+        // 12-CAE为经由10的路线，扣除两个0.5
+        "三元桥": [
+            {from: "10号线", to: "12号线", minutes: 3},
+            {from: "10号线", to: "首都机场线", minutes: 2},
+            {from: "12号线", to: "首都机场线", minutes: 4}
+        ],
         "东直门": [
             // 2->13调整时间，按1.5倍算
             {from: "2号线", to: "13号线", minutes: 6.5},
@@ -232,6 +268,10 @@
         "芍药居": [
             {from: "10号线", to: "13号线", to_direction: "东行", minutes: 3.5},
             {from: "10号线", to: "13号线", to_direction: "西行", minutes: 3}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1FDqfYeEDG
+        "光熙门": [
+            {from: "12号线", to: "13号线", minutes: 4.5}
         ],
         "大望路": [
             {from: "1号线", to: "14号线", minutes: 5.5},
@@ -314,6 +354,12 @@
         "丰台站": [
             {from: "10号线", to: "16号线", minutes: 2.5}
         ],
+        // 参考：https://www.bilibili.com/video/BV1R5BKY3ELc
+        "苏州桥": [
+            {from: "12号线", to: "16号线", to_direction: "北行", minutes: 1},
+            {from: "12号线", to: "16号线", to_direction: "南行", minutes: 1.5}
+            // 16叠落，下层北行站台与12站厅同层，12下穿16
+        ],
         // 参考：https://www.bilibili.com/video/BV1cHwveYEiA/
         "丽泽商务区": [
             {from: "14号线", to: "16号线", minutes: 0.5},
@@ -329,6 +375,12 @@
         // 参考：https://www.bilibili.com/video/BV1LK41147SW/
         "太阳宫": [
             {from: "10号线", to: "17号线北段", minutes: 3}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1wmqfYiEHY
+        "西坝河": [
+            {from: "12号线", to: "17号线北段", minutes: 2.5},
+            {from: "17号线北段", to: "12号线", minutes: 1.5}
+            // 节点17->12
         ],
         // 参考：https://www.bilibili.com/video/BV18Y411a7Mc/
         "积水潭": [
@@ -349,6 +401,12 @@
             // 大兴机场线参考：https://www.bilibili.com/video/BV18s4y167cu/
             {from: "10号线", to: "大兴机场线", minutes: 6},
             {from: "19号线", to: "大兴机场线", minutes: 2}
+        ],
+        // 参考：https://www.bilibili.com/video/BV1DnBKYTEsW
+        "北太平庄": [
+            {from: "12号线", to: "19号线", minutes: 0.5},
+            {from: "19号线", to: "12号线", minutes: 1}
+            // 节点12->19
         ],
         // 参考：https://www.bilibili.com/video/BV13Y411f7Tb/
         "景风门": [
@@ -404,6 +462,12 @@
         "西土城": [
             {from: "10号线", to: "昌平线", minutes: 2.5}
         ],
+        // 参考：https://www.bilibili.com/video/BV1DnBKYTEvt
+        "蓟门桥": [
+            {from: "12号线", to: "昌平线", minutes: 1},
+            {from: "昌平线", to: "12号线", minutes: 0.5}
+            // 节点27->12
+        ],
         // 参考：https://www.bilibili.com/video/BV1Uj411P72p/
         "六道口": [
             {from: "15号线", to: "昌平线", minutes: 2.5}
@@ -414,10 +478,6 @@
         // 参考：https://www.bilibili.com/video/BV1qj411r7Lo/
         "北新桥": [
             {from: "5号线", to: "首都机场线", minutes: 2.5}
-        ],
-        // 参考：https://www.bilibili.com/video/BV1Xm4y1W743/
-        "三元桥": [
-            {from: "10号线", to: "首都机场线", minutes: 1.5}
         ]
     },
     virtual_transfers: [
@@ -429,6 +489,13 @@
                 {from: "2号线", to: "19号线", minutes: 10}
             ]
         },
+        // 参考：https://www.bilibili.com/video/BV1Fd4y1h7HJ/
+        {
+            from_station: "木樨地(1号线)", to_station: "木樨地(16号线)",
+            times: [
+                {from: "1号线", to: "16号线", minutes: 8}
+            ]
+        },
         // 参考：https://www.bilibili.com/video/BV1U8411s7vC/
         {
             from_station: "广安门内", to_station: "牛街",
@@ -436,11 +503,11 @@
                 {from: "7号线", to: "19号线", minutes: 8.5}
             ]
         },
-        // 参考：https://www.bilibili.com/video/BV1Fd4y1h7HJ/
+        // 参考：https://www.bilibili.com/video/BV1YBrUYiE13/
         {
-            from_station: "木樨地(1号线)", to_station: "木樨地(16号线)",
+            from_station: "大钟寺(12号线)", to_station: "大钟寺(13号线)",
             times: [
-                {from: "1号线", to: "16号线", minutes: 8}
+                {from: "12号线", to: "13号线", minutes: 7}
             ]
         }
     ],
