@@ -56,7 +56,9 @@ def shortest_dists(
         ), tuple(to_pinyin(l[0])[0] for l in x[0][1]))),
         lambda data: f"{unit(data[0][0])}: {city.station_full_name(data[0][2])} " + (
             "<->" if reverse_path(data[0][3], city, data[1]) is not None else "->"
-        ) + f" {city.station_full_name(data[0][3])} ({path_shorthand(data[0][3], city.lines, data[1], line_only=True)})",
+        ) + f" {city.station_full_name(data[0][3])} (" + path_shorthand(
+            data[0][3], city.lines, data[1], line_only=True, have_direction=False
+        ) + ")",
         limit_num=limit_num
     )
 

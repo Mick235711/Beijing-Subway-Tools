@@ -256,7 +256,7 @@ def reverse_path(end_station: str, city: City, path: AbstractPath) -> AbstractPa
 
 
 def path_shorthand(end_station: str, lines: dict[str, Line], path: AbstractPath,
-                   *, line_only: bool = False) -> str:
+                   *, line_only: bool = False, have_direction: bool = True) -> str:
     """ One-line representation of a path """
     result = ""
     for station, line_direction in path:
@@ -269,7 +269,7 @@ def path_shorthand(end_station: str, lines: dict[str, Line], path: AbstractPath,
             line = lines[line_direction[0]]
             if line_only:
                 result += line.full_name()
-                if line.loop:
+                if line.loop and have_direction:
                     result += f"({line_direction[1]})"
                 result += "-"
             else:
