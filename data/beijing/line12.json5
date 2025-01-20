@@ -1,0 +1,48 @@
+// 数据截止2025/01/20，八通线，大兴线完全并入1号线和4号线描述
+// 12号线时刻表 新1版
+{
+    name: "12号线",
+    aliases: ["Line 12"],
+    carriage_num: 4, // 目前运营编组为4A
+    carriage_type: "A",
+    design_speed: 80,
+    stations: [
+        {name: "四季青桥"},
+        {name: "蓝靛厂", dist: 2193},
+        {name: "长春桥", dist: 829},
+        {name: "苏州桥", dist: 1259},
+        {name: "人民大学", dist: 1579, aliases: ["Renmin University"]},
+        {name: "大钟寺(12号线)", dist: 1722},
+        {name: "蓟门桥", dist: 1072},
+        {name: "北太平庄", dist: 1204},
+        {name: "马甸桥", dist: 1022},
+        {name: "安华桥", dist: 1230},
+        {name: "安贞桥", dist: 966},
+        {name: "和平西桥", dist: 860},
+        {name: "光熙门", dist: 1031},
+        {name: "西坝河", dist: 1202},
+        {name: "三元桥", dist: 1775},
+        {name: "将台西", dist: 2311},
+        {name: "高家园", dist: 1397},
+        {name: "驼房营", dist: 1172},
+        {name: "东坝西", dist: 2672},
+        {name: "东坝北", dist: 2045}
+    ],
+    train_routes: {
+        "东行": {
+            aliases: ["Eastbound"],
+            "全程车": {}
+        },
+        "西行": {
+            aliases: ["Westbound"],
+            reversed: true,
+            "全程车": {}
+        }
+    },
+    date_groups: {
+        "工作日": {weekday: [1, 2, 3, 4, 5], aliases: ["Weekdays"]},
+        "双休日": {weekday: [6, 7], aliases: ["Weekends"]}
+    },
+    timetable: {
+    }
+}
