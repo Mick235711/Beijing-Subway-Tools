@@ -63,6 +63,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                // 以+4min计算
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:49", delta: [10, [5, [8]], 6, 6, 5, 5, [41, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "16:46", delta: [5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [24, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:49", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:51", skip_trains: 1, until: "08:37"},
+                        {plan: "东坝西出库车", first_train: "17:05", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:34", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "18:02", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:30", "18:38"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:49", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:52", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:49", count: 3}
+                    ]
+                }
             }
         },
         "蓝靛厂": {
@@ -81,6 +107,31 @@
                         {first_train: "10:52", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 8]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:45", delta: [10, [5, [8]], 6, 6, 5, 5, [41, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "16:42", delta: [5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [24, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:45", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:47", skip_trains: 1, until: "08:33"},
+                        {plan: "东坝西出库车", first_train: "17:01", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:30", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:58", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:26", "18:34"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:45", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:48", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:45", count: 3}
+                    ]
                 }
             }
         },
@@ -102,6 +153,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:43", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "16:39", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:43", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:45", skip_trains: 1, until: "08:30"},
+                        {plan: "东坝西出库车", first_train: "16:59", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:27", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:55", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:23", "18:31"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:43", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:46", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], 7, 6, [19, [7]]]},
+                        {first_train: "23:07", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:43", count: 3}
+                    ]
+                }
             }
         },
         "苏州桥": {
@@ -120,6 +197,32 @@
                         {first_train: "11:03", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:40", delta: [10, 9, 8, 8, 8, 8, 6, 5, 5, 5, [41, [4]], 5, 5]},
+                        {first_train: "09:52", delta: [6, [57, [7]], 5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [23, [7]]]},
+                        {first_train: "22:57", delta: [8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:40", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:42", skip_trains: 1, until: "08:28"},
+                        {plan: "东坝西出库车", first_train: "16:56", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:25", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:53", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:21", "18:29"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:40", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "10:38", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:40", count: 3}
+                    ]
                 }
             }
         },
@@ -141,6 +244,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:37", delta: [10, 9, 8, 8, 8, 8, 6, 5, 5, 5, [41, [4]], 5, 5]},
+                        {first_train: "09:49", delta: [6, [57, [7]], 5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [23, [7]]]},
+                        {first_train: "22:54", delta: [8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:37", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:39", skip_trains: 1, until: "08:25"},
+                        {plan: "东坝西出库车", first_train: "16:53", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:22", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:50", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:18", "18:26"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:37", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "10:35", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:37", count: 3}
+                    ]
+                }
             }
         },
         "大钟寺(12号线)": {
@@ -161,6 +290,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:34", delta: [10, 9, 8, 8, 8, 8, 6, 5, 5, 5, [41, [4]], 5, 5]},
+                        {first_train: "09:46", delta: [6, [57, [7]], 5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [23, [7]]]},
+                        {first_train: "22:51", delta: [8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:34", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:36", skip_trains: 1, until: "08:22"},
+                        {plan: "东坝西出库车", first_train: "16:50", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:19", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:47", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:15", "18:23"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:34", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "10:32", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:34", count: 3}
+                    ]
+                }
             }
         },
         "蓟门桥": {
@@ -179,6 +334,31 @@
                         {first_train: "11:06", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 8]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "16:28", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:32", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:34", skip_trains: 1, until: "08:19"},
+                        {plan: "东坝西出库车", first_train: "16:48", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:16", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:44", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:12", "18:20"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:32", delta: [10, [7, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:35", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:32", count: 3}
+                    ]
                 }
             }
         },
@@ -200,6 +380,31 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [10, [5, [8]], 6, 6, 5, 5, [41, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "16:26", delta: [5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [24, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:29", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:31", skip_trains: 1, until: "08:17"},
+                        {plan: "东坝西出库车", first_train: "16:45", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:14", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:42", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:10", "18:18"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:29", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:32", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:29", count: 3}
+                    ]
+                }
             }
         },
         "马甸桥": {
@@ -218,6 +423,32 @@
                         {first_train: "11:11", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 8]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:27", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "16:23", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:27", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:29", skip_trains: 1, until: "08:14"},
+                        {plan: "东坝西出库车", first_train: "16:43", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:11", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:39", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:07", "18:15"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:27", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:30", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], 7, 6, [19, [7]]]},
+                        {first_train: "22:51", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:27", count: 3}
+                    ]
                 }
             }
         },
@@ -239,6 +470,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:24", delta: [10, 9, 8, 8, 8, 8, 6, 5, 5, 5, [41, [4]], 5, 5]},
+                        {first_train: "09:36", delta: [6, [57, [7]], 5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [23, [7]]]},
+                        {first_train: "22:41", delta: [8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:24", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:26", skip_trains: 1, until: "08:12"},
+                        {plan: "东坝西出库车", first_train: "16:40", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:09", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:37", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:05", "18:13"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:24", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "10:22", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:24", count: 3}
+                    ]
+                }
             }
         },
         "安贞桥": {
@@ -257,6 +514,31 @@
                         {first_train: "11:21", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:22", delta: [10, [5, [8]], 6, 6, 5, 5, [41, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "16:19", delta: [5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [24, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:22", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:24", skip_trains: 1, until: "08:10"},
+                        {plan: "东坝西出库车", first_train: "16:38", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:07", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:35", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:03", "18:11"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:22", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:25", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:22", count: 3}
+                    ]
                 }
             }
         },
@@ -277,6 +559,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:20", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "16:16", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:20", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:22", skip_trains: 1, until: "08:07"},
+                        {plan: "东坝西出库车", first_train: "16:36", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:04", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:32", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["18:00", "18:08"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:20", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:23", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], 7, 6, [19, [7]]]},
+                        {first_train: "22:44", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:20", count: 3}
+                    ]
+                }
             }
         },
         "光熙门": {
@@ -295,6 +603,32 @@
                         {first_train: "11:26", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [10, 9, 8, 8, 8, 8, 6, 5, 5, 5, [41, [4]], 5, 5]},
+                        {first_train: "09:29", delta: [6, [57, [7]], 5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [23, [7]]]},
+                        {first_train: "22:34", delta: [8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:17", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:19", skip_trains: 1, until: "08:05"},
+                        {plan: "东坝西出库车", first_train: "16:33", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:02", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:30", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:58", "18:06"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:17", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "10:15", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:17", count: 3}
+                    ]
                 }
             }
         },
@@ -315,6 +649,31 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:15", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "16:11", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:15", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:17", skip_trains: 1, until: "08:02"},
+                        {plan: "东坝西出库车", first_train: "16:31", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "16:59", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:27", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:55", "18:03"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "06:25", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "11:23", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "06:25", count: 3}
+                    ]
+                }
             }
         },
         "三元桥": {
@@ -334,6 +693,31 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "16:08", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:12", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:14", skip_trains: 1, until: "07:59"},
+                        {plan: "东坝西出库车", first_train: "16:28", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "16:56", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:24", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:52", "18:00"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:12", delta: [10, [7, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:15", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:12", count: 3}
+                    ]
+                }
             }
         },
         "将台西": {
@@ -352,6 +736,31 @@
                         {first_train: "11:35", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:08", delta: [10, [5, [8]], 6, 6, 5, 5, [41, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "16:05", delta: [5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [24, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:08", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:10", skip_trains: 1, until: "07:56"},
+                        {plan: "东坝西出库车", first_train: "16:24", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "16:53", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:21", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:49", "17:57"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:08", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:11", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:08", count: 3}
+                    ]
                 }
             }
         },
@@ -373,6 +782,32 @@
                     ],
                     filters: []
                 }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:05", delta: [10, 9, 8, 8, 8, 8, 6, 5, 5, 5, [41, [4]], 5, 5]},
+                        {first_train: "09:17", delta: [6, [57, [7]], 5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [23, [7]]]},
+                        {first_train: "22:22", delta: [8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:05", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:07", skip_trains: 1, until: "07:53"},
+                        {plan: "东坝西出库车", first_train: "16:21", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "16:50", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:18", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:46", "17:54"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:05", delta: [10, 9, [6, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6]},
+                        {first_train: "10:03", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:05", count: 3}
+                    ]
+                }
             }
         },
         "驼房营": {
@@ -391,6 +826,32 @@
                         {first_train: "11:35", delta: [6, [46, [7]], 6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 8]}
                     ],
                     filters: []
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:03", delta: [10, [5, [8]], 6, 6, 5, [41, [4]], 5, 5, 5, 5, 6, [56, [7]]]},
+                        {first_train: "15:59", delta: [5, 5, 5, 5, [39, [4]], [6, [5]], 6, [24, [7]], 8, 9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:03", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:05", skip_trains: 1, until: "07:50"},
+                        {plan: "东坝西出库车", first_train: "16:19", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "16:47", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:15", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:43", "17:51"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:03", delta: [10, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:06", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], 7, 6, [19, [7]]]},
+                        {first_train: "22:27", delta: [9]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:03", count: 3}
+                    ]
                 }
             }
         },
@@ -416,6 +877,31 @@
                     filters: [
                         {plan: "东坝西出库车", first_train: "05:14", until: "06:32"},
                         {plan: "东坝西出库车", trains: ["15:40", "16:01", "16:15", "16:36", "16:50", "17:11"]}
+                    ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:00", delta: [9, [5, [8]], 6, 6, 5, 5, [41, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "15:56", delta: [5, 5, 5, 4, 5, [38, [4]], [6, [5]], 6, [24, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:00", count: 3},
+                        {plan: "东坝西出库车", first_train: "06:01", skip_trains: 1, until: "07:47"},
+                        {plan: "东坝西出库车", first_train: "16:15", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "16:44", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", first_train: "17:12", skip_trains: 1, count: 3},
+                        {plan: "东坝西出库车", trains: ["17:40", "17:48"]}
+                    ]
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:00", delta: [9, [7, [8]], 7, 7, 6, 6, 6, 6, [35, [5]], 6, 6, 6]},
+                        {first_train: "10:02", delta: [[46, [7]], 6, 6, 6, 6, [41, [5]], [6, [6]], [21, [7]], 8, 8]}
+                    ],
+                    filters: [
+                        {plan: "东坝西出库车", first_train: "05:00", count: 3}
                     ]
                 }
             }
@@ -444,6 +930,23 @@
                         {plan: "东坝西出库车", first_train: "05:17", until: "06:35"},
                         {plan: "东坝西出库车", trains: ["15:43", "16:04", "16:18", "16:39", "16:53", "17:14"]}
                     ]
+                }
+            },
+            "西行": {
+                "工作日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [8, 8, 8, 6, 10, 9, [12, [8]], [16, [4]], 5, 5, 6, 6, [56, [7]]]},
+                        {first_train: "15:53", delta: [5, 5, 5, 9, [3, [8, 8, 4, 8]], 8, [15, [4]], [6, [5]]]},
+                        {first_train: "19:25", delta: [[24, [7]], 8, 9]}
+                    ],
+                    filters: []
+                },
+                "双休日": {
+                    schedule: [
+                        {first_train: "05:23", delta: [[5, [8]], 7, 6, 7, 6, 6, 6, [35, [5]], 6, 6, 6, 6, [45, [7]]]},
+                        {first_train: "15:22", delta: [6, 6, 6, 6, [41, [5]], [7, [6]], [20, [7]], 8, 9]}
+                    ],
+                    filters: []
                 }
             }
         }
