@@ -2542,8 +2542,8 @@ Drawing done! Saving...
 ### [`draw_congestion.py`](/src/graph/draw_congestion.py): Draw and tally congestion stats for a network
 ```
 usage: draw_congestion.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single] [-n LIMIT_NUM]
-                          [--have-no-direction] [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}] [--load-metric {passenger,congestion}]
-                          [--transfer-source {station,line,direction}]
+                          [-l LOAD_FACTOR] [--have-no-direction] [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}]
+                          [--load-metric {passenger,congestion}] [--transfer-source {station,line,direction}]
 
 options:
   -h, --help            show this help message and exit
@@ -2562,6 +2562,8 @@ options:
   --exclude-single      Exclude single-direction lines
   -n LIMIT_NUM, --limit-num LIMIT_NUM
                         Limit number of output
+  -l LOAD_FACTOR, --load-factor LOAD_FACTOR
+                        Load factor for each path
   --have-no-direction   Specify whether load & transfer stats source have direction
   --line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}
                         Line sort criteria
@@ -2574,6 +2576,12 @@ Simulate passenger flow on a network. By default, the model used is that every p
 Many stats will be outputted, including the passenger number for each line/station, maximum passenger interval, ...
 These stats can be controlled by `--have-no-direction`, `--line-metric`, `--load-metric`, and `--transfer-source`.
 All other parameters are the usual drawing parameters.
+
+In addition, `--load-factor filename.json5` can be used to specify a load factor dict to adjust the accuracy
+of the resulting simulation. The format of load factor dict is essentially a dict from station name to specification,
+in which each specification can either be `{entry: x.x, exit: x.x}` to indicate that a number should be multiplied
+to each path originating from/ending at this station (to simulate real-world entry/exit passenger flow).
+Or, alternatively, the specification can also be a dict from station name to float numbers to indicate each path's factor.
 
 Example Usage:
 <pre>

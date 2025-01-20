@@ -428,7 +428,7 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
 
 def suffix_s(word: str, number: Any, suffix: str = "s") -> str:
     """ Conditionally add s suffix """
-    return f"{number} {word}" + ("" if number == 1 else suffix)
+    return f"{number} {word}" + ("" if number == 1 or number == "1" else suffix)
 
 
 def percentage_str(data: float) -> str:
