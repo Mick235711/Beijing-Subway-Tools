@@ -1963,7 +1963,7 @@ Nearest/Furthest Stations:
 ### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
 ```
 usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r [REVERSE]] [-t TABLE_FORMAT] [--split {none,direction,route,all}]
-                   [--show SHOW | --hide HIDE] [-d {speed,capacity,distance,duration,count}] [-o OUTPUT]
+                   [--show SHOW | --hide HIDE] [-d {speed,duration,capacity,segment_distance,segment_duration,segment_count}] [-o OUTPUT]
 
 options:
   -h, --help            show this help message and exit
@@ -1989,7 +1989,7 @@ options:
                         Split mode
   --show SHOW           Only show these column(s)
   --hide HIDE           Hide these column(s)
-  -d {speed,capacity,distance,duration,count}, --data-from {speed,capacity,distance,duration,count}
+  -d {speed,duration,capacity,segment_distance,segment_duration,segment_count}, --data-from {speed,duration,capacity,segment_distance,segment_duration,segment_count}
                         Choose data source
   -o OUTPUT, --output OUTPUT
                         Output CSV file
@@ -1999,7 +1999,7 @@ Show per-line statistics in a formatted table.
 - `-t` specifies the [`tablefmt` argument](https://github.com/astanin/python-tabulate/blob/master/README.md#table-format) to `tabulate.tabulate`.
 - `-b` specifies the sort column. This is specified by the first line of header (excluding units).
 - `-r` reverses the sorting. If an argument is provided, then only the `r`-th column provided in `-b` is reversed.
-- `-d` specifies the data source.
+- `-d` specifies the data source. Those prefixed with `segment_` are calculated from the segment data instead of train data.
 - `-o` can export the table to a CSV file.
 - `--split` can split the table by `none`, `direction`, `route`, or `all`.
 - `--show` and `--hide` can show or hide columns (argument is a comma-separated list of column names, similar to `-b`).
