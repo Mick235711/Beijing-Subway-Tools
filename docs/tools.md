@@ -958,23 +958,25 @@ Minimum time path:
 # [`dist_graph/`](/src/dist_graph): Algorithms on the pure-distance graphs
 ### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
 ```
-usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a]
+usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c]
 
 options:
   -h, --help            show this help message and exit
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
   -a, --all             Calculate all pairs of ending stations
+  -c, --circuit         Calculate euler circuit
 ```
 
 Show the longest possible path in the network (i.e., the longest path that does not have duplicate edges).
 Notice that duplicate nodes are allowed.
 
-If `-a` is passed, then every possible pairs of ending station are calculated to truly get the global longest path.
+- If `-a` is passed, then every possible pairs of ending station are calculated to truly get the global longest path.
+- If `-c` is passed, an Euler circuit is calculated (maximum path starting and ending at the same station). You can enter a starting station or leave it blank to be randomly chosen.
 
 Example Usage:
 <pre>

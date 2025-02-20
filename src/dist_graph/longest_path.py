@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+import sys
 from collections.abc import Generator
 
 import networkx as nx  # type: ignore
@@ -12,7 +13,7 @@ from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.bfs.shortest_path import ask_for_shortest_path
-from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time
+from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time, ask_for_station
 from src.city.city import City
 from src.city.line import Line
 from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains
@@ -21,8 +22,12 @@ from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 
 
-def simplify_graph(graph: Graph, start_station: str, end_station: str) -> Graph:
+def simplify_graph(graph: Graph, start_station: str | None, end_station: str | None) -> Graph:
     """ Simplify graph w/r start/end station """
+    if start_station is None:
+        assert end_station is None, (start_station, end_station)
+    elif start_station == end_station:
+        start_station = end_station = None
     result = copy_graph(graph)
     queue: list[str] = [station for station, edges in result.items() if len(edges) == 1
                         and station not in [start_station, end_station]]
@@ -48,7 +53,7 @@ def get_best_matching(dist_dict: dict[tuple[str, str], int], verbose: bool = Tru
     if verbose:
         print(" Done!")
         first = True
-        for start, end in result:
+        for start, end in sorted(result, key=lambda x: dist_dict[(x[0], x[1])]):
             if first:
                 first = False
             else:
@@ -86,10 +91,15 @@ def dfs(graph: Graph, source: str) -> Generator[tuple[str, str, Line | None]]:
             remove_double_edge(graph, current_vertex, next_vertex[0], next_vertex[1])
 
 
-def euler_route(graph: Graph, start_station: str, end_station: str) -> tuple[int, Path]:
-    """ Hierholzer's algorithm for Euler route """
+def euler_route(graph: Graph, start_station: str | None, end_station: str | None) -> tuple[int, Path]:
+    """ Hierholzer's algorithm for Euler route or circuit (when stations are None) """
+    if start_station is None:
+        assert end_station is None, (start_station, end_station)
+        start_station = end_station = nx.utils.arbitrary_element(graph.keys())
     res = list(reversed([(v, u, l) for u, v, l in dfs(copy_graph(graph), start_station)]))
-    assert res[-1][1] == end_station, (res, start_station, end_station)
+    if len(res) == 0 or res[-1][1] != end_station:
+        print("No such route possible!")
+        sys.exit(-1)
     path: Path = []
     total_distance = 0
     for start, end, line in res:
@@ -100,14 +110,16 @@ def euler_route(graph: Graph, start_station: str, end_station: str) -> tuple[int
 
 
 def get_longest_route(
-    graph: Graph, city: City, start_station: str, end_station: str, verbose: bool = True
+    graph: Graph, city: City, start_station: str | None, end_station: str | None, verbose: bool = True
 ) -> tuple[int, Path]:
     """ Get the longest route in a dist graph """
+    if start_station is None:
+        assert end_station is None, (start_station, end_station)
     small_graph = simplify_graph(graph, start_station, end_station)
 
     # Find all the odd nodes
     odd_nodes = [station for station, edges in small_graph.items() if len(edges) % 2 == 1
-                 and station not in [start_station, end_station]]
+                 and (start_station == end_station or station not in [start_station, end_station])]
     if verbose:
         print("Odd nodes in simplified graph:")
         for station in odd_nodes:
@@ -147,10 +159,20 @@ def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     shortest_path_args(parser, have_express=False)
-    parser.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
+    group.add_argument("-c", "--circuit", action="store_true", help="Calculate euler circuit")
     args = parser.parse_args()
-    if args.all:
+    start: tuple[str, set[Line]] | None = None
+    end: tuple[str, set[Line]] | None = None
+    if args.all or args.circuit:
         city = ask_for_city()
+        if args.circuit:
+            station, _ = ask_for_station(
+                city, message="Please select a starting/ending station (empty for random):", allow_empty=True
+            )
+            if station != "":
+                start, end = (station, set()), (station, set())
         lines = city.lines
         train_dict = parse_all_trains(
             list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
@@ -158,7 +180,6 @@ def main() -> None:
         _, through_dict = parse_through_train(train_dict, city.through_specs)
         start_date = ask_for_date()
         start_time, start_day = ask_for_time()
-        start, end = None, None
     else:
         city, start, end, train_dict, through_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
         lines = city.lines
@@ -168,10 +189,12 @@ def main() -> None:
         city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         include_virtual=(not args.exclude_virtual), include_circle=False
     )
-    possible_pairs: list[tuple[str, str]] = []
+    possible_pairs: list[tuple[str | None, str | None]] = []
     if start is not None:
         assert end is not None
         possible_pairs.append((start[0], end[0]))
+    elif args.circuit:
+        possible_pairs.append((None, None))
     else:
         # Get all possible ending points
         ending_points = [v for v, edges in graph.items() if len(edges) == 1]
@@ -181,17 +204,17 @@ def main() -> None:
 
     small_tuple: tuple[int, Path, str] | None = None
     for start_station, end_station in (bar := tqdm(possible_pairs)):
-        bar.set_description(f"Calculating {city.station_full_name(start_station)} " +
-                            f"<-> {city.station_full_name(end_station)}")
+        if start_station is not None and end_station is not None:
+            bar.set_description(f"Calculating {city.station_full_name(start_station)} " +
+                                f"<-> {city.station_full_name(end_station)}")
         dist, route = get_longest_route(graph, city, start_station, end_station, not args.all)
         if small_tuple is None or small_tuple[0] < dist:
-            small_tuple = (dist, route, end_station)
+            small_tuple = (dist, route, end_station or route[0][0])
     assert small_tuple is not None
     dist, route, end_station = small_tuple
 
-    if args.all:
-        print(f"Longest route is from {city.station_full_name(route[0][0])} " +
-              f"to {city.station_full_name(end_station)}, totalling {dist}m.")
+    print(f"Longest route is from {city.station_full_name(route[0][0])} " +
+          f"to {city.station_full_name(end_station)}, totalling {dist}m.")
     result, bfs_path = to_trains(
         lines, train_dict, city.transfers, virtual_transfers, route, end_station,
         start_date, start_time, start_day, exclude_edge=args.exclude_edge
