@@ -7,16 +7,17 @@
 import argparse
 import sys
 from collections.abc import Generator
+from datetime import time
 
 import networkx as nx  # type: ignore
 from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import shortest_path_args
-from src.bfs.shortest_path import ask_for_shortest_path
+from src.bfs.shortest_path import ask_for_shortest_path, ask_for_shortest_time, display_info_min
 from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time, ask_for_station
 from src.city.city import City
 from src.city.line import Line
-from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains
+from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains, all_time_path
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
@@ -167,21 +168,32 @@ def main() -> None:
     end: tuple[str, set[Line]] | None = None
     if args.all or args.circuit:
         city = ask_for_city()
-        if args.circuit:
-            station, _ = ask_for_station(
-                city, message="Please select a starting/ending station (empty for random):", allow_empty=True
-            )
-            if station != "":
-                start, end = (station, set()), (station, set())
         lines = city.lines
         train_dict = parse_all_trains(
             list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
         )
+        if args.circuit:
+            station, _ = ask_for_station(
+                city, message="Please select a starting/ending station (empty for random):", allow_empty=True
+            )
+        else:
+            station = ""
+        if station != "":
+            start, end = (station, set()), (station, set())
+            start_date, start_time, start_day = ask_for_shortest_time(
+                args, city, station, station, train_dict,
+                allow_empty=True
+            )
+        else:
+            start_date = ask_for_date()
+            start_time, start_day = ask_for_time(allow_empty=True)
         _, through_dict = parse_through_train(train_dict, city.through_specs)
-        start_date = ask_for_date()
-        start_time, start_day = ask_for_time()
     else:
-        city, start, end, train_dict, through_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
+        city, start, end, train_dict, through_dict = ask_for_shortest_path(args)
+        start_date, start_time, start_day = ask_for_shortest_time(
+            args, city, start[0], end[0], train_dict,
+            allow_empty=True
+        )
         lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
@@ -214,14 +226,19 @@ def main() -> None:
     dist, route, end_station = small_tuple
 
     print(f"Longest route is from {city.station_full_name(route[0][0])} " +
-          f"to {city.station_full_name(end_station)}, totalling {dist}m.")
-    result, bfs_path = to_trains(
-        lines, train_dict, city.transfers, virtual_transfers, route, end_station,
-        start_date, start_time, start_day, exclude_edge=args.exclude_edge
-    )
-    print()
-    print("Longest Route Possible:")
-    result.pretty_print_path(bfs_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
+          f"to {city.station_full_name(end_station)}, totalling {dist}m.\n")
+
+    if start_time == time.max and start_day:
+        # Populate min/max
+        infos = all_time_path(city, train_dict, route, end_station, start_date, exclude_edge=args.exclude_edge)
+        display_info_min(city, infos, through_dict)
+    else:
+        result, bfs_path = to_trains(
+            lines, train_dict, city.transfers, virtual_transfers, route, end_station,
+            start_date, start_time, start_day, exclude_edge=args.exclude_edge
+        )
+        print("Longest Route Possible:")
+        result.pretty_print_path(bfs_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
 
 
 # Call main

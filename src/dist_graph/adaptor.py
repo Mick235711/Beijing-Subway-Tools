@@ -11,12 +11,13 @@ import multiprocessing as mp
 
 from tqdm import tqdm
 
+from src.bfs.avg_shortest_time import PathInfo, get_minute_list, reconstruct_paths
 from src.bfs.bfs import BFSResult, expand_path
 from src.bfs.common import AbstractPath, Path as BFSPath
 from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer
-from src.common.common import add_min_tuple, get_time_str, diff_time_tuple
+from src.common.common import add_min_tuple, get_time_str, diff_time_tuple, from_minutes, get_time_repr
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.train import Train
 
@@ -256,6 +257,54 @@ def all_bfs_path(
                 bar.update()
                 processed_dict[start_station] = result
     return processed_dict
+
+
+global to_trains_wrap
+def to_trains_wrap(
+    lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
+    path: Path, end_station: str, cur_date: date, minute: int,
+    *, exclude_edge: bool = False
+) -> tuple[time, bool, tuple[BFSResult, BFSPath]]:
+    """ Wrap around the to_trains() method """
+    start_time, start_day = from_minutes(minute)
+    return start_time, start_day, to_trains(
+        lines, train_dict, transfer_dict, virtual_dict, path, end_station, cur_date, start_time, start_day,
+        exclude_edge=exclude_edge
+    )
+
+
+def all_time_path(
+    city: City, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    path: Path, end_station: str, start_date: date,
+    *, exclude_edge: bool = False
+) -> list[PathInfo]:
+    """ Get the resolved path in all possible timings """
+    # Loop through first train to last train
+    results: list[PathInfo] = []
+    start_station = path[0][0]
+    second_station = path[1][0] if len(path) > 1 else end_station
+    all_list = get_minute_list(
+        city.lines, train_dict, start_date, start_station,
+        limit_line=(None if path[0][1] is None else path[0][1].name),
+        limit_direction=(None if path[0][1] is None else path[0][1].determine_direction(
+            start_station, second_station
+        ))
+    )
+    with tqdm(desc=("Calculating " + city.station_full_name(start_station)), total=len(all_list)) as bar:
+        with mp.Pool() as pool:
+            for start_time, start_day, (bfs_result, bfs_path) in pool.imap_unordered(
+                partial(
+                    to_trains_wrap, city.lines, train_dict, city.transfers, city.virtual_transfers,
+                    path, end_station, start_date,
+                    exclude_edge=exclude_edge
+                ), all_list, chunksize=50
+            ):
+                bar.set_description("Calculating " + city.station_full_name(start_station) +
+                                    " at " + get_time_repr(start_time, start_day))
+                bar.update()
+                results.append((bfs_result.total_duration(), bfs_path, bfs_result))
+    return reconstruct_paths(results)
 
 
 def reduce_path(bfs_path: BFSPath, end_station: str) -> Path:

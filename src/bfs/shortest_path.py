@@ -8,7 +8,7 @@ import argparse
 import sys
 from datetime import date, time
 
-from src.bfs.avg_shortest_time import all_time_bfs, shortest_path_args
+from src.bfs.avg_shortest_time import all_time_bfs, shortest_path_args, PathInfo
 from src.bfs.bfs import BFSResult, Path
 from src.bfs.k_shortest_path import k_shortest_path
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
@@ -16,8 +16,8 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import get_time_str, TimeSpec
-from src.dist_graph.adaptor import get_dist_graph, to_trains
+from src.common.common import get_time_str, TimeSpec, suffix_s, average, stddev
+from src.dist_graph.adaptor import get_dist_graph, to_trains, all_time_path
 from src.dist_graph.shortest_path import shortest_path
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
@@ -44,8 +44,7 @@ def find_last_train(
 def ask_for_shortest_path(
     args: argparse.Namespace
 ) -> tuple[City, tuple[str, set[Line]], tuple[str, set[Line]],
-           dict[str, dict[str, dict[str, list[Train]]]], dict[ThroughSpec, list[ThroughTrain]],
-           date, time, bool]:
+           dict[str, dict[str, dict[str, list[Train]]]], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Ask information for shortest path computation """
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
@@ -54,8 +53,18 @@ def ask_for_shortest_path(
         list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
     )
     _, through_dict = parse_through_train(train_dict, city.through_specs)
+    return city, start, end, train_dict, through_dict
+
+
+def ask_for_shortest_time(
+    args: argparse.Namespace, city: City, start: str, end: str,
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    *, allow_empty: bool = False
+) -> tuple[date, time, bool]:
+    """ Ask time information for shortest path computation """
     start_date = ask_for_date()
 
+    lines = city.lines
     all_trains: list[Train] = []
     for line, line_dict in train_dict.items():
         for direction, direction_dict in line_dict.items():
@@ -63,26 +72,52 @@ def ask_for_shortest_path(
                 if not lines[line].date_groups[date_group].covers(start_date):
                     continue
                 for train in group_dict:
-                    if start[0] in train.arrival_time:
+                    if start in train.arrival_time:
                         all_trains.append(train)
-    all_trains = sorted(all_trains, key=lambda t: get_time_str(*t.arrival_time[start[0]]))
+    all_trains = sorted(all_trains, key=lambda t: get_time_str(*t.arrival_time[start]))
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
+
     start_time, start_day = ask_for_time(
-        allow_first=lambda: all_trains[0].arrival_time[start[0]],
+        allow_first=lambda: all_trains[0].arrival_time[start],
         allow_last=lambda: find_last_train(
             lines, train_dict,
             city.transfers, virtual_transfers,
-            start_date, start[0], end[0],
+            start_date, start, end,
             exclude_edge=args.exclude_edge, include_express=args.include_express
-        )
+        ),
+        allow_empty=allow_empty
     )
+    return start_date, start_time, start_day
 
-    return city, start, end, train_dict, through_dict, start_date, start_time, start_day
+
+def display_info_min(
+    city: City, infos: list[PathInfo],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+) -> list[tuple[BFSResult, Path]]:
+    """ Display info array's minimum and maximum elements """
+    min_info = min(infos, key=lambda x: x[0])
+    max_info = max(infos, key=lambda x: x[0])
+    print("Average over all " + suffix_s("starting time", len(infos)) +
+          ": " + suffix_s("minute", f"{average(x[0] for x in infos):.2f}") +
+          f" (stddev = {stddev(x[0] for x in infos):.2f}) (min {min_info[0]} - max {max_info[0]})")
+    print("\nMaximum time path:")
+    max_info[2].pretty_print_path(
+        max_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
+    )
+    print("\nMinimum time path:")
+    min_info[2].pretty_print_path(
+        min_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
+    )
+    return [(min_info[2], min_info[1]), (max_info[2], max_info[1])]
 
 
 def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[BFSResult, Path]]]:
     """ Get the kth shortest paths """
-    city, start, end, train_dict, through_dict, start_date, start_time, start_day = ask_for_shortest_path(args)
+    city, start, end, train_dict, through_dict = ask_for_shortest_path(args)
+    start_date, start_time, start_day = ask_for_shortest_time(
+        args, city, start[0], end[0], train_dict,
+        allow_empty=(args.data_source != "time")
+    )
     lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
@@ -119,16 +154,23 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
             print("Unreachable!")
             sys.exit(0)
         _, path = path_dict[end[0]]
-        results = [to_trains(
-            lines, train_dict, city.transfers, virtual_transfers, path, end[0],
-            start_date, start_time, start_day, exclude_edge=args.exclude_edge
-        )]
+
+        if start_time == time.max and start_day:
+            # Populate min/max
+            infos = all_time_path(city, train_dict, path, end[0], start_date, exclude_edge=args.exclude_edge)
+            results = display_info_min(city, infos, through_dict)
+        else:
+            results = [to_trains(
+                lines, train_dict, city.transfers, virtual_transfers, path, end[0],
+                start_date, start_time, start_day, exclude_edge=args.exclude_edge
+            )]
 
     # Print results
+    if start_time == time.max and start_day:
+        return city, start[0], end[0], results
     for i, (k_result, k_path) in enumerate(results):
         print(f"\nShortest Path #{i + 1}:")
         k_result.pretty_print_path(k_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
-
     return city, start[0], end[0], results
 
 

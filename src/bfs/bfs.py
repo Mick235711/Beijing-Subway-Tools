@@ -59,10 +59,12 @@ class BFSResult:
 
     def total_duration(self) -> int:
         """ Get total duration """
-        result = diff_time(self.arrival_time, self.initial_time, self.arrival_day, self.initial_day)
-        if self.force_next_day:
-            result += 24 * 60
-        assert result >= 0, self
+        result = diff_time(
+            self.arrival_time, self.initial_time,
+            self.arrival_day or self.force_next_day, self.initial_day
+        )
+        assert result >= 0, (self.initial_time, self.initial_day,
+                             self.arrival_time, self.arrival_day, self.force_next_day)
         return result
 
     def total_distance(self, path: Path) -> int:
@@ -78,7 +80,7 @@ class BFSResult:
     def time_str(self) -> str:
         """ Return string representation of start/end time """
         return f"{get_time_repr(self.initial_time, self.initial_day)} -> " +\
-               f"{get_time_repr(self.arrival_time, self.arrival_day)}"
+               f"{get_time_repr(self.arrival_time, self.arrival_day or self.force_next_day)}"
 
     def total_duration_str(
         self, path: Path, indent: int = 0,
@@ -131,6 +133,9 @@ class BFSResult:
         if isinstance(path[0][1], Train):
             first_time, first_day = path[0][1].arrival_time[path[0][0]]
             first_waiting = diff_time(first_time, self.initial_time, first_day, self.initial_day)
+            if first_waiting < 0:
+                assert self.force_next_day, (self.initial_time, self.initial_day, first_time, first_day)
+                first_waiting += 24 * 60
             assert first_waiting >= 0, (path[0], self.initial_time, self.initial_day)
             if first_waiting > 0:
                 line_list.append("Waiting time: " + suffix_s("minute", first_waiting))

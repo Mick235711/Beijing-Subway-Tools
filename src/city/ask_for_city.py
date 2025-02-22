@@ -428,28 +428,34 @@ def ask_for_date() -> date:
     return ask_question(
         "Please enter the travel date (yyyy-mm-dd):", date.fromisoformat,
         default=date.today().isoformat()
-    )
+    )[1]
 
 
 def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
-                 allow_last: Callable[[], TimeSpec] | None = None) -> TimeSpec:
+                 allow_last: Callable[[], TimeSpec] | None = None, allow_empty: bool = False) -> TimeSpec:
     """ Ask for a time """
     valid_answer: dict[str, Callable[[], TimeSpec]] = {}
     if allow_first is not None:
         valid_answer["first"] = allow_first
     if allow_last is not None:
         valid_answer["last"] = allow_last
-    answer = ask_question(
+    if allow_empty:
+        # FIXME: choose a better default than this
+        valid_answer[""] = lambda: (time.max, True)
+    response, answer = ask_question(
         "Please enter the travel time (hh:mm" +
-        (" or first" if allow_first else "") + (" or last" if allow_last else "") + "):",
+        (" or first" if allow_first else "") + (" or last" if allow_last else "") + ")" +
+        (" (empty for min/max)" if allow_empty else "") + ":",
         parse_time, default=get_time_str(datetime.now().time()), valid_answer=valid_answer
-    )[0]
+    )
+    if response in valid_answer:
+        return answer
 
     # For now, assume that any input after 3:30AM is this day
-    start_day = answer < time(3, 30)
+    start_day = answer[0] < time(3, 30)
     if start_day:
         print("Warning: assuming next day!")
-    return answer, start_day
+    return answer[0], start_day
 
 
 def ask_for_time_seq() -> set[TimeSpec]:
@@ -457,7 +463,7 @@ def ask_for_time_seq() -> set[TimeSpec]:
     return ask_question(
         "Please enter the travel time (hh:mm or hh:mm-hh:mm):",
         parse_time_seq, default=get_time_str(datetime.now().time())
-    )
+    )[1]
 
 
 def ask_for_map(city: City, *, message: str | None = None) -> Map:
