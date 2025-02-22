@@ -16,7 +16,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import get_time_str, TimeSpec, suffix_s, average, stddev
+from src.common.common import get_time_str, get_time_repr, TimeSpec, suffix_s, average, stddev
 from src.dist_graph.adaptor import get_dist_graph, to_trains, all_time_path
 from src.dist_graph.shortest_path import shortest_path
 from src.routing.through_train import ThroughTrain, parse_through_train
@@ -95,9 +95,16 @@ def display_info_min(
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> list[tuple[BFSResult, Path]]:
     """ Display info array's minimum and maximum elements """
+    if len(infos) == 0:
+        print("No available path found!")
+        return []
     min_info = min(infos, key=lambda x: x[0])
     max_info = max(infos, key=lambda x: x[0])
+    min_time = min(infos, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+    max_time = max(infos, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
     print("Average over all " + suffix_s("starting time", len(infos)) +
+          f" ({get_time_repr(min_time[2].initial_time, min_time[2].initial_day)} - " +
+          f"{get_time_repr(max_time[2].initial_time, max_time[2].initial_day)})" +
           ": " + suffix_s("minute", f"{average(x[0] for x in infos):.2f}") +
           f" (stddev = {stddev(x[0] for x in infos):.2f}) (min {min_info[0]} - max {max_info[0]})")
     print("\nMaximum time path:")
@@ -124,6 +131,8 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
     if args.data_source == "time":
         if args.exclude_single:
             print("Warning: --exclude-single ignored in time mode.")
+        if args.exclude_next_day:
+            print("Warning: --exclude-next-day ignored in time mode.")
         num_path = args.num_path or 1
         results = k_shortest_path(
             lines, train_dict, city.transfers, virtual_transfers,
@@ -157,7 +166,10 @@ def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[B
 
         if start_time == time.max and start_day:
             # Populate min/max
-            infos = all_time_path(city, train_dict, path, end[0], start_date, exclude_edge=args.exclude_edge)
+            infos = all_time_path(
+                city, train_dict, path, end[0], start_date,
+                exclude_next_day=args.exclude_next_day, exclude_edge=args.exclude_edge
+            )
             results = display_info_min(city, infos, through_dict)
         else:
             results = [to_trains(
@@ -180,6 +192,8 @@ def main() -> None:
     parser.add_argument("-d", "--data-source", choices=["time", "station", "distance", "fare"],
                         default="time", help="Shortest path criteria")
     parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+    parser.add_argument("--exclude-next-day", action="store_true",
+                        help="Exclude path that spans into next day")
     shortest_path_args(parser, have_single=True)
     args = parser.parse_args()
     get_kth_path(args)

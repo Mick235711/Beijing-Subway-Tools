@@ -277,7 +277,7 @@ def to_trains_wrap(
 def all_time_path(
     city: City, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     path: Path, end_station: str, start_date: date,
-    *, exclude_edge: bool = False
+    *, exclude_next_day: bool = False, exclude_edge: bool = False
 ) -> list[PathInfo]:
     """ Get the resolved path in all possible timings """
     # Loop through first train to last train
@@ -303,6 +303,8 @@ def all_time_path(
                 bar.set_description("Calculating " + city.station_full_name(start_station) +
                                     " at " + get_time_repr(start_time, start_day))
                 bar.update()
+                if exclude_next_day and bfs_result.force_next_day:
+                    continue
                 results.append((bfs_result.total_duration(), bfs_path, bfs_result))
     return reconstruct_paths(results)
 

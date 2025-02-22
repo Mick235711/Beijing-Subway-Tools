@@ -189,7 +189,7 @@
   - [ ] 某条线/某站引起的变更
 - 对所有dist_graph相关：
   - [x] Best Path：一个AbstractPath一天中最好的出发时间
-  - [ ] 加入--exclude-next-day
+  - [x] 加入--exclude-next-day
 
 ## 线网径路PK：对于同一个首末站组合，指定不同径路
 - 指定径路：

@@ -163,6 +163,8 @@ def main() -> None:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
     group.add_argument("-c", "--circuit", action="store_true", help="Calculate euler circuit")
+    parser.add_argument("--exclude-next-day", action="store_true",
+                        help="Exclude path that spans into next day")
     args = parser.parse_args()
     start: tuple[str, set[Line]] | None = None
     end: tuple[str, set[Line]] | None = None
@@ -230,7 +232,10 @@ def main() -> None:
 
     if start_time == time.max and start_day:
         # Populate min/max
-        infos = all_time_path(city, train_dict, route, end_station, start_date, exclude_edge=args.exclude_edge)
+        infos = all_time_path(
+            city, train_dict, route, end_station, start_date,
+            exclude_next_day=args.exclude_next_day, exclude_edge=args.exclude_edge
+        )
         display_info_min(city, infos, through_dict)
     else:
         result, bfs_path = to_trains(

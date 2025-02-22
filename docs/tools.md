@@ -706,17 +706,18 @@ Average over all 223 trains, segment speed: 26.38min, 42.67km/h
 # [`bfs/`](/src/bfs): Shortest Path Related Tools
 ### [`shortest_path.py`](/src/bfs/shortest_path.py): Find the shortest path between two stations
 ```
-usage: shortest_path.py [-h] [-d {time,station,distance,fare}] [-k NUM_PATH] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+usage: shortest_path.py [-h] [-d {time,station,distance,fare}] [-k NUM_PATH] [--exclude-next-day] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
-  -d {time,station,distance,fare}, --data-source {time,station,distance,fare}
+  -d, --data-source {time,station,distance,fare}
                         Shortest path criteria
-  -k NUM_PATH, --num-path NUM_PATH
+  -k, --num-path NUM_PATH
                         Show first k path
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  --exclude-next-day    Exclude path that spans into next day
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
@@ -958,7 +959,7 @@ Minimum time path:
 # [`dist_graph/`](/src/dist_graph): Algorithms on the pure-distance graphs
 ### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
 ```
-usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c]
+usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c] [--exclude-next-day]
 
 options:
   -h, --help            show this help message and exit
@@ -970,6 +971,7 @@ options:
   --exclude-edge        Exclude edge case in transfer
   -a, --all             Calculate all pairs of ending stations
   -c, --circuit         Calculate euler circuit
+  --exclude-next-day    Exclude path that spans into next day
 ```
 
 Show the longest possible path in the network (i.e., the longest path that does not have duplicate edges).
