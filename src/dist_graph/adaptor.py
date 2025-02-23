@@ -338,3 +338,63 @@ def reduce_abstract_path(lines: dict[str, Line], abstract_path: AbstractPath, en
         for result_station in results:
             path.append((result_station, line))
     return path
+
+
+def to_universe(graph: Graph) -> list[tuple[str, str, int]]:
+    """ Convert graph to a Graphillion list of edges """
+    edges: list[tuple[str, str, int]] = []
+    visited: set[tuple[str, str]] = set()
+    for from_station, edges_dict in graph.items():
+        to_dict: dict[str, int] = {}
+        for (to_station, line), dist in edges_dict.items():
+            if to_station not in to_dict or dist > to_dict[to_station]:
+                to_dict[to_station] = dist
+        for to_station, dist in to_dict.items():
+            if (from_station, to_station) in visited or (to_station, from_station) in visited:
+                continue
+            visited.add((from_station, to_station))
+            visited.add((to_station, from_station))
+            edges.append((from_station, to_station, dist))
+    return edges
+
+
+def path_from_pairs(
+    graph: Graph, lines: dict[str, Line], pairs: list[tuple[str, str]], start_from: str,
+    *, is_circular: bool = False
+) -> tuple[int, Path, str]:
+    """ Get a path from station pairs """
+    next_station: dict[str, set[str]] = {}
+    for s1, s2 in pairs:
+        if s1 not in next_station:
+            next_station[s1] = set()
+        if s2 not in next_station:
+            next_station[s2] = set()
+        next_station[s1].add(s2)
+        next_station[s2].add(s1)
+    assert all(1 <= len(x) <= 2 for x in next_station.values()), next_station
+    assert len(next_station[start_from]) == 1 or is_circular, (next_station, start_from)
+
+    abstract_path: AbstractPath = []
+    dist = 0
+    prev_station = start_from
+    cur_station = list(next_station[start_from])[0]
+    def update() -> None:
+        """ Update path stats """
+        nonlocal dist, abstract_path
+        edges = [edge for edge in graph[prev_station].items() if edge[0][0] == cur_station]
+        max_edge = max(edges, key=lambda edge: edge[1])
+        dist += max_edge[1]
+        abstract_path.append((prev_station, None if max_edge[0][1] is None else (
+            max_edge[0][1].name, max_edge[0][1].determine_direction(prev_station, cur_station)
+        )))
+    while len(next_station[cur_station]) > 1 and cur_station != start_from:
+        assert prev_station in next_station[cur_station], (next_station, prev_station, cur_station, start_from)
+        update()
+        prev_station, cur_station = cur_station, [x for x in next_station[cur_station] if x != prev_station][0]
+    update()
+    if is_circular:
+        assert cur_station == start_from, (next_station, start_from, cur_station)
+    else:
+        assert len(next_station[cur_station]) == 1, (next_station, start_from, cur_station)
+    path = reduce_abstract_path(lines, abstract_path, cur_station)
+    return dist, path, cur_station

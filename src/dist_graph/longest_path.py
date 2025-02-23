@@ -17,10 +17,17 @@ from src.bfs.shortest_path import ask_for_shortest_path, ask_for_shortest_time, 
 from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time, ask_for_station
 from src.city.city import City
 from src.city.line import Line
-from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains, all_time_path
+from src.common.common import suffix_s
+from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains, all_time_path, \
+    to_universe, path_from_pairs
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
+
+try:
+    from graphillion import GraphSet  # type: ignore
+except ImportError:
+    GraphSet = None
 
 
 def simplify_graph(graph: Graph, start_station: str | None, end_station: str | None) -> Graph:
@@ -159,6 +166,7 @@ def get_longest_route(
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--non-repeating", action="store_true", help="Finding non-repeating paths")
     shortest_path_args(parser, have_express=False)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
@@ -203,29 +211,62 @@ def main() -> None:
         city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         include_virtual=(not args.exclude_virtual), include_circle=False
     )
-    possible_pairs: list[tuple[str | None, str | None]] = []
-    if start is not None:
-        assert end is not None
-        possible_pairs.append((start[0], end[0]))
-    elif args.circuit:
-        possible_pairs.append((None, None))
-    else:
-        # Get all possible ending points
-        ending_points = [v for v, edges in graph.items() if len(edges) == 1]
-        for i, point in enumerate(ending_points):
-            for j in range(i + 1, len(ending_points)):
-                possible_pairs.append((point, ending_points[j]))
+    if args.non_repeating:
+        if GraphSet is None:
+            print("Non-repeating path finding requires graphillion library!")
+            sys.exit(1)
+        GraphSet.set_universe(to_universe(graph))
 
-    small_tuple: tuple[int, Path, str] | None = None
-    for start_station, end_station in (bar := tqdm(possible_pairs)):
-        if start_station is not None and end_station is not None:
-            bar.set_description(f"Calculating {city.station_full_name(start_station)} " +
-                                f"<-> {city.station_full_name(end_station)}")
-        dist, route = get_longest_route(graph, city, start_station, end_station, not args.all)
-        if small_tuple is None or small_tuple[0] < dist:
-            small_tuple = (dist, route, end_station or route[0][0])
-    assert small_tuple is not None
-    dist, route, end_station = small_tuple
+        print("Graph creation done. The calculation for set of all paths will now begin, please wait patiently...",
+              flush=True, end="")
+        if args.all:
+            # FIXME: This took way too long to calculate
+            paths = GraphSet.paths()
+        elif args.circuit:
+            paths = GraphSet.cycles()
+            if start is not None:
+                paths = paths.including(start[0])
+        else:
+            assert start is not None and end is not None, (start, end)
+            paths = GraphSet.paths(start[0], end[0])
+        print(" Done!")
+        print("Calculating longest path from all " + suffix_s("path", paths.len()) + "...", end="", flush=True)
+        max_path = next(paths.max_iter())
+        print(" Done!")
+        all_stations = set(x[0] for x in max_path) | set(x[1] for x in max_path)
+        if args.all:
+            candidates = [s for s in all_stations if len([x for x in max_path if s in x]) != 2]
+            assert len(candidates) == 2, (candidates, max_path)
+            start_from = candidates[0]
+        else:
+            start_from = nx.utils.arbitrary_element(all_stations) if start is None else start[0]
+        dist, route, end_station = path_from_pairs(
+            graph, lines, max_path, start_from=start_from, is_circular=args.circuit
+        )
+    else:
+        possible_pairs: list[tuple[str | None, str | None]] = []
+        if start is not None:
+            assert end is not None
+            possible_pairs.append((start[0], end[0]))
+        elif args.circuit:
+            possible_pairs.append((None, None))
+        else:
+            # Get all possible ending points
+            ending_points = [v for v, edges in graph.items() if len(edges) == 1]
+            for i, point in enumerate(ending_points):
+                for j in range(i + 1, len(ending_points)):
+                    possible_pairs.append((point, ending_points[j]))
+
+        small_tuple: tuple[int, Path, str] | None = None
+        for start_station_inner, end_station_inner in (bar := tqdm(possible_pairs)):
+            if start_station_inner is not None and end_station_inner is not None:
+                bar.set_description(f"Calculating {city.station_full_name(start_station_inner)} " +
+                                    f"<-> {city.station_full_name(end_station_inner)}")
+            dist, route = get_longest_route(graph, city, start_station_inner, end_station_inner, not args.all)
+            if small_tuple is None or small_tuple[0] < dist:
+                small_tuple = (dist, route, end_station_inner or route[0][0])
+        assert small_tuple is not None
+        dist, route, end_station = small_tuple
 
     print(f"Longest route is from {city.station_full_name(route[0][0])} " +
           f"to {city.station_full_name(end_station)}, totalling {dist}m.\n")

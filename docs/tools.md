@@ -959,10 +959,11 @@ Minimum time path:
 # [`dist_graph/`](/src/dist_graph): Algorithms on the pure-distance graphs
 ### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
 ```
-usage: longest_path.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c] [--exclude-next-day]
+usage: longest_path.py [-h] [-n] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c] [--exclude-next-day]
 
 options:
   -h, --help            show this help message and exit
+  -n, --non-repeating   Finding non-repeating paths
   -i, --include-lines INCLUDE_LINES
                         Include lines
   -x, --exclude-lines EXCLUDE_LINES
@@ -979,6 +980,9 @@ Notice that duplicate nodes are allowed.
 
 - If `-a` is passed, then every possible pairs of ending station are calculated to truly get the global longest path.
 - If `-c` is passed, an Euler circuit is calculated (maximum path starting and ending at the same station). You can enter a starting station or leave it blank to be randomly chosen.
+- If `-n` is passed, the path calculated will be the longest path that have no repeating station visits.
+  - This requires the PyPI module `graphillion` to be installed beforehand.
+  - **NOTE: This may require several minutes to compute. Using `-n` with `-a` together is untested and may need several hours to finish computing. **
 
 Example Usage:
 <pre>
