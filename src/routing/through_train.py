@@ -5,7 +5,6 @@
 
 # Libraries
 from collections.abc import Iterable
-from copy import deepcopy
 
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
@@ -136,15 +135,24 @@ def parse_through_train(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: Iterable[ThroughSpec]
 ) -> tuple[dict[str, dict[str, dict[str, list[Train]]]], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Parse through train from parsed train_dict """
-    train_dict = deepcopy(train_dict)
+    train_dict = {
+        line_name: {
+            direction: {
+                date_group_name: train_list[:] for date_group_name, train_list in inner2.items()
+            } for direction, inner2 in inner1.items()
+        } for line_name, inner1 in train_dict.items()
+    }
     result: dict[ThroughSpec, list[ThroughTrain]] = {}
     for through_spec in through_dict:
+        if any(
+            line.name not in train_dict or direction not in train_dict[line.name] or
+            date_group.name not in train_dict[line.name][direction]
+            for line, direction, date_group, _ in through_spec.spec
+        ):
+            continue
         result[through_spec] = []
         last_line: Line | None = None
         for line, direction, date_group, route in through_spec.spec:
-            if line.name not in train_dict or direction not in train_dict[line.name] or\
-                    date_group.name not in train_dict[line.name][direction]:
-                continue
             train_list = train_dict[line.name][direction][date_group.name]
             candidate_list, other_list = [], []
             for train in train_list:

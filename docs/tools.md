@@ -983,6 +983,7 @@ Notice that duplicate nodes are allowed.
 - If `-n` is passed, the path calculated will be the longest path that have no repeating station visits.
   - This requires the PyPI module `graphillion` to be installed beforehand.
   - You can use the environmental variable `OMP_NUM_THREADS` to control the number of CPU cores to be utilized when calculating paths.
+    - Large RAM consumption may appear when using more threads.
   - **NOTE: This may require several minutes to compute. Using `-n` with `-a` together is untested and may need several hours to finish computing. **
 
 Example Usage:
