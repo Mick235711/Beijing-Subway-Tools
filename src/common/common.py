@@ -448,6 +448,15 @@ def percentage_coverage(data: Sequence[tuple[Iterable[T], U]]) -> list[tuple[flo
     return sorted(result, key=lambda x: x[0], reverse=True)
 
 
+def split_n(a: list[T], n: int) -> list[list[T]]:
+    """ Split a list into n chunks """
+    if len(a) == 0:
+        return [[]]
+    n = min(n, len(a))
+    k, m = divmod(len(a), n)
+    return [a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
+
+
 def average(data: Iterable[int | float]) -> float:
     """ Calculate average """
     data_list = list(data)

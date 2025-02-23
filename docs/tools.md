@@ -982,6 +982,7 @@ Notice that duplicate nodes are allowed.
 - If `-c` is passed, an Euler circuit is calculated (maximum path starting and ending at the same station). You can enter a starting station or leave it blank to be randomly chosen.
 - If `-n` is passed, the path calculated will be the longest path that have no repeating station visits.
   - This requires the PyPI module `graphillion` to be installed beforehand.
+  - You can use the environmental variable `OMP_NUM_THREADS` to control the number of CPU cores to be utilized when calculating paths.
   - **NOTE: This may require several minutes to compute. Using `-n` with `-a` together is untested and may need several hours to finish computing. **
 
 Example Usage:
@@ -2468,37 +2469,42 @@ Drawing contours done! Saving...
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
 usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
-                    [--strategy {kth,avg}] [-k NUM_PATH] [-d {time,station,distance,fare}]
+                    [--strategy {kth,avg,longest}] [-k NUM_PATH] [-d {time,station,distance,fare}] [--longest-args LONGEST_ARGS]
 
 options:
   -h, --help            show this help message and exit
-  -s LIMIT_START, --limit-start LIMIT_START
+  -s, --limit-start LIMIT_START
                         Limit start time of the search
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit end time of the search
-  -c COLOR_MAP, --color-map COLOR_MAP
+  -c, --color-map COLOR_MAP
                         Override default colormap
-  -o OUTPUT, --output OUTPUT
-                        Output path
+  -o, --output OUTPUT   Output path
   --dpi DPI             DPI of output image
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
   --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
-  --strategy {kth,avg}  Strategy for combining station data
-  -k NUM_PATH, --num-path NUM_PATH
-                        Show first k path
-  -d {time,station,distance,fare}, --data-source {time,station,distance,fare}
+  --strategy {kth,avg,longest}
+                        Strategy for combining station data
+  -k, --num-path NUM_PATH
+                        Show first k path (kth) / Split into k paths (longest)
+  -d, --data-source {time,station,distance,fare}
                         Shortest path criteria
+  --longest-args LONGEST_ARGS
+                        Arguments to pass to longest_path.py
 ```
 Draw the first k-th shortest paths on the map.
 On default, the route with deeper shades of grey is faster.
-There are two mode selectable by `--strategy`: `kth` that calculate shortest path on a specific time,
-and `avg` that accumulates the shortest path over one day.
+There are three mode selectable by `--strategy`:
+- `kth` that calculate shortest path on a specific time,
+- `avg` that accumulates the shortest path over one day, and
+- `longest` which just wraps [`longest_path.py`](#longest_pathpy-find-the-longest-path-in-a-network).
+  - In this mode, you can use `--longest-args='-n ...'` to pass args to the underlying file.
 
 Example Usage:
 <pre>

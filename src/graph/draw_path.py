@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+import shlex
 from math import sqrt
 
 from PIL import Image, ImageDraw
@@ -15,7 +16,9 @@ from src.bfs.avg_shortest_time import shortest_in_city, print_station_info
 from src.bfs.shortest_path import get_kth_path
 from src.city.ask_for_city import ask_for_map, ask_for_station_pair, ask_for_city, ask_for_date
 from src.city.city import City
+from src.common.common import split_n
 from src.dist_graph.adaptor import reduce_path, reduce_abstract_path
+from src.dist_graph.longest_path import find_longest, longest_args
 from src.dist_graph.shortest_path import Path
 from src.graph.draw_equtime import draw_station_filled
 from src.graph.draw_map import map_args, get_colormap, convert_color, find_font_size
@@ -25,7 +28,7 @@ from src.graph.map import Map
 Image.MAX_IMAGE_PIXELS = 300000000
 
 # Some constants
-DrawDict = list[tuple[float, Path]]  # (alpha, path)
+DrawDict = list[tuple[float, Path, str]]  # (alpha, path, end_station)
 DRAW_ALPHA = 0.6
 
 
@@ -42,16 +45,16 @@ def get_percent_alpha(percentage: float) -> float:
     return percentage
 
 
-def fetch_kth_path_result(args: argparse.Namespace) -> tuple[City, str, str, DrawDict]:
+def fetch_kth_path_result(args: argparse.Namespace) -> tuple[City, DrawDict]:
     """ Fetch kth-path algorithm results """
-    city, start_station, end_station, results = get_kth_path(args)
+    city, _, end_station, results = get_kth_path(args)
     draw_dict: DrawDict = []
     for i, (result, path) in enumerate(results):
-        draw_dict.append((i, reduce_path(path, end_station)))
-    return city, start_station, end_station, draw_dict
+        draw_dict.append((i, reduce_path(path, end_station), end_station))
+    return city, draw_dict
 
 
-def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, DrawDict]:
+def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, DrawDict]:
     """ Fetch average path percentage algorithm results """
     city = ask_for_city()
     start, end = ask_for_station_pair(city)
@@ -71,8 +74,22 @@ def fetch_avg_path_result(args: argparse.Namespace) -> tuple[City, str, str, Dra
     path_coverage = data[-1]
     draw_dict: DrawDict = []
     for percent, path, _ in path_coverage:
-        draw_dict.append((percent, reduce_abstract_path(city.lines, path, end[0])))
-    return city, start[0], end[0], draw_dict
+        draw_dict.append((percent, reduce_abstract_path(city.lines, path, end[0]), end[0]))
+    return city, draw_dict
+
+
+def fetch_longest_path_result(args: argparse.Namespace) -> tuple[City, DrawDict]:
+    """ Fetch longest-path algorithm results """
+    parser = argparse.ArgumentParser(prog="--longest-args")
+    longest_args(parser)
+    city, route, end_station = find_longest(parser.parse_args(
+        [] if args.longest_args is None else shlex.split(args.longest_args)
+    ))
+    splits = split_n(route, args.num_path)
+    return city, [
+        (i, chunk, end_station if i == len(splits) - 1 else splits[i + 1][0][0])
+        for i, chunk in enumerate(splits)
+    ]
 
 
 def get_edge_wide(map_obj: Map) -> float:
@@ -131,11 +148,13 @@ def main() -> None:
     """ Main function """
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
-        parser.add_argument("--strategy", choices=["kth", "avg"], default="kth",
+        parser.add_argument("--strategy", choices=["kth", "avg", "longest"], default="kth",
                             help="Strategy for combining station data")
-        parser.add_argument("-k", "--num-path", type=int, help="Show first k path")
+        parser.add_argument("-k", "--num-path", type=int,
+                            help="Show first k path (kth) / Split into k paths (longest)")
         parser.add_argument("-d", "--data-source", choices=["time", "station", "distance", "fare"],
                             default="time", help="Shortest path criteria")
+        parser.add_argument("--longest-args", required=False, help="Arguments to pass to longest_path.py")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, have_single=True)
     if args.color_map is not None and args.color_map.startswith("#"):
@@ -146,11 +165,24 @@ def main() -> None:
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:
             print("Warning: --limit-start/end ignored in kth mode.")
-        city, start_station, end_station, draw_dict = fetch_kth_path_result(args)
-    else:
+        if args.longest_args is not None:
+            print("Warning: --longest-args ignored in kth mode.")
+        city, draw_dict = fetch_kth_path_result(args)
+    elif args.strategy == "avg":
         if args.num_path is not None:
             print("Warning: -k/--num-path ignored in avg mode.")
-        city, start_station, end_station, draw_dict = fetch_avg_path_result(args)
+        if args.data_source != "time":
+            print("Warning: -d/--data-source ignored in avg mode.")
+        if args.longest_args is not None:
+            print("Warning: --longest-args ignored in avg mode.")
+        city, draw_dict = fetch_avg_path_result(args)
+    else:
+        assert args.strategy == "longest", args.strategy
+        if args.limit_start is not None or args.limit_end is not None:
+            print("Warning: --limit-start/end ignored in longest mode.")
+        if args.data_source != "time":
+            print("Warning: -d/--data-source ignored in longest mode.")
+        city, draw_dict = fetch_longest_path_result(args)
 
     map_obj = ask_for_map(city)
     img = Image.open(map_obj.path)
@@ -160,7 +192,7 @@ def main() -> None:
     edge_wide = get_edge_wide(map_obj)
 
     alpha_dict: dict[tuple[str, str], float] = {}
-    for index, path in draw_dict:
+    for index, path, end_station in draw_dict:
         for i, (station, _) in enumerate(path):
             next_station = end_station if i == len(path) - 1 else path[i + 1][0]
             accu = -1.0
@@ -168,7 +200,7 @@ def main() -> None:
                 accu = max(accu, alpha_dict[(station, next_station)])
             if (next_station, station) in alpha_dict:
                 accu = max(accu, alpha_dict[(next_station, station)])
-            if args.strategy == "kth":
+            if args.strategy != "avg":
                 alpha = index if accu < -0.5 else min(index, accu)
             else:
                 alpha = (0.0 if accu < -0.5 else accu) + index
@@ -179,24 +211,31 @@ def main() -> None:
         if (next_station, station) not in new_alpha_dict:
             new_alpha_dict[(station, next_station)] = alpha
     for (station, next_station), alpha in new_alpha_dict.items():
-        if args.strategy == "kth":
+        if args.strategy != "avg":
             color_alpha = get_ordinal_alpha(int(alpha), len(draw_dict))
         else:
             color_alpha = get_percent_alpha(alpha)
         if isinstance(cmap, Colormap):
             color: tuple[float, float, float] | Colormap = cmap
         else:
-            assert args.strategy == "kth", args.strategy
+            assert args.strategy != "avg", args.strategy
             color = cmap[int(alpha)]
         draw_path(
             draw_new, map_obj, station, next_station,
             color, alpha, color_alpha, edge_wide,
-            args.strategy == "kth"
+            args.strategy != "avg"
         )
     img.paste(img_new, mask=img_new)
 
-    draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
-    draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
+    start_end_set: set[tuple[str, str]] = set()
+    if args.strategy == "longest":
+        start_end_set.add((draw_dict[0][1][0][0], draw_dict[-1][2]))
+    else:
+        for _, path, end_station in draw_dict:
+            start_end_set.add((path[0][0], end_station))
+    for start_station, end_station in start_end_set:
+        draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
+        draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
 
     print(f"Drawing done! Saving to {args.output}...")
     img.save(args.output, dpi=(args.dpi, args.dpi))

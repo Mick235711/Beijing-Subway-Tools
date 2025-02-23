@@ -163,17 +163,8 @@ def get_longest_route(
     return euler_route(small_graph, start_station, end_station)
 
 
-def main() -> None:
-    """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--non-repeating", action="store_true", help="Finding non-repeating paths")
-    shortest_path_args(parser, have_express=False)
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
-    group.add_argument("-c", "--circuit", action="store_true", help="Calculate euler circuit")
-    parser.add_argument("--exclude-next-day", action="store_true",
-                        help="Exclude path that spans into next day")
-    args = parser.parse_args()
+def find_longest(args: argparse.Namespace) -> tuple[City, Path, str]:
+    """ Longest-path algorithm """
     start: tuple[str, set[Line]] | None = None
     end: tuple[str, set[Line]] | None = None
     if args.all or args.circuit:
@@ -285,6 +276,27 @@ def main() -> None:
         )
         print("Longest Route Possible:")
         result.pretty_print_path(bfs_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
+
+    return city, route, end_station
+
+
+def longest_args(parser: argparse.ArgumentParser) -> None:
+    """ Add the longest path arguments """
+    parser.add_argument("-n", "--non-repeating", action="store_true", help="Finding non-repeating paths")
+    shortest_path_args(parser, have_express=False)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
+    group.add_argument("-c", "--circuit", action="store_true", help="Calculate euler circuit")
+    parser.add_argument("--exclude-next-day", action="store_true",
+                        help="Exclude path that spans into next day")
+
+
+def main() -> None:
+    """ Main function """
+    parser = argparse.ArgumentParser()
+    longest_args(parser)
+    args = parser.parse_args()
+    find_longest(args)
 
 
 # Call main
