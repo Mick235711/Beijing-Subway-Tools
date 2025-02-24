@@ -22,7 +22,7 @@ from src.dist_graph.longest_path import find_longest, longest_args
 from src.dist_graph.shortest_path import Path
 from src.graph.draw_equtime import draw_station_filled
 from src.graph.draw_map import map_args, get_colormap, convert_color, find_font_size
-from src.graph.map import Map
+from src.graph.map import Map, color_to_hex, is_black
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
@@ -122,10 +122,11 @@ def draw_path(
     sin_theta = (end_y - start_y) / xy_length
     cos_theta = (end_x - start_x) / xy_length
     dx, dy = edge_wide * sin_theta, edge_wide * cos_theta
+    fill_color = convert_color((cmap(alpha)[:-1] if isinstance(cmap, Colormap) else cmap) + (DRAW_ALPHA,))
     draw.polygon(
         [(start_x - dx, start_y + dy), (start_x + dx, start_y - dy),
          (end_x + dx, end_y - dy), (end_x - dx, end_y + dy)],
-        fill=convert_color((cmap(alpha)[:-1] if isinstance(cmap, Colormap) else cmap) + (DRAW_ALPHA,))
+        fill=fill_color
     )
 
     # Draw an index in the middle
@@ -135,13 +136,8 @@ def draw_path(
         index_str = f"#{index + 1}" if is_index else f"{index * 100:.1f}%"
     font_size = find_font_size(draw, index_str, edge_wide * 2)
     draw.text(((start_x + end_x) / 2, (start_y + end_y) / 2), index_str,
-              fill="white", anchor="mm", font_size=font_size)
-
-
-def color_to_hex(color_str: str) -> tuple[float, float, float]:
-    """ Transform from hex color #AAAAAA to color tuple """
-    assert color_str.startswith("#") and len(color_str) == 7, color_str
-    return int(color_str[1:3], 16) / 255, int(color_str[3:5], 16) / 255, int(color_str[5:7], 16) / 255
+              fill=("black" if is_black(fill_color[:3]) else "white"),
+              anchor="mm", font_size=font_size)
 
 
 def main() -> None:

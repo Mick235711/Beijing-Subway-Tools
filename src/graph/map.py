@@ -15,6 +15,18 @@ from src.city.city import City
 from src.city.line import Line
 
 
+# Color utilities
+def color_to_hex(color_str: str) -> tuple[float, float, float]:
+    """ Transform from hex color #AAAAAA to color tuple """
+    assert color_str.startswith("#") and len(color_str) == 7, color_str
+    return int(color_str[1:3], 16) / 255, int(color_str[3:5], 16) / 255, int(color_str[5:7], 16) / 255
+
+
+def is_black(color: tuple[float, float, float]) -> bool:
+    """ Return true if the text on color should be drawn black instead of white """
+    return 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2] >= 149
+
+
 class Shape(ABC):
     """ Represent an abstract shape """
 
