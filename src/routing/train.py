@@ -283,15 +283,24 @@ class Train:
 
         # Pre-run
         reprs: list[str] = []
+        have_next = False
         for station in self.stations:
             if station not in self.arrival_time:
                 assert station in self.without_timetable, station
-                reprs.append(f"{self.line.station_full_name(station)}")
+                reprs.append(f"{self.line.station_full_name(station)} --:--")
                 continue
             reprs.append(f"{self.line.station_full_name(station)} {get_time_repr(*self.arrival_time[station])}")
+            if self.arrival_time[station][1]:
+                have_next = True
         if self.loop_next is not None:
             reprs.append(
                 f"{stations[0]} {get_time_repr(*self.loop_next.arrival_time[stations[0]])}")
+            if self.loop_next.arrival_time[stations[0]][1]:
+                have_next = True
+        if have_next:
+            for i, station_repr in enumerate(reprs):
+                if not station_repr.endswith(" (+1)"):
+                    reprs[i] += "     "
 
         # Previous
         if self.loop_prev is not None:
