@@ -236,7 +236,7 @@ def display_transfer_time_info(
                 if second_station not in station_data:
                     station_data[second_station] = []
                 station_data[second_station] += list(transfer_time.values())
-        data = sorted([(s, l, average(l)) for s, l in station_data.items()],
+        data = sorted([(s, l, average(l)) for s, l in station_data.items() if len(l) > 0],
                       key=lambda x: (x[-1], -len(x[1]), to_pinyin(x[0])[0]))
         data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
     elif data_source == "line":
@@ -249,7 +249,7 @@ def display_transfer_time_info(
                 if to_l not in line_data:
                     line_data[to_l] = []
                 line_data[to_l].append(t)
-        data = sorted([(s, l, average(l)) for s, l in line_data.items()],
+        data = sorted([(s, l, average(l)) for s, l in line_data.items() if len(l) > 0],
                       key=lambda x: (x[-1], -len(x[1]), lines[x[0]].index))
         data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
     else:
