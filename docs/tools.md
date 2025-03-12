@@ -2470,7 +2470,7 @@ Drawing contours done! Saving...
 ### [`draw_path.py`](/src/graph/draw_path.py): Draw shortest paths on map
 ```
 usage: draw_path.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
-                    [--strategy {kth,avg,longest}] [-k NUM_PATH] [-d {time,station,distance,fare}] [--longest-args LONGEST_ARGS]
+                    [--strategy {kth,avg,longest}] [-k NUM_PATH] [-d {time,station,distance,fare}] [--longest-args LONGEST_ARGS] [--exclude-next-day]
 
 options:
   -h, --help            show this help message and exit
@@ -2498,6 +2498,7 @@ options:
                         Shortest path criteria
   --longest-args LONGEST_ARGS
                         Arguments to pass to longest_path.py
+  --exclude-next-day    Exclude path that spans into next day
 ```
 Draw the first k-th shortest paths on the map.
 On default, the route with deeper shades of grey is faster.

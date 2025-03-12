@@ -151,6 +151,8 @@ def main() -> None:
         parser.add_argument("-d", "--data-source", choices=["time", "station", "distance", "fare"],
                             default="time", help="Shortest path criteria")
         parser.add_argument("--longest-args", required=False, help="Arguments to pass to longest_path.py")
+        parser.add_argument("--exclude-next-day", action="store_true",
+                            help="Exclude path that spans into next day")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, have_single=True)
     if args.color_map is not None and args.color_map.startswith("#"):
