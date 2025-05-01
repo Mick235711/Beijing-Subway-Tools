@@ -224,8 +224,6 @@ def ask_for_station_in_line(
         )
         if answer == "" and have_default:
             return viable[-1]
-    if answer.endswith(")"):
-        answer = answer[:answer.rfind("(")].strip()
     return answer
 
 
