@@ -275,13 +275,20 @@ def divide_filters(
             yield route, {"trains": current_trains}
 
 
-def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int = 15) -> str:
+def to_json_format(
+    timetable: Timetable, *,
+    level: int = 0, break_entries: int = 15, with_date_group: str | None = None
+) -> str:
     """ Output in schedule/filters format """
     start = " " * (level * 4)
+    header_start = " " * (max(0, level - 1) * 4)
+    res = ""
+    if with_date_group is not None:
+        res += f"{header_start}\"{with_date_group}\": {{\n"
 
     # schedule part
     # try to take a break every few entries
-    res = f"{start}schedule: [\n"
+    res += f"{start}schedule: [\n"
     trains = timetable.trains_sorted()
     for first_train, delta in divide_schedule(trains, break_entries):
         res += f'{start}    {{first_train: "{get_time_str(first_train)}", delta: {delta}}},\n'
@@ -304,6 +311,8 @@ def to_json_format(timetable: Timetable, *, level: int = 0, break_entries: int =
     else:
         res = res[:-1] + "]\n"
 
+    if with_date_group is not None:
+        res += f"{header_start}}}\n"
     return res
 
 
@@ -537,7 +546,10 @@ def validate_timetable(
     return current
 
 
-def main(timetable: Timetable | None = None, args: argparse.Namespace | None = None) -> None:
+def main(
+    timetable: Timetable | None = None, args: argparse.Namespace | None = None,
+    *, with_date_group: str | None = None
+) -> None:
     """ Main function """
     if args is None:
         parser = argparse.ArgumentParser()
@@ -567,7 +579,10 @@ def main(timetable: Timetable | None = None, args: argparse.Namespace | None = N
         line, station, direction, date_group, prev_timetable = ask_for_timetable()
         timetable = validate_timetable(line, prev_timetable, station, direction, date_group, timetable,
                                        tolerate=empty, skip_prev=skip_prev)
-    print(to_json_format(timetable, level=level, break_entries=break_entries))
+        date_group_name: str | None = date_group.name
+    else:
+        date_group_name = with_date_group
+    print(to_json_format(timetable, level=level, break_entries=break_entries, with_date_group=date_group_name))
 
 
 # Call main

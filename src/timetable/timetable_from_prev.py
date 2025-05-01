@@ -198,7 +198,7 @@ def main() -> None:
     main_input(generate_next(
         timetable, station, line, direction, date_group,
         show_empty=args.empty, remove_train=(not args.do_not_remove)
-    ), args)
+    ), args, with_date_group=date_group.name)
 
 
 # Call main
