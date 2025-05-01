@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+import csv
 import os
 
 import pyjson5
@@ -31,6 +32,7 @@ from src.stats.common import display_first
 Image.MAX_IMAGE_PIXELS = 300000000
 LoadTuple = tuple[float, float, float, float]
 VTSpec2 = tuple[tuple[str, str] | None, tuple[str, str] | None]
+EPS = 1e-5
 
 
 def add_tuple(tuple1: LoadTuple, tuple2: tuple[float, ...]) -> LoadTuple:
@@ -366,15 +368,11 @@ def print_congestion(
 
 
 def draw_congestion(
-    paths: dict[str, dict[str, dict[int, PathInfo]]], city: City, cmap: Colormap,
-    load_factor: dict[tuple[str, str], float] | None = None,
-    *, output: str, dpi: int = 100
+    load_dict: dict[tuple[str, str, str | None], tuple[float, set[TimeSpec], set[Train | VTSpec]]],
+    city: City, cmap: Colormap,
+    *, output: str, dpi: int = 100, baseline: str | None = None, baseline_threshold: float = 0.01
 ) -> None:
     """ Draw congestion on a given map """
-    _, _, load_dict, _, _, _ = get_congestion_stats(
-        paths, city.lines, load_factor, have_direction=False
-    )
-
     # Ask for a map
     map_obj = ask_for_map(city)
     img = Image.open(map_obj.path)
@@ -382,16 +380,49 @@ def draw_congestion(
     draw_new = ImageDraw.Draw(img_new)
     edge_wide = get_edge_wide(map_obj)
 
+    # Determine a baseline coefficient
+    baseline_dict: dict | None = None
+    coefficient = 1.0
+    if baseline is not None:
+        baseline_dict = {}
+        with open(baseline) as fp:
+            reader = csv.reader(fp)
+            for f, t, p in reader:
+                baseline_dict[(f, t)] = float(p)
+        # FIXME: this does not respect load factor
+        orig_sta = len(set([x[0] for x in load_dict.keys()] + [x[1] for x in load_dict.keys()]))
+        base_sta = len(set([x[0] for x in baseline_dict.keys()] + [x[1] for x in baseline_dict.keys()]))
+        if orig_sta != base_sta:
+            coefficient = orig_sta / base_sta
+            print(f"Baseline coefficient: {coefficient:.2f} (# stations {orig_sta} -> {base_sta})")
+
     # Draw paths
     min_people = min([x[0] for x in load_dict.values()])
     max_people = max([x[0] for x in load_dict.values()])
     print(f"Drawing paths... (min = {min_people / 1000:.2f}, max = {max_people / 1000:.2f})")
     for (from_station, to_station, _), (people, _, _) in load_dict.items():
-        alpha = (people - min_people) / (max_people - min_people)
-        draw_path(
-            draw_new, map_obj, from_station, to_station,
-            cmap, f"{people / 1000:.2f}", alpha, edge_wide
-        )
+        if baseline_dict is None:
+            alpha = (people - min_people) / (max_people - min_people)
+            draw_path(
+                draw_new, map_obj, from_station, to_station,
+                cmap, f"{people / 1000:.2f}", alpha, edge_wide
+            )
+        else:
+            if (from_station, to_station) not in baseline_dict:
+                if (to_station, from_station) in baseline_dict:
+                    from_station, to_station = to_station, from_station
+                else:
+                    continue
+            people /= coefficient
+            people /= baseline_dict[(from_station, to_station)]
+            if abs(people - 1.0) < baseline_threshold:
+                continue
+            # map -10% (0.9) -> 1.0, 0% -> 0.5, +10% (1.1) -> 0.0
+            alpha = max(min(5.5 - people * 5, 1.0), 0.0)
+            draw_path(
+                draw_new, map_obj, from_station, to_station,
+                cmap, ("+" if people > 1.0 else "-") + f"{abs(people - 1.0) * 100:.2f}%", alpha, edge_wide
+            )
     img.paste(img_new, mask=img_new)
     print(f"Drawing done! Saving to {output}...")
     img.save(output, dpi=(dpi, dpi))
@@ -426,6 +457,18 @@ def parse_load_factor(stations: set[str], file_name: str | None = None) -> dict[
     return load_factor
 
 
+def save_congestion_data(
+    load_dict: dict[tuple[str, str, str | None], tuple[float, set[TimeSpec], set[Train | VTSpec]]],
+    data_output: str
+) -> None:
+    """ Export congestion data to a given file """
+    print(f"Writing congestion data to {data_output}...")
+    with open(data_output, "w") as fp:
+        writer = csv.writer(fp)
+        for (from_station, to_station, _), (people, _, _) in load_dict.items():
+            writer.writerow([from_station, to_station, people])
+
+
 def main() -> None:
     """ Main function """
     def append_arg(parser: argparse.ArgumentParser) -> None:
@@ -442,6 +485,9 @@ def main() -> None:
                             default="passenger", help="Load sort criteria")
         parser.add_argument("--transfer-source", choices=["station", "line", "direction"],
                             default="station", help="Specify transfer stats source")
+        parser.add_argument("--data-output", help="Data output path", required=False)
+        parser.add_argument("--baseline", help="Comparison baseline", required=False)
+        parser.add_argument("--baseline-threshold", help="Baseline threshold", type=float, default=0.01)
 
     args = map_args(append_arg, contour_args=False, multi_source=False, include_limits=False, have_single=True)
     city = ask_for_city()
@@ -468,7 +514,14 @@ def main() -> None:
                      transfer_source=args.transfer_source)
     print()
     cmap = get_colormap(args.color_map)
-    draw_congestion(paths, city, cmap, load_factor, output=args.output, dpi=args.dpi)
+
+    _, _, load_dict, _, _, _ = get_congestion_stats(
+        paths, city.lines, load_factor, have_direction=False
+    )
+    draw_congestion(load_dict, city, cmap, output=args.output, dpi=args.dpi,
+                    baseline=args.baseline, baseline_threshold=args.baseline_threshold)
+    if args.data_output is not None:
+        save_congestion_data(load_dict, args.data_output)
 
 
 # Call main

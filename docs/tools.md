@@ -2559,26 +2559,25 @@ Drawing done! Saving...
 ```
 usage: draw_congestion.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single] [-n LIMIT_NUM]
                           [-l LOAD_FACTOR] [--have-no-direction] [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}]
-                          [--load-metric {passenger,congestion}] [--transfer-source {station,line,direction}]
+                          [--load-metric {passenger,congestion}] [--transfer-source {station,line,direction}] [--data-output DATA_OUTPUT] [--baseline BASELINE] [--baseline-threshold BASELINE_THRESHOLD]
 
 options:
   -h, --help            show this help message and exit
-  -c COLOR_MAP, --color-map COLOR_MAP
+  -c, --color-map COLOR_MAP
                         Override default colormap
-  -o OUTPUT, --output OUTPUT
-                        Output path
+  -o, --output OUTPUT   Output path
   --dpi DPI             DPI of output image
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-edge        Exclude edge case in transfer
   --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -l LOAD_FACTOR, --load-factor LOAD_FACTOR
+  -l, --load-factor LOAD_FACTOR
                         Load factor for each path
   --have-no-direction   Specify whether load & transfer stats source have direction
   --line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}
@@ -2587,6 +2586,11 @@ options:
                         Load sort criteria
   --transfer-source {station,line,direction}
                         Specify transfer stats source
+  --data-output DATA_OUTPUT
+                        Data output path
+  --baseline BASELINE   Comparison baseline
+  --baseline-threshold BASELINE_THRESHOLD
+                        Baseline threshold
 ```
 Simulate passenger flow on a network. By default, the model used is that every pair of stations has one passenger.
 Many stats will be outputted, including the passenger number for each line/station, maximum passenger interval, ...
@@ -2598,6 +2602,11 @@ of the resulting simulation. The format of load factor dict is essentially a dic
 in which each specification can either be `{entry: x.x, exit: x.x}` to indicate that a number should be multiplied
 to each path originating from/ending at this station (to simulate real-world entry/exit passenger flow).
 Or, alternatively, the specification can also be a dict from station name to float numbers to indicate each path's factor.
+
+Optionally, you can also pass a baseline file. This baseline file is in CSV format and is obtainable by
+appending `--data-output xxx.csv`, and will be used as the comparison baseline. Each path will show +5% and -5%
+instead of absolute value. By default, changes less than the threshold (default to 0.01, meaning +-1%) will not be
+drawn. You can change the threshold through the `--baseline-threshold` parameter.
 
 Example Usage:
 <pre>
