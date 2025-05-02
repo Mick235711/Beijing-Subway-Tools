@@ -2695,3 +2695,7 @@ Drawing paths... (min = 0.08, max = 13.66)
 Warning: cannot draw path between 木樨地(1号线) and 木樨地(16号线) as their coordinates are the same!
 Drawing done! Saving to ../test.png...
 </pre>
+
+# [`routing_pk/`](/src/routing_pk): Routing PK System
+This is a special interactive system for comparing different routes.
+Please execute [`main.py`](/src/routing_pk/main.py) to enter the system (no command-line argument accepted), and follow the instructions on the screen.
