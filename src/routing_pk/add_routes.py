@@ -7,11 +7,12 @@
 import questionary
 import sys
 
+from src.bfs.common import AbstractPath
 from src.city.ask_for_city import ask_for_station_pair
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s
-from src.routing_pk.common import Route, print_routes
+from src.routing_pk.common import Route, route_str, print_routes
 
 
 def validate_shorthand(
@@ -20,7 +21,7 @@ def validate_shorthand(
     """ Determine if the shorthand is valid """
     # This function only does some simple validations:
     if shorthand.strip() == "":
-        return "Empty string not allowed!"
+        return True
 
     # 1. Determine if the general syntax is valid
     # NOTE: this assumes station codes, line index, line codes, and line names are all unique in a city
@@ -41,30 +42,35 @@ def validate_shorthand(
             processed.append(None)
             continue
 
+        # Handle direction specifier
+        cur_direction: str | None = None
+        if split.endswith("]"):
+            index = split.rfind("[")
+            cur_direction = split[index + 1:-1].strip()
+            split = split[:index].strip()
+
+        cur_line: Line | None = None
         if split.isnumeric():
             # Try as an index
             index = int(split)
             if index in line_indexes:
-                processed.append(line_indexes[index])
-                if last_station is not None and last_station not in line_indexes[index].stations:
-                    return f"Station {last_station} not on line {line_indexes[index].full_name()}!"
-                last_station = None
-                continue
+                cur_line = line_indexes[index]
 
         # Try as a line symbol
-        if split in line_symbols:
-            processed.append(line_symbols[split])
-            if last_station is not None and last_station not in line_symbols[split].stations:
-                return f"Station {last_station} not on line {line_symbols[split].full_name()}!"
-            last_station = None
-            continue
+        if cur_line is None and split in line_symbols:
+            cur_line = line_symbols[split]
 
         # Try as a line name
-        if split in line_names:
-            processed.append(line_names[split])
-            if last_station is not None and last_station not in line_names[split].stations:
-                return f"Station {last_station} not on line {line_names[split].full_name()}!"
+        if cur_line is None and split in line_names:
+            cur_line = line_names[split]
+
+        if cur_line is not None:
+            if cur_direction is not None and cur_direction not in cur_line.directions:
+                return f"Line {cur_line.full_name()} does not have direction {cur_direction}!"
+            if last_station is not None and last_station not in cur_line.stations:
+                return f"Station {last_station} not on line {cur_line.full_name()}!"
             last_station = None
+            processed.append(cur_line)
             continue
 
         # Try as a station code
@@ -100,6 +106,12 @@ def validate_shorthand(
     return True
 
 
+def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route:
+    """ Parse a given path shorthand """
+    path: AbstractPath = []
+    return path, end
+
+
 def add_by_shorthand(city: City) -> list[Route]:
     """ Add routes by shorthand syntax """
     # Get start and end stations
@@ -108,7 +120,7 @@ def add_by_shorthand(city: City) -> list[Route]:
     # First, display info for adding by shorthand
     print("\n=====> Add by shorthand syntax <=====")
     print("For reference, the index and lines for this city:")
-    for name, line in city.lines.items():
+    for name, line in sorted(list(city.lines.items()), key=lambda x: x[1].index):
         print(f"{line.index}: {name} - {line!r}, directions: ", end="")
         first = True
         for direction in line.directions.keys():
@@ -126,18 +138,32 @@ def add_by_shorthand(city: City) -> list[Route]:
     print("  if you don't specify a direction, the shortest path's direction will be assigned.")
     print("You are also allowed to insert transfer stations (name or station number) directly (Line 1-Station A-Line 2).")
     print("For virtual transfers, please just use (virtual) in lieu of line name/index (Line 1-(virtual)-Line 2).")
-    print("Note: if there are multiple transfer stations between two lines, you will be prompted to choose one.")
+    print("Notes:")
+    print("  - If there are multiple transfer stations between two lines, you will be prompted to choose one.")
+    print("  - Leading and ending whitespaces will be ignored.")
     print()
 
     routes: list[Route] = []
     while True:
         # Ask for shorthand specifications
         shorthand = questionary.text(
-            "Please enter a route shorthand:",
+            f"Please enter a route between {city.station_full_name(start)} and" +
+            f" {city.station_full_name(end)} via shorthand syntax (empty to stop adding):",
             validate=lambda x: validate_shorthand(x, city, start_lines, end_lines)
         ).ask()
         if shorthand is None:
             sys.exit(0)
+        if shorthand.strip() == "":
+            break
+        route = parse_shorthand(shorthand, city, start, end)
+        print("Route to be added:", route_str(city.lines, route))
+        answer = questionary.confirm("Do you want to add this route?").ask()
+        if answer is None:
+            sys.exit(0)
+        if answer:
+            routes.append(route)
+    if len(routes) > 0:
+        print("Added " + suffix_s("route", len(routes)) + ".")
     return routes
 
 
