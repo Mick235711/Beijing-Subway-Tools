@@ -55,3 +55,20 @@ def select_stations(city: City, stations: list[str]) -> str:
     if answer is None:
         sys.exit(0)
     return choices[answer]
+
+
+def closest_to(entry: tuple[Line, str | None], station: str, candidates: list[str]) -> str | None:
+    """ Select the closest station to a given station from a list of candidates """
+    dist = []
+    for candidate in candidates:
+        direction = entry[1] if entry[1] is not None else entry[0].determine_direction(station, candidate)
+        stations = entry[0].direction_stations(direction)
+        if not entry[0].loop and stations.index(candidate) < stations.index(station):
+            continue
+        dist.append((candidate, entry[0].two_station_dist(direction, station, candidate)))
+    if len(dist) == 0:
+        return None
+    candidate, d = min(dist, key=lambda x: x[1])
+    if len([x for x in dist if x[1] == d]) > 1:
+        return None
+    return candidate

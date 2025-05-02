@@ -12,7 +12,7 @@ from src.city.ask_for_city import ask_for_station_pair
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s, chin_len
-from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations
+from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, closest_to
 
 
 def parse_lines_from_shorthand(splits: list[str], city: City) -> list[tuple[Line, str | None] | str | None]:
@@ -63,6 +63,8 @@ def parse_lines_from_shorthand(splits: list[str], city: City) -> list[tuple[Line
                 raise ValueError(f"Line {cur_line.full_name()} does not have direction {cur_direction}!")
             if last_station is not None and last_station not in cur_line.stations:
                 raise ValueError(f"Station {last_station} not on line {cur_line.full_name()}!")
+            if len(processed) > 0 and isinstance(processed[-1], tuple) and processed[-1][0].index == cur_line.index:
+                raise ValueError(f"Two duplicate lines {cur_line.full_name()} in a row is not allowed!")
             last_station = None
             processed.append((cur_line, cur_direction))
             continue
@@ -193,16 +195,24 @@ def calculate_next(
         return select_stations(city, candidates)
 
     # cur_entry and next_entry are both not None; we find the intersections
+    if cur_entry[0].index == next_entry[0].index:
+        print(f"Adjacent duplicate lines {cur_entry[0].full_name()} is not allowed!")
+        return None
     if cur_entry[1] is None:
         candidates = cur_entry[0].stations
     else:
         candidates = cur_entry[0].direction_stations(cur_entry[1])
         index = candidates.index(cur_station)
         candidates = candidates[index + 1:]
-    candidates = [c for c in candidates if c in next_entry[0].stations]
+    candidates = [c for c in candidates if c in next_entry[0].stations and c != cur_station]
 
     if len(candidates) == 1:
         return candidates[0]
+    if len(candidates) > 1:
+        # Select closest automatically
+        result = closest_to(cur_entry, cur_station, candidates)
+        if result is not None:
+            return result
     cur_str = back_to_string(cur_entry)
     next_str = back_to_string(next_entry)
     print(f"Ambiguity: [ ... - {cur_str} - {next_str} - ... ]")
@@ -280,7 +290,8 @@ def add_by_shorthand(city: City) -> list[Route]:
     print("You are also allowed to insert transfer stations (name or station number) directly (Line 1-Station A-Line 2).")
     print("For virtual transfers, please just use (virtual) in lieu of line name/index (Line 1-(virtual)-Line 2).")
     print("Notes:")
-    print("  - If there are multiple transfer stations between two lines, you will be prompted to choose one.")
+    print("  - If there are multiple transfer stations between two lines, the closest will be chosen.")
+    print("  - If these are multiple transfer with the same distance, you will be prompted to choose one.")
     print("  - Leading and ending whitespaces will be ignored.")
     print()
 
