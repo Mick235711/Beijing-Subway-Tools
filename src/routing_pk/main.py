@@ -1,69 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Main entry point to the Routing PK system """
+""" Routing PK system - Main entry point """
 
 # Libraries
 import questionary
 import sys
 
-from src.bfs.avg_shortest_time import path_shorthand
-from src.bfs.common import AbstractPath
 from src.city.ask_for_city import ask_for_city
-from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s
-
-# Represents a route: (path, end_station), start is path[0][0]
-Route = tuple[AbstractPath, str]
+from src.routing_pk.add_routes import add_some_routes
+from src.routing_pk.common import Route, route_str, print_routes
 
 # List of current routes
 CURRENT_ROUTES: list[Route] = []
-
-
-def route_str(lines: dict[str, Line], route: Route) -> str:
-    """ Get string representation of a route """
-    path, end_station = route
-    return path_shorthand(end_station, lines, path)
-
-
-def print_routes(lines: dict[str, Line], routes: list[Route]) -> None:
-    """ Print current routes """
-    if len(routes) == 0:
-        print("(No routes selected)")
-        return
-    for i, route in enumerate(routes):
-        print(f"#{i + 1:>{len(str(len(routes)))}}:", route_str(lines, route))
-
-
-def add_some_routes(city: City) -> None:
-    """ Submenu for adding routes """
-    global CURRENT_ROUTES
-    additional_routes: list[Route] = []
-    while True:
-        print("\n\n=====> Route Addition <=====")
-        print("Currently selected additional routes:")
-        print_routes(city.lines, additional_routes)
-        print()
-
-        choices = []
-        if len(additional_routes) > 0:
-            choices += ["Confirm addition of " + suffix_s("route", len(additional_routes))]
-        choices += ["Cancel"]
-
-        answer = questionary.select("Please select an operation:", choices=choices).ask()
-        if answer is None:
-            # Quit
-            print("Goodbye!")
-            sys.exit(0)
-        elif answer.startswith("Confirm"):
-            # Confirm addition
-            CURRENT_ROUTES += additional_routes
-            print("Added " + suffix_s("route", len(additional_routes)) + ".")
-            return
-        elif answer == "Cancel":
-            print("Addition cancelled.")
-            return
 
 
 def delete_some_routes(lines: dict[str, Line]) -> None:
@@ -84,6 +35,7 @@ def delete_some_routes(lines: dict[str, Line]) -> None:
 
 def main() -> None:
     """ Main function """
+    global CURRENT_ROUTES
     city = ask_for_city()
     print("\n=====> Welcome to Routing PK! <=====")
 
@@ -105,7 +57,7 @@ def main() -> None:
 
         answer = questionary.select("Please select an operation:", choices=main_choices).ask()
         if answer == "Add new routes":
-            add_some_routes(city)
+            CURRENT_ROUTES += add_some_routes(city)
         elif answer == "Delete some existing routes":
             delete_some_routes(city.lines)
         elif answer == "Clear all routes and start over":
