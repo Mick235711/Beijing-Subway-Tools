@@ -2698,4 +2698,18 @@ Drawing done! Saving to ../test.png...
 
 # [`routing_pk/`](/src/routing_pk): Routing PK System
 This is a special interactive system for comparing different routes.
-Please execute [`main.py`](/src/routing_pk/main.py) to enter the system (no command-line argument accepted), and follow the instructions on the screen.
+Please execute [`main.py`](/src/routing_pk/main.py) to enter the system (with the following command-line arguments), and follow the instructions on the screen.
+```
+usage: main.py [-h] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+
+options:
+  -h, --help            show this help message and exit
+  -i, --include-lines INCLUDE_LINES
+                        Include lines
+  -x, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
+  --exclude-single      Exclude single-direction lines
+```

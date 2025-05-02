@@ -57,6 +57,26 @@ def select_stations(city: City, stations: list[str]) -> str:
     return choices[answer]
 
 
+def select_routes(
+    lines: dict[str, Line], routes: list[Route], message: str, *, reverse: bool = False, all_checked: bool = False
+) -> tuple[list[int], list[Route]]:
+    """ Select a subset of a list of routes """
+    route_strs = []
+    for i, route in enumerate(routes):
+        route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: " + route_str(lines, route))
+    answer = questionary.checkbox(message, choices=(
+        [questionary.Choice(x, checked=True) for x in route_strs] if all_checked else route_strs
+    )).ask()
+    indexes = []
+    for answer_item in answer:
+        assert answer_item.startswith("#"), answer_item
+        index = answer_item.index(":")
+        indexes.append(int(answer_item[1:index].strip()))
+    if reverse:
+        return indexes, [route for i, route in enumerate(routes) if i + 1 not in indexes]
+    return indexes, [route for i, route in enumerate(routes) if i + 1 in indexes]
+
+
 def closest_to(entry: tuple[Line, str | None], station: str, candidates: list[str]) -> str | None:
     """ Select the closest station to a given station from a list of candidates """
     dist = []

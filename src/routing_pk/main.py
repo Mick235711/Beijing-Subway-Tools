@@ -4,14 +4,16 @@
 """ Routing PK system - Main entry point """
 
 # Libraries
+import argparse
 import questionary
 import sys
 
+from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city
 from src.city.line import Line
 from src.common.common import suffix_s
 from src.routing_pk.add_routes import add_some_routes
-from src.routing_pk.common import Route, route_str, print_routes
+from src.routing_pk.common import Route, route_str, print_routes, select_routes
 
 # List of current routes
 CURRENT_ROUTES: list[Route] = []
@@ -20,21 +22,16 @@ CURRENT_ROUTES: list[Route] = []
 def delete_some_routes(lines: dict[str, Line]) -> None:
     """ Ask user for some routes to delete """
     global CURRENT_ROUTES
-    route_strs = []
-    for i, route in enumerate(CURRENT_ROUTES):
-        route_strs.append(f"#{i + 1:>{len(str(len(CURRENT_ROUTES)))}}: " + route_str(lines, route))
-    answer = questionary.checkbox("Please choose routes to delete:", choices=route_strs).ask()
-    delete_indexes = []
-    for answer_item in answer:
-        assert answer_item.startswith("#"), answer_item
-        index = answer_item.index(":")
-        delete_indexes.append(int(answer_item[1:index].strip()))
-    CURRENT_ROUTES = [route for i, route in enumerate(CURRENT_ROUTES) if i + 1 not in delete_indexes]
-    print("Deleted " + suffix_s("route", len(delete_indexes)) + ".")
+    indexes, CURRENT_ROUTES = select_routes(lines, CURRENT_ROUTES, "Please choose routes to delete:", reverse=True)
+    print("Deleted " + suffix_s("route", len(indexes)) + ".")
 
 
 def main() -> None:
     """ Main function """
+    parser = argparse.ArgumentParser()
+    shortest_path_args(parser, have_single=True)
+    args = parser.parse_args()
+
     global CURRENT_ROUTES
     city = ask_for_city()
     print("\n=====> Welcome to Routing PK! <=====")
@@ -56,7 +53,7 @@ def main() -> None:
 
         answer = questionary.select("Please select an operation:", choices=main_choices).ask()
         if answer == "Add new routes":
-            CURRENT_ROUTES += add_some_routes(city)
+            CURRENT_ROUTES += add_some_routes(city, args)
         elif answer == "Delete some existing routes":
             delete_some_routes(city.lines)
         elif answer == "Clear all routes and start over":

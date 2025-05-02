@@ -42,11 +42,11 @@ def find_last_train(
 
 
 def ask_for_shortest_path(
-    args: argparse.Namespace
+    args: argparse.Namespace, *, existing_city: City | None = None
 ) -> tuple[City, tuple[str, set[Line]], tuple[str, set[Line]],
            dict[str, dict[str, dict[str, list[Train]]]], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Ask information for shortest path computation """
-    city = ask_for_city()
+    city = existing_city or ask_for_city()
     start, end = ask_for_station_pair(city)
     lines = city.lines
     train_dict = parse_all_trains(
@@ -118,9 +118,11 @@ def display_info_min(
     return [(min_info[2], min_info[1]), (max_info[2], max_info[1])]
 
 
-def get_kth_path(args: argparse.Namespace) -> tuple[City, str, str, list[tuple[BFSResult, Path]]]:
+def get_kth_path(
+    args: argparse.Namespace, *, existing_city: City | None = None
+) -> tuple[City, str, str, list[tuple[BFSResult, Path]]]:
     """ Get the kth shortest paths """
-    city, start, end, train_dict, through_dict = ask_for_shortest_path(args)
+    city, start, end, train_dict, through_dict = ask_for_shortest_path(args, existing_city=existing_city)
     start_date, start_time, start_day = ask_for_shortest_time(
         args, city, start[0], end[0], train_dict,
         allow_empty=(args.data_source != "time")

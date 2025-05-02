@@ -4,15 +4,19 @@
 """ Routing PK system - Add routes module """
 
 # Libraries
+import argparse
 import questionary
 import sys
 
 from src.bfs.common import AbstractPath
+from src.bfs.shortest_path import get_kth_path
 from src.city.ask_for_city import ask_for_station_pair
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import suffix_s, chin_len
-from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, closest_to
+from src.common.common import suffix_s, chin_len, ask_for_int
+from src.fare.fare import to_abstract
+from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, select_routes,\
+    closest_to
 
 
 def parse_lines_from_shorthand(splits: list[str], city: City) -> list[tuple[Line, str | None] | str | None]:
@@ -321,7 +325,35 @@ def add_by_shorthand(city: City) -> list[Route]:
     return routes
 
 
-def add_some_routes(city: City) -> list[Route]:
+def add_by_kth(city: City, args: argparse.Namespace) -> list[Route]:
+    """ Add routes by shorthand syntax """
+    local_args = argparse.Namespace(**vars(args))
+    data_source = questionary.select(
+        "Please select a data source:", choices=["Time", "Station", "Distance"] + (
+            ["Fare"] if city.fare_rules is not None else []
+        )
+    ).ask()
+    if data_source is None:
+        sys.exit(0)
+    local_args.data_source = data_source.lower()
+    if data_source == "Time":
+        local_args.num_path = ask_for_int("Please enter the number of shortest paths to find:")
+        local_args.exclude_next_day = False
+    else:
+        local_args.num_path = None
+        exclude_next_day = questionary.confirm("Exclude path that spans into next day?").ask()
+        if exclude_next_day is None:
+            sys.exit(0)
+        local_args.exclude_next_day = exclude_next_day
+    _, _, end_station, results = get_kth_path(local_args, existing_city=city)
+    routes: list[Route] = []
+    for _, path in results:
+        routes.append((to_abstract(path), end_station))
+    print()
+    return select_routes(city.lines, routes, "Please select routes to add:", all_checked=True)[1]
+
+
+def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
     """ Submenu for adding routes """
     additional_routes: list[Route] = []
     while True:
@@ -331,7 +363,8 @@ def add_some_routes(city: City) -> list[Route]:
         print()
 
         choices = [
-            "Add by shorthand syntax"
+            "Add by shorthand syntax",
+            "Add by k-shortest path"
         ]
         if len(additional_routes) > 0:
             choices += ["Confirm addition of " + suffix_s("route", len(additional_routes))]
@@ -342,6 +375,8 @@ def add_some_routes(city: City) -> list[Route]:
             sys.exit(0)
         elif answer == "Add by shorthand syntax":
             additional_routes += add_by_shorthand(city)
+        elif answer == "Add by k-shortest path":
+            additional_routes += add_by_kth(city, args)
         elif answer.startswith("Confirm"):
             # Confirm addition
             print("Added " + suffix_s("route", len(additional_routes)) + ".")
