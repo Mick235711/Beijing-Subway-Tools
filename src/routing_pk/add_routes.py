@@ -15,18 +15,10 @@ from src.common.common import suffix_s
 from src.routing_pk.common import Route, route_str, print_routes
 
 
-def validate_shorthand(
-    shorthand: str, city: City, start_lines: set[Line], end_lines: set[Line]
-) -> bool | str:
-    """ Determine if the shorthand is valid """
-    # This function only does some simple validations:
-    if shorthand.strip() == "":
-        return True
-
-    # 1. Determine if the general syntax is valid
+def parse_lines_from_shorthand(splits: list[str], city: City) -> list[Line | str | None]:
+    """ Parse a list of lines and stations from shorthand """
     # NOTE: this assumes station codes, line index, line codes, and line names are all unique in a city
-    splits = [x.strip() for x in shorthand.split("-")]
-    processed: list[Line | None] = []
+    processed: list[Line | str | None] = []
     station_codes = {}
     for line in city.lines.values():
         if line.code is None:
@@ -66,9 +58,9 @@ def validate_shorthand(
 
         if cur_line is not None:
             if cur_direction is not None and cur_direction not in cur_line.directions:
-                return f"Line {cur_line.full_name()} does not have direction {cur_direction}!"
+                raise ValueError(f"Line {cur_line.full_name()} does not have direction {cur_direction}!")
             if last_station is not None and last_station not in cur_line.stations:
-                return f"Station {last_station} not on line {cur_line.full_name()}!"
+                raise ValueError(f"Station {last_station} not on line {cur_line.full_name()}!")
             last_station = None
             processed.append(cur_line)
             continue
@@ -84,20 +76,48 @@ def validate_shorthand(
 
         # Validate station against the last line
         if cur_station is None:
-            return f"Unknown line or station: {split}"
-        if processed[-1] is not None and cur_station not in processed[-1].stations:
-            return f"Station {cur_station} not on line {processed[-1].full_name()}!"
+            raise ValueError(f"Unknown line or station: {split}")
+        end = processed[-1]
+        if isinstance(end, str):
+            raise ValueError("Cannot have two adjacent stations!")
+        if end is not None and cur_station not in end.stations:
+            raise ValueError(f"Station {cur_station} not on line {end.full_name()}!")
         last_station = cur_station
+        processed.append(cur_station)
+    return processed
+
+
+def validate_shorthand(
+    shorthand: str, city: City, start_lines: set[Line], end_lines: set[Line]
+) -> bool | str:
+    """ Determine if the shorthand is valid """
+    # This function only does some simple validations:
+    if shorthand.strip() == "":
+        return True
+    splits = [x.strip() for x in shorthand.split("-")]
+
+    # 1. Determine if the general syntax is valid
+    try:
+        processed = parse_lines_from_shorthand(splits, city)
+    except ValueError as e:
+        return e.args[0]
+
+    start, end = processed[0], processed[-1]
+    if isinstance(start, str):
+        return "Cannot start with a station!"
+    if isinstance(end, str):
+        return "Cannot end with a station!"
 
     # 2. Determine if the start/end line is in the start/end set
-    if processed[0] is not None and processed[0].index not in set(l.index for l in start_lines):
-        return f"Start line {processed[0].full_name()} not accessible from start station!"
-    if processed[-1] is not None and processed[-1].index not in set(l.index for l in end_lines):
-        return f"End line {processed[-1].full_name()} not accessible from end station!"
+    if start is not None and start.index not in set(l.index for l in start_lines):
+        return f"Start line {start.full_name()} not accessible from start station!"
+    if end is not None and end.index not in set(l.index for l in end_lines):
+        return f"End line {end.full_name()} not accessible from end station!"
 
     # 3. Determine if each pair of lines have a common transfer station
-    for i in range(len(processed) - 1):
-        line1, line2 = processed[i], processed[i + 1]
+    processed_lines = [x for x in processed if not isinstance(x, str)]
+    for i in range(len(processed_lines) - 1):
+        line1, line2 = processed_lines[i], processed_lines[i + 1]
         if line1 is None or line2 is None:
             continue
         if set(line1.stations).isdisjoint(line2.stations):
@@ -109,6 +129,13 @@ def validate_shorthand(
 def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route:
     """ Parse a given path shorthand """
     path: AbstractPath = []
+    splits = [x.strip() for x in shorthand.split("-")]
+    processed = parse_lines_from_shorthand(splits, city)
+    
+    # The basic approach: specify a starting station, calculate the line and next station
+    cur_starting = start
+    for i, entry in enumerate(processed):
+        pass
     return path, end
 
 
