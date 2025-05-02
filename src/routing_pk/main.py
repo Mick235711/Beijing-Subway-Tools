@@ -29,7 +29,7 @@ def delete_some_routes(lines: dict[str, Line]) -> None:
         assert answer_item.startswith("#"), answer_item
         index = answer_item.index(":")
         delete_indexes.append(int(answer_item[1:index].strip()))
-    CURRENT_ROUTES = [route for i, route in enumerate(CURRENT_ROUTES) if i + 1 in delete_indexes]
+    CURRENT_ROUTES = [route for i, route in enumerate(CURRENT_ROUTES) if i + 1 not in delete_indexes]
     print("Deleted " + suffix_s("route", len(delete_indexes)) + ".")
 
 
@@ -50,8 +50,7 @@ def main() -> None:
         if len(CURRENT_ROUTES) > 0:
             main_choices += [
                 "Delete some existing routes",
-                "Clear all routes and start over",
-                "Quit"
+                "Clear all routes and start over"
             ]
         main_choices += ["Quit"]
 

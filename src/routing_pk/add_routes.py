@@ -11,14 +11,14 @@ from src.bfs.common import AbstractPath
 from src.city.ask_for_city import ask_for_station_pair
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import suffix_s
-from src.routing_pk.common import Route, route_str, print_routes
+from src.common.common import suffix_s, chin_len
+from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations
 
 
-def parse_lines_from_shorthand(splits: list[str], city: City) -> list[Line | str | None]:
+def parse_lines_from_shorthand(splits: list[str], city: City) -> list[tuple[Line, str | None] | str | None]:
     """ Parse a list of lines and stations from shorthand """
     # NOTE: this assumes station codes, line index, line codes, and line names are all unique in a city
-    processed: list[Line | str | None] = []
+    processed: list[tuple[Line, str | None] | str | None] = []
     station_codes = {}
     for line in city.lines.values():
         if line.code is None:
@@ -31,6 +31,8 @@ def parse_lines_from_shorthand(splits: list[str], city: City) -> list[Line | str
     last_station: str | None = None
     for split in splits:
         if split == "(virtual)":
+            if len(processed) > 0 and processed[-1] is None:
+                raise ValueError("Cannot have two adjacent virtual transfers!")
             processed.append(None)
             continue
 
@@ -62,7 +64,7 @@ def parse_lines_from_shorthand(splits: list[str], city: City) -> list[Line | str
             if last_station is not None and last_station not in cur_line.stations:
                 raise ValueError(f"Station {last_station} not on line {cur_line.full_name()}!")
             last_station = None
-            processed.append(cur_line)
+            processed.append((cur_line, cur_direction))
             continue
 
         # Try as a station code
@@ -77,11 +79,12 @@ def parse_lines_from_shorthand(splits: list[str], city: City) -> list[Line | str
         # Validate station against the last line
         if cur_station is None:
             raise ValueError(f"Unknown line or station: {split}")
-        end = processed[-1]
-        if isinstance(end, str):
-            raise ValueError("Cannot have two adjacent stations!")
-        if end is not None and cur_station not in end.stations:
-            raise ValueError(f"Station {cur_station} not on line {end.full_name()}!")
+        if len(processed) > 0:
+            end = processed[-1]
+            if isinstance(end, str):
+                raise ValueError("Cannot have two adjacent stations!")
+            if end is not None and cur_station not in end[0].stations:
+                raise ValueError(f"Station {cur_station} not on line {end[0].full_name()}!")
         last_station = cur_station
         processed.append(cur_station)
     return processed
@@ -109,13 +112,13 @@ def validate_shorthand(
         return "Cannot end with a station!"
 
     # 2. Determine if the start/end line is in the start/end set
-    if start is not None and start.index not in set(l.index for l in start_lines):
-        return f"Start line {start.full_name()} not accessible from start station!"
-    if end is not None and end.index not in set(l.index for l in end_lines):
-        return f"End line {end.full_name()} not accessible from end station!"
+    if start is not None and start[0].index not in set(l.index for l in start_lines):
+        return f"Start line {start[0].full_name()} not accessible from start station!"
+    if end is not None and end[0].index not in set(l.index for l in end_lines):
+        return f"End line {end[0].full_name()} not accessible from end station!"
 
     # 3. Determine if each pair of lines have a common transfer station
-    processed_lines = [x for x in processed if not isinstance(x, str)]
+    processed_lines = [None if x is None else x[0] for x in processed if not isinstance(x, str)]
     for i in range(len(processed_lines) - 1):
         line1, line2 = processed_lines[i], processed_lines[i + 1]
         if line1 is None or line2 is None:
@@ -126,7 +129,93 @@ def validate_shorthand(
     return True
 
 
-def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route:
+def calculate_next(
+    city: City, cur_station: str,
+    prev_hint: tuple[Line, str | None] | str | None,
+    cur_entry: tuple[Line, str | None] | None,
+    next_entry: tuple[Line, str | None] | None,
+    next_hint: tuple[Line, str | None] | str | None,
+) -> str | None:
+    """ Calculate next entry """
+    assert cur_entry is not None or next_entry is not None, (cur_station, cur_entry, next_entry)
+    if cur_entry is None:
+        # Find all the virtual transfer-able stations
+        candidates = []
+        for (station1, station2), transfer in city.virtual_transfers.items():
+            if station1 != cur_station:
+                continue
+            for (from_l, from_d, to_l, to_d) in transfer.transfer_time:
+                assert next_entry is not None, next_entry
+                if isinstance(prev_hint, tuple) and from_l != prev_hint[0].name:
+                    continue
+                if to_l == next_entry[0].name:
+                    candidates.append(station2)
+                    break
+
+        if len(candidates) == 1:
+            return candidates[0]
+        prev_str = back_to_string(prev_hint)
+        ps = " " * chin_len(prev_str)
+        next_str = back_to_string(next_entry)
+        print(f"Ambiguity: [ ... - {prev_str} - (virtual) - {next_str} - ... ]")
+        print( "                   " + ps + "   ^^^^^^^^^^^^" + ("^" * chin_len(next_str)))
+        if len(candidates) == 0:
+            print(f"No virtual transfer found from {city.station_full_name(cur_station)}!")
+            return None
+
+        # Ask the user which one it is
+        return select_stations(city, candidates)
+
+    if next_entry is None:
+        candidates = []
+        for (station1, station2), transfer in city.virtual_transfers.items():
+            if isinstance(next_hint, str) and station2 != next_hint:
+                continue
+            for (from_l, from_d, to_l, to_d) in transfer.transfer_time:
+                assert next_entry is not None, next_entry
+                if isinstance(next_hint, tuple) and to_l != next_hint[0].name:
+                    continue
+                if from_l == cur_entry[0].name:
+                    candidates.append(station2)
+                    break
+
+        if len(candidates) == 1:
+            return candidates[0]
+        cur_str = back_to_string(cur_entry)
+        c = "^" * chin_len(cur_str)
+        print(f"Ambiguity: [ ... - {cur_str} - (virtual) - {back_to_string(next_hint)} - ... ]")
+        print( "                   " + c + "^^^^^^^^^^^^")
+        if len(candidates) == 0:
+            print(f"No virtual transfer found to {back_to_string(next_hint)}!")
+            return None
+
+        # Ask the user which one it is
+        return select_stations(city, candidates)
+
+    # cur_entry and next_entry are both not None; we find the intersections
+    if cur_entry[1] is None:
+        candidates = cur_entry[0].stations
+    else:
+        candidates = cur_entry[0].direction_stations(cur_entry[1])
+        index = candidates.index(cur_station)
+        candidates = candidates[index + 1:]
+    candidates = [c for c in candidates if c in next_entry[0].stations]
+
+    if len(candidates) == 1:
+        return candidates[0]
+    cur_str = back_to_string(cur_entry)
+    next_str = back_to_string(next_entry)
+    print(f"Ambiguity: [ ... - {cur_str} - {next_str} - ... ]")
+    print( "                   " + ("^" * (chin_len(cur_str) + chin_len(next_str) + 3)))
+    if len(candidates) == 0:
+        print(f"No transfer station found between {cur_entry[0].full_name()} and {next_entry[0].full_name()}!")
+        return None
+
+    # Ask the user which one it is
+    return select_stations(city, candidates)
+
+
+def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route | None:
     """ Parse a given path shorthand """
     path: AbstractPath = []
     splits = [x.strip() for x in shorthand.split("-")]
@@ -135,7 +224,32 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route:
     # The basic approach: specify a starting station, calculate the line and next station
     cur_starting = start
     for i, entry in enumerate(processed):
-        pass
+        # Get the next station, either specified, end, or calculate it from lines
+        if isinstance(entry, str):
+            continue
+        if i == len(processed) - 1:
+            next_station = end
+        else:
+            next_entry = processed[i + 1]
+            if isinstance(next_entry, str):
+                next_station = next_entry
+            else:
+                prev_hint = None if i == 0 else processed[i - 1]
+                next_hint = None if i == len(processed) - 2 or len(processed) < 2 else processed[i + 2]
+                next_station_aux = calculate_next(city, cur_starting, prev_hint, entry, next_entry, next_hint)
+                if next_station_aux is None:
+                    return None
+                next_station = next_station_aux
+
+        if entry is None:
+            path_entry = None
+        elif entry[1] is None:
+            # Determine a direction
+            path_entry = (entry[0].name, entry[0].determine_direction(cur_starting, next_station))
+        else:
+            path_entry = (entry[0].name, entry[1])
+        path.append((cur_starting, path_entry))
+        cur_starting = next_station
     return path, end
 
 
@@ -183,6 +297,8 @@ def add_by_shorthand(city: City) -> list[Route]:
         if shorthand.strip() == "":
             break
         route = parse_shorthand(shorthand, city, start, end)
+        if route is None:
+            continue
         print("Route to be added:", route_str(city.lines, route))
         answer = questionary.confirm("Do you want to add this route?").ask()
         if answer is None:
