@@ -7,6 +7,8 @@
 import questionary
 import sys
 
+from typing import cast
+
 from src.bfs.avg_shortest_time import path_shorthand
 from src.bfs.common import AbstractPath
 from src.city.city import City
@@ -58,12 +60,21 @@ def select_stations(city: City, stations: list[str]) -> str:
 
 
 def select_routes(
-    lines: dict[str, Line], routes: list[Route], message: str, *, reverse: bool = False, all_checked: bool = False
+    lines: dict[str, Line], routes: list[Route] | list[tuple[Route, str]], message: str,
+    *, reverse: bool = False, all_checked: bool = False
 ) -> tuple[list[int], list[Route]]:
     """ Select a subset of a list of routes """
     route_strs = []
+    if isinstance(routes[0], tuple):
+        maxl = max(len(rs) for _, rs in routes)
+    else:
+        maxl = 0
     for i, route in enumerate(routes):
-        route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: " + route_str(lines, route))
+        if isinstance(route, tuple):
+            inner = cast(Route, route[0])
+            route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: ({route[1]:>{maxl}}) " + route_str(lines, inner))
+        else:
+            route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: " + route_str(lines, route))
     answer = questionary.checkbox(message, choices=(
         [questionary.Choice(x, checked=True) for x in route_strs] if all_checked else route_strs
     )).ask()
@@ -73,7 +84,11 @@ def select_routes(
         index = answer_item.index(":")
         indexes.append(int(answer_item[1:index].strip()))
     if reverse:
+        if isinstance(routes[0], tuple):
+            return indexes, [cast(Route, route) for i, (route, _) in enumerate(routes) if i + 1 not in indexes]
         return indexes, [route for i, route in enumerate(routes) if i + 1 not in indexes]
+    if isinstance(routes[0], tuple):
+        return indexes, [cast(Route, route) for i, (route, _) in enumerate(routes) if i + 1 in indexes]
     return indexes, [route for i, route in enumerate(routes) if i + 1 in indexes]
 
 

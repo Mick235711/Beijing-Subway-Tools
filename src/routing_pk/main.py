@@ -29,6 +29,8 @@ def delete_some_routes(lines: dict[str, Line]) -> None:
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
+    parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
     shortest_path_args(parser, have_single=True)
     args = parser.parse_args()
 

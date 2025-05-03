@@ -8,9 +8,10 @@ import argparse
 import questionary
 import sys
 
+from src.bfs.avg_shortest_time import data_criteria, find_avg_paths
 from src.bfs.common import AbstractPath
 from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path
-from src.city.ask_for_city import ask_for_station_pair
+from src.city.ask_for_city import ask_for_station_pair, ask_for_date, ask_for_station
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s, chin_len, ask_for_int
@@ -328,7 +329,7 @@ def add_by_shorthand(city: City) -> list[Route]:
 
 
 def add_by_kth(city: City, args: argparse.Namespace) -> list[Route]:
-    """ Add routes by shorthand syntax """
+    """ Add routes by the k-th shortest path """
     local_args = argparse.Namespace(**vars(args))
     data_source = questionary.select(
         "Please select a data source:", choices=["Time", "Station", "Distance"] + (
@@ -367,6 +368,74 @@ def add_by_kth(city: City, args: argparse.Namespace) -> list[Route]:
     return route if answer else []
 
 
+def add_by_avg(city: City, args: argparse.Namespace) -> list[Route]:
+    """ Add routes by the percentage of shortest path """
+    local_args = argparse.Namespace(**vars(args))
+    choices = [x.capitalize() for x in data_criteria]
+    if city.fare_rules is None:
+        choices = [x for x in choices if x.lower() != "fare"]
+    data_source = questionary.select(
+        "Please select a data source:", choices=choices
+    ).ask()
+    if data_source is None:
+        sys.exit(0)
+    local_args.data_source = data_source.lower()
+
+    verbosity = questionary.select(
+        "Please select the verbosity of output:", choices=["One-line", "Percentage only", "Show min/max"],
+        default="Show min/max"
+    ).ask()
+    if verbosity is None:
+        sys.exit(0)
+    elif verbosity == "One-line":
+        local_args.verbosity = False
+        local_args.show_path = False
+    elif verbosity == "Percentage only":
+        local_args.verbosity = True
+        local_args.show_path = False
+    elif verbosity == "Show min/max":
+        local_args.verbosity = False
+        local_args.show_path = True
+    else:
+        assert False, verbosity
+
+    def validate_limit(limit_str: str) -> bool | str:
+        """ Validate limit string """
+        try:
+            if int(limit_str) <= 0:
+                return "Negative integer not allowed!"
+        except ValueError:
+            # Try as a list of station names
+            limit_list = [x.strip() for x in limit_str.split(",")]
+            if len(limit_list) == 0:
+                return "Empty string not allowed!"
+            for station in limit_list:
+                if station not in city.station_lines:
+                    return f"Unknown station: {station}"
+        return True
+    limit = questionary.text(
+        "Please enter a number to show the top N results, or enter " +
+        "a comma-separated list of station names to show the results for these stations only:",
+        validate=validate_limit
+    ).ask()
+    if limit is None:
+        sys.exit(0)
+    try:
+        local_args.limit_num = int(limit)
+        local_args.to_station = None
+    except ValueError:
+        local_args.limit_num = None
+        local_args.to_station = limit
+
+    start = ask_for_station(city)
+    start_date = ask_for_date()
+    result_list = find_avg_paths(local_args, city_station=(city, start[0], start_date))
+    route_list: list[tuple[Route, str]] = []
+    for station, data_list in result_list:
+        for percentage, path, _ in data_list:
+            route_list.append(((path, station), f"{percentage * 100:.2f}%"))
+    return select_routes(city.lines, route_list, "Please select routes to add:", all_checked=True)[1]
+
 
 def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
     """ Submenu for adding routes """
@@ -379,7 +448,8 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
 
         choices = [
             "Add by shorthand syntax",
-            "Add by k-shortest path"
+            "Add by k-shortest path",
+            "Add by percentage path in a day"
         ]
         if len(additional_routes) > 0:
             choices += ["Confirm addition of " + suffix_s("route", len(additional_routes))]
@@ -392,6 +462,8 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
             additional_routes += add_by_shorthand(city)
         elif answer == "Add by k-shortest path":
             additional_routes += add_by_kth(city, args)
+        elif answer == "Add by percentage path in a day":
+            additional_routes += add_by_avg(city, args)
         elif answer.startswith("Confirm"):
             # Confirm addition
             print("Added " + suffix_s("route", len(additional_routes)) + ".")
@@ -399,3 +471,5 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
         elif answer == "Cancel":
             print("Addition cancelled.")
             return []
+        else:
+            assert False, answer

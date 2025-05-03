@@ -363,6 +363,37 @@ def print_station_info(
         print()
 
 
+def find_avg_paths(
+    args: argparse.Namespace, *, city_station: tuple[City, str, date] | None = None
+) -> list[tuple[str, list[tuple[float, AbstractPath, list[PathInfo]]]]]:
+    """ Find average paths with the given parameters """
+    stations = parse_comma(args.to_station)
+    city, _, through_dict, result_dict = shortest_in_city(
+        args.limit_start, args.limit_end, city_station,
+        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express,
+    )
+    result_dict = dict(sorted(list(result_dict.items()),
+                              key=lambda x: (x[1][data_criteria.index(args.data_source)], x[1][0], to_pinyin(x[0])[0])))
+
+    result: list[tuple[str, list[tuple[float, AbstractPath, list[PathInfo]]]]] = []
+    for i, (station, data) in enumerate(result_dict.items()):
+        if len(stations) > 0 and station not in stations:
+            continue
+        if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
+            if i == args.limit_num:
+                print("...")
+            continue
+        avg_info = data[:6]
+        print_station_info(
+            city, station, avg_info, *data[6:], index=i,
+            show_path_transfers=(city.transfers if args.show_path else args.verbose),
+            through_dict=through_dict
+        )
+        result.append((station, data[-1]))
+    return result
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -378,29 +409,7 @@ def main() -> None:
     group2.add_argument("-t", "--to-station", help="Only show average time to specified stations")
     shortest_path_args(parser)
     args = parser.parse_args()
-
-    stations = parse_comma(args.to_station)
-    city, _, through_dict, result_dict = shortest_in_city(
-        args.limit_start, args.limit_end,
-        include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express,
-    )
-    result_dict = dict(sorted(list(result_dict.items()),
-                              key=lambda x: (x[1][data_criteria.index(args.data_source)], x[1][0], to_pinyin(x[0])[0])))
-
-    for i, (station, data) in enumerate(result_dict.items()):
-        if len(stations) > 0 and station not in stations:
-            continue
-        if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
-            if i == args.limit_num:
-                print("...")
-            continue
-        avg_info = data[:6]
-        print_station_info(
-            city, station, avg_info, *data[6:], index=i,
-            show_path_transfers=(city.transfers if args.show_path else args.verbose),
-            through_dict=through_dict
-        )
+    find_avg_paths(args)
 
 
 # Call main
