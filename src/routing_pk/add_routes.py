@@ -181,11 +181,10 @@ def calculate_next(
             if isinstance(next_hint, str) and station2 != next_hint:
                 continue
             for (from_l, from_d, to_l, to_d) in transfer.transfer_time:
-                assert next_entry is not None, next_entry
                 if isinstance(next_hint, tuple) and to_l != next_hint[0].name:
                     continue
                 if from_l == cur_entry[0].name:
-                    candidates.append(station2)
+                    candidates.append(station1)
                     break
 
         if len(candidates) == 1:
