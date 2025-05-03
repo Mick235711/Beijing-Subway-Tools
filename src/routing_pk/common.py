@@ -7,8 +7,6 @@
 import questionary
 import sys
 
-from typing import cast
-
 from src.bfs.avg_shortest_time import path_shorthand
 from src.bfs.common import AbstractPath
 from src.city.city import City
@@ -60,23 +58,32 @@ def select_stations(city: City, stations: list[str]) -> str:
 
 
 def select_routes(
-    lines: dict[str, Line], routes: list[Route] | list[tuple[Route, str]], message: str,
-    *, reverse: bool = False, all_checked: bool = False
+    lines: dict[str, Line], routes: list[Route] | None, message: str,
+    *, reverse: bool = False, all_checked: bool = False,
+    routes_comprehensive: list[tuple[Route, str] | questionary.Separator] | None = None
 ) -> tuple[list[int], list[Route]]:
     """ Select a subset of a list of routes """
-    route_strs = []
-    if isinstance(routes[0], tuple):
-        maxl = max(len(rs) for _, rs in routes)
+    route_strs: list[str | questionary.Separator] = []
+    route_list: list[Route] = []
+    if routes is None:
+        assert routes_comprehensive is not None, (routes, routes_comprehensive)
+        maxl = max(len(x[1]) for x in routes_comprehensive if isinstance(x, tuple))
+        max_len = len([x for x in routes_comprehensive if not isinstance(x, questionary.Separator)])
+        cnt = 0
+        for inner in routes_comprehensive:
+            if not isinstance(inner, tuple):
+                route_strs.append(inner)
+                continue
+            cnt += 1
+            route_list.append(inner[0])
+            route_strs.append(f"#{cnt:>{len(str(max_len))}}: ({inner[1]:>{maxl}}) " + route_str(lines, inner[0]))
     else:
-        maxl = 0
-    for i, route in enumerate(routes):
-        if isinstance(route, tuple):
-            inner = cast(Route, route[0])
-            route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: ({route[1]:>{maxl}}) " + route_str(lines, inner))
-        else:
+        for i, route in enumerate(routes):
+            route_list.append(route)
             route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: " + route_str(lines, route))
     answer = questionary.checkbox(message, choices=(
-        [questionary.Choice(x, checked=True) for x in route_strs] if all_checked else route_strs
+        [x if isinstance(x, questionary.Separator) else questionary.Choice(x, checked=True) for x in route_strs]
+        if all_checked else route_strs
     )).ask()
     indexes = []
     for answer_item in answer:
@@ -84,12 +91,8 @@ def select_routes(
         index = answer_item.index(":")
         indexes.append(int(answer_item[1:index].strip()))
     if reverse:
-        if isinstance(routes[0], tuple):
-            return indexes, [cast(Route, route) for i, (route, _) in enumerate(routes) if i + 1 not in indexes]
-        return indexes, [route for i, route in enumerate(routes) if i + 1 not in indexes]
-    if isinstance(routes[0], tuple):
-        return indexes, [cast(Route, route) for i, (route, _) in enumerate(routes) if i + 1 in indexes]
-    return indexes, [route for i, route in enumerate(routes) if i + 1 in indexes]
+        return indexes, [route for i, route in enumerate(route_list) if i + 1 not in indexes]
+    return indexes, [route for i, route in enumerate(route_list) if i + 1 in indexes]
 
 
 def closest_to(entry: tuple[Line, str | None], station: str, candidates: list[str]) -> str | None:

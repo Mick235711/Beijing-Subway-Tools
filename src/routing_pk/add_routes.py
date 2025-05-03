@@ -430,11 +430,17 @@ def add_by_avg(city: City, args: argparse.Namespace) -> list[Route]:
     start = ask_for_station(city)
     start_date = ask_for_date()
     result_list = find_avg_paths(local_args, city_station=(city, start[0], start_date))
-    route_list: list[tuple[Route, str]] = []
+    route_list: list[tuple[Route, str] | questionary.Separator] = []
     for station, data_list in result_list:
+        route_list.append(questionary.Separator(
+            f"=====> Paths for {city.station_full_name(start[0])} -> {city.station_full_name(station)} <====="
+        ))
         for percentage, path, _ in data_list:
             route_list.append(((path, station), f"{percentage * 100:.2f}%"))
-    return select_routes(city.lines, route_list, "Please select routes to add:", all_checked=True)[1]
+    return select_routes(
+        city.lines, None, "Please select routes to add:",
+        all_checked=True, routes_comprehensive=route_list
+    )[1]
 
 
 def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
