@@ -344,8 +344,9 @@ def print_station_info(
         return
 
     print("Percentage of each path:")
+    max_len = max(len(percentage_str(x[0])) for x in path_coverage)
     for percent, path, examples in path_coverage:
-        print("    " + percentage_str(percent) + " " + path_shorthand(station, city.lines, path), end="")
+        print(f"    {percentage_str(percent):>{max_len}} " + path_shorthand(station, city.lines, path), end="")
         print(f" [Example: {examples[0][2].time_str()}]")
 
     if not isinstance(show_path_transfers, bool):
