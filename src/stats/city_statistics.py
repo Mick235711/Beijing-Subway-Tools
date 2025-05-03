@@ -12,7 +12,7 @@ from src.city.ask_for_city import ask_for_city
 from src.city.city import parse_station_lines
 from src.city.line import Line
 from src.city.transfer import transfer_repr, Transfer
-from src.common.common import distance_str, suffix_s, to_pinyin, average
+from src.common.common import distance_str, suffix_s, to_pinyin, average, percentage_str
 from src.stats.common import display_first, display_segment, filter_lines
 
 
@@ -151,15 +151,15 @@ def display_transfer_info(lines: dict[str, Line], virtual_transfers: dict[tuple[
     display_first(
         sorted(transfer_dict.items(), key=lambda x: (-x[1], lines[x[0]].index)),
         lambda x: suffix_s("station", x[1]) + f": {lines[x[0]]} " +
-                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)",
+                  f"({x[1]}/{len(lines[x[0]].stations)} = {percentage_str(x[1] / len(lines[x[0]].stations))} transfers)",
         limit_num=limit_num
     )
     print(f"Average # of transfer stations per line: {sum(transfer_dict.values()) / len(lines):.2f}")
     print("Percentage of transfer stations:")
     display_first(
         sorted(transfer_dict.items(), key=lambda x: (-x[1] / len(lines[x[0]].stations), lines[x[0]].index)),
-        lambda x: f"{x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers: {lines[x[0]]} " +
-                  f"({x[1]}/{len(lines[x[0]].stations)} = {x[1] / len(lines[x[0]].stations) * 100:.2f}% transfers)",
+        lambda x: f"{percentage_str(x[1] / len(lines[x[0]].stations))} transfers: {lines[x[0]]} " +
+                  f"({x[1]}/{len(lines[x[0]].stations)} = {percentage_str(x[1] / len(lines[x[0]].stations))} transfers)",
         limit_num=limit_num
     )
     max_line = max(consecutive_dict.keys(), key=lambda x: (len(consecutive_dict[x]), lines[x].total_distance()))
@@ -260,7 +260,7 @@ def display_transfer_time_info(
     print("Segmented transfer time:")
     display_segment(
         times, lambda seg1, seg2, num:
-        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s(data_source, num) + f" ({num * 100 / len(times):.2f}%)",
+        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s(data_source, num) + f" ({percentage_str(num * 100 / len(times))})",
         limit_num=limit_num
     )
     print("Max/Min " + suffix_s("transfer time", limit_num) + ":")

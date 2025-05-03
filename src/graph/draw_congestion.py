@@ -20,7 +20,7 @@ from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time_seq, 
 from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.city.transfer import TransferSpec
-from src.common.common import suffix_s, TimeSpec, from_minutes, get_time_seq_repr, to_pinyin
+from src.common.common import suffix_s, TimeSpec, from_minutes, get_time_seq_repr, to_pinyin, percentage_str
 from src.dist_graph.adaptor import get_dist_graph
 from src.dist_graph.exotic_path import all_station_bfs
 from src.graph.draw_map import map_args, get_colormap
@@ -269,7 +269,7 @@ def print_congestion(
     if load_metric == "passenger":
         load_metric_unit = lambda x: suffix_s("people", format_func(x))
     elif load_metric == "congestion":
-        load_metric_unit = lambda x: f"{x:.2f}%"
+        load_metric_unit = lambda x: percentage_str(x)
     else:
         assert False, load_metric
     display_first(sorted(list(load_dict.items()), key=lambda x: (
@@ -421,7 +421,7 @@ def draw_congestion(
             alpha = max(min(5.5 - people * 5, 1.0), 0.0)
             draw_path(
                 draw_new, map_obj, from_station, to_station,
-                cmap, ("+" if people > 1.0 else "-") + f"{abs(people - 1.0) * 100:.2f}%", alpha, edge_wide
+                cmap, ("+" if people > 1.0 else "-") + percentage_str(abs(people - 1.0)), alpha, edge_wide
             )
     img.paste(img_new, mask=img_new)
     print(f"Drawing done! Saving to {output}...")

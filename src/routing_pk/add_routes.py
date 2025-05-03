@@ -14,7 +14,7 @@ from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path
 from src.city.ask_for_city import ask_for_station_pair, ask_for_date, ask_for_station
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import suffix_s, chin_len, ask_for_int
+from src.common.common import suffix_s, chin_len, ask_for_int, percentage_str
 from src.dist_graph.adaptor import get_dist_graph, simplify_path
 from src.dist_graph.shortest_path import shortest_path
 from src.fare.fare import to_abstract
@@ -436,7 +436,7 @@ def add_by_avg(city: City, args: argparse.Namespace) -> list[Route]:
             f"=====> Paths for {city.station_full_name(start[0])} -> {city.station_full_name(station)} <====="
         ))
         for percentage, path, _ in data_list:
-            route_list.append(((path, station), f"{percentage * 100:.2f}%"))
+            route_list.append(((path, station), percentage_str(percentage)))
     return select_routes(
         city.lines, None, "Please select routes to add:",
         all_checked=True, routes_comprehensive=route_list
