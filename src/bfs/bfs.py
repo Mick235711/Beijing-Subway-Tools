@@ -69,13 +69,7 @@ class BFSResult:
 
     def total_distance(self, path: Path) -> int:
         """ Get total distance """
-        res = 0
-        for i, (station, train) in enumerate(path):
-            if not isinstance(train, Train):
-                continue
-            next_station = self.station if i == len(path) - 1 else path[i + 1][0]
-            res += train.two_station_dist(station, next_station)
-        return res
+        return path_distance(path, self.station)
 
     def time_str(self) -> str:
         """ Return string representation of start/end time """
@@ -332,6 +326,17 @@ def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTr
         if next_train in through[1].trains.values() and total_len > 0:
             total_len -= 1
     return total_len
+
+
+def path_distance(path: Path, end_station: str) -> int:
+    """ Get total distance """
+    res = 0
+    for i, (station, train) in enumerate(path):
+        if not isinstance(train, Train):
+            continue
+        next_station = end_station if i == len(path) - 1 else path[i + 1][0]
+        res += train.two_station_dist(station, next_station)
+    return res
 
 
 def path_index(result: BFSResult, path: Path) -> tuple[int, int, int, int]:
