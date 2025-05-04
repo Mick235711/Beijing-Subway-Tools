@@ -163,12 +163,12 @@ def get_longest_route(
     return euler_route(small_graph, start_station, end_station)
 
 
-def find_longest(args: argparse.Namespace) -> tuple[City, Path, str]:
+def find_longest(args: argparse.Namespace, *, existing_city: City | None = None) -> tuple[City, Path, str]:
     """ Longest-path algorithm """
     start: tuple[str, set[Line]] | None = None
     end: tuple[str, set[Line]] | None = None
     if args.all or args.circuit:
-        city = ask_for_city()
+        city = existing_city or ask_for_city()
         lines = city.lines
         train_dict = parse_all_trains(
             list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
@@ -190,7 +190,7 @@ def find_longest(args: argparse.Namespace) -> tuple[City, Path, str]:
             start_time, start_day = ask_for_time(allow_empty=True)
         _, through_dict = parse_through_train(train_dict, city.through_specs)
     else:
-        city, start, end, train_dict, through_dict = ask_for_shortest_path(args)
+        city, start, end, train_dict, through_dict = ask_for_shortest_path(args, existing_city=existing_city)
         start_date, start_time, start_day = ask_for_shortest_time(
             args, city, start[0], end[0], train_dict,
             allow_empty=True
@@ -212,7 +212,9 @@ def find_longest(args: argparse.Namespace) -> tuple[City, Path, str]:
               flush=True, end="")
         if args.all:
             # FIXME: This took way too long to calculate
-            paths = GraphSet.paths()
+            # paths = GraphSet.paths()
+            print("Unsupported!")
+            sys.exit(0)
         elif args.circuit:
             paths = GraphSet.cycles()
             if start is not None:

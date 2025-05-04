@@ -16,6 +16,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s, chin_len, ask_for_int, percentage_str
 from src.dist_graph.adaptor import get_dist_graph, simplify_path
+from src.dist_graph.longest_path import find_longest
 from src.dist_graph.shortest_path import shortest_path
 from src.fare.fare import to_abstract
 from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, select_routes,\
@@ -442,6 +443,39 @@ def add_by_avg(city: City, args: argparse.Namespace) -> list[Route]:
     )[1]
 
 
+def add_by_longest(city: City, args: argparse.Namespace) -> list[Route]:
+    """ Add routes by the longest path """
+    local_args = argparse.Namespace(**vars(args))
+    non_repeating = questionary.confirm("Finding paths with no repeating stations?").ask()
+    if non_repeating is None:
+        sys.exit(0)
+    local_args.non_repeating = non_repeating
+    mode = questionary.select(
+        "Please select a path mode:",
+        choices=(["Specify start/end"] + ([] if non_repeating else ["All paths"]) + ["Circuit only"])
+    ).ask()
+    if mode is None:
+        sys.exit(0)
+    elif mode == "Specify start/end":
+        local_args.all = False
+        local_args.circuit = False
+    elif mode == "All paths":
+        local_args.all = True
+        local_args.circuit = False
+    elif mode == "Circuit only":
+        local_args.all = False
+        local_args.circuit = True
+    else:
+        assert False, mode
+    exclude = questionary.confirm("Exclude path that spans into next day?").ask()
+    if exclude is None:
+        sys.exit(0)
+    local_args.exclude_next_day = exclude
+
+    _, route, end_station = find_longest(local_args, existing_city=city)
+    return [(simplify_path(route, end_station), end_station)]
+
+
 def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
     """ Submenu for adding routes """
     additional_routes: list[Route] = []
@@ -451,14 +485,16 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
         print_routes(city.lines, additional_routes)
         print()
 
-        choices = [
-            "Add by shorthand syntax",
-            "Add by k-shortest path",
-            "Add by percentage path in a day"
-        ]
+        choices = []
         if len(additional_routes) > 0:
             choices += ["Confirm addition of " + suffix_s("route", len(additional_routes))]
-        choices += ["Cancel"]
+        choices += [
+            "Add by shorthand syntax",
+            "Add by k-shortest path",
+            "Add by percentage path in a day",
+            "Add by longest path",
+            "Cancel"
+        ]
 
         answer = questionary.select("Please select an operation:", choices=choices).ask()
         if answer is None:
@@ -469,6 +505,8 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
             additional_routes += add_by_kth(city, args)
         elif answer == "Add by percentage path in a day":
             additional_routes += add_by_avg(city, args)
+        elif answer == "Add by longest path":
+            additional_routes += add_by_longest(city, args)
         elif answer.startswith("Confirm"):
             # Confirm addition
             print("Added " + suffix_s("route", len(additional_routes)) + ".")
