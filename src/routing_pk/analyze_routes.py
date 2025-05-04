@@ -76,7 +76,10 @@ def calculate_data(
     return best_dict, data_list
 
 
-def print_routes_with_data(city: City, data_list: list[RouteData], *, time_only_mode: bool = False) -> None:
+def print_routes_with_data(
+    city: City, data_list: list[RouteData], *, time_only_mode: bool = False,
+    aux_data: dict[int, str] | None = None
+) -> None:
     """ Print current routes """
     if len(data_list) == 0:
         print("(No routes selected)")
@@ -95,13 +98,20 @@ def print_routes_with_data(city: City, data_list: list[RouteData], *, time_only_
     avg_max_len = max(len(f"{x[4] - min_avg:.2f}") for x in data_list)
     min_max_len = max(len(str(x[5][0])) for x in data_list)
     max_max_len = max(len(str(x[6][0])) for x in data_list)
+    if aux_data is None:
+        aux_max_len = 0
+    else:
+        aux_max_len = max(len(x) for x in aux_data.values())
     for index, route, _, percentage, avg_min, min_info, max_info in data_list:
-        print(f"#{index + 1:>{len(str(len(data_list)))}}:", end="")
-        print(f" ({percentage_str(percentage):>{percent_max_len}})", end="")
-        if min_avg == avg_min:
-            print(" (" + (" " * (avg_max_len - 3)) + "Best)", end="")
+        print(f"#{index + 1:>{len(str(len(data_list)))}}: ", end="")
+        if aux_data is not None:
+            print(f"{aux_data[index]:<{aux_max_len}}", end="")
         else:
-            print(f" (+{avg_min - min_avg:>{avg_max_len}.2f})", end="")
+            print(f"({percentage_str(percentage):>{percent_max_len}})", end="")
+            if min_avg == avg_min:
+                print(" (" + (" " * (avg_max_len - 3)) + "Best)", end="")
+            else:
+                print(f" (+{avg_min - min_avg:>{avg_max_len}.2f})", end="")
         print(f" ({min_info[0]:>{min_max_len}}-{max_info[0]:>{max_max_len}}) ", end="")
         print(route_str(city.lines, route))
 
@@ -109,7 +119,7 @@ def print_routes_with_data(city: City, data_list: list[RouteData], *, time_only_
 def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[RouteData]:
     """ Sort the path list """
     choices = [
-        "Index", "Percentage", "Average Time", "Minimum Time", "Maximum Time",
+        "Index", "Percentage", "Average Time", "Minimum Time", "Maximum Time", "First Departure", "Last Departure",
         "Transfer", "Station", "Distance"
     ]
     if city.fare_rules is not None:
@@ -127,6 +137,14 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
         return sorted(data_list, key=lambda x: x[5][0])
     elif criteria == "Maximum Time":
         return sorted(data_list, key=lambda x: x[6][0])
+    elif criteria == "First Departure":
+        return sorted(data_list, key=lambda x: min(
+            [get_time_str(y[2].initial_time, y[2].initial_day) for y in x[2].values()]
+        ))
+    elif criteria == "Last Departure":
+        return sorted(data_list, key=lambda x: max(
+            [get_time_str(y[2].initial_time, y[2].initial_day) for y in x[2].values()]
+        ))
     elif criteria == "Transfer":
         return sorted(data_list, key=lambda x: total_transfer(x[5][1]))
     elif criteria == "Station":
@@ -161,7 +179,7 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
     for i, route in enumerate(routes):
         paths = all_time_path(
             city, train_dict, reduce_abstract_path(city.lines, route[0], route[1]), route[1], start_date,
-            exclude_next_day=exclude, exclude_edge=args.exclude_edge
+            exclude_next_day=exclude, exclude_edge=args.exclude_edge, prefix=f"Path #{i + 1:>{len(str(len(routes)))}}: "
         )
         if len(paths) == 0:
             print(f"Warning: path #{i + 1} ({route_str(city.lines, route)}) have no available starting time. " +
@@ -185,6 +203,10 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
         choices += [
             "Sort routes",
             "Print detailed statistics",
+            "Show first departure",
+            "Show last departure",
+            "Show example timing for best route",
+            "Reassign indexes",
             "Back"
         ]
 
@@ -211,6 +233,25 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
             candidate = [x for x in path_list if x[0] + 1 == index]
             assert len(candidate) == 1, candidate
             display_info_min(city, candidate[0][2], through_dict)
+        elif answer.startswith("Show"):
+            aux_data: dict[int, str] = {}
+            for index, _, info_dict, *_ in data_list:
+                if answer == "Show example timing for best route":
+                    candidate_index = [k for k, v in best_dict.items() if index in v]
+                    if len(candidate_index) == 0:
+                        aux_data[index] = "(None)"
+                        continue
+                    info = info_dict[candidate_index[0]]
+                elif "first" in answer:
+                    info = min(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+                else:
+                    info = max(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+                aux_data[index] = info[2].time_str()
+            print()
+            print_routes_with_data(city, data_list, time_only_mode=time_only_mode, aux_data=aux_data)
+        elif answer == "Reassign indexes":
+            path_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
+            best_dict, data_list = calculate_data(path_list, time_only_mode=time_only_mode)
         elif answer == "Back":
             return
         else:

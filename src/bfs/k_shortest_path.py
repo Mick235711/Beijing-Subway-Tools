@@ -212,14 +212,20 @@ def k_shortest_path(
             new_candidate = (new_result, fixed_path)
 
             found = equivalent_path(new_candidate[1], first_path)
-            for j, (cur_result, cur_candidate) in enumerate(candidate):
-                if equivalent_path(new_candidate[1], cur_candidate):
-                    found = True
+            if not found:
+                for j, (cur_result, cur_candidate) in enumerate(candidate):
+                    if equivalent_path(new_candidate[1], cur_candidate):
+                        found = True
 
-                    # Store only the lowest duration one
-                    if superior_path(bfs_result, new_candidate[0], cur_result, path1=new_candidate[1]):
-                        candidate[j] = new_candidate
-                    break
+                        # Store only the lowest duration one
+                        if superior_path(bfs_result, new_candidate[0], cur_result, path1=new_candidate[1]):
+                            candidate[j] = new_candidate
+                        break
+            if not found:
+                for prev_candidate in result:
+                    if equivalent_path(new_candidate[1], prev_candidate[1]):
+                        found = True
+                        break
             if not found:
                 candidate.append(new_candidate)
 

@@ -277,7 +277,7 @@ def to_trains_wrap(
 def all_time_path(
     city: City, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     path: Path, end_station: str, start_date: date,
-    *, exclude_next_day: bool = False, exclude_edge: bool = False
+    *, exclude_next_day: bool = False, exclude_edge: bool = False, prefix: str = ""
 ) -> list[PathInfo]:
     """ Get the resolved path in all possible timings """
     # Loop through first train to last train
@@ -291,7 +291,7 @@ def all_time_path(
             start_station, second_station
         ))
     )
-    with tqdm(desc=("Calculating " + city.station_full_name(start_station)), total=len(all_list)) as bar:
+    with tqdm(desc=(prefix + "Calculating " + city.station_full_name(start_station)), total=len(all_list)) as bar:
         with mp.Pool() as pool:
             for start_time, start_day, (bfs_result, bfs_path) in pool.imap_unordered(
                 partial(
@@ -300,7 +300,7 @@ def all_time_path(
                     exclude_edge=exclude_edge
                 ), all_list, chunksize=50
             ):
-                bar.set_description("Calculating " + city.station_full_name(start_station) +
+                bar.set_description(prefix + "Calculating " + city.station_full_name(start_station) +
                                     " at " + get_time_repr(start_time, start_day))
                 bar.update()
                 if exclude_next_day and bfs_result.force_next_day:

@@ -146,7 +146,7 @@ class BFSResult:
                 start_line = lines[train[2][0]].full_name()
                 end_station = lines[train[2][2]].station_full_name(train[1])
                 end_line = lines[train[2][2]].full_name()
-                if (train[1], train[2][2], train[2][3]) in splits:
+                if (train[1], train[2][2], train[2][3]) in splits and len(line_list) > 0:
                     split_indexes.append(len(line_list))
                 line_list.append(f"Virtual transfer: {start_station}[{start_line}] -> {end_station}[{end_line}], " +
                                  suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
