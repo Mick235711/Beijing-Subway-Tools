@@ -57,7 +57,7 @@ def ask_for_shortest_path(
 
 
 def ask_for_shortest_time(
-    args: argparse.Namespace, city: City, start: str, end: str,
+    args: argparse.Namespace, city: City, start: str, end: str | None,
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     *, allow_empty: bool = False
 ) -> tuple[date, time, bool]:
@@ -79,12 +79,12 @@ def ask_for_shortest_time(
 
     start_time, start_day = ask_for_time(
         allow_first=lambda: all_trains[0].arrival_time[start],
-        allow_last=lambda: find_last_train(
+        allow_last=(None if end is None else (lambda: find_last_train(
             lines, train_dict,
             city.transfers, virtual_transfers,
             start_date, start, end,
             exclude_edge=args.exclude_edge, include_express=args.include_express
-        ),
+        ))),
         allow_empty=allow_empty
     )
     return start_date, start_time, start_day

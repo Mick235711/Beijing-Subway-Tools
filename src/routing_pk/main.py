@@ -13,7 +13,7 @@ from src.city.ask_for_city import ask_for_city
 from src.city.line import Line
 from src.common.common import suffix_s
 from src.routing_pk.add_routes import add_some_routes
-from src.routing_pk.common import Route, route_str, print_routes, select_routes
+from src.routing_pk.common import Route, print_routes, select_routes
 
 # List of current routes
 CURRENT_ROUTES: list[Route] = []

@@ -9,16 +9,20 @@ import questionary
 import sys
 
 from src.bfs.avg_shortest_time import data_criteria, find_avg_paths
+from src.bfs.bfs import Path
 from src.bfs.common import AbstractPath
-from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path
+from src.bfs.k_shortest_path import k_shortest_path, merge_path
+from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path, ask_for_shortest_time
 from src.city.ask_for_city import ask_for_station_pair, ask_for_date, ask_for_station
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import suffix_s, chin_len, ask_for_int, percentage_str
+from src.common.common import suffix_s, chin_len, ask_for_int, percentage_str, get_time_repr
 from src.dist_graph.adaptor import get_dist_graph, simplify_path
 from src.dist_graph.longest_path import find_longest
 from src.dist_graph.shortest_path import shortest_path
 from src.fare.fare import to_abstract
+from src.routing.through_train import parse_through_train
+from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, select_routes,\
     closest_to
 
@@ -328,7 +332,70 @@ def add_by_shorthand(city: City) -> list[Route]:
     return routes
 
 
-def add_by_kth(city: City, args: argparse.Namespace) -> list[Route]:
+def get_multi_path(city: City, args: argparse.Namespace) -> Route:
+    """" Get paths with intermediate stops """
+    start, _ = ask_for_station(city, message="Please select a starting station:")
+    lines = city.lines
+    virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
+    train_dict = parse_all_trains(
+        list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
+    )
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
+
+    # Main loop for asking intermediate stops
+    last = start
+    exclude = {start}
+    todo: list[tuple[str, str]] = []
+    while True:
+        current, _ = ask_for_station(
+            city, message="Please select an intermediate stop (empty to finish):",
+            exclude=exclude, allow_empty=True
+        )
+        if current == "":
+            current, _ = ask_for_station(
+                city, message="Please select an ending station:", exclude=exclude
+            )
+            todo.append((last, current))
+            break
+        exclude.add(current)
+        todo.append((last, current))
+        last = current
+
+    # Ask for time
+    start_date, start_time, start_day = ask_for_shortest_time(
+        args, city, start, None, train_dict
+    )
+
+    # Actual work
+    current_path: Path = []
+    current_tuple = (start_time, start_day)
+    for i, (start, end) in enumerate(todo):
+        results = k_shortest_path(
+            lines, train_dict, city.transfers, virtual_transfers,
+            start, end, start_date, current_tuple[0], current_tuple[1],
+            exclude_edge=args.exclude_edge, include_express=args.include_express
+        )
+        if len(results) == 0:
+            print("Unreachable!")
+            sys.exit(0)
+        assert len(results) == 1, results
+
+        # Print results
+        result, path = results[0]
+        print(f"\nSegment #{i + 1}: {city.station_full_name(start)} -> {city.station_full_name(end)} from " +
+              get_time_repr(current_tuple[0], current_tuple[1]))
+        result.pretty_print_path(path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
+
+        # Merge result
+        current_tuple = (result.arrival_time, result.arrival_day or result.force_next_day)
+        if len(current_path) == 0:
+            current_path = path
+        else:
+            current_path = merge_path(current_path, path, end, tolerate_same_line=True)
+    return to_abstract(current_path), todo[-1][1]
+
+
+def add_by_kth(city: City, args: argparse.Namespace, *, with_intermediate: bool = False) -> list[Route]:
     """ Add routes by the k-th shortest path """
     local_args = argparse.Namespace(**vars(args))
     data_source = questionary.select(
@@ -340,27 +407,35 @@ def add_by_kth(city: City, args: argparse.Namespace) -> list[Route]:
         sys.exit(0)
     local_args.data_source = data_source.lower()
     if data_source == "Time":
-        local_args.num_path = ask_for_int("Please enter the number of shortest paths to find:")
+        if with_intermediate:
+            local_args.num_path = 1
+        else:
+            local_args.num_path = ask_for_int("Please enter the number of shortest paths to find:")
         local_args.exclude_next_day = False
-        _, _, end_station, results = get_kth_path(local_args, existing_city=city)
-        routes: list[Route] = []
-        for _, path in results:
-            routes.append((to_abstract(path), end_station))
-        print()
-        return select_routes(city.lines, routes, "Please select routes to add:", all_checked=True)[1]
 
-    graph = get_dist_graph(
-        city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
-    )
-    _, start, end, _, _ = ask_for_shortest_path(args, existing_city=city)
-    path_dict = shortest_path(
-        graph, start[0], ignore_dists=(data_source == "Station"), fare_mode=(data_source == "Fare")
-    )
-    if end[0] not in path_dict:
-        print("Unreachable!")
-        sys.exit(0)
-    route = [(simplify_path(path_dict[end[0]][1], end[0]), end[0])]
+        if not with_intermediate:
+            _, _, end_station, results = get_kth_path(local_args, existing_city=city)
+            routes: list[Route] = []
+            for _, path in results:
+                routes.append((to_abstract(path), end_station))
+            print()
+            return select_routes(city.lines, routes, "Please select routes to add:", all_checked=True)[1]
+
+        route = [get_multi_path(city, local_args)]
+    else:
+        graph = get_dist_graph(
+            city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+            include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
+        )
+        _, start, end, _, _ = ask_for_shortest_path(args, existing_city=city)
+        path_dict = shortest_path(
+            graph, start[0], ignore_dists=(data_source == "Station"), fare_mode=(data_source == "Fare")
+        )
+        if end[0] not in path_dict:
+            print("Unreachable!")
+            sys.exit(0)
+        route = [(simplify_path(path_dict[end[0]][1], end[0]), end[0])]
+
     print("\nRoute to be added:", route_str(city.lines, route[0]))
     answer = questionary.confirm("Do you want to add this route?").ask()
     if answer is None:
@@ -409,9 +484,9 @@ def add_by_avg(city: City, args: argparse.Namespace) -> list[Route]:
             limit_list = [x.strip() for x in limit_str.split(",")]
             if len(limit_list) == 0:
                 return "Empty string not allowed!"
-            for station in limit_list:
-                if station not in city.station_lines:
-                    return f"Unknown station: {station}"
+            for inner_station in limit_list:
+                if inner_station not in city.station_lines:
+                    return f"Unknown station: {inner_station}"
         return True
     limit = questionary.text(
         "Please enter a number to show the top N results, or enter " +
@@ -491,6 +566,7 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
         choices += [
             "Add by shorthand syntax",
             "Add by k-shortest path",
+            "Add by shortest path (with intermediate points)",
             "Add by percentage path in a day",
             "Add by longest path",
             "Cancel"
@@ -503,6 +579,8 @@ def add_some_routes(city: City, args: argparse.Namespace) -> list[Route]:
             additional_routes += add_by_shorthand(city)
         elif answer == "Add by k-shortest path":
             additional_routes += add_by_kth(city, args)
+        elif answer == "Add by shortest path (with intermediate points)":
+            additional_routes += add_by_kth(city, args, with_intermediate=True)
         elif answer == "Add by percentage path in a day":
             additional_routes += add_by_avg(city, args)
         elif answer == "Add by longest path":
