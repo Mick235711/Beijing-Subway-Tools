@@ -12,10 +12,12 @@ from datetime import date
 
 from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import superior_path, total_transfer, expand_path, path_distance
+from src.bfs.shortest_path import display_info_min
 from src.city.ask_for_city import ask_for_date
 from src.city.city import City
 from src.common.common import suffix_s, percentage_str, get_time_str, average
 from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
+from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, route_str
 
@@ -35,6 +37,7 @@ def calculate_data(
         for path_info in info_list:
             path_dict[get_time_str(path_info[2].initial_time, path_info[2].initial_day)] = path_info
         temp_list.append((index, route, path_dict))
+    temp_dict = {x[0]: x for x in temp_list}
 
     # Calculate percentage
     # Best dict: start_time_str -> set of indexes of path_list/temp_list that gives the best time
@@ -48,16 +51,16 @@ def calculate_data(
             current_best = best_dict[start_time_str]
             if time_only_mode:
                 duration = path_info[2].total_duration()
-                if all(duration < temp_list[index2][2][start_time_str][2].total_duration() for index2 in current_best):
+                if all(duration < temp_dict[index2][2][start_time_str][2].total_duration() for index2 in current_best):
                     # New best, overwrite
                     best_dict[start_time_str] = {index}
-                elif all(duration == temp_list[index2][2][start_time_str][2].total_duration() for index2 in current_best):
+                elif all(duration == temp_dict[index2][2][start_time_str][2].total_duration() for index2 in current_best):
                     # Tied, append
                     best_dict[start_time_str].add(index)
             else:
                 # Use regular method to compare, always overwrite when better
                 assert len(current_best) == 1, current_best
-                current = temp_list[list(current_best)[0]][2][start_time_str]
+                current = temp_dict[list(current_best)[0]][2][start_time_str]
                 if superior_path(None, path_info[2], current[2], path1=path_info[1], path2=current[1]):
                     best_dict[start_time_str] = {index}
 
@@ -147,6 +150,7 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
     train_dict = parse_all_trains(
         list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
     )
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
     start_date = ask_for_date()
     exclude = questionary.confirm("Exclude path that spans into next day?").ask()
     if exclude is None:
@@ -155,10 +159,15 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
     print("Calculating real-timed paths for " + suffix_s("route", len(routes)) +
           ". The same number of progress bars will appear. Please wait patiently...")
     for i, route in enumerate(routes):
-        path_list.append((i, route, all_time_path(
+        paths = all_time_path(
             city, train_dict, reduce_abstract_path(city.lines, route[0], route[1]), route[1], start_date,
             exclude_next_day=exclude, exclude_edge=args.exclude_edge
-        )))
+        )
+        if len(paths) == 0:
+            print(f"Warning: path #{i + 1} ({route_str(city.lines, route)}) have no available starting time. " +
+                  "It is discarded automatically.")
+            continue
+        path_list.append((i, route, paths))
 
     best_dict, data_list = calculate_data(path_list)
     time_only_mode = False
@@ -175,6 +184,7 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
             choices += ["Change to time-only mode (where the percentage for best time is shown, and percentage may add up to >100%)"]
         choices += [
             "Sort routes",
+            "Print detailed statistics",
             "Back"
         ]
 
@@ -190,6 +200,17 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
         elif answer == "Sort routes":
             data_list = sort_routes(city, start_date, data_list)
             path_list = [(x[0], x[1], list(x[2].values())) for x in data_list]
+        elif answer == "Print detailed statistics":
+            index_str = questionary.select("Please select a route to print statistics for:", choices=[
+                f"#{index + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route)}"
+                for index, route, *_ in data_list
+            ]).ask()
+            if index_str is None:
+                sys.exit(0)
+            index = int(index_str[1:index_str.index(":")].strip())
+            candidate = [x for x in path_list if x[0] + 1 == index]
+            assert len(candidate) == 1, candidate
+            display_info_min(city, candidate[0][2], through_dict)
         elif answer == "Back":
             return
         else:
