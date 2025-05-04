@@ -13,6 +13,7 @@ from src.city.ask_for_city import ask_for_city
 from src.city.line import Line
 from src.common.common import suffix_s
 from src.routing_pk.add_routes import add_some_routes
+from src.routing_pk.analyze_routes import analyze_routes
 from src.routing_pk.common import Route, print_routes, select_routes
 
 # List of current routes
@@ -48,6 +49,7 @@ def main() -> None:
         main_choices = ["Add new routes"]
         if len(CURRENT_ROUTES) > 0:
             main_choices += [
+                "Analyze selected routes",
                 "Delete some existing routes",
                 "Clear all routes and start over"
             ]
@@ -56,6 +58,8 @@ def main() -> None:
         answer = questionary.select("Please select an operation:", choices=main_choices).ask()
         if answer == "Add new routes":
             CURRENT_ROUTES += add_some_routes(city, args)
+        elif answer == "Analyze selected routes":
+            analyze_routes(city, args, CURRENT_ROUTES)
         elif answer == "Delete some existing routes":
             delete_some_routes(city.lines)
         elif answer == "Clear all routes and start over":
