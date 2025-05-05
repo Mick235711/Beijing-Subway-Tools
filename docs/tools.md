@@ -2700,7 +2700,7 @@ Drawing done! Saving to ../test.png...
 This is a special interactive system for comparing different routes.
 Please execute [`main.py`](/src/routing_pk/main.py) to enter the system (with the following command-line arguments), and follow the instructions on the screen.
 ```
-usage: main.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+usage: main.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
@@ -2708,6 +2708,9 @@ options:
                         Limit start time of the search
   -e, --limit-end LIMIT_END
                         Limit end time of the search
+  -c, --color-map COLOR_MAP
+                        Override default colormap
+  --dpi DPI             DPI of output image
   -i, --include-lines INCLUDE_LINES
                         Include lines
   -x, --exclude-lines EXCLUDE_LINES

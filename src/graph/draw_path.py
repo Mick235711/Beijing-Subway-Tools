@@ -97,6 +97,15 @@ def get_edge_wide(map_obj: Map) -> float:
     return min(x.max_width() / 2 for x in map_obj.coordinates.values() if x is not None)
 
 
+def get_path_colormap(color_map: str | None = None) -> list[tuple[float, float, float]] | Colormap:
+    """ Get colormap from command-line arguments """
+    if color_map is not None and color_map.startswith("#"):
+        # Assumes a manually specified color list
+        return [color_to_hex(s.strip()) for s in color_map.split(",")]
+    else:
+        return get_colormap(color_map or "Greys")
+
+
 def draw_path(
     draw: ImageDraw.ImageDraw, map_obj: Map, start_station: str, end_station: str,
     cmap: tuple[float, float, float] | Colormap, index: float | str, alpha: float, edge_wide: float,
@@ -140,6 +149,68 @@ def draw_path(
               anchor="mm", font_size=font_size)
 
 
+def draw_paths(
+    draw_dict: DrawDict, map_obj: Map,
+    cmap: list[tuple[float, float, float]] | Colormap,
+    *, is_ordinal: bool = True, is_longest: bool = False, max_mode: bool = False
+) -> Image.Image:
+    """ Draw several paths on the map """
+    img = Image.open(map_obj.path)
+    draw = ImageDraw.Draw(img)
+    img_new = Image.new("RGBA", img.size)
+    draw_new = ImageDraw.Draw(img_new)
+    edge_wide = get_edge_wide(map_obj)
+
+    alpha_dict: dict[tuple[str, str], float] = {}
+    for index, path, end_station in draw_dict:
+        for i, (station, _) in enumerate(path):
+            next_station = end_station if i == len(path) - 1 else path[i + 1][0]
+            accu = -1.0
+            if (station, next_station) in alpha_dict:
+                accu = max(accu, alpha_dict[(station, next_station)])
+            if (next_station, station) in alpha_dict:
+                accu = max(accu, alpha_dict[(next_station, station)])
+            if is_ordinal:
+                alpha = index if accu < -0.5 else min(index, accu)
+            elif max_mode:
+                alpha = index if accu < -0.5 else max(index, accu)
+            else:
+                alpha = (0.0 if accu < -0.5 else accu) + index
+            alpha_dict[(station, next_station)] = alpha
+            alpha_dict[(next_station, station)] = alpha
+    new_alpha_dict: dict[tuple[str, str], float] = {}
+    for (station, next_station), alpha in alpha_dict.items():
+        if (next_station, station) not in new_alpha_dict:
+            new_alpha_dict[(station, next_station)] = alpha
+    for (station, next_station), alpha in new_alpha_dict.items():
+        if is_ordinal:
+            color_alpha = get_ordinal_alpha(int(alpha), len(draw_dict))
+        else:
+            color_alpha = get_percent_alpha(alpha)
+        if isinstance(cmap, Colormap):
+            color: tuple[float, float, float] | Colormap = cmap
+        else:
+            assert is_ordinal, draw_dict
+            color = cmap[int(alpha)]
+        draw_path(
+            draw_new, map_obj, station, next_station,
+            color, alpha, color_alpha, edge_wide,
+            is_ordinal
+        )
+    img.paste(img_new, mask=img_new)
+
+    start_end_set: set[tuple[str, str]] = set()
+    if is_longest:
+        start_end_set.add((draw_dict[0][1][0][0], draw_dict[-1][2]))
+    else:
+        for _, path, end_station in draw_dict:
+            start_end_set.add((path[0][0], end_station))
+    for start_station, end_station in start_end_set:
+        draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
+        draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
+    return img
+
+
 def main() -> None:
     """ Main function """
     def append_arg(parser: argparse.ArgumentParser) -> None:
@@ -155,11 +226,7 @@ def main() -> None:
                             help="Exclude path that spans into next day")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, have_single=True)
-    if args.color_map is not None and args.color_map.startswith("#"):
-        # Assumes a manually specified color list
-        cmap: list[tuple[float, float, float]] | Colormap = [color_to_hex(s.strip()) for s in args.color_map.split(",")]
-    else:
-        cmap = get_colormap(args.color_map or "Greys")
+    cmap = get_path_colormap(args.color_map)
     if args.strategy == "kth":
         if args.limit_start is not None or args.limit_end is not None:
             print("Warning: --limit-start/end ignored in kth mode.")
@@ -183,58 +250,10 @@ def main() -> None:
         city, draw_dict = fetch_longest_path_result(args)
 
     map_obj = ask_for_map(city)
-    img = Image.open(map_obj.path)
-    draw = ImageDraw.Draw(img)
-    img_new = Image.new("RGBA", img.size)
-    draw_new = ImageDraw.Draw(img_new)
-    edge_wide = get_edge_wide(map_obj)
-
-    alpha_dict: dict[tuple[str, str], float] = {}
-    for index, path, end_station in draw_dict:
-        for i, (station, _) in enumerate(path):
-            next_station = end_station if i == len(path) - 1 else path[i + 1][0]
-            accu = -1.0
-            if (station, next_station) in alpha_dict:
-                accu = max(accu, alpha_dict[(station, next_station)])
-            if (next_station, station) in alpha_dict:
-                accu = max(accu, alpha_dict[(next_station, station)])
-            if args.strategy != "avg":
-                alpha = index if accu < -0.5 else min(index, accu)
-            else:
-                alpha = (0.0 if accu < -0.5 else accu) + index
-            alpha_dict[(station, next_station)] = alpha
-            alpha_dict[(next_station, station)] = alpha
-    new_alpha_dict: dict[tuple[str, str], float] = {}
-    for (station, next_station), alpha in alpha_dict.items():
-        if (next_station, station) not in new_alpha_dict:
-            new_alpha_dict[(station, next_station)] = alpha
-    for (station, next_station), alpha in new_alpha_dict.items():
-        if args.strategy != "avg":
-            color_alpha = get_ordinal_alpha(int(alpha), len(draw_dict))
-        else:
-            color_alpha = get_percent_alpha(alpha)
-        if isinstance(cmap, Colormap):
-            color: tuple[float, float, float] | Colormap = cmap
-        else:
-            assert args.strategy != "avg", args.strategy
-            color = cmap[int(alpha)]
-        draw_path(
-            draw_new, map_obj, station, next_station,
-            color, alpha, color_alpha, edge_wide,
-            args.strategy != "avg"
-        )
-    img.paste(img_new, mask=img_new)
-
-    start_end_set: set[tuple[str, str]] = set()
-    if args.strategy == "longest":
-        start_end_set.add((draw_dict[0][1][0][0], draw_dict[-1][2]))
-    else:
-        for _, path, end_station in draw_dict:
-            start_end_set.add((path[0][0], end_station))
-    for start_station, end_station in start_end_set:
-        draw_station_filled(draw, start_station, (1.0, 0.0, 0.0), map_obj)
-        draw_station_filled(draw, end_station, (0.0, 0.0, 1.0), map_obj)
-
+    img = draw_paths(
+        draw_dict, map_obj, cmap,
+        is_ordinal=(args.strategy != "avg"), is_longest=(args.strategy == "longest")
+    )
     print(f"Drawing done! Saving to {args.output}...")
     img.save(args.output, dpi=(args.dpi, args.dpi))
 

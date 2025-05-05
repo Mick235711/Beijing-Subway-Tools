@@ -5,22 +5,28 @@
 
 # Libraries
 import argparse
+import os
 import questionary
 import sys
 
 from datetime import date
+from PIL import Image
+from matplotlib.colors import Colormap
 
 from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import superior_path, total_transfer, expand_path, path_distance
 from src.bfs.shortest_path import display_info_min
-from src.city.ask_for_city import ask_for_date
+from src.city.ask_for_city import ask_for_date, ask_for_map
 from src.city.city import City
 from src.common.common import suffix_s, percentage_str, get_time_str, average
 from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
+from src.graph.draw_path import draw_paths, DrawDict
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, route_str
 
+# reset max pixel
+Image.MAX_IMAGE_PIXELS = 300000000
 
 # Data for a route:
 # (index, route, start_time_str -> timed BFS path, percentage, average minute, the smallest info, the largest info)
@@ -159,7 +165,32 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
         assert False, criteria
 
 
-def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) -> None:
+def draw_routes(
+    city: City, draw_dict: DrawDict, cmap: list[tuple[float, float, float]] | Colormap,
+    *, is_ordinal: bool = True, dpi: int = 100, max_mode: bool = False
+) -> None:
+    """ Draw routes on a map """
+    map_obj = ask_for_map(city)
+    img = draw_paths(
+        draw_dict, map_obj, cmap,
+        is_ordinal=is_ordinal, max_mode=max_mode
+    )
+    output_path = questionary.path("Drawing done! Please specify a save path:").ask()
+    if output_path is None:
+        sys.exit(0)
+    if os.path.exists(output_path):
+        confirm = questionary.confirm(f"File {output_path} already exists. Overwrite?").ask()
+        if not confirm:
+            print("Operation cancelled.")
+            return
+    img.save(output_path, dpi=(dpi, dpi))
+    print(f"Image saved to {output_path}.")
+
+
+def analyze_routes(
+    city: City, args: argparse.Namespace, routes: list[Route],
+    cmap: list[tuple[float, float, float]] | Colormap, *, dpi: int = 100
+) -> None:
     """ Submenu for analyzing routes """
     assert len(routes) > 0, routes
 
@@ -206,6 +237,7 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
             "Show first departure",
             "Show last departure",
             "Show example timing for best route",
+            "Draw selected routes",
             "Reassign indexes",
             "Back"
         ]
@@ -249,6 +281,20 @@ def analyze_routes(city: City, args: argparse.Namespace, routes: list[Route]) ->
                 aux_data[index] = info[2].time_str()
             print()
             print_routes_with_data(city, data_list, time_only_mode=time_only_mode, aux_data=aux_data)
+        elif answer == "Draw selected routes":
+            is_index = questionary.select("Draw by...", choices=["Index", "Percentage"]).ask()
+            if is_index is None:
+                sys.exit(0)
+            elif is_index == "Index":
+                draw_routes(city, [
+                    (x[0], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1]) for x in data_list
+                ], cmap, dpi=dpi, max_mode=time_only_mode)
+            elif is_index == "Percentage":
+                draw_routes(city, [
+                    (x[3], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1]) for x in data_list
+                ], cmap, is_ordinal=False, dpi=dpi, max_mode=time_only_mode)
+            else:
+                assert False, is_index
         elif answer == "Reassign indexes":
             path_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
             best_dict, data_list = calculate_data(path_list, time_only_mode=time_only_mode)

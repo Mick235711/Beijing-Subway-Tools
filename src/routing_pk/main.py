@@ -12,8 +12,10 @@ from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city
 from src.city.line import Line
 from src.common.common import suffix_s
+from src.dist_graph.adaptor import reduce_abstract_path
+from src.graph.draw_path import get_path_colormap
 from src.routing_pk.add_routes import add_some_routes
-from src.routing_pk.analyze_routes import analyze_routes
+from src.routing_pk.analyze_routes import analyze_routes, draw_routes
 from src.routing_pk.common import Route, print_routes, select_routes
 
 # List of current routes
@@ -32,8 +34,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
+    parser.add_argument("-c", "--color-map", help="Override default colormap")
+    parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
     shortest_path_args(parser, have_single=True)
     args = parser.parse_args()
+    cmap = get_path_colormap(args.color_map)
 
     global CURRENT_ROUTES
     city = ask_for_city()
@@ -50,6 +55,7 @@ def main() -> None:
         if len(CURRENT_ROUTES) > 0:
             main_choices += [
                 "Analyze selected routes",
+                "Draw selected routes",
                 "Delete some existing routes",
                 "Clear all routes and start over"
             ]
@@ -59,7 +65,12 @@ def main() -> None:
         if answer == "Add new routes":
             CURRENT_ROUTES += add_some_routes(city, args)
         elif answer == "Analyze selected routes":
-            analyze_routes(city, args, CURRENT_ROUTES)
+            analyze_routes(city, args, CURRENT_ROUTES, cmap, dpi=args.dpi)
+        elif answer == "Draw selected routes":
+            draw_routes(city, [
+                (i, reduce_abstract_path(city.lines, path, end), end)
+                for i, (path, end) in enumerate(CURRENT_ROUTES)
+            ], cmap, dpi=args.dpi)
         elif answer == "Delete some existing routes":
             delete_some_routes(city.lines)
         elif answer == "Clear all routes and start over":
