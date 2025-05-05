@@ -5,8 +5,9 @@
 
 # Libraries
 import argparse
-import questionary
 import sys
+
+import questionary
 
 from src.bfs.avg_shortest_time import data_criteria, find_avg_paths
 from src.bfs.bfs import Path
@@ -23,7 +24,7 @@ from src.dist_graph.shortest_path import shortest_path
 from src.fare.fare import to_abstract
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
-from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, select_routes,\
+from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, select_routes, \
     closest_to
 
 

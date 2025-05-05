@@ -6,10 +6,10 @@
 # Libraries
 import argparse
 import os
-import questionary
 import sys
-
 from datetime import date, time
+
+import questionary
 from PIL import Image
 from matplotlib.colors import Colormap
 

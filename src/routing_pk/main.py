@@ -5,8 +5,9 @@
 
 # Libraries
 import argparse
-import questionary
 import sys
+
+import questionary
 
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city

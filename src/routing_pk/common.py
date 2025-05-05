@@ -4,8 +4,9 @@
 """ Routing PK system - Common definitions """
 
 # Libraries
-import questionary
 import sys
+
+import questionary
 
 from src.bfs.avg_shortest_time import path_shorthand
 from src.bfs.common import AbstractPath

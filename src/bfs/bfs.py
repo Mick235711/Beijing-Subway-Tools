@@ -14,7 +14,7 @@ from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer
-from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str,\
+from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str, \
     get_time_repr, from_minutes
 from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, find_through_train

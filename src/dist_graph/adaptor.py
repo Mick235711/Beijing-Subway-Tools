@@ -4,10 +4,10 @@
 """ A class for adapting city/line to normal graph """
 
 # Libraries
+import multiprocessing as mp
 from datetime import date, time, timedelta
 from functools import partial
 from math import floor, ceil
-import multiprocessing as mp
 
 from tqdm import tqdm
 
