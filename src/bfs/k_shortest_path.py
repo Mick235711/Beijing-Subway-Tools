@@ -7,7 +7,7 @@
 from datetime import date, time
 from math import floor, ceil
 
-from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index
+from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index, get_result
 from src.city.line import Line
 from src.city.transfer import Transfer
 from src.common.common import add_min
@@ -124,10 +124,11 @@ def k_shortest_path(
         lines, train_dict, transfer_dict, virtual_dict, start_date,
         start_station, start_time, start_day, exclude_edge=exclude_edge, include_express=include_express
     )
-    if end_station not in bfs_result:
+    end_result = get_result(bfs_result, end_station)
+    if end_result is None:
         return result
-    first_path = bfs_result[end_station].shortest_path(bfs_result)
-    result.append((bfs_result[end_station], first_path))
+    first_path = end_result[1].shortest_path(bfs_result)
+    result.append((end_result[1], first_path))
     print(f"Found {len(result)}-th shortest path!")
 
     # Main loop
@@ -201,9 +202,11 @@ def k_shortest_path(
             if saved_train != train:
                 saved_station = station
                 saved_train = train
-            if end_station not in bfs_result:
+
+            new_result_tuple = get_result(bfs_result, end_station)
+            if new_result_tuple is None:
                 continue
-            new_result = bfs_result[end_station]
+            new_result = new_result_tuple[1]
             new_path = new_result.shortest_path(bfs_result)
             new_result.initial_time = start_time
             new_result.initial_day = start_day

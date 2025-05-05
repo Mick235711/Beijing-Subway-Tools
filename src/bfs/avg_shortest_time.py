@@ -11,7 +11,7 @@ from functools import partial
 
 from tqdm import tqdm
 
-from src.bfs.bfs import bfs_wrap, get_all_trains_single, BFSResult, total_transfer, expand_path
+from src.bfs.bfs import bfs_wrap, get_all_trains_single, BFSResult, total_transfer, expand_path, get_result
 from src.bfs.common import AbstractPath, Path
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_station_list
 from src.city.city import City
@@ -102,7 +102,12 @@ def all_time_bfs(
                 multi_result.append(elem)
 
     for _, _, bfs_result in multi_result:
-        for station, single_result in bfs_result.items():
+        stations = set([x[0] for x in bfs_result.keys()])
+        for station in stations:
+            result = get_result(bfs_result, station)
+            if result is None:
+                continue
+            single_result = result[1]
             if station not in results:
                 results[station] = []
             results[station].append((

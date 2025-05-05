@@ -1163,7 +1163,7 @@ There are a lot of flags:
 
 Example Usage:
 <pre>
-$ python3 src/dist_graph/exotic_path.py
+$ python3 src/dist_graph/exotic_path.py -n 20 --delta-metric time --exclude-virtual
 ? Please select a city: <i>北京</i>
 ? Please enter the travel date (yyyy-mm-dd): <i>2025-01-17</i>
 ? Please enter the travel time (hh:mm): <i>10:00</i>

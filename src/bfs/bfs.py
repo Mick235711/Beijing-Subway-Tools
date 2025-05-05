@@ -14,8 +14,8 @@ from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
 from src.city.transfer import Transfer
-from src.common.common import diff_time, diff_time_tuple, format_duration, get_time_str, add_min, suffix_s, \
-    distance_str, get_time_repr, from_minutes
+from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str,\
+    get_time_repr, from_minutes
 from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, find_through_train
 from src.routing.train import Train
@@ -37,12 +37,20 @@ class BFSResult:
         self.prev_station, self.prev_train = prev_station, prev_train
         self.force_next_day = force_next_day
 
-    def shortest_path(self, results: dict[str, BFSResult]) -> Path:
+    def prev_key(self) -> tuple[str, str, str]:
+        """ Generate key for result_dict """
+        assert self.prev_station is not None and self.prev_train is not None, (self.station, self.prev_station)
+        if isinstance(self.prev_train, Train):
+            return self.prev_station, self.prev_train.line.name, self.prev_train.direction
+        return self.prev_station, self.prev_train[2][0], self.prev_train[2][1]
+
+    def shortest_path(self, results: dict[tuple[str, str, str], BFSResult]) -> Path:
         """ Return the shortest path """
         prev_station = self.prev_station
         prev_train = self.prev_train
         path: Path = []
-        while prev_station in results:
+        key = self.prev_key()
+        while key in results:
             assert prev_station is not None and prev_train is not None, self
             if not isinstance(prev_train, Train) and len(path) > 0 and isinstance(path[0][1], Train):
                 # Try to fix virtual transfer
@@ -52,8 +60,11 @@ class BFSResult:
                         prev_train[2][0], prev_train[2][1], path[0][1].line.name, path[0][1].direction
                     ), prev_train[3], prev_train[4])
             path = [(prev_station, prev_train)] + path
-            prev_train = results[prev_station].prev_train
-            prev_station = results[prev_station].prev_station
+            prev_train = results[key].prev_train
+            prev_station = results[key].prev_station
+            if prev_station is None:
+                break
+            key = results[key].prev_key()
         assert prev_station is not None and prev_train is not None, self
         return [(prev_station, prev_train)] + path
 
@@ -90,7 +101,8 @@ class BFSResult:
                 ("" if fare_str is None or fare_str == "" else ", fare = " + fare_str) + ".")
 
     def pretty_print(
-        self, results: dict[str, BFSResult], lines: dict[str, Line], transfer_dict: dict[str, Transfer], indent: int = 0,
+        self, results: dict[tuple[str, str, str], BFSResult], lines: dict[str, Line],
+        transfer_dict: dict[str, Transfer], indent: int = 0,
         *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, fare_rules: Fare | None = None
     ) -> None:
         """ Print the shortest path to this station """
@@ -248,66 +260,28 @@ def get_all_trains_single(
     return sorted(all_passing, key=lambda t: get_time_str(*t.arrival_time[station]))
 
 
-def get_all_trains(
-    lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
-    virtual_dict: dict[tuple[str, str], Transfer],
-    station: str, cur_date: date
-) -> list[tuple[str, Train]]:
-    """ Get all trains passing through a station and its virtual transfers """
-    all_passing = [(station, x) for x in get_all_trains_single(lines, train_dict, station, cur_date)]
-    for (from_station, to_station), transfer in virtual_dict.items():
-        if from_station == station:
-            all_passing += [(to_station, x) for x in get_all_trains_single(lines, train_dict, to_station, cur_date)]
-    return sorted(all_passing, key=lambda st: get_time_str(*st[1].arrival_time[st[0]]))
-
-
 def find_next_train(
-    lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
-    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
-    cur_date: date, station: str, cur_time: time, cur_day: bool = False,
-    cur_line: Line | None = None, cur_direction: str | None = None,
-    *,
-    exclude_tuple: set[tuple[Line, str]] | None = None,
-    exclude_edge: bool = False
-) -> list[tuple[str, Train]]:
+    cur_date: date, cur_time: time, cur_day: bool,
+    station: str, line: Line, direction: str,
+) -> list[Train]:
     """ Find all possible next trains """
     # Find one for each line/direction/routes pair
-    result: dict[tuple[str, str, frozenset[TrainRoute]], tuple[str, Train]] = {}
-    for new_station, train in get_all_trains(lines, train_dict, virtual_dict, station, cur_date):
-        # calculate the least time for this line/direction
-        if new_station != station:
-            if cur_line is None or cur_direction is None:
-                # Simply get the lowest possible transfer time
-                _, _, _, _, transfer_time, _ = virtual_dict[(station, new_station)].get_smallest_time(
-                    cur_line, cur_direction, train.line, train.direction,
-                    cur_date, cur_time, cur_day
-                )
-            else:
-                transfer_time, _ = virtual_dict[(station, new_station)].get_transfer_time(
-                    cur_line, cur_direction, train.line, train.direction,
-                    cur_date, cur_time, cur_day
-                )
-        elif cur_line is not None and cur_line != train.line:
-            assert cur_direction is not None, (cur_line, cur_direction)
-            transfer_time, _ = transfer_dict[station].get_transfer_time(
-                cur_line, cur_direction, train.line, train.direction,
-                cur_date, cur_time, cur_day
-            )
-        else:
-            transfer_time = 0
-        next_time, next_day = add_min(cur_time, (floor if exclude_edge else ceil)(transfer_time), cur_day)
-        diff_min = diff_time_tuple((next_time, next_day), train.arrival_time[new_station])
-        if diff_min > 0:
+    result: dict[tuple[str, str, frozenset[TrainRoute]], Train] = {}
+    all_passing: list[Train] = []
+    for date_group, date_dict in train_dict[line.name][direction].items():
+        if not line.date_groups[date_group].covers(cur_date):
             continue
-        if exclude_edge and diff_min == 0 and transfer_time != 0:
-            continue
-        if exclude_tuple is not None and (train.line, train.direction) in exclude_tuple:
-            continue
+        for train in date_dict:
+            if station in train.arrival_time and station not in train.skip_stations:
+                arr_time, arr_day = train.arrival_time[station]
+                if diff_time(arr_time, cur_time, arr_day, cur_day) < 0:
+                    continue
+                all_passing.append(train)
+    for train in sorted(all_passing, key=lambda st: get_time_str(*st.arrival_time[station])):
         key = (train.line.name, train.direction, frozenset(train.routes))
         if key not in result:
-            result[key] = (new_station, train)
+            result[key] = train
     return list(result.values())
 
 
@@ -351,7 +325,7 @@ def path_index(result: BFSResult, path: Path) -> tuple[int, int, int, int]:
 
 
 def superior_path(
-    results: dict[str, BFSResult] | None,
+    results: dict[tuple[str, str, str], BFSResult] | None,
     result1: BFSResult, result2: BFSResult,
     *, path1: Path | None = None, path2: Path | None = None
 ) -> bool:
@@ -390,49 +364,108 @@ def bfs(
     exclude_edges: dict[str, set[tuple[Line, str]]] | None = None,  # station -> line, direction
     exclude_edge: bool = False,
     include_express: bool = False
-) -> dict[str, BFSResult]:
+) -> dict[tuple[str, str, str], BFSResult]:
     """ Search for the shortest path (by time) to every station """
-    queue = [start_station]
-    results: dict[str, BFSResult] = {}
-    in_queue = {start_station}
+    # Construct a station -> (line, direction) dict
+    station_dict: dict[str, list[tuple[Line, str]]] = {}
+    for line in lines.values():
+        for station in line.stations:
+            if station not in station_dict:
+                station_dict[station] = []
+            for direction in line.directions.keys():
+                station_dict[station].append((line, direction))
+    virtual_station_dict: dict[str, set[str]] = {}
+    for station1, station2 in virtual_dict.keys():
+        if station1 not in virtual_station_dict:
+            virtual_station_dict[station1] = set()
+        virtual_station_dict[station1].add(station2)
+
+    starting_time_dict: dict[tuple[str, str], tuple[time, bool]] | None = None
+    if initial_line_direction is not None:
+        # Calculate appropriate starting time
+        starting_time_dict = {}
+        for line, direction in station_dict[start_station]:
+            if line.name == initial_line_direction[0].name and direction == initial_line_direction[1]:
+                starting_time_dict[(line.name, direction)] = (start_time, start_day)
+            elif line.name != initial_line_direction[0].name:
+                transfer_time, _ = transfer_dict[start_station].get_transfer_time(
+                    initial_line_direction[0], initial_line_direction[1], line, direction,
+                    start_date, start_time, start_day
+                )
+                starting_time_dict[(line.name, direction)] = add_min(
+                    start_time, (floor if exclude_edge else ceil)(transfer_time), start_day
+                )
+
+    # Set starting point at all possible lines and directions
+    queue = [
+        (start_station, line.name, direction) for line, direction in station_dict[start_station]
+        if exclude_edges is None or start_station not in exclude_edges or
+           (line, direction) not in exclude_edges[start_station]
+    ]
+    results: dict[tuple[str, str, str], BFSResult] = {}
+    if start_station in virtual_station_dict:
+        for new_station in virtual_station_dict[start_station]:
+            for line, direction in station_dict[new_station]:
+                if exclude_edges is not None and start_station in exclude_edges and\
+                        (line, direction) in exclude_edges[start_station]:
+                    continue
+                fr_line, fr_dir, to_line, to_dir, transfer_time, special = virtual_dict[
+                    (start_station, new_station)
+                ].get_smallest_time(
+                    to_line=line, to_direction=direction, cur_date=start_date, cur_time=start_time, cur_day=start_day
+                )
+                next_time, next_day = add_min(start_time, (floor if exclude_edge else ceil)(transfer_time), start_day)
+                queue.append((new_station, line.name, direction))
+                results[(new_station, line.name, direction)] = BFSResult(
+                    new_station, start_date,
+                    start_time, start_day,
+                    next_time, next_day,
+                    start_station, (
+                        start_station, new_station, (fr_line, fr_dir, to_line, to_dir), transfer_time, special
+                    )
+                )
+    in_queue = set(queue)
     while len(queue) > 0:
-        station, queue = queue[0], queue[1:]
-        in_queue.remove(station)
-        exclude_tuple: set[tuple[Line, str]] = set()
-        prev_is_virtual = False
+        key, queue = queue[0], queue[1:]
+        station, line_name, direction = key
+        line = lines[line_name]
+        in_queue.remove(key)
+        # print("Dequeue", key)
         if station == start_station:
-            cur_time, cur_day = start_time, start_day
-            prev_line, prev_direction = initial_line_direction or (None, None)
-        else:
-            cur_time, cur_day = results[station].arrival_time, results[station].arrival_day
-            prev_train = results[station].prev_train
-            assert prev_train is not None, results[station]
-            if isinstance(prev_train, Train):
-                prev_line = prev_train.line
-                prev_direction = prev_train.direction
-                for direction in prev_line.directions.keys():
-                    exclude_tuple.add((prev_line, direction))
+            if starting_time_dict is None:
+                cur_time, cur_day = start_time, start_day
+            elif (line_name, direction) not in starting_time_dict:
+                continue
             else:
-                prev_is_virtual = True
-                prev_line = lines[prev_train[2][2]]
-                prev_direction = prev_train[2][3]
+                cur_time, cur_day = starting_time_dict[(line_name, direction)]
+            prev_train = None
+            prev_station: str | None = None
+        else:
+            cur_time, cur_day = results[key].arrival_time, results[key].arrival_day
+            prev_train = results[key].prev_train
+            prev_station = results[key].prev_station
 
         # Iterate through all possible next steps
+        exclude_tuple: set[tuple[Line, str]] = set()
+        for direction2 in line.directions.keys():
+            if direction != direction2:
+                exclude_tuple.add((line, direction2))
         if exclude_edges is not None and station in exclude_edges:
             exclude_tuple |= exclude_edges[station]
-        for next_train_start, next_train in find_next_train(
-            lines, train_dict, transfer_dict, {} if prev_is_virtual else virtual_dict, start_date, station,
-            cur_time, cur_day, prev_line, prev_direction,
-            exclude_tuple=exclude_tuple, exclude_edge=exclude_edge
-        ):
-            next_train_virtual = next_train.arrival_time_virtual(next_train_start)
-            if len(next_train.line.must_include) != 0 and next_train_start not in next_train.line.must_include and not (
+
+        if prev_train is not None and isinstance(prev_train, Train) and prev_train.line.name == line_name:
+            next_trains = []
+        else:
+            next_trains = find_next_train(train_dict, start_date, cur_time, cur_day, station, line, direction)
+        for next_train in next_trains:
+            next_train_virtual = next_train.arrival_time_virtual(station)
+            if len(next_train.line.must_include) != 0 and station not in next_train.line.must_include and not (
                 station == start_station and initial_line_direction is not None and
                 initial_line_direction[0] == next_train.line
             ) and not include_express:
                 next_stations = [
                     (st, next_train_virtual[st]) for st in next_train.line.must_include
-                    if st in next_train_virtual and st != next_train_start
+                    if st in next_train_virtual and st != station
                 ]
             else:
                 next_stations = list(next_train_virtual.items())[1:]
@@ -451,63 +484,97 @@ def bfs(
                     next_station, start_date,
                     start_time, start_day,
                     next_time, next_day,
-                    next_train_start, next_train
+                    station, next_train
                 )
+                new_key = (next_station, next_train.line.name, next_train.direction)
                 if (
-                    next_train_start not in results or
-                    next_station not in [x[0] for x in results[next_train_start].shortest_path(results)]
-                ) and (next_station not in results or superior_path(
-                    results, next_result, results[next_station]
+                    key not in results or
+                    next_station not in [x[0] for x in results[key].shortest_path(results)]
+                ) and (new_key not in results or superior_path(
+                    results, next_result, results[new_key]
                 )):
-                    results[next_station] = next_result
-                    if next_station not in in_queue:
-                        in_queue.add(next_station)
-                        queue.append(next_station)
+                    results[new_key] = next_result
+                    if new_key not in in_queue:
+                        in_queue.add(new_key)
+                        queue.append(new_key)
 
-                if next_train_start != station:
-                    # A virtual transfer occurred
-                    if prev_line is None or prev_direction is None:
-                        from_l, from_d, to_l, to_d, transfer_time, special = virtual_dict[
-                            (station, next_train_start)
-                        ].get_smallest_time(
-                            prev_line, prev_direction, next_train.line, next_train.direction,
-                            start_date, cur_time, cur_day
-                        )
-                        transfer_spec = (from_l, from_d, to_l, to_d)
-                    else:
-                        transfer_spec = (prev_line.name, prev_direction, next_train.line.name, next_train.direction)
-                        transfer_time, special = virtual_dict[(station, next_train_start)].get_transfer_time(
-                            prev_line, prev_direction, next_train.line, next_train.direction,
-                            start_date, cur_time, cur_day
-                        )
-                    transferred_time, transferred_day = add_min(
-                        cur_time, (floor if exclude_edge else ceil)(transfer_time), cur_day
-                    )
-                    next_start_result = BFSResult(
-                        next_train_start, start_date,
-                        start_time, start_day,
-                        transferred_time, transferred_day,
-                        station, (station, next_train_start, transfer_spec, transfer_time, special)
-                    )
-                    if (
-                        station == start_station or
-                        next_train_start not in [x[0] for x in results[station].shortest_path(results)]
-                    ) and (next_train_start not in results or superior_path(
-                        results, next_start_result, results[next_train_start]
-                    )):
-                        results[next_train_start] = next_start_result
-                        if next_train_start not in in_queue:
-                            in_queue.add(next_train_start)
-                            queue.append(next_train_start)
+        # We do not want to do two transfers in a row
+        if isinstance(prev_train, Train) and prev_train.line.name != line_name:
+            continue
+        if prev_train is None:
+            continue
+
+        # Update all the transfer-able points
+        update_list: list[tuple[str, Line, str]] = []
+        for new_line, new_direction in station_dict[station]:
+            if new_line.name == line_name:
+                # For now, don't consider same-line transfers
+                continue
+            if (new_line, new_direction) in exclude_tuple:
+                continue
+            update_list.append((station, new_line, new_direction))
+
+        # Update all the virtual transfer-able points
+        if station in virtual_station_dict:
+            for new_station in virtual_station_dict[station]:
+                for new_line, new_direction in station_dict[new_station]:
+                    if (new_line, new_direction) in exclude_tuple:
+                        continue
+                    update_list.append((new_station, new_line, new_direction))
+
+        for new_station, new_line, new_direction in update_list:
+            transfer_spec = (line_name, direction, new_line.name, new_direction)
+            transfer_obj = transfer_dict[station] if new_station == station else virtual_dict[(station, new_station)]
+            transfer_time, special = transfer_obj.get_transfer_time(
+                line, direction, new_line, new_direction,
+                start_date, cur_time, cur_day
+            )
+            next_time, next_day = add_min(cur_time, (floor if exclude_edge else ceil)(transfer_time), cur_day)
+            new_result = BFSResult(
+                station, start_date,
+                start_time, start_day,
+                next_time, next_day,
+                prev_station if new_station == station else station,
+                prev_train if new_station == station else (station, new_station, transfer_spec, transfer_time, special)
+            )
+            new_key = (new_station, new_line.name, new_direction)
+            if (
+                key not in results or
+                new_station not in [x[0] for x in results[key].shortest_path(results)]
+            ) and (new_key not in results or superior_path(
+                results, new_result, results[new_key]
+            )):
+                results[new_key] = new_result
+                if new_key not in in_queue:
+                    in_queue.add(new_key)
+                    queue.append(new_key)
 
     return results
+
+
+def get_result(
+    results: dict[tuple[str, str, str], BFSResult], end_station: str
+) -> tuple[tuple[str, str, str], BFSResult] | None:
+    """ Get the result for a specific station """
+    candidate: tuple[tuple[str, str, str], BFSResult] | None = None
+    for key, result in results.items():
+        if key[0] != end_station:
+            continue
+        if candidate is None:
+            candidate = (key, result)
+            continue
+
+        # Determine which is better
+        if superior_path(results, result, candidate[1]):
+            candidate = (key, result)
+    return candidate
 
 
 def bfs_wrap(lines: dict[str, Line],
              train_dict: dict[str, dict[str, dict[str, list[Train]]]],
              transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
              start_date: date, start_station: str, minute: int,
-             *_, **kwargs) -> tuple[time, bool, dict[str, BFSResult]]:
+             *_, **kwargs) -> tuple[time, bool, dict[tuple[str, str, str], BFSResult]]:
     """ Wrap around the bfs() method """
     cur_time, cur_day = from_minutes(minute)
     return cur_time, cur_day, bfs(
@@ -520,7 +587,7 @@ def single_bfs(lines: dict[str, Line],
                train_dict: dict[str, dict[str, dict[str, list[Train]]]],
                transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
                start_date: date, data: tuple[str, time, bool],
-               *_, **kwargs) -> tuple[tuple[str, time, bool], dict[str, BFSResult]]:
+               *_, **kwargs) -> tuple[tuple[str, time, bool], dict[tuple[str, str, str], BFSResult]]:
     """ Wrap around the bfs() method but with station at the end """
     return data, bfs(
         lines, train_dict, transfer_dict, virtual_dict, start_date, data[0], data[1], data[2],

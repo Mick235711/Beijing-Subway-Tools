@@ -12,7 +12,7 @@ from functools import partial
 from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import PathInfo, path_shorthand
-from src.bfs.bfs import total_transfer, expand_path, single_bfs
+from src.bfs.bfs import total_transfer, expand_path, single_bfs, get_result
 from src.bfs.common import Path
 from src.city.ask_for_city import ask_for_date, ask_for_time
 from src.city.city import City
@@ -54,9 +54,14 @@ def all_station_bfs(
 
     results: dict[str, dict[str, dict[int, PathInfo]]] = {}
     for (cur_station, start_time, start_day), bfs_result in multi_result:
-        for station, single_result in bfs_result.items():
+        bfs_stations = set([x[0] for x in bfs_result.keys()])
+        for station in bfs_stations:
             if station not in stations:
                 continue
+            result = get_result(bfs_result, station)
+            if result is None:
+                continue
+            single_result = result[1]
             if cur_station not in results:
                 results[cur_station] = {}
             if station not in results[cur_station]:
