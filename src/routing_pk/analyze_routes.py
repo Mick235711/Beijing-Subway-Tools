@@ -22,7 +22,7 @@ from src.common.common import suffix_s, percentage_str, get_time_str, average, d
 from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
 from src.graph.draw_path import draw_paths, DrawDict
 from src.routing.through_train import parse_through_train
-from src.routing.train import parse_all_trains, Train
+from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, route_str
 
 # reset max pixel
@@ -220,7 +220,7 @@ def draw_routes(
 def analyze_routes(
     city: City, args: argparse.Namespace, routes: list[Route],
     cmap: list[tuple[float, float, float]] | Colormap, *, dpi: int = 100
-) -> None:
+) -> list[Route]:
     """ Submenu for analyzing routes """
     assert len(routes) > 0, routes
 
@@ -333,6 +333,6 @@ def analyze_routes(
             path_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
             best_dict, data_list = calculate_data(path_list, time_only_mode=time_only_mode)
         elif answer == "Back":
-            return
+            return [x[1] for x in path_list]
         else:
             assert False, answer

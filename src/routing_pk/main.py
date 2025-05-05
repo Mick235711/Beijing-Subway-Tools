@@ -65,7 +65,7 @@ def main() -> None:
         if answer == "Add new routes":
             CURRENT_ROUTES += add_some_routes(city, args)
         elif answer == "Analyze selected routes":
-            analyze_routes(city, args, CURRENT_ROUTES, cmap, dpi=args.dpi)
+            CURRENT_ROUTES = analyze_routes(city, args, CURRENT_ROUTES, cmap, dpi=args.dpi)
         elif answer == "Draw selected routes":
             draw_routes(city, [
                 (i, reduce_abstract_path(city.lines, path, end), end)
