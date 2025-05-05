@@ -92,7 +92,8 @@ def ask_for_shortest_time(
 
 def display_info_min(
     city: City, infos: list[PathInfo],
-    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None,
+    *, show_first_last: bool = False
 ) -> list[tuple[BFSResult, Path]]:
     """ Display info array's minimum and maximum elements """
     if len(infos) == 0:
@@ -115,6 +116,17 @@ def display_info_min(
     min_info[2].pretty_print_path(
         min_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
     )
+    if show_first_last:
+        first_info = min(infos, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+        last_info = max(infos, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+        print("\nEarliest time path:")
+        first_info[2].pretty_print_path(
+            first_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
+        )
+        print("\nLatest time path:")
+        last_info[2].pretty_print_path(
+            last_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
+        )
     return [(min_info[2], min_info[1]), (max_info[2], max_info[1])]
 
 
@@ -172,7 +184,7 @@ def get_kth_path(
                 city, train_dict, path, end[0], start_date,
                 exclude_next_day=args.exclude_next_day, exclude_edge=args.exclude_edge
             )
-            results = display_info_min(city, infos, through_dict)
+            results = display_info_min(city, infos, through_dict, show_first_last=True)
         else:
             results = [to_trains(
                 lines, train_dict, city.transfers, virtual_transfers, path, end[0],

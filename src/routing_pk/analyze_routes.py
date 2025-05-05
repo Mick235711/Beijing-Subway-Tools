@@ -9,20 +9,20 @@ import os
 import questionary
 import sys
 
-from datetime import date
+from datetime import date, time
 from PIL import Image
 from matplotlib.colors import Colormap
 
 from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import superior_path, total_transfer, expand_path, path_distance
 from src.bfs.shortest_path import display_info_min
-from src.city.ask_for_city import ask_for_date, ask_for_map
+from src.city.ask_for_city import ask_for_date, ask_for_map, ask_for_time
 from src.city.city import City
-from src.common.common import suffix_s, percentage_str, get_time_str, average
+from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple
 from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
 from src.graph.draw_path import draw_paths, DrawDict
 from src.routing.through_train import parse_through_train
-from src.routing.train import parse_all_trains
+from src.routing.train import parse_all_trains, Train
 from src.routing_pk.common import Route, route_str
 
 # reset max pixel
@@ -165,6 +165,36 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
         assert False, criteria
 
 
+def strip_routes(path_list: list[tuple[int, Route, list[PathInfo]]]) -> list[tuple[int, Route, list[PathInfo]]]:
+    """ Strip the path list with a given time constraint """
+    start_time, start_day = ask_for_time(
+        message="Please enter the earliest departure time (inclusive, empty for no restriction):",
+        allow_empty=True
+    )
+    end_time, end_day = ask_for_time(
+        message="Please enter the latest departure time (inclusive, empty for no restriction):",
+        allow_empty=True
+    )
+    new_path: list[tuple[int, Route, list[PathInfo]]] = []
+    for index, route, info_list in path_list:
+        if start_time != time.max or not start_day:
+            # Filter with the given minimum time
+            info_list = [
+                info for info in info_list
+                if diff_time_tuple((info[2].initial_time, info[2].initial_day), (start_time, start_day)) >= 0
+            ]
+
+        if end_time != time.max or not end_day:
+            # Filter with the given maximum time
+            info_list = [
+                info for info in info_list
+                if diff_time_tuple((info[2].initial_time, info[2].initial_day), (end_time, end_day)) <= 0
+            ]
+
+        new_path.append((index, route, info_list))
+    return new_path
+
+
 def draw_routes(
     city: City, draw_dict: DrawDict, cmap: list[tuple[float, float, float]] | Colormap,
     *, is_ordinal: bool = True, dpi: int = 100, max_mode: bool = False
@@ -238,6 +268,7 @@ def analyze_routes(
             "Show last departure",
             "Show example timing for best route",
             "Draw selected routes",
+            "Strip routes",
             "Reassign indexes",
             "Back"
         ]
@@ -264,7 +295,7 @@ def analyze_routes(
             index = int(index_str[1:index_str.index(":")].strip())
             candidate = [x for x in path_list if x[0] + 1 == index]
             assert len(candidate) == 1, candidate
-            display_info_min(city, candidate[0][2], through_dict)
+            display_info_min(city, candidate[0][2], through_dict, show_first_last=True)
         elif answer.startswith("Show"):
             aux_data: dict[int, str] = {}
             for index, _, info_dict, *_ in data_list:
@@ -295,6 +326,9 @@ def analyze_routes(
                 ], cmap, is_ordinal=False, dpi=dpi, max_mode=time_only_mode)
             else:
                 assert False, is_index
+        elif answer == "Strip routes":
+            path_list = strip_routes(path_list)
+            best_dict, data_list = calculate_data(path_list, time_only_mode=time_only_mode)
         elif answer == "Reassign indexes":
             path_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
             best_dict, data_list = calculate_data(path_list, time_only_mode=time_only_mode)

@@ -430,7 +430,8 @@ def ask_for_date() -> date:
 
 
 def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
-                 allow_last: Callable[[], TimeSpec] | None = None, allow_empty: bool = False) -> TimeSpec:
+                 allow_last: Callable[[], TimeSpec] | None = None, allow_empty: bool = False,
+                 message: str | None = None) -> TimeSpec:
     """ Ask for a time """
     valid_answer: dict[str, Callable[[], TimeSpec]] = {}
     if allow_first is not None:
@@ -440,11 +441,14 @@ def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
     if allow_empty:
         # FIXME: choose a better default than this
         valid_answer[""] = lambda: (time.max, True)
-    response, answer = ask_question(
+    ask_message = message if message is not None else (
         "Please enter the travel time (hh:mm" +
-        (" or first" if allow_first else "") + (" or last" if allow_last else "") + ")" +
-        (" (empty for min/max)" if allow_empty else "") + ":",
-        parse_time, default=get_time_str(datetime.now().time()), valid_answer=valid_answer
+        (" or first" if allow_first else "") +
+        (" or last" if allow_last else "") + ")" +
+        (" (empty for min/max)" if allow_empty else "") + ":"
+    )
+    response, answer = ask_question(
+        ask_message, parse_time, default=get_time_str(datetime.now().time()), valid_answer=valid_answer
     )
     if response in valid_answer:
         return answer
