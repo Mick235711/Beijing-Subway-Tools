@@ -168,8 +168,8 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
 def strip_routes(path_list: list[tuple[int, Route, list[PathInfo]]]) -> list[tuple[int, Route, list[PathInfo]]]:
     """ Strip the path list with a given time constraint """
     start_time, start_day = ask_for_time(
-        message="Please enter the earliest departure time (inclusive, empty for no restriction):",
-        allow_empty=True
+        message="Please enter the earliest departure time (inclusive, empty for no restriction, first for real first departure):",
+        allow_empty=True, allow_first=lambda: (time.max, False)
     )
     end_time, end_day = ask_for_time(
         message="Please enter the latest departure time (inclusive, empty for no restriction):",
@@ -177,11 +177,23 @@ def strip_routes(path_list: list[tuple[int, Route, list[PathInfo]]]) -> list[tup
     )
     new_path: list[tuple[int, Route, list[PathInfo]]] = []
     for index, route, info_list in path_list:
-        if start_time != time.max or not start_day:
+        min_cutoff: tuple[time, bool] | None = None
+        if start_time == time.max and not start_day:
+            # Real first train: the last departure time that achieves the same arrival time as the first
+            first_info = min(info_list, key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
+            first_arrival = (first_info[2].arrival_time, first_info[2].arrival_day)
+            last_info = max([
+                info for info in info_list
+                if info[2].arrival_time == first_arrival[0] and info[2].arrival_day == first_arrival[1]
+            ], key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
+            min_cutoff = (last_info[2].initial_time, last_info[2].initial_day)
+        elif start_time != time.max:
+            min_cutoff = (start_time, start_day)
+        if min_cutoff is not None:
             # Filter with the given minimum time
             info_list = [
                 info for info in info_list
-                if diff_time_tuple((info[2].initial_time, info[2].initial_day), (start_time, start_day)) >= 0
+                if diff_time_tuple((info[2].initial_time, info[2].initial_day), min_cutoff) >= 0
             ]
 
         if end_time != time.max or not end_day:
