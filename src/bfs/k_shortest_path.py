@@ -57,12 +57,20 @@ def merge_path(path1: Path, path2: Path, path2_end: str, *, tolerate_same_line: 
 
         # Detect if we have an exact backtracked situation
         path2_next = path2_end if len(path2) == 1 else path2[1][0]
-        if path1[-1][0] == path2_next:
-            return merge_path(path1[:-1], path2[1:], path2_end, tolerate_same_line=tolerate_same_line)
-        if path1[-1][0] in path2[0][1].arrival_time_two_station(path2[0][0], path2_next):
+        if path2[0][1].direction != path1[-1][1].direction:
+            if path1[-1][0] == path2_next:
+                return merge_path(path1[:-1], path2[1:], path2_end, tolerate_same_line=tolerate_same_line)
+            if path1[-1][0] in path2[0][1].arrival_time_two_station(path2[0][0], path2_next):
+                return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
+
+        # Try to resolve same-line non-continuity issues
+        if path2_next in path1[-1][1].arrival_time_virtual(path1[-1][0]):
+            return path1 + path2[1:]
+        elif path1[-1][0] in path2[0][1].arrival_time and path2[0][0] in path2[0][1].arrival_time_virtual(path1[-1][0]):
             return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
-        assert path2[0][0] in path1[-1][1].arrival_time, (path1, path2)
-        return path1 + path2[1:]
+        else:
+            # FIXME: We have a problem; both train cannot reach each other. Bail out for now
+            assert False, (path1, path2)
     return path1 + path2
 
 

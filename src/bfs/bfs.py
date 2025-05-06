@@ -315,9 +315,10 @@ def path_distance(path: Path, end_station: str) -> int:
 
 def path_index(result: BFSResult, path: Path) -> tuple[int, int, int, int]:
     """ Index to compare paths """
+    # Every virtual transfer counts as two transfers
     result2 = (
         result.total_duration(),
-        total_transfer(path),
+        total_transfer(path) + len([1 for _, train in path if not isinstance(train, Train)]),
         len(expand_path(path, result.station)),
         result.total_distance(path),
     )
