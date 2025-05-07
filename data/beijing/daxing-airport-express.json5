@@ -62,29 +62,29 @@
                 }
             },
             "出城": {
-                // 以+12min计算
+                // 以+14min计算
                 "平日": {
                     schedule: [
-                        {first_train: "06:00", delta: [9, 10, [35, [9, 10, 9]], 10]}
+                        {first_train: "06:02", delta: [9, 10, [35, [9, 10, 9]], 10]}
                     ],
                     filters: [
-                        {plan: "4节编组", first_train: "06:19", skip_trains: 2, until: "22:39"}
+                        {plan: "4节编组", first_train: "06:21", skip_trains: 2, until: "22:41"}
                     ]
                 },
                 "重点保障": {
                     schedule: [
-                        {first_train: "06:00", delta: [[107, [8]], 9, 9, 9, 9, 10, 9, 9, 10, 9, [7, [10]]]}
+                        {first_train: "06:02", delta: [[107, [8]], 9, 9, 9, 9, 10, 9, 9, 10, 9, [7, [10]]]}
                     ],
                     filters: [
-                        {plan: "4节编组", first_train: "06:16", skip_trains: 2, until: "22:39"}
+                        {plan: "4节编组", first_train: "06:18", skip_trains: 2, until: "22:41"}
                     ]
                 },
                 "周日": {
                     schedule: [
-                        {first_train: "06:00", delta: [9, 10, [35, [9, 10, 9]], 10]}
+                        {first_train: "06:02", delta: [9, 10, [35, [9, 10, 9]], 10]}
                     ],
                     filters: [
-                        {plan: "4节编组", first_train: "06:19", skip_trains: 2, until: "22:39"}
+                        {plan: "4节编组", first_train: "06:21", skip_trains: 2, until: "22:41"}
                     ]
                 }
             }
@@ -146,30 +146,30 @@
         },
         "草桥": {
             "进城": {
-                // 以+7min计算
+                // 以+9min计算
                 "平日": {
                     schedule: [
-                        {first_train: "06:19", delta: [10, [35, [9, 10, 9]], 15, 15]}
+                        {first_train: "06:21", delta: [10, [35, [9, 10, 9]], 15, 15]}
                     ],
                     filters: [
-                        {plan: "4节编组", first_train: "06:19", skip_trains: 2, until: "22:40"}
+                        {plan: "4节编组", first_train: "06:21", skip_trains: 2, until: "22:42"}
                     ]
                 },
                 "重点保障": {
                     schedule: [
-                        {first_train: "06:19", delta: [10, [108, [8]], 9, 10, 9, 9, 10, 9, 9, 10, 10, 10, 10]},
-                        {first_train: "22:49", delta: [15, 15]}
+                        {first_train: "06:21", delta: [10, [108, [8]], 9, 10, 9, 9, 10, 9, 9, 10, 10, 10, 10]},
+                        {first_train: "22:51", delta: [15, 15]}
                     ],
                     filters: [
-                        {plan: "4节编组", first_train: "06:37", skip_trains: 2, until: "23:04"}
+                        {plan: "4节编组", first_train: "06:39", skip_trains: 2, until: "23:06"}
                     ]
                 },
                 "周日": {
                     schedule: [
-                        {first_train: "06:19", delta: [10, [35, [9, 10, 9]], 15, 15, 15, 15]}
+                        {first_train: "06:21", delta: [10, [35, [9, 10, 9]], 15, 15, 15, 15]}
                     ],
                     filters: [
-                        {plan: "4节编组", first_train: "06:19", skip_trains: 2, until: "22:40"}
+                        {plan: "4节编组", first_train: "06:21", skip_trains: 2, until: "22:42"}
                     ]
                 }
             },
