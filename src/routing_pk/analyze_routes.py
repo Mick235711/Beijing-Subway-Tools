@@ -89,7 +89,7 @@ def calculate_data(
 
 
 def print_routes_with_data(
-    city: City, data_list: list[RouteData], *, time_only_mode: bool = False,
+    city: City, data_list: list[RouteData], *, time_only_mode: bool = False, show_absolute: bool = False,
     aux_data: dict[int, str] | None = None
 ) -> None:
     """ Print current routes """
@@ -101,13 +101,16 @@ def print_routes_with_data(
         print("Currently in time-only mode.")
     else:
         print("Currently in full comparison mode.")
+    if show_absolute:
+        inner = "(xx.xx) = average minutes needed across the whole day, "
+    else:
+        inner = "(+xx.xx) = average worse minutes compared to the best route, "
     print("Legend: # = route number, (xx.xx%) = percentage of time in a day where this route is best, " +
-          "(+xx.xx) = average worse minutes compared to the best route, " +
-          "(xx-xx) = min-max minutes.\n")
+          inner + "(xx-xx) = min-max minutes.\n")
 
     percent_max_len = max(len(percentage_str(x[3])) for x in data_list)
     min_avg = min(x[4] for x in data_list)
-    avg_max_len = max(len(f"{x[4] - min_avg:.2f}") for x in data_list)
+    avg_max_len = max(len(f"{x[4]:.2f}" if show_absolute else f"{x[4] - min_avg:.2f}") for x in data_list)
     min_max_len = max(len(str(x[5][0])) for x in data_list)
     max_max_len = max(len(str(x[6][0])) for x in data_list)
     if aux_data is None:
@@ -120,7 +123,9 @@ def print_routes_with_data(
             print(f"{aux_data[index]:<{aux_max_len}}", end="")
         else:
             print(f"({percentage_str(percentage):>{percent_max_len}})", end="")
-            if min_avg == avg_min:
+            if show_absolute:
+                print(f" ({avg_min:>{avg_max_len}.2f})", end="")
+            elif min_avg == avg_min:
                 print(" (" + (" " * (avg_max_len - 3)) + "Best)", end="")
             else:
                 print(f" (+{avg_min - min_avg:>{avg_max_len}.2f})", end="")
@@ -268,10 +273,11 @@ def analyze_routes(
 
     best_dict, data_list = calculate_data(path_list, city.transfers, through_dict)
     time_only_mode = False
+    show_absolute = False
     while True:
         print("\n\n=====> Route Analyzer <=====")
         print("Currently selected routes:")
-        print_routes_with_data(city, data_list, time_only_mode=time_only_mode)
+        print_routes_with_data(city, data_list, time_only_mode=time_only_mode, show_absolute=show_absolute)
         print()
 
         choices = []
@@ -287,6 +293,7 @@ def analyze_routes(
             "Show example timing for best route",
             "Draw selected routes",
             "Strip routes",
+            "Display relative average times" if show_absolute else "Display absolute average times",
             "Reassign indexes",
             "Back"
         ]
@@ -347,6 +354,11 @@ def analyze_routes(
         elif answer == "Strip routes":
             path_list = strip_routes(path_list)
             best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=time_only_mode)
+        elif answer.startswith("Display"):
+            if "relative" in answer:
+                show_absolute = False
+            else:
+                show_absolute = True
         elif answer == "Reassign indexes":
             path_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
             best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=time_only_mode)
