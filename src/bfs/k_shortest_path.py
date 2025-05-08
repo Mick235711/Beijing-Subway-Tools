@@ -7,10 +7,12 @@
 from datetime import date, time
 from math import floor, ceil
 
-from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index, get_result
+from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index, get_result, combine_trains
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import add_min
+from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
 
 
@@ -64,13 +66,7 @@ def merge_path(path1: Path, path2: Path, path2_end: str, *, tolerate_same_line: 
                 return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
 
         # Try to resolve same-line non-continuity issues
-        if path2_next in path1[-1][1].arrival_time_virtual(path1[-1][0]):
-            return path1 + path2[1:]
-        elif path1[-1][0] in path2[0][1].arrival_time and path2[0][0] in path2[0][1].arrival_time_virtual(path1[-1][0]):
-            return path1[:-1] + [(path1[-1][0], path2[0][1])] + path2[1:]
-        else:
-            # FIXME: We have a problem; both train cannot reach each other. Bail out for now
-            assert False, (path1, path2)
+        return path1[:-1] + combine_trains([path1[-1]], [path2[0]], path2_next) + path2[1:]
     return path1 + path2
 
 
@@ -117,7 +113,7 @@ def fix_path(path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_da
 
 def k_shortest_path(
     lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_station: str, end_station: str,
     start_date: date, start_time: time, start_day: bool = False,
@@ -129,10 +125,10 @@ def k_shortest_path(
 
     # First find p1
     bfs_result = bfs(
-        lines, train_dict, transfer_dict, virtual_dict, start_date,
-        start_station, start_time, start_day, exclude_edge=exclude_edge, include_express=include_express
+        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
+        start_station, (start_time, start_day), exclude_edge=exclude_edge, include_express=include_express
     )
-    end_result = get_result(bfs_result, end_station)
+    end_result = get_result(bfs_result, end_station, transfer_dict, through_dict)
     if end_result is None:
         return result
     first_path = end_result[1].shortest_path(bfs_result)
@@ -201,8 +197,8 @@ def k_shortest_path(
                     saved_arrival_time[0], (floor if exclude_edge else ceil)(saved_train[3]), saved_arrival_time[1]
                 )
             bfs_result = bfs(
-                lines, train_dict, transfer_dict, virtual_dict, start_date,
-                station, *saved_arrival_time,
+                lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
+                station, saved_arrival_time,
                 initial_line_direction=(None if i == 0 else line_direction),
                 exclude_stations=set(x[0] for x in trace[:i]),
                 exclude_edges=exclude_edges, exclude_edge=exclude_edge, include_express=include_express
@@ -211,7 +207,7 @@ def k_shortest_path(
                 saved_station = station
                 saved_train = train
 
-            new_result_tuple = get_result(bfs_result, end_station)
+            new_result_tuple = get_result(bfs_result, end_station, transfer_dict, through_dict)
             if new_result_tuple is None:
                 continue
             new_result = new_result_tuple[1]
@@ -229,7 +225,10 @@ def k_shortest_path(
                         found = True
 
                         # Store only the lowest duration one
-                        if superior_path(bfs_result, new_candidate[0], cur_result, path1=new_candidate[1]):
+                        if superior_path(
+                            bfs_result, new_candidate[0], cur_result, transfer_dict, through_dict,
+                            path1=new_candidate[1]
+                        ):
                             candidate[j] = new_candidate
                         break
             if not found:
@@ -243,7 +242,7 @@ def k_shortest_path(
         # Select the shortest candidate and add to the result
         if len(candidate) == 0:
             return result
-        candidate_list = sorted(candidate, key=lambda p: path_index(*p))
+        candidate_list = sorted(candidate, key=lambda p: path_index(p[0], p[1], transfer_dict, through_dict))
         result.append(candidate_list[0])
         print(f"Found {len(result)}-th shortest path!")
         candidate = candidate_list[1:]

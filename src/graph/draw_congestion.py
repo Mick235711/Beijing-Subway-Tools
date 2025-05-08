@@ -25,6 +25,7 @@ from src.dist_graph.adaptor import get_dist_graph
 from src.dist_graph.exotic_path import all_station_bfs
 from src.graph.draw_map import map_args, get_colormap
 from src.graph.draw_path import get_edge_wide, draw_path
+from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains, Train
 from src.stats.common import display_first
 
@@ -502,9 +503,10 @@ def main() -> None:
     train_dict = parse_all_trains(
         list(city.lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
     )
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
     stations = set(graph.keys())
     paths = all_station_bfs(
-        stations, city.lines, train_dict, city.transfers,
+        stations, city.lines, train_dict, through_dict, city.transfers,
         {} if args.exclude_virtual else city.virtual_transfers,
         start_date, time_set, exclude_edge=args.exclude_edge, include_express=args.include_express
     )

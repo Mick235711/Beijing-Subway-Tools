@@ -59,14 +59,21 @@ class BFSResult:
                     prev_train = (prev_train[0], prev_train[1], (
                         prev_train[2][0], prev_train[2][1], path[0][1].line.name, path[0][1].direction
                     ), prev_train[3], prev_train[4])
-            path = [(prev_station, prev_train)] + path
+            if len(path) == 0:
+                path = [(prev_station, prev_train)]
+            else:
+                next_station = self.station if len(path) == 1 else path[1][0]
+                path = combine_trains([(prev_station, prev_train)], [path[0]], next_station) + path[1:]
             prev_train = results[key].prev_train
             prev_station = results[key].prev_station
             if prev_station is None:
                 break
             key = results[key].prev_key()
         assert prev_station is not None and prev_train is not None, self
-        return [(prev_station, prev_train)] + path
+        if len(path) == 0:
+            return [(prev_station, prev_train)]
+        next_station = self.station if len(path) == 1 else path[1][0]
+        return combine_trains([(prev_station, prev_train)], [path[0]], next_station) + path[1:]
 
     def total_duration(self) -> int:
         """ Get total duration """
@@ -242,6 +249,26 @@ class BFSResult:
         print(indent_str + preamble + line_list[-1])
 
 
+def combine_trains(path1: Path, path2: Path, end_station: str) -> Path:
+    """ Collapse path such that adjacent same-line trains are merged """
+    assert len(path1) == len(path2) == 1, (path1, path2, end_station)
+    prev_station, prev_train = path1[0]
+    next_station, next_train = path2[0]
+    if not isinstance(prev_train, Train) or not isinstance(next_train, Train):
+        return path1 + path2
+    if prev_train.line.name != next_train.line.name:
+        return path1 + path2
+    assert prev_train.direction == next_train.direction, (path1, path2, end_station)
+
+    if end_station in prev_train.arrival_time_virtual(prev_station):
+        return path1
+    elif prev_station in next_train.arrival_time and next_station in next_train.arrival_time_virtual(prev_station):
+        return [(prev_station, next_train)]
+    else:
+        # FIXME: We have a problem; both train cannot reach each other. Bail out for now
+        assert False, (path1, path2)
+
+
 def get_all_trains_single(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], station: str,
@@ -302,6 +329,41 @@ def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTr
     return total_len
 
 
+def total_transfer_duration(
+    result: BFSResult, path: Path, transfer_dict: dict[str, Transfer],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+) -> float:
+    """ Get the sum of all transfer times """
+    sum_duration = 0.0
+    for i, (station, train) in enumerate(path):
+        if not isinstance(train, Train):
+            sum_duration += train[3]
+            continue
+        if i == len(path) - 1:
+            continue
+
+        next_station = path[i + 1][0]
+        next_train = path[i + 1][1]
+        if not isinstance(next_train, Train):
+            continue
+
+        # Exclude through trains
+        if through_dict is not None:
+            through = find_through_train(through_dict, train)
+            if through is not None and next_train in through[1].trains.values():
+                continue
+
+        # Process normal transfer
+        next_time, next_day = train.arrival_time_virtual(station)[next_station]
+        transfer_time, _ = transfer_dict[next_station].get_transfer_time(
+            train.line, train.direction,
+            next_train.line, next_train.direction,
+            result.start_date, next_time, next_day
+        )
+        sum_duration += transfer_time
+    return sum_duration
+
+
 def path_distance(path: Path, end_station: str) -> int:
     """ Get total distance """
     res = 0
@@ -313,12 +375,16 @@ def path_distance(path: Path, end_station: str) -> int:
     return res
 
 
-def path_index(result: BFSResult, path: Path) -> tuple[int, int, int, int]:
+def path_index(
+    result: BFSResult, path: Path, transfer_dict: dict[str, Transfer],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+) -> tuple[int | float, ...]:
     """ Index to compare paths """
     # Every virtual transfer counts as two transfers
     result2 = (
         result.total_duration(),
         total_transfer(path) + len([1 for _, train in path if not isinstance(train, Train)]),
+        total_transfer_duration(result, path, transfer_dict, through_dict),
         len(expand_path(path, result.station)),
         result.total_distance(path),
     )
@@ -327,7 +393,8 @@ def path_index(result: BFSResult, path: Path) -> tuple[int, int, int, int]:
 
 def superior_path(
     results: dict[tuple[str, str, str], BFSResult] | None,
-    result1: BFSResult, result2: BFSResult,
+    result1: BFSResult, result2: BFSResult, transfer_dict: dict[str, Transfer],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None,
     *, path1: Path | None = None, path2: Path | None = None
 ) -> bool:
     """ Determine if path1 is better than path2 """
@@ -338,7 +405,11 @@ def superior_path(
     if path2 is None:
         assert results is not None
         path2 = result2.shortest_path(results)
-    return path_index(result1, path1) < path_index(result2, path2)
+    return path_index(
+        result1, path1, transfer_dict, through_dict
+    ) < path_index(
+        result2, path2, transfer_dict, through_dict
+    )
 
 
 def expand_path(path: Path, end_station: str, *, expand_all: bool = False) -> Path:
@@ -356,9 +427,9 @@ def expand_path(path: Path, end_station: str, *, expand_all: bool = False) -> Pa
 
 def bfs(
     lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
-    start_date: date, start_station: str, start_time: time, start_day: bool = False,
+    start_date: date, start_station: str, start_time_tuple: tuple[time, bool],
     *,
     initial_line_direction: tuple[Line, str] | None = None,
     exclude_stations: set[str] | None = None,
@@ -381,6 +452,7 @@ def bfs(
             virtual_station_dict[station1] = set()
         virtual_station_dict[station1].add(station2)
 
+    start_time, start_day = start_time_tuple
     starting_time_dict: dict[tuple[str, str], tuple[time, bool]] | None = None
     if initial_line_direction is not None:
         # Calculate appropriate starting time
@@ -492,7 +564,7 @@ def bfs(
                     key not in results or
                     next_station not in [x[0] for x in results[key].shortest_path(results)]
                 ) and (new_key not in results or superior_path(
-                    results, next_result, results[new_key]
+                    results, next_result, results[new_key], transfer_dict, through_dict
                 )):
                     results[new_key] = next_result
                     if new_key not in in_queue:
@@ -543,7 +615,7 @@ def bfs(
                 key not in results or
                 new_station not in [x[0] for x in results[key].shortest_path(results)]
             ) and (new_key not in results or superior_path(
-                results, new_result, results[new_key]
+                results, new_result, results[new_key], transfer_dict, through_dict
             )):
                 results[new_key] = new_result
                 if new_key not in in_queue:
@@ -554,7 +626,8 @@ def bfs(
 
 
 def get_result(
-    results: dict[tuple[str, str, str], BFSResult], end_station: str
+    results: dict[tuple[str, str, str], BFSResult], end_station: str, transfer_dict: dict[str, Transfer],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> tuple[tuple[str, str, str], BFSResult] | None:
     """ Get the result for a specific station """
     candidate: tuple[tuple[str, str, str], BFSResult] | None = None
@@ -566,31 +639,33 @@ def get_result(
             continue
 
         # Determine which is better
-        if superior_path(results, result, candidate[1]):
+        if superior_path(results, result, candidate[1], transfer_dict, through_dict):
             candidate = (key, result)
     return candidate
 
 
 def bfs_wrap(lines: dict[str, Line],
              train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+             through_dict: dict[ThroughSpec, list[ThroughTrain]],
              transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
              start_date: date, start_station: str, minute: int,
              *_, **kwargs) -> tuple[time, bool, dict[tuple[str, str, str], BFSResult]]:
     """ Wrap around the bfs() method """
     cur_time, cur_day = from_minutes(minute)
     return cur_time, cur_day, bfs(
-        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station, cur_time, cur_day,
-        **kwargs
+        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date, start_station,
+        (cur_time, cur_day), **kwargs
     )
 
 
 def single_bfs(lines: dict[str, Line],
                train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+               through_dict: dict[ThroughSpec, list[ThroughTrain]],
                transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
                start_date: date, data: tuple[str, time, bool],
                *_, **kwargs) -> tuple[tuple[str, time, bool], dict[tuple[str, str, str], BFSResult]]:
     """ Wrap around the bfs() method but with station at the end """
     return data, bfs(
-        lines, train_dict, transfer_dict, virtual_dict, start_date, data[0], data[1], data[2],
+        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date, data[0], (data[1], data[2]),
         **kwargs
     )

@@ -25,14 +25,14 @@ from src.routing.train import Train, parse_all_trains
 
 def find_last_train(
     lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, end_station: str, *,
     exclude_edge: bool = False, include_express: bool = False
 ) -> TimeSpec:
     """ Calculate the last possible time to reach station """
     results = all_time_bfs(
-        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
+        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date, start_station,
         exclude_edge=exclude_edge, include_express=include_express
     )
     max_result = max(results[end_station], key=lambda x: (
@@ -58,7 +58,7 @@ def ask_for_shortest_path(
 
 def ask_for_shortest_time(
     args: argparse.Namespace, city: City, start: str, end: str | None,
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     *, allow_empty: bool = False
 ) -> tuple[date, time, bool]:
     """ Ask time information for shortest path computation """
@@ -80,7 +80,7 @@ def ask_for_shortest_time(
     start_time, start_day = ask_for_time(
         allow_first=lambda: all_trains[0].arrival_time[start],
         allow_last=(None if end is None else (lambda: find_last_train(
-            lines, train_dict,
+            lines, train_dict, through_dict,
             city.transfers, virtual_transfers,
             start_date, start, end,
             exclude_edge=args.exclude_edge, include_express=args.include_express
@@ -136,7 +136,7 @@ def get_kth_path(
     """ Get the kth shortest paths """
     city, start, end, train_dict, through_dict = ask_for_shortest_path(args, existing_city=existing_city)
     start_date, start_time, start_day = ask_for_shortest_time(
-        args, city, start[0], end[0], train_dict,
+        args, city, start[0], end[0], train_dict, through_dict,
         allow_empty=(args.data_source != "time")
     )
     lines = city.lines
@@ -149,7 +149,7 @@ def get_kth_path(
             print("Warning: --exclude-next-day ignored in time mode.")
         num_path = args.num_path or 1
         results = k_shortest_path(
-            lines, train_dict, city.transfers, virtual_transfers,
+            lines, train_dict, through_dict, city.transfers, virtual_transfers,
             start[0], end[0],
             start_date, start_time, start_day,
             k=num_path, exclude_edge=args.exclude_edge, include_express=args.include_express

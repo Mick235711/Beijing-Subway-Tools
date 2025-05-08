@@ -364,7 +364,7 @@ def get_multi_path(city: City, args: argparse.Namespace) -> Route:
 
     # Ask for time
     start_date, start_time, start_day = ask_for_shortest_time(
-        args, city, start, None, train_dict
+        args, city, start, None, train_dict, through_dict
     )
 
     # Actual work
@@ -372,7 +372,7 @@ def get_multi_path(city: City, args: argparse.Namespace) -> Route:
     current_tuple = (start_time, start_day)
     for i, (start, end) in enumerate(todo):
         results = k_shortest_path(
-            lines, train_dict, city.transfers, virtual_transfers,
+            lines, train_dict, through_dict, city.transfers, virtual_transfers,
             start, end, start_date, current_tuple[0], current_tuple[1],
             exclude_edge=args.exclude_edge, include_express=args.include_express
         )

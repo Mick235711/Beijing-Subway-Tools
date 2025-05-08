@@ -73,7 +73,7 @@ def reconstruct_paths(paths: list[PathInfo]) -> list[PathInfo]:
 
 def all_time_bfs(
     lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, *,
     limit_start: time | None = None, limit_start_day: bool = False,
@@ -92,8 +92,8 @@ def all_time_bfs(
             multi_result = []
             for elem in pool.imap_unordered(
                 partial(
-                    bfs_wrap, lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
-                    exclude_edge=exclude_edge, include_express=include_express
+                    bfs_wrap, lines, train_dict, through_dict, transfer_dict, virtual_dict,
+                    start_date, start_station, exclude_edge=exclude_edge, include_express=include_express
                 ), all_list, chunksize=50
             ):
                 bar.set_description("Calculating " + station_full_name(start_station, lines) +
@@ -104,7 +104,7 @@ def all_time_bfs(
     for _, _, bfs_result in multi_result:
         stations = set([x[0] for x in bfs_result.keys()])
         for station in stations:
-            result = get_result(bfs_result, station)
+            result = get_result(bfs_result, station, transfer_dict, through_dict)
             if result is None:
                 continue
             single_result = result[1]
@@ -125,18 +125,17 @@ data_criteria = ["time", "stddev", "transfer", "station", "distance", "fare", "m
 
 def calculate_shortest(
     lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, start_station: str, *,
     limit_start_tuple: TimeSpec | None = None, limit_end_tuple: TimeSpec | None = None,
     exclude_edge: bool = False, include_express: bool = False,
-    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None,
     fare_rules: Fare | None = None
 ) -> dict[str, tuple[float, float, float, float, float, float | None, PathInfo, PathInfo,
           list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Calculate the average shortest time to each station (return type: avg time, transfer, station, distance) """
     results = all_time_bfs(
-        lines, train_dict, transfer_dict, virtual_dict, start_date, start_station,
+        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date, start_station,
         limit_start=(None if limit_start_tuple is None else limit_start_tuple[0]),
         limit_start_day=(False if limit_start_tuple is None else limit_start_tuple[1]),
         limit_end=(None if limit_end_tuple is None else limit_end_tuple[0]),
@@ -190,11 +189,10 @@ def shortest_in_city(
     _, through_dict = parse_through_train(train_dict, city.through_specs)
     virtual_transfers = city.virtual_transfers if not exclude_virtual else {}
     return city, start, through_dict, calculate_shortest(
-        lines, train_dict, city.transfers, virtual_transfers, start_date, start,
+        lines, train_dict, through_dict, city.transfers, virtual_transfers, start_date, start,
         limit_start_tuple=parse_time_opt(limit_start),
         limit_end_tuple=parse_time_opt(limit_end),
-        exclude_edge=exclude_edge, include_express=include_express,
-        through_dict=through_dict, fare_rules=city.fare_rules
+        exclude_edge=exclude_edge, include_express=include_express, fare_rules=city.fare_rules
     )
 
 

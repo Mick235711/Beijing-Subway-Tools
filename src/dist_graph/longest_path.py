@@ -173,6 +173,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         train_dict = parse_all_trains(
             list(lines.values()), include_lines=args.include_lines, exclude_lines=args.exclude_lines
         )
+        _, through_dict = parse_through_train(train_dict, city.through_specs)
         if args.circuit:
             station, _ = ask_for_station(
                 city, message="Please select a starting/ending station (empty for random):", allow_empty=True
@@ -182,17 +183,16 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         if station != "":
             start, end = (station, set()), (station, set())
             start_date, start_time, start_day = ask_for_shortest_time(
-                args, city, station, station, train_dict,
+                args, city, station, station, train_dict, through_dict,
                 allow_empty=True
             )
         else:
             start_date = ask_for_date()
             start_time, start_day = ask_for_time(allow_empty=True)
-        _, through_dict = parse_through_train(train_dict, city.through_specs)
     else:
         city, start, end, train_dict, through_dict = ask_for_shortest_path(args, existing_city=existing_city)
         start_date, start_time, start_day = ask_for_shortest_time(
-            args, city, start[0], end[0], train_dict,
+            args, city, start[0], end[0], train_dict, through_dict,
             allow_empty=True
         )
         lines = city.lines

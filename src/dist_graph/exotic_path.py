@@ -31,7 +31,7 @@ from src.stats.common import parse_args, display_first
 
 def all_station_bfs(
     stations: set[str], lines: dict[str, Line],
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, time_set: set[TimeSpec],
     *, exclude_edge: bool = False, include_express: bool = False
@@ -43,7 +43,7 @@ def all_station_bfs(
             multi_result = []
             for elem in pool.imap_unordered(
                 partial(
-                    single_bfs, lines, train_dict, transfer_dict, virtual_dict, start_date,
+                    single_bfs, lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
                     exclude_edge=exclude_edge, include_express=include_express
                 ), data_set, chunksize=50
             ):
@@ -58,7 +58,7 @@ def all_station_bfs(
         for station in bfs_stations:
             if station not in stations:
                 continue
-            result = get_result(bfs_result, station)
+            result = get_result(bfs_result, station, transfer_dict, through_dict)
             if result is None:
                 continue
             single_result = result[1]
@@ -74,7 +74,8 @@ def all_station_bfs(
 
 
 def all_path(
-    city: City, stations: set[str], graph: Graph, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    city: City, stations: set[str], graph: Graph,
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     start_date: date, start_time: time, start_day: bool = False,
     *, data_source: str = "station", exclude_virtual: bool = False,
     exclude_edge: bool = False, include_express: bool = False
@@ -82,7 +83,7 @@ def all_path(
     """ Get all station's shortest path dict, with real trains """
     if data_source == "time":
         inner_result = all_station_bfs(
-            stations, city.lines, train_dict, city.transfers,
+            stations, city.lines, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
             start_date, {(start_time, start_day)}, exclude_edge=exclude_edge, include_express=include_express
         )
@@ -240,12 +241,12 @@ def main() -> None:
     _, through_dict = parse_through_train(train_dict, city.through_specs)
     stations = set(graph.keys())
     paths_basis = all_path(
-        city, stations, graph, train_dict, start_date, start_time, start_day,
+        city, stations, graph, train_dict, through_dict, start_date, start_time, start_day,
         data_source=args.data_source, exclude_virtual=args.exclude_virtual,
         exclude_edge=args.exclude_edge, include_express=args.include_express
     )
     paths_compare = all_path(
-        city, stations, graph, train_dict, start_date, start_time, start_day,
+        city, stations, graph, train_dict, through_dict, start_date, start_time, start_day,
         data_source=args.compare_against, exclude_virtual=args.exclude_virtual,
         exclude_edge=args.exclude_edge, include_express=args.include_express
     )
