@@ -8,6 +8,7 @@ import argparse
 import os
 import sys
 from datetime import date, time
+from math import ceil
 
 import questionary
 from PIL import Image
@@ -20,7 +21,8 @@ from src.city.ask_for_city import ask_for_date, ask_for_map, ask_for_time
 from src.city.city import City
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple
+from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple, parse_time, \
+    add_min_tuple
 from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
 from src.graph.draw_path import draw_paths, DrawDict
 from src.routing.through_train import parse_through_train, ThroughTrain
@@ -131,6 +133,63 @@ def print_routes_with_data(
                 print(f" (+{avg_min - min_avg:>{avg_max_len}.2f})", end="")
         print(f" ({min_info[0]:>{min_max_len}}-{max_info[0]:>{max_max_len}}) ", end="")
         print(route_str(city.lines, route))
+
+
+def show_segment_best(city: City, best_dict: dict[str, set[int]], data_list: list[RouteData]) -> None:
+    """ Show the segmented best route with timing """
+    assert len(data_list) > 0, data_list
+    assert all(len(x) == 1 for x in best_dict.values()), best_dict
+
+    show_mode = questionary.select("Please select a showing mode:", choices=["List mode", "Compact mode"]).ask()
+    if show_mode is None:
+        sys.exit(0)
+    elif show_mode == "List mode":
+        is_list = True
+    elif show_mode == "Compact mode":
+        is_list = False
+    else:
+        assert False, show_mode
+
+    route_dict = {index: (route, path_dict) for index, route, path_dict, *_ in data_list}
+    time_list = sorted([(k, list(v)[0]) for k, v in best_dict.items()])
+    if is_list:
+        print(f"+--- {time_list[0][0]}")
+    last_index: tuple[str, int] | None = None
+    compact_dict: dict[int, list[str]] = {}
+    for i, (time_str, index) in enumerate(time_list):
+        if last_index is not None and (i == len(time_list) - 1 or last_index[1] != index):
+            route = route_dict[last_index[1]]
+            last_time = parse_time(last_index[0])
+            this_time = parse_time(time_str)
+            if is_list:
+                diff_min = diff_time_tuple(this_time, last_time)
+                diff_hour = ceil(diff_min / 60)
+                for h in range(diff_hour):
+                    if h == diff_hour // 2:
+                        print(f"| #{last_index[1] + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route[0])}")
+                    else:
+                        print("|")
+                print(f"+--- {time_str}")
+            if last_index[1] not in compact_dict:
+                compact_dict[last_index[1]] = []
+            adjusted_end = add_min_tuple(this_time, -1)
+            new_time_str = get_time_str(*adjusted_end)
+            if new_time_str == last_index[0]:
+                compact_dict[last_index[1]].append(new_time_str)
+            else:
+                compact_dict[last_index[1]].append(f"{last_index[0]}-{new_time_str}")
+            last_index = (time_str, index)
+        elif last_index is None:
+            last_index = (time_str, index)
+        else:
+            last_index = (last_index[0], index)
+
+    if not is_list:
+        for index, time_str_list in compact_dict.items():
+            route = route_dict[index]
+            print(f"#{index + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route[0])}")
+            print("=====>", ", ".join(time_str_list))
+            print()
 
 
 def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[RouteData]:
@@ -290,7 +349,11 @@ def analyze_routes(
             "Print detailed statistics",
             "Show first departure",
             "Show last departure",
-            "Show example timing for best route",
+            "Show example timing for best route"
+        ]
+        if not time_only_mode:
+            choices += ["Show segmented best route for each timing"]
+        choices += [
             "Draw selected routes",
             "Strip routes",
             "Display relative average times" if show_absolute else "Display absolute average times",
@@ -321,6 +384,8 @@ def analyze_routes(
             candidate = [x for x in path_list if x[0] + 1 == index]
             assert len(candidate) == 1, candidate
             display_info_min(city, candidate[0][2], through_dict, show_first_last=True)
+        elif answer == "Show segmented best route for each timing":
+            show_segment_best(city, best_dict, data_list)
         elif answer.startswith("Show"):
             aux_data: dict[int, str] = {}
             for index, _, info_dict, *_ in data_list:
