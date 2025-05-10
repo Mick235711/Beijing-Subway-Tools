@@ -8,7 +8,7 @@ import sys
 
 import questionary
 
-from src.bfs.avg_shortest_time import path_shorthand
+from src.bfs.avg_shortest_time import path_shorthand, PathInfo
 from src.bfs.common import AbstractPath
 from src.city.city import City
 from src.city.line import Line
@@ -16,6 +16,10 @@ from src.common.common import to_pinyin
 
 # Represents a route: (path, end_station), start is path[0][0]
 Route = tuple[AbstractPath, str]
+
+# Data for a route:
+# (index, route, start_time_str -> timed BFS path, percentage, average minute, the smallest info, the largest info)
+RouteData = tuple[int, Route, dict[str, PathInfo], float, float, PathInfo, PathInfo]
 
 
 def route_str(lines: dict[str, Line], route: Route) -> str:

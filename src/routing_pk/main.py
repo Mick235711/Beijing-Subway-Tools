@@ -16,8 +16,9 @@ from src.common.common import suffix_s
 from src.dist_graph.adaptor import reduce_abstract_path
 from src.graph.draw_path import get_path_colormap
 from src.routing_pk.add_routes import add_some_routes
-from src.routing_pk.analyze_routes import analyze_routes, draw_routes
+from src.routing_pk.analyze_routes import analyze_routes
 from src.routing_pk.common import Route, print_routes, select_routes
+from src.routing_pk.draw_routes import draw_routes
 
 # List of current routes
 CURRENT_ROUTES: list[Route] = []

@@ -7,7 +7,7 @@ of equ-time graphs.
 # Running Requirements
 Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate` and `tqdm`
 
-(For map-related tasks, also requires `numpy`, `matplotlib` and `scipy`)
+(For map-related or drawing-related tasks, also requires `numpy`, `matplotlib` and `scipy`)
 
 (For finding the longest route in the network, requires `networkx` or optionally `graphillion` for finding non-repeating paths)
 
