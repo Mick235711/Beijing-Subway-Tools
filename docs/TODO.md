@@ -278,6 +278,7 @@ TBD:
 - BFS并不真正考虑直通车，使用0分钟换乘模拟 (Hard to fix)
 - BFS不支持缓急接续等需要同线换乘的场景
 - 暂时不支持以站数或者距离为基准的k-最短路
+- 因技术原因，dist_graph不支持include_express
 - --exclude-virtual不考虑同站名出站换乘（木樨地）
 - 由于argparse限制，--level, --focus和--style-spec的第二参数不能以-开头（例如-15,15不行，要换成15,-15）
 - `derive_from`不会继承组中的`inner_basis`和`apply_time`，并且需要被继承的组在前面
