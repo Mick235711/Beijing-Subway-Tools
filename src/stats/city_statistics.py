@@ -78,9 +78,12 @@ def display_station_name_info(lines: dict[str, Line], *, limit_num: int = 15) ->
     print(f"Average # of name characters per station: {name_sum / len(names):.2f}")
     print_cnt({name: name for name in names}, "Name", "character", 5)
     name_counter = most_common([ch for name in names for ch in name])
-    print("Top 10 used words: " + ", ".join(f"{ch} ({cnt})" for ch, cnt in name_counter[:10]))
-    print("Top 10 ending: " + ", ".join(
-        f"{ch} ({cnt})" for ch, cnt in most_common([name[-1] for name in names])[:10]))
+    print("Top " + suffix_s("used word", limit_num) + ": " + ", ".join(
+        f"{ch} ({cnt})" for ch, cnt in name_counter[:limit_num]))
+    print("Top " + suffix_s("starting word", limit_num) + ": " + ", ".join(
+        f"{ch} ({cnt})" for ch, cnt in most_common([name[0] for name in names])[:limit_num]))
+    print("Top " + suffix_s("ending word", limit_num) + ": " + ", ".join(
+        f"{ch} ({cnt})" for ch, cnt in most_common([name[-1] for name in names])[:limit_num]))
     print("Unique words: " + " ".join(sorted(
         [ch for ch, cnt in name_counter if cnt == 1], key=lambda x: to_pinyin(x)[0])))
     print("Average # of name characters in each line:")
