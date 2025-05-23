@@ -345,16 +345,31 @@ def analyze_routes(
             data_list = sort_routes(city, start_date, data_list)
             path_list = [(x[0], x[1], list(x[2].values())) for x in data_list]
         elif answer == "Print detailed statistics":
-            index_str = questionary.select("Please select a route to print statistics for:", choices=[
+            index_dict = {value[0]: value for value in path_list}
+            index_str = questionary.select("Please select a route to print statistics for:", choices=(
+                ["Aggregated", "Aggregated (Best routes for each time only)"] if len(data_list) > 1 else []
+            ) + [
                 f"#{index + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route)}"
                 for index, route, *_ in data_list
             ]).ask()
             if index_str is None:
                 sys.exit(0)
-            index = int(index_str[1:index_str.index(":")].strip())
-            candidate = [x for x in path_list if x[0] + 1 == index]
-            assert len(candidate) == 1, candidate
-            display_info_min(city, candidate[0][2], through_dict, show_first_last=True)
+            elif index_str == "Aggregated (Best routes for each time only)":
+                path_list_inner = []
+                for start_str, index_set in best_dict.items():
+                    for index in index_set:
+                        candidate = []
+                        for p in index_dict[index][2]:
+                            if get_time_str(p[2].initial_time, p[2].initial_day) == start_str:
+                                candidate.append(p)
+                        assert len(candidate) == 1, (candidate, start_str, index)
+                        path_list_inner.append(candidate[0])
+                display_info_min(city, path_list_inner, through_dict, show_first_last=True)
+            elif index_str == "Aggregated":
+                display_info_min(city, [p for x in path_list for p in x[2]], through_dict, show_first_last=True)
+            else:
+                index = int(index_str[1:index_str.index(":")].strip())
+                display_info_min(city, index_dict[index - 1][2], through_dict, show_first_last=True)
         elif answer == "Show segmented best route for each timing":
             show_segment_best(city, best_dict, data_list)
         elif answer.startswith("Show"):
