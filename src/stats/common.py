@@ -8,7 +8,7 @@ import argparse
 import csv
 from collections.abc import Iterable, Callable, Collection, Sequence
 from datetime import date
-from typing import TypeVar, Any
+from typing import TypeVar, Any, Literal
 
 from tabulate import tabulate
 from tqdm import tqdm
@@ -357,11 +357,14 @@ def split_dir(
     return result
 
 
+SplitMode = Literal["none", "route", "direction", "all"]
+
+
 def get_line_data(all_trains: dict[str, list[tuple[str, Train]]], header: Sequence[str],
                   data_callback: Callable[[set[tuple[str, Train]]], tuple], *,
                   sort_index: Iterable[int] | None = None, reverse: str | None = None,
                   table_format: str = "simple", show_set: set[int] | None = None, hide_set: set[int] | None = None,
-                  split_mode: str = "none", use_capacity: bool = False) -> list[tuple]:
+                  split_mode: SplitMode = "none", use_capacity: bool = False) -> list[tuple]:
     """ Obtain data on lines """
     # Organize into lines
     line_dict: dict[str, tuple[Line, set[tuple[str, Train]]]] = {}
@@ -480,7 +483,7 @@ def output_table(all_trains: dict[str, list[tuple[str, Train]]], args: argparse.
     data = get_line_data(
         all_trains, header, data_callback,
         sort_index=sort_index, reverse=args.reverse, table_format=args.table_format,
-        split_mode=split_mode, use_capacity=use_capacity,
+        split_mode=split_mode, use_capacity=use_capacity,  # type: ignore
         show_set=show_set, hide_set=hide_set
     )
     if args.output is not None:

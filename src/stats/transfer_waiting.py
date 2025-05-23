@@ -6,6 +6,7 @@
 # Libraries
 import argparse
 from math import floor, ceil
+from typing import Literal
 
 from src.city.city import City
 from src.city.date_group import DateGroup
@@ -34,7 +35,7 @@ def avg_waiting_time(
     all_trains: dict[str, list[tuple[str, Train]]], city: City,
     *, limit_num: int = 5, min_waiting: int | None = None, max_waiting: int | None = None,
     exclude_edge: bool = False, exclude_virtual: bool = False,
-    data_source: str = "pair", show_all: bool = False
+    data_source: Literal["pair", "station", "station_entry", "station_exit"] = "pair", show_all: bool = False
 ) -> None:
     """ Print the average waiting time for each transfer station """
     lines = city.lines

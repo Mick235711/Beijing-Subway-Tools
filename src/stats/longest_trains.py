@@ -8,7 +8,7 @@ import argparse
 
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.routing.show_segments import get_all_segments, sort_segment, segment_repr
+from src.routing.show_segments import get_all_segments, sort_segment, segment_repr, SegmentSort
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
 from src.stats.common import display_first, parse_args_through
@@ -16,7 +16,7 @@ from src.stats.common import display_first, parse_args_through
 
 def longest_segment(
     date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
-    lines: dict[str, Line], args: argparse.Namespace, *, limit_num: int = 5, sort_by: str = "distance"
+    lines: dict[str, Line], args: argparse.Namespace, *, limit_num: int = 5, sort_by: SegmentSort = "distance"
 ) -> None:
     """ Print longest/shortest N train segments of the whole city """
     print("Longest/Shortest " + ("Full " if args.full_only else "") + "Train Segments:")

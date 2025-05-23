@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+from typing import Literal
 
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_line, ask_for_direction, ask_for_date_group
 from src.city.date_group import DateGroup
@@ -13,8 +14,11 @@ from src.common.common import get_time_str, chin_len, pad_to
 from src.routing.train import parse_trains, Train
 
 
+FullMode = Literal["direction", "true_full"]
+
+
 def get_first_last(
-    station: str, train_list: list[Train], *, full_mode: str = "direction"
+    station: str, train_list: list[Train], *, full_mode: FullMode = "direction"
 ) -> tuple[Train, Train, Train, Train]:
     """ Get the first/last train for each station in the line """
     filtered_list = [train for train in train_list if station in train.arrival_time
@@ -32,7 +36,7 @@ def get_first_last(
     return first_train, first_full, last_full, last_train
 
 
-def output_station_line(line: Line, station: str, *, full_mode: str = "direction") -> None:
+def output_station_line(line: Line, station: str, *, full_mode: FullMode = "direction") -> None:
     """ Output first/last train for a station in line """
     train_dict = parse_trains(line)
     full_str = "Full" if full_mode == "true_full" else "Full-Dir"
@@ -53,7 +57,7 @@ def output_station_line(line: Line, station: str, *, full_mode: str = "direction
                   f"({last_train.show_with(station)})")
 
 
-def output_line(line: Line, direction: str, date_group: DateGroup, full_mode: str = "direction") -> None:
+def output_line(line: Line, direction: str, date_group: DateGroup, full_mode: FullMode = "direction") -> None:
     """ Output first/last train for a line """
     train_list = parse_trains(line)[direction][date_group.name]
     print(f"\n{line.full_name()} - {direction} - {date_group.name}:")

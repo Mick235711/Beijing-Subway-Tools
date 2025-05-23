@@ -8,6 +8,7 @@ import argparse
 import multiprocessing as mp
 from datetime import date, time
 from functools import partial
+from typing import Literal
 
 from tqdm import tqdm
 
@@ -202,7 +203,7 @@ def avg_shortest_in_city(
     *,
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
     exclude_virtual: bool = False, exclude_edge: bool = False, include_express: bool = False,
-    strategy: str = 'avg'
+    strategy: Literal["avg", "min", "max"] = "avg"
 ) -> tuple[City, list[str], dict[str, tuple[float, float, float, float]]]:
     """ Find the shortest path to several different stations """
     city = ask_for_city()

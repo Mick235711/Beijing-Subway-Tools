@@ -7,6 +7,7 @@
 import os
 from abc import ABC, abstractmethod
 from glob import glob
+from typing import Literal
 
 import pyjson5
 from PIL import ImageDraw
@@ -166,7 +167,7 @@ class Map:
 
 def parse_coords(
     station: str, spec: dict[str, int], station_lines: dict[str, set[Line]], *,
-    shape_type: str = "circle", radius: int, transfer_radius: int,
+    shape_type: Literal["circle", "rectangle"] = "circle", radius: int, transfer_radius: int,
     width: int | None = None, height: int | None = None,
     transfer_width: int | None = None, transfer_height: int | None = None
 ) -> Shape:

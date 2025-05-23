@@ -6,7 +6,7 @@
 # Libraries
 import argparse
 from collections import Counter
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Literal
 
 from src.city.ask_for_city import ask_for_city
 from src.city.city import parse_station_lines
@@ -199,9 +199,12 @@ def filter_transfer_time(
     return result
 
 
+TransferSource = Literal["pair", "station", "line"]
+
+
 def display_transfer_time_info(
     lines: dict[str, Line], transfers: dict[str, Transfer], virtual_transfers: dict[tuple[str, str], Transfer], *,
-    exclude_virtual: bool = False, limit_num: int = 15, data_source: str = "pair", show_all: bool = False
+    exclude_virtual: bool = False, limit_num: int = 15, data_source: TransferSource = "pair", show_all: bool = False
 ) -> None:
     """ Display transfer time info """
     print("\n=====> Transfer Time Information <=====")

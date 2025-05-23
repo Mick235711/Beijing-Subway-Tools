@@ -6,7 +6,7 @@
 # Libraries
 import argparse
 from collections.abc import Sequence
-from typing import cast
+from typing import cast, Literal
 
 from src.city.ask_for_city import ask_for_through_train
 from src.city.line import Line
@@ -145,7 +145,10 @@ def segment_duration_str(segments: Segment) -> str:
     return f"{first_str} -> ... -> {last_str}"
 
 
-def sort_segment(segments: Segment, *, sort_by: str = "distance") -> int:
+SegmentSort = Literal["distance", "duration", "count"]
+
+
+def sort_segment(segments: Segment, *, sort_by: SegmentSort = "distance") -> int:
     """ Segment sort criteria """
     return {
         "distance": total_distance(segments),

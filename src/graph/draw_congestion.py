@@ -7,6 +7,7 @@
 import argparse
 import csv
 import os
+from typing import Literal
 
 import pyjson5
 from PIL import Image, ImageDraw
@@ -34,6 +35,11 @@ Image.MAX_IMAGE_PIXELS = 300000000
 LoadTuple = tuple[float, float, float, float]
 VTSpec2 = tuple[tuple[str, str] | None, tuple[str, str] | None]
 EPS = 1e-5
+LineMetric = Literal[
+    "total_passenger", "entry_passenger", "exit_passenger", "transfer_passenger", "density_distance", "density_station"
+]
+LoadMetric = Literal["passenger", "congestion"]
+TransferSource = Literal["station", "direction", "line"]
 
 
 def add_tuple(tuple1: LoadTuple, tuple2: tuple[float, ...]) -> LoadTuple:
@@ -43,7 +49,7 @@ def add_tuple(tuple1: LoadTuple, tuple2: tuple[float, ...]) -> LoadTuple:
 
 
 def line_metric_func(lines: dict[str, Line], line_name: str, data: LoadTuple, *,
-                     line_metric: str = "total_passenger") -> float:
+                     line_metric: LineMetric = "total_passenger") -> float:
     """ Get line metric data """
     if line_metric.endswith("_passenger"):
         return data[[
@@ -57,7 +63,7 @@ def line_metric_func(lines: dict[str, Line], line_name: str, data: LoadTuple, *,
 
 
 def load_metric_func(_: tuple[str, str, str | None], data: tuple[float, set[TimeSpec], set[Train | VTSpec]], *,
-                     load_metric: str = "passenger") -> float:
+                     load_metric: LoadMetric = "passenger") -> float:
     """ Get load data """
     if load_metric == "passenger":
         return data[0]
@@ -233,7 +239,8 @@ def print_congestion(
     paths: dict[str, dict[str, dict[int, PathInfo]]], lines: dict[str, Line],
     load_factor: dict[tuple[str, str], float] | None = None,
     *, limit_num: int = 5, have_direction: bool = True,
-    line_metric: str = "total_passenger", load_metric: str = "passenger", transfer_source: str = "station"
+    line_metric: LineMetric = "total_passenger", load_metric: LoadMetric = "passenger",
+    transfer_source: TransferSource = "station"
 ) -> None:
     """ Print congestion stats """
     line_stats, all_stats, load_dict, transfer_stats, virtual_stats, train_set = get_congestion_stats(

@@ -7,12 +7,12 @@
 import argparse
 
 from src.common.common import sequence_data
-from src.routing.show_segments import get_all_segments, sort_segment
+from src.routing.show_segments import get_all_segments, sort_segment, SegmentSort
 from src.routing.train import Train
 from src.stats.common import parse_args, append_table_args, output_table
 
 
-def get_segment_data(train_date_set: set[tuple[str, Train]], *, sort_by: str = "distance") -> tuple:
+def get_segment_data(train_date_set: set[tuple[str, Train]], *, sort_by: SegmentSort = "distance") -> tuple:
     """ Get avg/min/max segment/chain data """
     train_set = set(x[1] for x in train_date_set)
     line = list(train_set)[0].line

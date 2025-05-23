@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+from typing import Literal
 
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city
@@ -17,7 +18,8 @@ from src.stats.common import display_first
 
 def furthest_stations(
     city: City, graph: Graph, *,
-    limit_num: int = 5, data_source: str = "station", sort_by: str = "sum", reverse: bool = False
+    limit_num: int = 5, data_source: str = "station",
+    sort_by: Literal["sum", "shortest", "longest"] = "sum", reverse: bool = False
 ) -> None:
     """ Print the smallest/largest sum of stations needed """
     path_dict = all_shortest(city, graph, data_source=data_source)

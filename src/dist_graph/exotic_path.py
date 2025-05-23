@@ -8,6 +8,7 @@ import argparse
 import multiprocessing as mp
 from datetime import date, time
 from functools import partial
+from typing import Literal
 
 from tqdm import tqdm
 
@@ -106,10 +107,13 @@ def all_path(
         ), path, result) for to, (_, result, path) in to_dict.items()} for fr, to_dict in bfs_dict.items()}
 
 
+PathMetric = Literal["time", "station", "distance", "fare", "transfer"]
+
+
 def paths_metrics(
     path_info: PathInfo, lines: dict[str, Line], start_date: date,
     through_dict: dict[ThroughSpec, list[ThroughTrain]], fare_rules: Fare | None = None,
-    *, metric: str = "fare"
+    *, metric: PathMetric = "fare"
 ) -> float:
     """ Sort paths based on given metric """
     total_time, path, result = path_info
@@ -166,7 +170,7 @@ def print_paths(
     path_basis: dict[str, dict[str, PathInfo]], path_compare: dict[str, dict[str, PathInfo]],
     lines: dict[str, Line], exclude_stations: set[str], start_date: date,
     through_dict: dict[ThroughSpec, list[ThroughTrain]], fare_rules: Fare | None = None,
-    *, pair_source: str = "all", delta_metric: str | list[str] = "comprehensive", limit_num: int = 5
+    *, pair_source: Literal["line", "all"] = "all", delta_metric: str | list[str] = "comprehensive", limit_num: int = 5
 ) -> None:
     """ Print sorted path deltas """
     data: list[tuple[str, str, Path, Path, list[float]]] = []
@@ -178,7 +182,7 @@ def print_paths(
             if pair_source == "line" and len(path_info_basis[1]) != 1:
                 continue
             path_info_compare = path_compare[from_station][to_station]
-            def info_delta(metric: str) -> float:
+            def info_delta(metric: PathMetric) -> float:
                 """ Get delta between the basis and compare """
                 return paths_metrics(path_info_basis, lines, start_date, through_dict, fare_rules, metric=metric) - \
                        paths_metrics(path_info_compare, lines, start_date, through_dict, fare_rules, metric=metric)
@@ -190,7 +194,7 @@ def print_paths(
                     # TODO: consider fare and distance
                     delta_val = info_delta("transfer") * 2.5 + info_delta("time")
                 else:
-                    delta_val = info_delta(single_metric)
+                    delta_val = info_delta(single_metric)  # type: ignore
                 metrics.append(delta_val)
             data.append((from_station, to_station, path_info_basis[1], path_info_compare[1], metrics))
 
