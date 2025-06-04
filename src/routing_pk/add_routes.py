@@ -416,9 +416,9 @@ def add_by_kth(city: City, args: argparse.Namespace, *, with_intermediate: bool 
 
         if not with_intermediate:
             _, _, end_station, results = get_kth_path(local_args, existing_city=city)
-            routes: list[Route] = []
-            for _, path in results:
-                routes.append((to_abstract(path), end_station))
+            routes: list[tuple[int, Route]] = []
+            for i, (_, path) in enumerate(results):
+                routes.append((i, (to_abstract(path), end_station)))
             print()
             return select_routes(city.lines, routes, "Please select routes to add:", all_checked=True)[1]
 

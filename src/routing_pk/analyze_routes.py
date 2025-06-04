@@ -24,16 +24,19 @@ from src.common.common import suffix_s, percentage_str, get_time_str, average, d
 from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
-from src.routing_pk.common import Route, route_str, RouteData
+from src.routing_pk.common import Route, MixedRoutes, route_str, RouteData, select_routes
 from src.routing_pk.draw_routes import draw_selected, draw_line_chart
 
 
+PathData = tuple[int, Route | MixedRoutes, list[PathInfo]]
+
+
 def calculate_data(
-    path_list: list[tuple[int, Route, list[PathInfo]]], transfer_dict: dict[str, Transfer],
+    path_list: list[PathData], transfer_dict: dict[str, Transfer],
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, *, time_only_mode: bool = False
-) -> tuple[dict[str, set[int]], list[RouteData]]:
+) -> tuple[dict[int, tuple[int, Route | MixedRoutes, dict[str, PathInfo]]], dict[str, set[int]], list[RouteData]]:
     """ Calculate data for a route """
-    temp_list: list[tuple[int, Route, dict[str, PathInfo]]] = []
+    temp_list: list[tuple[int, Route | MixedRoutes, dict[str, PathInfo]]] = []
     for index, route, info_list in path_list:
         path_dict: dict[str, PathInfo] = {}
         for path_info in info_list:
@@ -44,7 +47,7 @@ def calculate_data(
     # Calculate percentage
     # Best dict: start_time_str -> set of indexes of path_list/temp_list that gives the best time
     best_dict: dict[str, set[int]] = {}
-    for index, route, inner_dict in temp_list:
+    for index, _, inner_dict in temp_list:
         for start_time_str, path_info in inner_dict.items():
             if start_time_str not in best_dict:
                 best_dict[start_time_str] = {index}
@@ -53,10 +56,14 @@ def calculate_data(
             current_best = best_dict[start_time_str]
             if time_only_mode:
                 duration = path_info[2].total_duration()
-                if all(duration < temp_dict[index2][2][start_time_str][2].total_duration() for index2 in current_best):
+                if all(
+                    duration < temp_dict[index2][2][start_time_str][2].total_duration() for index2 in current_best
+                ):
                     # New best, overwrite
                     best_dict[start_time_str] = {index}
-                elif all(duration == temp_dict[index2][2][start_time_str][2].total_duration() for index2 in current_best):
+                elif all(
+                    duration == temp_dict[index2][2][start_time_str][2].total_duration() for index2 in current_best
+                ):
                     # Tied, append
                     best_dict[start_time_str].add(index)
             else:
@@ -78,7 +85,7 @@ def calculate_data(
             min(list(inner_dict.values()), key=lambda x: x[0]),
             max(list(inner_dict.values()), key=lambda x: x[0])
         ))
-    return best_dict, data_list
+    return temp_dict, best_dict, data_list
 
 
 def print_routes_with_data(
@@ -131,7 +138,9 @@ def show_segment_best(city: City, best_dict: dict[str, set[int]], data_list: lis
     assert len(data_list) > 0, data_list
     assert all(len(x) == 1 for x in best_dict.values()), best_dict
 
-    show_mode = questionary.select("Please select a showing mode:", choices=["List mode", "Compact mode"]).ask()
+    show_mode = questionary.select(
+        "Please select a showing mode:", choices=["List mode", "Compact mode"]
+    ).ask()
     if show_mode is None:
         sys.exit(0)
     elif show_mode == "List mode":
@@ -215,28 +224,30 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
     elif criteria == "Transfer":
         return sorted(data_list, key=lambda x: total_transfer(x[5][1]))
     elif criteria == "Station":
-        return sorted(data_list, key=lambda x: len(expand_path(x[5][1], x[1][1])))
+        return sorted(data_list, key=lambda x: len(expand_path(x[5][1], x[5][2].station)))
     elif criteria == "Distance":
-        return sorted(data_list, key=lambda x: path_distance(x[5][1], x[1][1]))
+        return sorted(data_list, key=lambda x: path_distance(x[5][1], x[5][2].station))
     elif criteria == "Fare":
         fare_rules = city.fare_rules
         assert fare_rules is not None, city
-        return sorted(data_list, key=lambda x: fare_rules.get_total_fare(city.lines, x[5][1], x[1][1], cur_date))
+        return sorted(data_list,
+                      key=lambda x: fare_rules.get_total_fare(city.lines, x[5][1], x[5][2].station, cur_date))
     else:
         assert False, criteria
 
 
-def strip_routes(path_list: list[tuple[int, Route, list[PathInfo]]]) -> list[tuple[int, Route, list[PathInfo]]]:
+def strip_routes(path_list: list[PathData]) -> list[PathData]:
     """ Strip the path list with a given time constraint """
     start_time, start_day = ask_for_time(
-        message="Please enter the earliest departure time (inclusive, empty for no restriction, first for real first departure):",
+        message="Please enter the earliest departure time " +
+                "(inclusive, empty for no restriction, first for real first departure):",
         allow_empty=True, allow_first=lambda: (time.max, False)
     )
     end_time, end_day = ask_for_time(
         message="Please enter the latest departure time (inclusive, empty for no restriction):",
         allow_empty=True
     )
-    new_path: list[tuple[int, Route, list[PathInfo]]] = []
+    new_path: list[PathData] = []
     for index, route, info_list in path_list:
         min_cutoff: tuple[time, bool] | None = None
         if start_time == time.max and not start_day:
@@ -268,6 +279,36 @@ def strip_routes(path_list: list[tuple[int, Route, list[PathInfo]]]) -> list[tup
     return new_path
 
 
+def reassign_index(path_list: list[PathData]) -> list[PathData]:
+    """ Reassign indexes """
+    assoc_dict = {x[0]: i for i, x in enumerate(path_list)}
+    new_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
+    for index, (i, route, info_list) in enumerate(new_list):
+        if isinstance(route, list):
+            new_list[index] = (i, sorted([assoc_dict[x] for x in route]), info_list)
+    return new_list
+
+
+def new_best_route(
+    city: City, path_list: list[PathData], through_dict: dict[ThroughSpec, list[ThroughTrain]]
+) -> PathData:
+    """ Ask for a new best route combination """
+    indexes, _ = select_routes(city.lines, [
+        (x[0], x[1]) for x in path_list if not isinstance(x[1], list)
+    ], "Please select routes to add:", all_checked=True)
+    temp_dict, best_dict, _ = calculate_data(
+        [path for path in path_list if path[0] in indexes], city.transfers, through_dict
+    )
+    info_dict: dict[str, PathInfo] = {}
+    for time_str, best_set in best_dict.items():
+        assert len(best_set) == 1, (time_str, best_set)
+        best_index = list(best_set)[0]
+        if best_index not in indexes:
+            continue
+        info_dict[time_str] = temp_dict[best_index][2][time_str]
+    return len(path_list), sorted(indexes), [x[1] for x in sorted(list(info_dict.items()), key=lambda x: x[0])]
+
+
 def analyze_routes(
     city: City, args: argparse.Namespace, routes: list[Route],
     cmap: list[tuple[float, float, float]] | Colormap, *, dpi: int = 100
@@ -285,7 +326,7 @@ def analyze_routes(
     exclude = questionary.confirm("Exclude path that spans into next day?").ask()
     if exclude is None:
         sys.exit(0)
-    path_list: list[tuple[int, Route, list[PathInfo]]] = []
+    path_list: list[PathData] = []
     print("Calculating real-timed paths for " + suffix_s("route", len(routes)) +
           ". The same number of progress bars will appear. Please wait patiently...")
     for i, route in enumerate(routes):
@@ -299,7 +340,7 @@ def analyze_routes(
             continue
         path_list.append((i, route, paths))
 
-    best_dict, data_list = calculate_data(path_list, city.transfers, through_dict)
+    _, best_dict, data_list = calculate_data(path_list, city.transfers, through_dict)
     time_only_mode = False
     show_absolute = False
     while True:
@@ -312,7 +353,8 @@ def analyze_routes(
         if time_only_mode:
             choices += ["Change to full comparison mode (where all percentage add up to 100%)"]
         else:
-            choices += ["Change to time-only mode (where the percentage for best time is shown, and percentage may add up to >100%)"]
+            choices += ["Change to time-only mode (where the percentage for " +
+                        "best time is shown, and percentage may add up to >100%)"]
         choices += [
             "Sort routes",
             "Print detailed statistics",
@@ -329,6 +371,7 @@ def analyze_routes(
             "Strip routes",
             "Display relative average times" if show_absolute else "Display absolute average times",
             "Reassign indexes",
+            "Add best route combination",
             "Back"
         ]
 
@@ -340,7 +383,9 @@ def analyze_routes(
                 time_only_mode = True
             else:
                 time_only_mode = False
-            best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=time_only_mode)
+            _, best_dict, data_list = calculate_data(
+                path_list, city.transfers, through_dict, time_only_mode=time_only_mode
+            )
         elif answer == "Sort routes":
             data_list = sort_routes(city, start_date, data_list)
             path_list = [(x[0], x[1], list(x[2].values())) for x in data_list]
@@ -394,16 +439,25 @@ def analyze_routes(
             draw_line_chart(city, start_date, data_list)
         elif answer == "Strip routes":
             path_list = strip_routes(path_list)
-            best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=time_only_mode)
+            _, best_dict, data_list = calculate_data(
+                path_list, city.transfers, through_dict, time_only_mode=time_only_mode
+            )
         elif answer.startswith("Display"):
             if "relative" in answer:
                 show_absolute = False
             else:
                 show_absolute = True
         elif answer == "Reassign indexes":
-            path_list = [(i, route, info_list) for i, (_, route, info_list) in enumerate(path_list)]
-            best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=time_only_mode)
+            path_list = reassign_index(path_list)
+            _, best_dict, data_list = calculate_data(
+                path_list, city.transfers, through_dict, time_only_mode=time_only_mode
+            )
+        elif answer == "Add best route combination":
+            path_list.append(new_best_route(city, path_list, through_dict))
+            _, best_dict, data_list = calculate_data(
+                path_list, city.transfers, through_dict, time_only_mode=time_only_mode
+            )
         elif answer == "Back":
-            return [x[1] for x in path_list]
+            return [x[1] for x in path_list if not isinstance(x[1], list)]
         else:
             assert False, answer

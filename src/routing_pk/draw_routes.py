@@ -59,11 +59,13 @@ def draw_selected(
         sys.exit(0)
     elif is_index == "Index":
         draw_routes(city, [
-            (x[0], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1]) for x in data_list
+            (x[0], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1])
+            for x in data_list if not isinstance(x[1], list)
         ], cmap, dpi=dpi, max_mode=time_only_mode)
     elif is_index == "Percentage":
         draw_routes(city, [
-            (x[3], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1]) for x in data_list
+            (x[3], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1])
+            for x in data_list if not isinstance(x[1], list)
         ], cmap, is_ordinal=False, dpi=dpi, max_mode=time_only_mode)
     else:
         assert False, is_index
@@ -83,7 +85,7 @@ def draw_line_chart(city: City, start_date: date, data_list: list[RouteData]) ->
     for index, route, time_dict, *_ in data_list:
         x = []
         y = []
-        for time_str, path_info in time_dict.items():
+        for time_str, path_info in sorted(list(time_dict.items())):
             cur_time, next_day = parse_time(time_str)
             cur_date = start_date
             if next_day:

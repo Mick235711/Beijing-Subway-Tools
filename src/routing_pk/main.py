@@ -27,7 +27,9 @@ CURRENT_ROUTES: list[Route] = []
 def delete_some_routes(lines: dict[str, Line]) -> None:
     """ Ask user for some routes to delete """
     global CURRENT_ROUTES
-    indexes, CURRENT_ROUTES = select_routes(lines, CURRENT_ROUTES, "Please choose routes to delete:", reverse=True)
+    indexes, CURRENT_ROUTES = select_routes(
+        lines, list(enumerate(CURRENT_ROUTES)), "Please choose routes to delete:", reverse=True
+    )
     print("Deleted " + suffix_s("route", len(indexes)) + ".")
 
 

@@ -17,13 +17,18 @@ from src.common.common import to_pinyin
 # Represents a route: (path, end_station), start is path[0][0]
 Route = tuple[AbstractPath, str]
 
+# Represents a combination of other routes: a list of indexes
+MixedRoutes = list[int]
+
 # Data for a route:
 # (index, route, start_time_str -> timed BFS path, percentage, average minute, the smallest info, the largest info)
-RouteData = tuple[int, Route, dict[str, PathInfo], float, float, PathInfo, PathInfo]
+RouteData = tuple[int, Route | MixedRoutes, dict[str, PathInfo], float, float, PathInfo, PathInfo]
 
 
-def route_str(lines: dict[str, Line], route: Route) -> str:
+def route_str(lines: dict[str, Line], route: Route | MixedRoutes) -> str:
     """ Get string representation of a route """
+    if isinstance(route, list):
+        return "Best of {" + ", ".join(f"#{index + 1}" for index in route) + "}"
     path, end_station = route
     return path_shorthand(end_station, lines, path)
 
@@ -63,13 +68,13 @@ def select_stations(city: City, stations: list[str]) -> str:
 
 
 def select_routes(
-    lines: dict[str, Line], routes: list[Route] | None, message: str,
+    lines: dict[str, Line], routes: list[tuple[int, Route]] | None, message: str,
     *, reverse: bool = False, all_checked: bool = False,
     routes_comprehensive: list[tuple[Route, str] | questionary.Separator] | None = None
 ) -> tuple[list[int], list[Route]]:
     """ Select a subset of a list of routes """
     route_strs: list[str | questionary.Separator] = []
-    route_list: list[Route] = []
+    route_list: list[tuple[int, Route]] = []
     if routes is None:
         assert routes_comprehensive is not None, (routes, routes_comprehensive)
         maxl = max(len(x[1]) for x in routes_comprehensive if isinstance(x, tuple))
@@ -79,13 +84,15 @@ def select_routes(
             if not isinstance(inner, tuple):
                 route_strs.append(inner)
                 continue
+            route_list.append((cnt, inner[0]))
             cnt += 1
-            route_list.append(inner[0])
             route_strs.append(f"#{cnt:>{len(str(max_len))}}: ({inner[1]:>{maxl}}) " + route_str(lines, inner[0]))
     else:
-        for i, route in enumerate(routes):
-            route_list.append(route)
-            route_strs.append(f"#{i + 1:>{len(str(len(routes)))}}: " + route_str(lines, route))
+        route_list = routes
+        for i, route in routes:
+            route_strs.append(
+                f"#{i + 1:>{len(str(max(index for index, _ in routes)))}}: " + route_str(lines, route)
+            )
     answer = questionary.checkbox(message, choices=(
         [x if isinstance(x, questionary.Separator) else questionary.Choice(x, checked=True) for x in route_strs]
         if all_checked else route_strs
@@ -94,10 +101,10 @@ def select_routes(
     for answer_item in answer:
         assert answer_item.startswith("#"), answer_item
         index = answer_item.index(":")
-        indexes.append(int(answer_item[1:index].strip()))
+        indexes.append(int(answer_item[1:index].strip()) - 1)
     if reverse:
-        return indexes, [route for i, route in enumerate(route_list) if i + 1 not in indexes]
-    return indexes, [route for i, route in enumerate(route_list) if i + 1 in indexes]
+        return indexes, [route for i, route in route_list if i not in indexes]
+    return indexes, [route for i, route in route_list if i in indexes]
 
 
 def closest_to(entry: tuple[Line, str | None], station: str, candidates: list[str]) -> str | None:
