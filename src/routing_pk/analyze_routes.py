@@ -368,6 +368,7 @@ def analyze_routes(
         if time_only_mode:
             choices += ["Draw route timing as line chart"]
         choices += [
+            "Delete some existing routes",
             "Strip routes",
             "Display relative average times" if show_absolute else "Display absolute average times",
             "Reassign indexes",
@@ -437,6 +438,21 @@ def analyze_routes(
             draw_selected(city, data_list, cmap, dpi=dpi, time_only_mode=time_only_mode)
         elif answer == "Draw route timing as line chart":
             draw_line_chart(city, start_date, data_list)
+        elif answer == "Delete some existing routes":
+            indexes, _ = select_routes(city.lines, [
+                (x[0], x[1]) for x in path_list
+            ], "Please choose routes to delete:")
+            new_path_list: list[PathData] = []
+            for path in path_list:
+                if path[0] in indexes:
+                    continue
+                if isinstance(path[1], list) and any(x in path[1] for x in indexes):
+                    continue
+                new_path_list.append(path)
+            path_list = new_path_list
+            _, best_dict, data_list = calculate_data(
+                path_list, city.transfers, through_dict, time_only_mode=time_only_mode
+            )
         elif answer == "Strip routes":
             path_list = strip_routes(path_list)
             _, best_dict, data_list = calculate_data(

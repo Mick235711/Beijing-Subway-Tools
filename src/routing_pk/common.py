@@ -5,6 +5,7 @@
 
 # Libraries
 import sys
+from typing import TypeVar, cast
 
 import questionary
 
@@ -67,14 +68,17 @@ def select_stations(city: City, stations: list[str]) -> str:
     return choices[answer]
 
 
+T = TypeVar("T")
+
+
 def select_routes(
-    lines: dict[str, Line], routes: list[tuple[int, Route]] | None, message: str,
+    lines: dict[str, Line], routes: list[tuple[int, T]] | None, message: str,
     *, reverse: bool = False, all_checked: bool = False,
-    routes_comprehensive: list[tuple[Route, str] | questionary.Separator] | None = None
-) -> tuple[list[int], list[Route]]:
+    routes_comprehensive: list[tuple[T, str] | questionary.Separator] | None = None
+) -> tuple[list[int], list[T]]:
     """ Select a subset of a list of routes """
     route_strs: list[str | questionary.Separator] = []
-    route_list: list[tuple[int, Route]] = []
+    route_list: list[tuple[int, T]] = []
     if routes is None:
         assert routes_comprehensive is not None, (routes, routes_comprehensive)
         maxl = max(len(x[1]) for x in routes_comprehensive if isinstance(x, tuple))
@@ -86,12 +90,16 @@ def select_routes(
                 continue
             route_list.append((cnt, inner[0]))
             cnt += 1
-            route_strs.append(f"#{cnt:>{len(str(max_len))}}: ({inner[1]:>{maxl}}) " + route_str(lines, inner[0]))
+            route_strs.append(
+                f"#{cnt:>{len(str(max_len))}}: ({inner[1]:>{maxl}}) " +
+                route_str(lines, cast(Route | MixedRoutes, inner[0]))
+            )
     else:
         route_list = routes
         for i, route in routes:
             route_strs.append(
-                f"#{i + 1:>{len(str(max(index for index, _ in routes)))}}: " + route_str(lines, route)
+                f"#{i + 1:>{len(str(max(index for index, _ in routes)))}}: " +
+                route_str(lines, cast(Route | MixedRoutes, route))
             )
     answer = questionary.checkbox(message, choices=(
         [x if isinstance(x, questionary.Separator) else questionary.Choice(x, checked=True) for x in route_strs]
