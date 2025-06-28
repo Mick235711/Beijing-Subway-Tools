@@ -10,6 +10,7 @@ from typing import Literal
 
 from src.city.city import City
 from src.city.date_group import DateGroup
+from src.city.line import Line, station_full_name
 from src.city.transfer import Transfer, TransferSpec, transfer_repr
 from src.common.common import diff_time_tuple, average, stddev, suffix_s, percentage_str
 from src.routing.train import Train
@@ -17,14 +18,14 @@ from src.stats.common import display_first, parse_args
 
 
 def key_list_str(
-    result_key: tuple[str, str, TransferSpec] | str,
+    lines: dict[str, Line], result_key: tuple[str, str, TransferSpec] | str,
     values: list[float], criteria: float, sd_crit: float, percentage: bool
 ) -> str:
     """ Obtain string representation """
     if isinstance(result_key, str):
-        base = result_key + " (" + suffix_s("data point", len(values)) + ")"
+        base = station_full_name(result_key, lines) + " (" + suffix_s("data point", len(values)) + ")"
     else:
-        base = transfer_repr(result_key[0], result_key[1], result_key[2])
+        base = transfer_repr(lines, result_key[0], result_key[1], result_key[2])
     base += f": Average = {criteria:.2f} minutes (stddev = {sd_crit:.2f})"\
         if not percentage else ("Percentage = " + percentage_str(criteria))
     base += f", min = {min(values):.2f} minutes, max = {max(values):.2f} minutes"
@@ -90,16 +91,13 @@ def avg_waiting_time(
                     break
                 result_keys: list[tuple[str, str, TransferSpec] | str] = []
                 if data_source == "pair":
-                    result_keys.append((
-                        city.station_full_name(station1), city.station_full_name(station2),
-                        (lines[from_l].full_name(), from_d, lines[to_l].full_name(), to_d)
-                    ))
+                    result_keys.append((station1, station2, (from_l, from_d, to_l, to_d)))
                 else:
                     assert data_source in ["station", "station_entry", "station_exit"], data_source
                     if data_source != "station_entry":
-                        result_keys.append(city.station_full_name(station1))
+                        result_keys.append(station1)
                     if data_source != "station_exit" and (station1 != station2 or data_source == "station_entry"):
-                        result_keys.append(city.station_full_name(station2))
+                        result_keys.append(station2)
                 cur_diff = diff_time_tuple(
                     train_list2[cur_index][1].arrival_time[station2], train.arrival_time[station1]
                 ) - transfer_time
@@ -117,7 +115,7 @@ def avg_waiting_time(
         ]) / len(v), 0.0) for k, v in results.items()]
     display_first(
         sorted(criteria, key=lambda x: x[2], reverse=satisfied),
-        lambda key_list: key_list_str(*key_list, satisfied), limit_num=limit_num
+        lambda key_list: key_list_str(city.lines, *key_list, satisfied), limit_num=limit_num
     )
 
 

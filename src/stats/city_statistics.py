@@ -10,7 +10,7 @@ from typing import Any, TypeVar, Literal
 
 from src.city.ask_for_city import ask_for_city
 from src.city.city import parse_station_lines
-from src.city.line import Line
+from src.city.line import Line, station_full_name
 from src.city.transfer import transfer_repr, Transfer
 from src.common.common import distance_str, suffix_s, to_pinyin, average, percentage_str
 from src.stats.common import display_first, display_segment, filter_lines
@@ -231,7 +231,7 @@ def display_transfer_time_info(
     if data_source == "pair":
         data: Any = sorted([(s, s2, t, k, v) for s, s2, t, _ in transfer_times for k, v in t.items()],
                            key=lambda x: (x[-1], to_pinyin(x[0])[0], x[-2]))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: " + transfer_repr(t[0], t[1], t[-2])
+        data_str = lambda t: f"{t[-1]:.2f} minutes: " + transfer_repr(lines, t[0], t[1], t[-2])
     elif data_source == "station":
         station_data: dict[str, list[float]] = {}
         for station, second_station, transfer_time, _ in transfer_times:
@@ -244,7 +244,8 @@ def display_transfer_time_info(
                 station_data[second_station] += list(transfer_time.values())
         data = sorted([(s, l, average(l)) for s, l in station_data.items() if len(l) > 0],
                       key=lambda x: (x[-1], -len(x[1]), to_pinyin(x[0])[0]))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
+        data_str = lambda t: f"{t[-1]:.2f} minutes: {station_full_name(t[0], lines)} (" + suffix_s(
+            "pair", len(t[1])) + ")"
     elif data_source == "line":
         line_data: dict[str, list[float]] = {}
         for _, _, transfer_time, _ in transfer_times:
@@ -257,7 +258,8 @@ def display_transfer_time_info(
                 line_data[to_l].append(t)
         data = sorted([(s, l, average(l)) for s, l in line_data.items() if len(l) > 0],
                       key=lambda x: (x[-1], -len(x[1]), lines[x[0]].index))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: {t[0]} (" + suffix_s("pair", len(t[1])) + ")"
+        data_str = lambda t: f"{t[-1]:.2f} minutes: {lines[t[0]].full_name()} (" + suffix_s(
+            "pair", len(t[1])) + ")"
     else:
         assert False, data_source
     times = [x[-1] for x in data]
@@ -266,7 +268,7 @@ def display_transfer_time_info(
     print("Segmented transfer time:")
     display_segment(
         times, lambda seg1, seg2, num:
-        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s(data_source, num) + f" ({percentage_str(num * 100 / len(times))})",
+        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s(data_source, num) + f" ({percentage_str(num / len(times))})",
         limit_num=limit_num
     )
     print("Max/Min " + suffix_s("transfer time", limit_num) + ":")

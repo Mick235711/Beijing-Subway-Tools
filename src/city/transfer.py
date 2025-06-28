@@ -8,8 +8,9 @@ from datetime import date, time
 from typing import Any
 
 from src.city.date_group import TimeInterval, parse_time_interval, DateGroup
-from src.city.line import Line
+from src.city.line import Line, station_full_name
 
+# (from_line, from_direction, to_line, to_direction)
 TransferSpec = tuple[str, str, str, str]
 
 
@@ -146,8 +147,10 @@ def parse_virtual_transfer(
     return result
 
 
-def transfer_repr(station1: str, station2: str | None, transfer_spec: TransferSpec) -> str:
+def transfer_repr(lines: dict[str, Line], station1: str, station2: str | None, transfer_spec: TransferSpec) -> str:
     """ String representation for a transfer pair """
-    return station1 + (
-        f" -> {station2} (virtual)" if station2 is not None and station1 != station2 else ""
-    ) + f" / {transfer_spec[0]} ({transfer_spec[1]}) -> {transfer_spec[2]} ({transfer_spec[3]})"
+    return station_full_name(station1, lines) + (
+        f" -> {station_full_name(station2, lines)} (virtual)" if station2 is not None and station1 != station2 else ""
+    ) + f" / {lines[transfer_spec[0]].full_name()} ({transfer_spec[1]}) -> " + (
+        f"{lines[transfer_spec[2]].full_name()} ({transfer_spec[3]})"
+    )
