@@ -12,7 +12,8 @@ from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,
 from src.city.city import City
 from src.city.date_group import DateGroup
 from src.city.line import Line
-from src.common.common import get_time_str, diff_time, suffix_s, average, stddev, parse_comma, diff_time_tuple, chin_len
+from src.common.common import get_time_str, diff_time, suffix_s, average, stddev, parse_comma, diff_time_tuple, \
+    chin_len, distance_str, speed_str
 from src.routing.train import parse_trains, Train
 from src.timetable.print_timetable import in_route
 
@@ -214,6 +215,10 @@ def main() -> None:
     print("Total " + suffix_s("train", len(time_dict)) + ". Average time = " +
           f"{average(minutes):.2f} minutes (stddev = {stddev(minutes):.2f})" +
           f" (min {min(minutes)} - max {max(minutes)})")
+    dist = line.two_station_dist(direction, start, end)
+    print(f"Distance: {dist}m ({distance_str(dist)})")
+    print(f"Average Speed: {speed_str(dist / 1000 / average(minutes) * 60)} " +
+          f"(min {dist / 1000 / max(minutes) * 60:.2f} - max {dist / 1000 / min(minutes) * 60:.2f})")
 
 
 # Call main

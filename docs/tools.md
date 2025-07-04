@@ -576,6 +576,8 @@ City default: &lt;北京: 24 lines&gt;
 23|
 
 Total 266 trains. Average time = 85.00 minutes (stddev = 1.10) (min 79 - max 87)
+Distance: 52927m (52.93km)
+Average Speed: 37.36km/h (min 36.50 - max 40.20)
 </pre>
 
 ### [`show_segments.py`](/src/routing/show_segments.py): Train segment analyzer
