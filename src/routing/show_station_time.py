@@ -50,7 +50,7 @@ def get_time_between(
         if start not in train.arrival_time:
             continue
         time_str = get_time_str(*train.arrival_time[start])
-        if end not in train.arrival_time:
+        if end not in train.arrival_time or start in train.skip_stations or end in train.skip_stations:
             time_dict[time_str] = None
             continue
         if not in_route(train.routes, include_routes=include_routes, exclude_routes=exclude_routes):
