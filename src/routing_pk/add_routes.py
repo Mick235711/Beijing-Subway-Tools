@@ -213,9 +213,11 @@ def calculate_next(
     if cur_entry[1] is None:
         candidates = cur_entry[0].stations
     else:
-        candidates = cur_entry[0].direction_stations(cur_entry[1])
-        index = candidates.index(cur_station)
-        candidates = candidates[index + 1:]
+        candidates_temp = cur_entry[0].direction_stations(cur_entry[1])
+        index = candidates_temp.index(cur_station)
+        candidates = candidates_temp[index + 1:]
+        if cur_entry[0].loop:
+            candidates += candidates_temp[:index]
     candidates = [c for c in candidates if c in next_entry[0].stations and c != cur_station]
 
     if len(candidates) == 1:
