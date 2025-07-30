@@ -11,6 +11,8 @@ Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate` an
 
 (For finding the longest route in the network, requires `networkx` or optionally `graphillion` for finding non-repeating paths)
 
+(For frontend UI in `ui/`, requires `nicegui` and `pywebview`)
+
 # Add a New City/Subway Line/Train/...
 See [specification.md](docs/specification.md) for the specifications (format of JSON5 files within `data/`) you need to
 follow, and also [a-new-line-from-scratch.md](docs/a-new-line-from-scratch.md) for the process of creating a new line.

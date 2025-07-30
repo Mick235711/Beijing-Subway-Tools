@@ -2723,3 +2723,18 @@ options:
   --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
 ```
+
+# [`ui/`](/src/ui): Frontend to the Tool
+This is a GUI for the tool based on NiceGUI.
+Please execute [`main.py`](/src/ui/main.py) to enter the system (with the following command-line arguments), and follow the instructions on the screen.
+```
+usage: main.py [-h] [--browser | -s WINDOW_SIZE] [--light | --dark]
+
+options:
+  -h, --help            show this help message and exit
+  --browser             Browser mode
+  -s, --window-size WINDOW_SIZE
+                        Window size in pixels (widthxheight)
+  --light               Light mode
+  --dark                Dark mode
+```
