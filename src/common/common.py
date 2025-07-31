@@ -194,9 +194,9 @@ def segment_speed(distance: int, duration: int) -> float:
     return (distance / 1000) / (duration / 60)
 
 
-def speed_str(speed: float) -> str:
+def speed_str(speed: float | int) -> str:
     """ Get proper string representation of speed """
-    return f"{speed:.2f}km/h"
+    return f"{speed}km/h" if isinstance(speed, int) else f"{speed:.2f}km/h"
 
 
 def parse_time(time_str: str, next_day: bool = False) -> TimeSpec:

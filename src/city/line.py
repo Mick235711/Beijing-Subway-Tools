@@ -54,6 +54,21 @@ class Line:
             return f"{self.name} [{self.code}]"
         return self.name
 
+    def line_type(self) -> list[str]:
+        """ Return the types of this line """
+        types: list[str] = []
+        if self.loop:
+            types.append("Loop")
+        elif self.end_circle_start is not None:
+            types.append("End-Circle")
+        else:
+            types.append("Regular")
+        if len(self.must_include) > 0:
+            types.append("Different Fare")
+        if self.have_express():
+            types.append("Express")
+        return types
+
     def station_full_name(self, station: str) -> str:
         """ Return the full name for a station """
         assert station in self.stations, (station, self)
