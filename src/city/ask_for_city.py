@@ -52,8 +52,7 @@ def ask_for_line(city: City, *, message: str | None = None,
     if only_loop:
         lines = {name: line for name, line in lines.items() if line.loop}
     if only_express:
-        lines = {name: line for name, line in lines.items() if any(
-            route.is_express() for route_dict in line.train_routes.values() for route in route_dict.values())}
+        lines = {name: line for name, line in lines.items() if line.have_express()}
     return cast(Line, ask_for_line_in_station(set(lines.values()), message=message))
 
 
@@ -69,8 +68,7 @@ def ask_for_line_with_through(
     else:
         payload = [spec for spec in through_specs]
     if only_express:
-        lines = {name: line for name, line in lines.items() if any(
-            route.is_express() for route_dict in line.train_routes.values() for route in route_dict.values())}
+        lines = {name: line for name, line in lines.items() if line.have_express()}
         if payload is not None:
             payload = [spec for spec in payload if any(
                 x[3].is_express() for x in spec.spec

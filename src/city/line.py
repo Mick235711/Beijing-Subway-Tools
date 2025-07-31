@@ -70,6 +70,10 @@ class Line:
         """ Get string representation """
         return f"<{self.full_name()}: {self.line_str()}>"
 
+    def have_express(self) -> bool:
+        """ Check if this line has express service """
+        return any(route.is_express() for route_dict in self.train_routes.values() for route in route_dict.values())
+
     def direction_stations(self, direction: str | None = None) -> list[str]:
         """ Returns the base route's station for this direction """
         return self.stations if direction is None else self.direction_base_route[direction].stations

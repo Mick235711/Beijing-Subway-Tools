@@ -10,6 +10,7 @@ from nicegui import ui
 
 from src.city.city import get_all_cities
 from src.common.common import suffix_s
+from src.ui.info_tab import info_tab
 
 
 @ui.page("/select_city", title="Beijing Subway Tools - Select City")
@@ -38,23 +39,21 @@ async def main_page(city_name: str) -> None:
     with ui.header().classes(replace="row items-center"):
         with ui.row().classes("w-full justify-between items-center p-2"):
             with ui.tabs() as tabs:
-                info_tab = ui.tab("Basic Information", icon="info")
-                stats_tab = ui.tab("Statistics", icon="query_stats")
-                route_tab = ui.tab("Route Planning", icon="route")
+                info_tab_ = ui.tab("Basic Information", icon="info")
+                stats_tab_ = ui.tab("Statistics", icon="query_stats")
+                route_tab_ = ui.tab("Route Planning", icon="route")
             with ui.row().classes("items-center"):
                 ui.label(f"Selected City: {city_name}")
                 ui.button(on_click=lambda: ui.navigate.to("/select_city"), icon="change_circle")
 
-    with ui.tab_panels(tabs, value=info_tab).classes("w-full"):
-        with ui.tab_panel(info_tab):
-            ui.label(f"City: {city_name}").classes("text-h5")
-            ui.label(f"Number of Lines: {len(city.lines)}")
-            ui.label(f"Number of Stations: {len(city.station_lines)}")
+    with ui.tab_panels(tabs, value=info_tab_).classes("w-full"):
+        with ui.tab_panel(info_tab_):
+            info_tab(city)
 
-        with ui.tab_panel(stats_tab):
+        with ui.tab_panel(stats_tab_):
             ui.label("Statistics will be displayed here.")
 
-        with ui.tab_panel(route_tab):
+        with ui.tab_panel(route_tab_):
             ui.label("Route planning features will be implemented here.")
 
 
