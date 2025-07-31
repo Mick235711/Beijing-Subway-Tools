@@ -9,7 +9,7 @@ from nicegui import binding, ui
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str
+from src.common.common import distance_str, speed_str, is_white, parse_color_string
 
 
 @binding.bindable_dataclass
@@ -17,6 +17,16 @@ class InfoData:
     """ Data for the info tab """
     lines: dict[str, Line]
     station_lines: dict[str, set[Line]]
+
+
+def get_text_color(color: str | None) -> str:
+    """ Get text color based on background color """
+    if color is None:
+        return "white"
+    if is_white(*parse_color_string(color)):
+        return "black"
+    else:
+        return "white"
 
 
 def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]) -> list[dict]:
@@ -30,17 +40,28 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
     }
     rows = []
     for line in lines.values():
+        end_station = line.stations[0] if line.loop else line.stations[-1]
         row = {
             "index": line.index,
-            "name": line.full_name(),
+            "name": [(line.name, line.color or "primary", get_text_color(line.color))] + (
+                [] if line.code is None else [(line.code, line.color or "primary", get_text_color(line.color))]
+            ),
             "line_type": [(x, line_type_color[x]) for x in line.line_type()] + (
                 [("Through", "indigo-7")] if any(
                     any(l.name == line.name for l, _, _, _ in spec.spec) and
                     all(l.name in lines for l, _, _, _ in spec.spec) for spec in through_specs
                 ) else []
             ),
-            "start_station": line.station_full_name(line.stations[0]),
-            "end_station": line.station_full_name(line.stations[0] if line.loop else line.stations[-1]),
+            "start_station": [line.stations[0]] + (
+                [] if line.code is None else [[
+                    (line.station_code(line.stations[0]), line.color or "primary", get_text_color(line.color))
+                ]]
+            ),
+            "end_station": [end_station] + (
+                [] if line.code is None else [[
+                    (line.station_code(end_station), line.color or "primary", get_text_color(line.color))
+                ]]
+            ),
             "distance": distance_str(line.total_distance()),
             "num_stations": str(len(line.stations)),
             "design_speed": speed_str(line.design_speed),
@@ -140,8 +161,8 @@ def info_tab(city: City) -> None:
                     {"name": "index", "label": "Index", "field": "index"},
                     {"name": "name", "label": "Name", "field": "name", "sortable": False, "align": "center"},
                     {"name": "lineType", "label": "Line Type", "field": "line_type", "sortable": False, "align": "left"},
-                    {"name": "start", "label": "Start", "field": "start_station"},
-                    {"name": "end", "label": "End", "field": "end_station"},
+                    {"name": "start", "label": "Start", "field": "start_station", "sortable": False},
+                    {"name": "end", "label": "End", "field": "end_station", "sortable": False},
                     {"name": "distance", "label": "Distance", "field": "distance",
                      ":sort": """(a, b, rowA, rowB) => {
                         const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
@@ -158,6 +179,29 @@ def info_tab(city: City) -> None:
                 column_defaults={"align": "right", "required": True, "sortable": True},
                 rows=calculate_line_rows(city.lines, city.through_specs)
             )
+            lines_table.add_slot("body-cell-name", """
+<q-td key="name" :props="props">
+    <q-badge v-for="[name, color, textColor] in props.value" :style="{ background: color }" :text-color="textColor">
+        {{ name }}
+    </q-badge>
+</q-td>
+            """)
+            lines_table.add_slot("body-cell-start", """
+<q-td key="start" :props="props">
+    {{ props.value[0] }}
+    <q-badge v-for="[name, color, textColor] in props.value[1]" :style="{ background: color }" :text-color="textColor">
+        {{ name }}
+    </q-badge>
+</q-td>
+            """)
+            lines_table.add_slot("body-cell-end", """
+<q-td key="end" :props="props">
+    {{ props.value[0] }}
+    <q-badge v-for="[name, color, textColor] in props.value[1]" :style="{ background: color }" :text-color="textColor">
+        {{ name }}
+    </q-badge>
+</q-td>
+            """)
             lines_table.add_slot("body-cell-lineType", """
 <q-td key="lineType" :props="props">
     <q-badge v-for="[type, color] in props.value" :color="color">

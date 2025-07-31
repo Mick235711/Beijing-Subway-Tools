@@ -211,8 +211,8 @@ class Line:
         assert False, (self, station1, station2)
 
 
-def station_full_name(station: str, lines: dict[str, Line] | set[Line]) -> str:
-    """ Get full name for station """
+def station_codes(station: str, lines: dict[str, Line] | set[Line]) -> list[tuple[Line, str]]:
+    """ Get codes for station """
     if isinstance(lines, set):
         processed_lines = sorted(list(lines), key=lambda x: x.index)
     else:
@@ -220,18 +220,22 @@ def station_full_name(station: str, lines: dict[str, Line] | set[Line]) -> str:
     if any(x.code is not None for x in processed_lines):
         # Ensure that there is no duplicate code
         code_set: set[str] = set()
-        final_list: list[tuple[int, str]] = []
+        final_list: list[tuple[Line, str]] = []
         for line in processed_lines:
             if line.code is not None:
                 station_code = line.station_code(station)
                 if station_code in code_set:
                     continue
                 code_set.add(station_code)
-                final_list.append((line.index, station_code))
-        return station + " (" + "/".join(
-            [x[1] for x in sorted(final_list, key=lambda x: x[0])]
-        ) + ")"
-    return station
+                final_list.append((line, station_code))
+        return sorted(final_list, key=lambda x: x[0].index)
+    return []
+
+
+def station_full_name(station: str, lines: dict[str, Line] | set[Line]) -> str:
+    """ Get full name for station """
+    codes = station_codes(station, lines)
+    return station + ("" if len(codes) == 0 else (" (" + "/".join([x[1] for x in codes]) + ")"))
 
 
 def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line, bool]:

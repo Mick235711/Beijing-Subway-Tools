@@ -565,6 +565,24 @@ def to_list(info: T | list[T]) -> list[T]:
     return [info]
 
 
+def is_white(r: int, g: int, b: int) -> bool:
+    """ Determine if the text should be white based on RGB values """
+    return (0.2126 * r / 255) + (0.7152 * g / 255) + (0.0722 * b / 255) > 0.5
+
+
+def parse_color_string(color_str: str) -> tuple[int, int, int]:
+    """ Parse a color string like #RRGGBB or rgb(R, G, B) """
+    if color_str.startswith("#"):
+        assert len(color_str) == 7, color_str
+        return int(color_str[1:3], 16), int(color_str[3:5], 16), int(color_str[5:7], 16)
+    elif color_str.startswith("rgb(") and color_str.endswith(")"):
+        rgb_values = color_str[4:-1].split(",")
+        assert len(rgb_values) == 3, color_str
+        return tuple(int(x.strip()) for x in rgb_values)  # type: ignore
+    else:
+        assert False, color_str
+
+
 class Reverser:
     """ Reverse the comparison order """
 
