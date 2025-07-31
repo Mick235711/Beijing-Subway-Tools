@@ -59,6 +59,8 @@ async def main_page(city_name: str) -> None:
 
     with ui.right_drawer(value=False, top_corner=True, bottom_corner=True) as drawer:
         line_drawer(city, drawer)
+        with ui.page_sticky(position="top-right", x_offset=20, y_offset=20):
+            ui.button(icon="keyboard_double_arrow_right", on_click=lambda: drawer.hide()).props("fab color=accent")
 
 
 def main() -> None:
