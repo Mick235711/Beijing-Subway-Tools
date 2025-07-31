@@ -9,7 +9,7 @@ from nicegui import binding, ui
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str, is_white, parse_color_string
+from src.common.common import distance_str, speed_str, is_white, parse_color_string, suffix_s
 
 
 @binding.bindable_dataclass
@@ -17,6 +17,9 @@ class InfoData:
     """ Data for the info tab """
     lines: dict[str, Line]
     station_lines: dict[str, set[Line]]
+
+
+MAX_TRANSFER_LINE_COUNT = 6
 
 
 def get_text_color(color: str | None) -> str:
@@ -138,7 +141,18 @@ def info_tab(city: City) -> None:
                     backward=lambda l: distance_str(sum([line.total_distance() for line in l.values()]))
                 ).classes(card_text)
 
-        with ui.card():
+        def set_transfer_detail(value: bool) -> None:
+            """ Set transfer detail visibility """
+            if value:
+                transfer_all_card.set_visibility(False)
+                for cnt, card in transfer_cards.items():
+                    card.set_visibility(any(len(x) == cnt for x in data.station_lines.values()))
+            else:
+                transfer_all_card.set_visibility(True)
+                for card in transfer_cards.values():
+                    card.set_visibility(False)
+
+        with ui.card().on("click", lambda: set_transfer_detail(True)) as transfer_all_card:
             ui.tooltip().bind_text_from(
                 data, "station_lines",
                 backward=lambda sl:
@@ -152,6 +166,20 @@ def info_tab(city: City) -> None:
                     data, "station_lines",
                     backward=lambda sl: str(len([station for station, lines in sl.items() if len(lines) > 1]))
                 ).classes(card_text)
+
+        transfer_cards = {}
+        for line_cnt in range(2, MAX_TRANSFER_LINE_COUNT + 1):
+            with ui.card().on("click", lambda: set_transfer_detail(False)) as transfer_card:
+                transfer_cards[line_cnt] = transfer_card
+                with ui.card_section():
+                    ui.label("Station With " + suffix_s("Line", line_cnt)).classes(card_caption)
+                    ui.label().bind_text_from(
+                        data, "station_lines",
+                        backward=lambda sl, lc=line_cnt: str(len(
+                            [station for station, lines in sl.items() if len(lines) == lc]
+                        ))
+                    ).classes(card_text)
+        set_transfer_detail(False)
 
         ui.separator()
         with ui.column():
