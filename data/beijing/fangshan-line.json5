@@ -3,6 +3,7 @@
 {
     name: "房山线",
     color: "#D86018",
+    badge: "FS",
     aliases: ["Fangshan Line", "Line 25"],
     index: 25,
     carriage_num: 6,

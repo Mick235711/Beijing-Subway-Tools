@@ -29,9 +29,10 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
         end_station = line.stations[0] if line.loop else line.stations[-1]
         row = {
             "index": line.index,
-            "name": [(line.name, line.color or "primary", get_text_color(line.color))] + (
-                [] if line.code is None else [(line.code, line.color or "primary", get_text_color(line.color))]
-            ),
+            "name": [
+                (line.name, line.color or "primary", get_text_color(line.color), line.badge_icon or ""),
+                (line.get_badge(), line.color or "primary", get_text_color(line.color), line.badge_icon or "")
+            ],
             "line_type": [(x, LINE_TYPES[x][0], LINE_TYPES[x][1]) for x in line.line_type()] + (
                 [("Through", LINE_TYPES["Through"][0], LINE_TYPES["Through"][1])] if any(
                     any(l.name == line.name for l, _, _, _ in spec.spec) and
@@ -192,8 +193,9 @@ def info_tab(city: City) -> None:
             )
             lines_table.add_slot("body-cell-name", """
 <q-td key="name" :props="props">
-    <q-badge v-for="[name, color, textColor] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', name)">
+    <q-badge v-for="[name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', name)">
         {{ name }}
+        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
 </q-td>
             """)

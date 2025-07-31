@@ -32,10 +32,13 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
     if SELECTED_LINE is None:
         return
     line: Line = SELECTED_LINE
-    ui.badge(line.name, color=line.color, text_color=get_text_color(line.color)).classes("text-h6 text-bold")
+    with ui.badge(line.name, color=line.color, text_color=get_text_color(line.color)).classes("text-h6 text-bold"):
+        if line.badge_icon is not None:
+            ui.icon(line.badge_icon)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
-        if line.code is not None:
-            ui.badge(line.code, color=line.color, text_color=get_text_color(line.color))
+        with ui.badge(line.get_badge(), color=line.color, text_color=get_text_color(line.color)):
+            if line.badge_icon is not None:
+                ui.icon(line.badge_icon)
         line_types = line.line_type()
         if any(
             any(l.name == line.name for l, _, _, _ in spec.spec) and

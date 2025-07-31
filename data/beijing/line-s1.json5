@@ -3,6 +3,7 @@
 {
     name: "S1线",
     color: "#A45A2A",
+    badge: "S1",
     aliases: ["Line S1", "Mentougou Line", "Maglev"],
     index: 26,
     carriage_num: 6,

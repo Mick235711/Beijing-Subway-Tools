@@ -19,11 +19,14 @@ from src.timetable.timetable import Timetable, parse_timetable
 class Line:
     """ Represents a subway line """
 
-    def __init__(self, name: str, color: str, index: int, carriage_num: int, carriage_type: Carriage, design_speed: int,
+    def __init__(self, name: str, color: str | None, badge: str | None, badge_icon: str | None,
+                 index: int, carriage_num: int, carriage_type: Carriage, design_speed: int,
                  aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
         self.color = color
+        self.badge = badge
+        self.badge_icon = badge_icon
         self.index = index
         self.aliases = aliases or []
         self.code: str | None = None
@@ -81,6 +84,14 @@ class Line:
         assert station in self.stations, (self, station)
         index = self.stations.index(station)
         return f"{self.code}{self.code_separator}{self.station_indexes[index]}"
+
+    def get_badge(self) -> str:
+        """ Get the badge text for this line """
+        if self.badge is not None:
+            return self.badge
+        if self.code is not None:
+            return self.code
+        return str(self.index)
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -253,8 +264,8 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             assert result is not None, line_file
             index = int(result.group())
 
-        line = Line(line_dict["name"], line_dict.get("color"), index, line_dict["carriage_num"], carriage,
-                    line_dict["design_speed"], line_dict.get("aliases"))
+        line = Line(line_dict["name"], line_dict.get("color"), line_dict.get("badge"), line_dict.get("badge_icon"),
+                    index, line_dict["carriage_num"], carriage, line_dict["design_speed"], line_dict.get("aliases"))
 
     if "code" in line_dict:
         line.code = line_dict["code"]

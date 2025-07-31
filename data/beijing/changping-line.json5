@@ -3,6 +3,7 @@
 {
     name: "昌平线",
     color: "#D986BA",
+    badge: "CP",
     aliases: ["Changping Line", "Line 27"],
     index: 27,
     carriage_num: 6,

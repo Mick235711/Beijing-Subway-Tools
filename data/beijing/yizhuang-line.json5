@@ -3,6 +3,7 @@
 {
     name: "亦庄线",
     color: "#D0006F",
+    badge: "YZ",
     aliases: ["Yizhuang Line", "Line 24"],
     index: 24,
     carriage_num: 6,

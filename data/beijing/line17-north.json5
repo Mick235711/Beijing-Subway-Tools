@@ -3,6 +3,7 @@
 {
     name: "17号线北段",
     color: "#00ABAB",
+    badge: "17N",
     index: 18,
     aliases: ["Line 17 North Section"],
     carriage_num: 8,
