@@ -2,6 +2,7 @@
 // 10号线时刻表 新4版
 {
     name: "10号线",
+    color: "#0092BC",
     aliases: ["Line 10"],
     carriage_num: 6,
     carriage_type: "B",

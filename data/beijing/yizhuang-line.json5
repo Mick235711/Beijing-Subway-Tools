@@ -2,6 +2,7 @@
 // 亦庄线时刻表 新3版
 {
     name: "亦庄线",
+    color: "#D0006F",
     aliases: ["Yizhuang Line", "Line 24"],
     index: 24,
     carriage_num: 6,

@@ -4,6 +4,7 @@
 // 无官方站间距，dist均为GE测量数据，不准确
 {
     name: "藍海線",
+    color: "#E5554F",
     aliases: ["Lanhai Line", "Seaside Line", "Danhai LRT"],
     code: "V",
     index: 41,

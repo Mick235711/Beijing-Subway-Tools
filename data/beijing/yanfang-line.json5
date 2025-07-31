@@ -2,6 +2,7 @@
 // 燕房线时刻表 第3版
 {
     name: "燕房线",
+    color: "#D86018",
     aliases: ["Yanfang Line", "Line 25B"],
     index: 31, // 临时编号，为了不重复
     carriage_num: 4,

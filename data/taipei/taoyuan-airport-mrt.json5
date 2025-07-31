@@ -3,6 +3,7 @@
 //
 {
     name: "桃園機場捷運",
+    color: "#8246AF",
     aliases: ["Taoyuan Airport MRT", "Jijie"],
     code: "A",
     index: 11,

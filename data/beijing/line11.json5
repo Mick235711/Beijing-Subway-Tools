@@ -2,6 +2,7 @@
 // 11号线时刻表 新5版
 {
     name: "11号线",
+    color: "#FF8674",
     aliases: ["Line 11"],
     carriage_num: 4,  // 土建6A，一期4A
     carriage_type: "A",

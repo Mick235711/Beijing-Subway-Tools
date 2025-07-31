@@ -2,6 +2,7 @@
 // 4号线-大兴线时刻表 第6版
 {
     name: "4号线",
+    color: "#008C95",
     aliases: ["Line 4", "Daxing Line"],
     carriage_num: 6,
     carriage_type: "B",

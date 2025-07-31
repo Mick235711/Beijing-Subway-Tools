@@ -2,6 +2,7 @@
 // 17号线时刻表 第2版（南段）
 {
     name: "17号线",
+    color: "#00ABAB",
     aliases: ["Line 17"],
     carriage_num: 8,
     carriage_type: "A",

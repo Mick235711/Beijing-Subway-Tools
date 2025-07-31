@@ -3,6 +3,7 @@
 // 注：独立于主线描述，全程时间按3min计算
 {
     name: "新北投支線",
+    color: "#FD92A3",
     aliases: ["Danshui-Xinyi Line", "Tamsui-Xinyi Line", "Xinbeitou Branch Line"],
     code: "R",
     index: 22,

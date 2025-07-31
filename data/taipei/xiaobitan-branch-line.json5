@@ -3,6 +3,7 @@
 // 注：独立于主线描述，全程时间按4min计算
 {
     name: "小碧潭支線",
+    color: "#CFDB00",
     aliases: ["Songshan-Xindian Line", "Xiaobitan Branch Line"],
     code: "G",
     index: 23,

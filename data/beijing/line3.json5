@@ -2,6 +2,7 @@
 // 3号线时刻表 新3版
 {
     name: "3号线",
+    color: "#D90627",
     aliases: ["Line 3"],
     carriage_num: 4, // 目前运营编组为4A
     carriage_type: "A",

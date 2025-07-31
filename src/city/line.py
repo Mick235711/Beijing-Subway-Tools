@@ -19,10 +19,11 @@ from src.timetable.timetable import Timetable, parse_timetable
 class Line:
     """ Represents a subway line """
 
-    def __init__(self, name: str, index: int, carriage_num: int, carriage_type: Carriage, design_speed: int,
+    def __init__(self, name: str, color: str, index: int, carriage_num: int, carriage_type: Carriage, design_speed: int,
                  aliases: list[str] | None = None) -> None:
         """ Constructor """
         self.name = name
+        self.color = color
         self.index = index
         self.aliases = aliases or []
         self.code: str | None = None
@@ -248,7 +249,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             assert result is not None, line_file
             index = int(result.group())
 
-        line = Line(line_dict["name"], index, line_dict["carriage_num"], carriage,
+        line = Line(line_dict["name"], line_dict.get("color"), index, line_dict["carriage_num"], carriage,
                     line_dict["design_speed"], line_dict.get("aliases"))
 
     if "code" in line_dict:

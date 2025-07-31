@@ -2,6 +2,7 @@
 // 文湖线时刻表（来自MetroMan）
 {
     name: "文湖線",
+    color: "#C48C31",
     aliases: ["Wenhu Line", "Wenshan-Neihu Line"],
     code: "BR",
     index: 1,

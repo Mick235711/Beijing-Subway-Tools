@@ -2,6 +2,7 @@
 // 西郊线时刻表 亿通行版
 {
     name: "西郊线",
+    color: "#D22630",
     aliases: ["Xijiao Line", "Tram", "Line 29"],
     index: 29,
     carriage_num: 5, // 重连属于高峰措施，不记录

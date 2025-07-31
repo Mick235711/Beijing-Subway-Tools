@@ -3,6 +3,7 @@
 // 注：独立描述，按跨线处理
 {
     name: "蘆洲線",
+    color: "#F8B61C",
     aliases: ["Luzhou Line", "Zhonghe-Xinlu Line"],
     code: "O",
     index: 24,

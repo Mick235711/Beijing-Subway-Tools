@@ -2,6 +2,7 @@
 // 5号线时刻表 新6版
 {
     name: "5号线",
+    color: "#AA0061",
     aliases: ["Line 5"],
     carriage_num: 6,
     carriage_type: "B",

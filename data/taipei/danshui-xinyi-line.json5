@@ -3,6 +3,7 @@
 // 注：新北投支线独立描述
 {
     name: "淡水信義線",
+    color: "#E3002C",
     aliases: ["Tamsui-Xinyi Line", "Danshui-Xinyi Line"],
     code: "R",
     index: 2,

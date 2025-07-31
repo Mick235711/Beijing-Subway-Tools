@@ -2,6 +2,7 @@
 // 7号线时刻表 新8版
 {
     name: "7号线",
+    color: "#FFC56E",
     aliases: ["Line 7"],
     carriage_num: 8,
     carriage_type: "B",

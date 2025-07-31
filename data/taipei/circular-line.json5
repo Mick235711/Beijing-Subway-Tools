@@ -4,6 +4,7 @@
 // 例假日6-23点统一10分间隔，23点以后12分*1+15分*3间隔
 {
     name: "環狀線",
+    color: "#FFDB00",
     aliases: ["Circular Line"],
     code: "Y",
     index: 6,

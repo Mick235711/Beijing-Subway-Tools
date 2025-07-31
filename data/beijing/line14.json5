@@ -2,6 +2,7 @@
 // 14号线时刻表 第2版
 {
     name: "14号线",
+    color: "#CA9A8E",
     aliases: ["Line 14"],
     carriage_num: 6,
     carriage_type: "A",

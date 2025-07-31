@@ -2,6 +2,7 @@
 // 大兴机场线时刻表 第6版
 {
     name: "大兴机场线",
+    color: "#0049A5",
     aliases: ["Daxing Airport Express", "DAE", "Line 35"],
     index: 35,
     carriage_num: 7, // 7+1D, 1D为行李车不载客

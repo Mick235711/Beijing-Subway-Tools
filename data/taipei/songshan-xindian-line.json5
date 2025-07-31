@@ -3,6 +3,7 @@
 // 注：小碧潭支线独立描述
 {
     name: "松山新店線",
+    color: "#008659",
     aliases: ["Songshan-Xindian Line"],
     code: "G",
     index: 3,

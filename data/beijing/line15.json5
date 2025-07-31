@@ -2,6 +2,7 @@
 // 15号线时刻表 新7版
 {
     name: "15号线",
+    color: "#653279",
     aliases: ["Line 15"],
     carriage_num: 6,
     carriage_type: "B",

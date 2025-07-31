@@ -4,6 +4,7 @@
 // 无官方站间距，dist均为GE测量数据，不准确
 {
     name: "淡海輕軌",
+    color: "#E5554F",
     aliases: ["Danhai LRT", "Lyushan Line", "Green Mountain Line"],
     code: "V",
     index: 31,

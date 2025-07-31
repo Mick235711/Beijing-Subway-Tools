@@ -3,6 +3,7 @@
 // 无官方站间距，dist均为GE测量数据，不准确
 {
     name: "安坑輕軌",
+    color: "#A28D5B",
     aliases: ["Ankeng LRT"],
     code: "K",
     index: 32,

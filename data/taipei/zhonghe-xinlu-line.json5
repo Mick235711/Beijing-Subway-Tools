@@ -3,6 +3,7 @@
 // 注：芦洲线独立描述，按跨线处理
 {
     name: "中和新蘆線",
+    color: "#F8B61C",
     aliases: ["Zhonghe-Xinlu Line"],
     code: "O",
     index: 4,

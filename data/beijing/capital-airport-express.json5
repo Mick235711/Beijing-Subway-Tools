@@ -2,6 +2,7 @@
 // 首都机场线时刻表 新7版
 {
     name: "首都机场线",
+    color: "#A192B2",
     aliases: ["Capital Airport Express", "CAE", "Line 34", "ABC"],
     index: 34,
     carriage_num: 4,
