@@ -583,6 +583,16 @@ def parse_color_string(color_str: str) -> tuple[int, int, int]:
         assert False, color_str
 
 
+def get_text_color(color: str | None) -> str:
+    """ Get text color based on background color """
+    if color is None:
+        return "white"
+    if is_white(*parse_color_string(color)):
+        return "black"
+    else:
+        return "white"
+
+
 class Reverser:
     """ Reverse the comparison order """
 

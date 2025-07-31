@@ -10,6 +10,7 @@ from nicegui import ui
 
 from src.city.city import get_all_cities
 from src.common.common import suffix_s
+from src.ui.drawers import line_drawer
 from src.ui.info_tab import info_tab
 
 
@@ -55,6 +56,9 @@ async def main_page(city_name: str) -> None:
 
         with ui.tab_panel(route_tab_):
             ui.label("Route planning features will be implemented here.")
+
+    with ui.right_drawer(value=False, top_corner=True, bottom_corner=True) as drawer:
+        line_drawer(city, drawer)
 
 
 def main() -> None:

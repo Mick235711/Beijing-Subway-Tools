@@ -9,7 +9,10 @@ from nicegui import binding, ui
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str, is_white, parse_color_string, suffix_s
+from src.common.common import distance_str, speed_str, suffix_s, get_text_color
+from src.ui.drawers import refresh_line_drawer, LINE_TYPES
+
+MAX_TRANSFER_LINE_COUNT = 6
 
 
 @binding.bindable_dataclass
@@ -19,28 +22,8 @@ class InfoData:
     station_lines: dict[str, set[Line]]
 
 
-MAX_TRANSFER_LINE_COUNT = 6
-
-
-def get_text_color(color: str | None) -> str:
-    """ Get text color based on background color """
-    if color is None:
-        return "white"
-    if is_white(*parse_color_string(color)):
-        return "black"
-    else:
-        return "white"
-
-
 def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]) -> list[dict]:
     """ Calculate rows for the line table """
-    line_type_color = {
-        "Regular": "primary",
-        "Express": "red",
-        "Loop": "teal",
-        "Different Fare": "orange",
-        "End-Circle": "purple"
-    }
     rows = []
     for line in lines.values():
         end_station = line.stations[0] if line.loop else line.stations[-1]
@@ -49,10 +32,10 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
             "name": [(line.name, line.color or "primary", get_text_color(line.color))] + (
                 [] if line.code is None else [(line.code, line.color or "primary", get_text_color(line.color))]
             ),
-            "line_type": [(x, line_type_color[x]) for x in line.line_type()] + (
-                [("Through", "indigo-7")] if any(
+            "line_type": [(x, LINE_TYPES[x][0], LINE_TYPES[x][1]) for x in line.line_type()] + (
+                [("Through", LINE_TYPES["Through"][0], LINE_TYPES["Through"][1])] if any(
                     any(l.name == line.name for l, _, _, _ in spec.spec) and
-                    all(l.name in lines for l, _, _, _ in spec.spec) for spec in through_specs
+                    all(l.name in lines.keys() for l, _, _, _ in spec.spec) for spec in through_specs
                 ) else []
             ),
             "start_station": [line.stations[0]] + (
@@ -175,7 +158,7 @@ def info_tab(city: City) -> None:
                     ui.label("Station With " + suffix_s("Line", line_cnt)).classes(card_caption)
                     ui.label().bind_text_from(
                         data, "station_lines",
-                        backward=lambda sl, lc=line_cnt: str(len(
+                        backward=lambda sl, lc=line_cnt: str(len(  # type: ignore
                             [station for station, lines in sl.items() if len(lines) == lc]
                         ))
                     ).classes(card_text)
@@ -209,11 +192,12 @@ def info_tab(city: City) -> None:
             )
             lines_table.add_slot("body-cell-name", """
 <q-td key="name" :props="props">
-    <q-badge v-for="[name, color, textColor] in props.value" :style="{ background: color }" :text-color="textColor">
+    <q-badge v-for="[name, color, textColor] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', name)">
         {{ name }}
     </q-badge>
 </q-td>
             """)
+            lines_table.on("lineBadgeClick", lambda n: refresh_line_drawer(city.lines[n.args], data.lines))
             lines_table.add_slot("body-cell-start", """
 <q-td key="start" :props="props">
     {{ props.value[0] }}
@@ -232,13 +216,9 @@ def info_tab(city: City) -> None:
             """)
             lines_table.add_slot("body-cell-lineType", """
 <q-td key="lineType" :props="props">
-    <q-badge v-for="[type, color] in props.value" :color="color">
+    <q-badge v-for="[type, color, icon] in props.value" :color="color">
         {{ type }}
-        <q-icon v-if="type === 'Express'" name="rocket" class="q-ml-xs" />
-        <q-icon v-if="type === 'Loop'" name="loop" class="q-ml-xs" />
-        <q-icon v-if="type === 'Different Fare'" name="warning" class="q-ml-xs" />
-        <q-icon v-if="type === 'End-Circle'" name="arrow_circle_right" class="q-ml-xs" />
-        <q-icon v-if="type === 'Through'" name="sync_alt" class="q-ml-xs" />
+        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
 </q-td>
             """)
