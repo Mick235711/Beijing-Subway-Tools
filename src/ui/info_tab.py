@@ -77,6 +77,7 @@ def info_tab(city: City) -> None:
             }
             data.station_lines = parse_station_lines(data.lines)
             lines_table.rows = calculate_line_rows(data.lines, city.through_specs)
+            refresh_line_drawer(None, data.lines)
 
         loop_switch = ui.switch("Loop", value=True, on_change=on_switch_change)
         circle_switch = ui.switch("End circle", value=True, on_change=on_switch_change)
