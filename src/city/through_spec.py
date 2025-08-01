@@ -21,24 +21,28 @@ class ThroughSpec:
         # list of (line, direction, date_group, route)
         self.spec = spec
 
-    def stations(self, use_full_name: bool = False) -> list[str]:
-        """ Calculate stations for this through route """
-        stations: list[str] = []
+    def station_lines(self, use_full_name: bool = False) -> list[tuple[str, Line, str]]:
+        """ Calculate stations, lines and directions for this through route """
+        station_lines: list[tuple[str, Line, str]] = []
         last_station: str | None = None
-        for line, _, _, route in self.spec:
-            if len(stations) == 0:
+        for line, direction, _, route in self.spec:
+            if len(station_lines) == 0:
                 if use_full_name:
-                    stations = [line.station_full_name(s) for s in route.stations]
+                    station_lines = [(line.station_full_name(s), line, direction) for s in route.stations]
                 else:
-                    stations = route.stations[:]
+                    station_lines = [(s, line, direction) for s in route.stations]
                 last_station = route.stations[-1]
             else:
-                assert last_station == route.stations[0], (stations, route, self.spec)
+                assert last_station == route.stations[0], (station_lines, route, self.spec)
                 if use_full_name:
-                    stations.extend([line.station_full_name(s) for s in route.stations[1:]])
+                    station_lines.extend([(line.station_full_name(s), line, direction) for s in route.stations[1:]])
                 else:
-                    stations.extend(route.stations[1:])
-        return stations
+                    station_lines.extend([(s, line, direction) for s in route.stations[1:]])
+        return station_lines
+
+    def stations(self, use_full_name: bool = False) -> list[str]:
+        """ Calculate stations for this through route """
+        return [x[0] for x in self.station_lines(use_full_name=use_full_name)]
 
     def skip_stations(self) -> set[str]:
         """ Calculate skip stations for this through route """
@@ -70,7 +74,7 @@ class ThroughSpec:
 
     def route_str(self) -> str:
         """ String representation for routes """
-        return "/".join(sorted(list(set(route.name for _, _, _, route in self.spec))))
+        return "/".join(sorted({route.name for _, _, _, route in self.spec}))
 
     def line_str(self) -> str:
         """ String representation for lines """
@@ -87,6 +91,30 @@ class ThroughSpec:
     def direction_str(self) -> str:
         """ String representation for directions """
         return " => ".join(f"{line.full_name()} ({direction})" for line, direction, _, _ in self.spec)
+
+    def query_prev_line(self, station: str, line: Line, direction: str | None = None) -> tuple[Line, str] | None:
+        """ Try to query the previous line on the through train """
+        record = False
+        for next_station, next_line, next_direction in reversed(self.station_lines()):
+            if record:
+                if next_station == station:
+                    return next_line, next_direction
+                record = False
+            if next_line.name == line.name and (direction is None or next_direction == direction):
+                record = True
+        return None
+
+    def query_next_line(self, station: str, line: Line, direction: str | None = None) -> tuple[Line, str] | None:
+        """ Try to query the next line on the through train """
+        record = False
+        for next_station, next_line, next_direction in self.station_lines():
+            if record:
+                return next_line, next_direction
+            if next_station == station and next_line.name == line.name and (
+                direction is None or next_direction == direction
+            ):
+                record = True
+        return None
 
 
 def parse_through_single_direction(

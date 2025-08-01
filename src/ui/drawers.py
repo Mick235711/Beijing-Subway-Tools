@@ -24,7 +24,10 @@ LINE_TYPES = {
 }
 
 
-def get_line_badge(line: Line, *, show_name: bool = True, add_click: bool = False, classes: str | None = None) -> None:
+def get_line_badge(
+    line: Line, *,
+    show_name: bool = True, add_click: bool = False, classes: str | None = None, add_through: bool = False
+) -> None:
     """ Get line badge """
     global AVAILABLE_LINES
     with ui.badge(
@@ -36,6 +39,8 @@ def get_line_badge(line: Line, *, show_name: bool = True, add_click: bool = Fals
             badge.on("click", lambda l=line: refresh_line_drawer(l, AVAILABLE_LINES))
         if line.badge_icon is not None:
             ui.icon(line.badge_icon)
+        if add_through:
+            ui.icon(LINE_TYPES["Through"][1])
 
 
 def get_station_badge(
@@ -214,7 +219,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
                 icon=(None if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
             ) as entry:
                 if station in virtual_dict:
-                    with ui.card().classes("q-pa-sm mb-2"):
+                    with ui.card().classes("q-pa-sm" + (" mb-2" if show_tally else " -mt-4")):
                         with ui.card_section().classes("p-0"):
                             ui.label("Virtual transfer:").classes("text-subtitle-1")
                             station2_set = set(virtual_dict[station].keys())
@@ -223,6 +228,15 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
                                     get_station_badge(station2, show_badges=True, label_at_end=True)
                 if i != len(stations) - 1:
                     ui.label(f"{dists[i]}m")
+            prev_lines: set[str] = set()
+            next_lines: set[str] = set()
+            for spec in city.through_specs:
+                prev_ld = spec.query_prev_line(station, line, direction)
+                if prev_ld is not None:
+                    prev_lines.add(prev_ld[0].name)
+                next_ld = spec.query_next_line(station, line, direction)
+                if next_ld is not None:
+                    next_lines.add(next_ld[0].name)
             with entry.add_slot("title"):
                 with ui.column().classes("gap-y-1"):
                     with ui.row().classes("items-center gap-1"):
@@ -232,8 +246,9 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
                             for line2 in sorted(station_lines[station], key=lambda l: l.index):
                                 if line2.name == line.name:
                                     continue
-                                get_line_badge(line2, show_name=False, add_click=True)
-                                # TODO: express train icon, through train
+                                get_line_badge(line2, show_name=False, add_click=True,
+                                               add_through=(line2.name in prev_lines or line2.name in next_lines))
+                                # TODO: express train icon, station badge
 
 
 def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:
