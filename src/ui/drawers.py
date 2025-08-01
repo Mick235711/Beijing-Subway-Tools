@@ -91,6 +91,11 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
         info_tab = ui.tab("Info")
         direction_tabs = {direction: ui.tab(direction) for direction in line.directions.keys()}
 
+    virtual_transfers_set: set[str] = set()
+    for station1, station2 in city.virtual_transfers.keys():
+        virtual_transfers_set.add(station1)
+        virtual_transfers_set.add(station2)
+
     with ui.tab_panels(tabs, value=info_tab).classes("w-full h-full"):
         with ui.tab_panel(info_tab).classes("p-1"):
             card_caption = "text-subtitle-1 font-bold"
@@ -151,14 +156,22 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
 
                 station_lines = parse_station_lines(AVAILABLE_LINES)
                 num_transfer = len([s for s in line.stations if len(station_lines[s]) > 1])
+                num_virtual = len([s for s in line.stations if s in virtual_transfers_set and len(station_lines[s]) == 1])
                 with ui.card().classes("q-pa-sm"):
+                    if num_virtual > 0:
+                        ui.tooltip("real + virtual")
                     with ui.card_section():
                         ui.label("# Transfer").classes(card_caption)
-                        ui.label(str(num_transfer)).classes(card_text)
+                        with ui.row().classes("items-center"):
+                            ui.label(str(num_transfer)).classes(card_text)
+                            if num_virtual > 0:
+                                ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
                 with ui.card().classes("q-pa-sm"):
+                    if num_virtual > 0:
+                        ui.tooltip("Each virtual counts as half")
                     with ui.card_section():
                         ui.label("% Transfer").classes(card_caption)
-                        ui.label(percentage_str(num_transfer / len(line.stations))).classes(card_text)
+                        ui.label(percentage_str((num_transfer + num_virtual / 2) / len(line.stations))).classes(card_text)
 
 
         ui.add_css(f"""
