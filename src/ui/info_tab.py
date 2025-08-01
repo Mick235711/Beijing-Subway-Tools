@@ -33,6 +33,7 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
                 (line.index, line.name, line.color or "primary", get_text_color(line.color), line.badge_icon or ""),
                 (line.index, line.get_badge(), line.color or "primary", get_text_color(line.color), line.badge_icon or "")
             ],
+            "name_sort": to_pinyin(line.name)[0],
             "line_type": [(x, LINE_TYPES[x][0], LINE_TYPES[x][1]) for x in line.line_type()] + (
                 [("Through", LINE_TYPES["Through"][0], LINE_TYPES["Through"][1])] if any(
                     any(l.name == line.name for l, _, _, _ in spec.spec) and
@@ -44,11 +45,13 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
                     (line.station_code(line.stations[0]), line.color or "primary", get_text_color(line.color))
                 ]]
             ),
+            "start_station_sort": to_pinyin(line.stations[0])[0],
             "end_station": [end_station] + (
                 [] if line.code is None else [[
                     (line.station_code(end_station), line.color or "primary", get_text_color(line.color))
                 ]]
             ),
+            "end_station_sort": to_pinyin(end_station)[0],
             "distance": distance_str(line.total_distance()),
             "num_stations": str(len(line.stations)),
             "design_speed": speed_str(line.design_speed),
@@ -67,12 +70,17 @@ def calculate_station_rows(station_lines: dict[str, set[Line]], through_specs: l
         badges = {line.station_badges[line.stations.index(station)] for line in lines}
         row = {
             "name": (station, [
-                (station, "", "primary", "white", badge) for badge in badges if badge is not None
-            ] + [
+                ("primary", "white", badge) for badge in badges if badge is not None
+            ]),
+            "name_sort": to_pinyin(station)[0],
+            "lines": [
                 (line.index, line.station_code(station) if line.code else line.get_badge(),
                  line.color or "primary", get_text_color(line.color), line.badge_icon or "")
                 for line in lines
-            ]),
+            ],
+            "lines_sort": "[" + ", ".join(str(line.index) + (
+                "" if line.code is None else (", \"" + line.station_indexes[line.stations.index(station)] + "\"")
+            ) for line in lines) + "]",
             "num_lines": str(len(lines)),
             "num_trains": 0,
             "first_train": "00:00",
@@ -199,10 +207,25 @@ def info_tab(city: City) -> None:
             lines_table = ui.table(
                 columns=[
                     {"name": "index", "label": "Index", "field": "index"},
-                    {"name": "name", "label": "Name", "field": "name", "sortable": False, "align": "center"},
+                    {"name": "name", "label": "Name", "field": "name", "align": "center",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["name_sort"].localeCompare(rowB["name_sort"]);
+                     }"""},
+                    {"name": "nameSort", "label": "Name Sort", "field": "name_sort", "sortable": False,
+                     "classes": "hidden", "headerClasses": "hidden"},
                     {"name": "lineType", "label": "Line Type", "field": "line_type", "sortable": False, "align": "left"},
-                    {"name": "start", "label": "Start", "field": "start_station", "sortable": False},
-                    {"name": "end", "label": "End", "field": "end_station", "sortable": False},
+                    {"name": "start", "label": "Start", "field": "start_station",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
+                     }"""},
+                    {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
+                     "classes": "hidden", "headerClasses": "hidden"},
+                    {"name": "end", "label": "End", "field": "end_station",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
+                     }"""},
+                    {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "sortable": False,
+                     "classes": "hidden", "headerClasses": "hidden"},
                     {"name": "distance", "label": "Distance", "field": "distance",
                      ":sort": """(a, b, rowA, rowB) => {
                         const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
@@ -262,7 +285,27 @@ def info_tab(city: City) -> None:
                 stations_search = ui.input("Search stations...")
             stations_table = ui.table(
                 columns=[
-                    {"name": "name", "label": "Name", "field": "name", "sortable": False, "align": "center"},
+                    {"name": "name", "label": "Name", "field": "name", "align": "center",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["name_sort"].localeCompare(rowB["name_sort"]);
+                     }"""},
+                    {"name": "nameSort", "label": "Name Sort", "field": "name_sort", "sortable": False,
+                     "classes": "hidden", "headerClasses": "hidden"},
+                    {"name": "lines", "label": "Lines", "field": "lines", "align": "center",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        const lines_a = JSON.parse(rowA["lines_sort"]);
+                        const lines_b = JSON.parse(rowB["lines_sort"]);
+                        const len = Math.min(lines_a.length, lines_b.length);
+                        for (let i = 0; i < len; i++) {
+                            if (lines_a[i] < lines_b[i]) return -1;
+                            if (lines_a[i] > lines_b[i]) return 1;
+                        }
+                        if (lines_a.length < lines_b.length) return -1;
+                        if (lines_a.length > lines_b.length) return 1;
+                        return 0;
+                     }"""},
+                    {"name": "linesSort", "label": "Lines Sort", "field": "lines_sort", "sortable": False,
+                     "classes": "hidden", "headerClasses": "hidden"},
                     {"name": "numLines", "label": "# Lines", "field": "num_lines"},
                     {"name": "numTrains", "label": "# Trains", "field": "num_trains"},
                     {"name": "firstTrain", "label": "First Train", "field": "first_train", "align": "center"},
@@ -273,13 +316,21 @@ def info_tab(city: City) -> None:
                 pagination=10
             )
             stations_table.add_slot("body-cell-name", """
-<q-td key="name" :props="props">
+<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])">
     {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('stationBadgeClick', index)" class="align-middle">
+    <q-badge v-for="[color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" class="align-middle">
+        <q-icon v-if="icon !== ''" :name="icon" />
+    </q-badge>
+</q-td>
+            """)
+            stations_table.on("stationBadgeClick", lambda n: print(n.args))
+            stations_table.add_slot("body-cell-lines", """
+<q-td key="name" :props="props">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="align-middle">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" :class="name === '' ? '' : 'q-ml-xs'" />
     </q-badge>
 </q-td>
             """)
-            stations_table.on("stationBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
+            stations_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             stations_search.bind_value(stations_table, "filter")
