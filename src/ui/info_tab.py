@@ -4,12 +4,17 @@
 """ Frontend - Main Page - Info Tab """
 
 # Libraries
+from datetime import date
+
 from nicegui import binding, ui
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin
+from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, get_time_str
+from src.routing.through_train import parse_through_train
+from src.routing.train import parse_all_trains
+from src.stats.common import get_all_trains_through
 from src.ui.drawers import refresh_line_drawer, LINE_TYPES
 
 MAX_TRANSFER_LINE_COUNT = 6
@@ -53,7 +58,7 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
             ),
             "end_station_sort": to_pinyin(end_station)[0],
             "distance": distance_str(line.total_distance()),
-            "num_stations": str(len(line.stations)),
+            "num_stations": len(line.stations),
             "design_speed": speed_str(line.design_speed),
             "train_type": line.train_formal_name(),
             "train_capacity": line.train_capacity()
@@ -62,12 +67,18 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
     return sorted(rows, key=lambda r: r["index"])
 
 
-def calculate_station_rows(station_lines: dict[str, set[Line]], through_specs: list[ThroughSpec]) -> list[dict]:
+def calculate_station_rows(
+    lines: dict[str, Line], station_lines: dict[str, set[Line]], through_specs: list[ThroughSpec], cur_date: date
+) -> list[dict]:
     """ Calculate rows for the station table """
+    train_dict = parse_all_trains(list(lines.values()))
+    train_dict, through_dict = parse_through_train(train_dict, through_specs)
+    all_trains = get_all_trains_through(lines, train_dict, through_dict, limit_date=cur_date)
+
     rows = []
     for station, line_set in station_lines.items():
-        lines = sorted(line_set, key=lambda l: l.index)
-        badges = {line.station_badges[line.stations.index(station)] for line in lines}
+        line_list = sorted(line_set, key=lambda l: l.index)
+        badges = {line.station_badges[line.stations.index(station)] for line in line_list}
         row = {
             "name": (station, [
                 ("primary", "white", badge) for badge in badges if badge is not None
@@ -76,15 +87,15 @@ def calculate_station_rows(station_lines: dict[str, set[Line]], through_specs: l
             "lines": [
                 (line.index, line.station_code(station) if line.code else line.get_badge(),
                  line.color or "primary", get_text_color(line.color), line.badge_icon or "")
-                for line in lines
+                for line in line_list
             ],
             "lines_sort": "[" + ", ".join(str(line.index) + (
                 "" if line.code is None else (", \"" + line.station_indexes[line.stations.index(station)] + "\"")
-            ) for line in lines) + "]",
-            "num_lines": str(len(lines)),
-            "num_trains": 0,
-            "first_train": "00:00",
-            "last_train": "24:00"
+            ) for line in line_list) + "]",
+            "num_lines": len(line_list),
+            "num_trains": len(all_trains[station]),
+            "first_train": min(get_time_str(*train.arrival_times()[station]) for train in all_trains[station]),
+            "last_train": max(get_time_str(*train.arrival_times()[station]) for train in all_trains[station])
         }
         rows.append(row)
     return sorted(rows, key=lambda r: to_pinyin(r["name"][0])[0])
@@ -97,19 +108,22 @@ def info_tab(city: City) -> None:
     with ui.row().classes("items-center justify-between"):
         ui.label("Include lines with:")
 
-        def on_switch_change() -> None:
+        def on_switch_change(line_changed: bool = True) -> None:
             """ Update the data based on switch states """
-            data.lines = {
-                line.name: line for line in city.lines.values()
-                if (loop_switch.value or not line.loop) and
-                   (circle_switch.value or line.end_circle_start is None) and
-                   (fare_switch.value or len(line.must_include) == 0) and
-                   (express_switch.value or not line.have_express())
-            }
-            data.station_lines = parse_station_lines(data.lines)
-            lines_table.rows = calculate_line_rows(data.lines, city.through_specs)
-            stations_table.rows = calculate_station_rows(data.station_lines, city.through_specs)
-            refresh_line_drawer(None, data.lines)
+            if line_changed:
+                data.lines = {
+                    line.name: line for line in city.lines.values()
+                    if (loop_switch.value or not line.loop) and
+                       (circle_switch.value or line.end_circle_start is None) and
+                       (fare_switch.value or len(line.must_include) == 0) and
+                       (express_switch.value or not line.have_express())
+                }
+                data.station_lines = parse_station_lines(data.lines)
+                lines_table.rows = calculate_line_rows(data.lines, city.through_specs)
+                refresh_line_drawer(None, data.lines)
+
+            stations_table.rows = calculate_station_rows(
+                data.lines, data.station_lines, city.through_specs, date.fromisoformat(date_input.value))
 
         loop_switch = ui.switch("Loop", value=True, on_change=on_switch_change)
         circle_switch = ui.switch("End circle", value=True, on_change=on_switch_change)
@@ -282,6 +296,14 @@ def info_tab(city: City) -> None:
         with ui.column():
             with ui.row().classes("w-full items-center justify-between"):
                 ui.label("Stations").classes("text-xl font-semibold mt-6 mb-2")
+                with ui.input("Date", value=date.today().isoformat(),
+                              on_change=lambda: on_switch_change(False)) as date_input:
+                    with ui.menu().props('no-parent-event') as menu:
+                        with ui.date().bind_value(date_input):
+                            with ui.row().classes('justify-end'):
+                                ui.button('Close', on_click=menu.close).props('flat')
+                    with date_input.add_slot('append'):
+                        ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
                 stations_search = ui.input("Search stations...")
             stations_table = ui.table(
                 columns=[
@@ -312,7 +334,8 @@ def info_tab(city: City) -> None:
                     {"name": "lastTrain", "label": "Last Train", "field": "last_train", "align": "center"}
                 ],
                 column_defaults={"align": "right", "required": True, "sortable": True},
-                rows=calculate_station_rows(city.station_lines, city.through_specs),
+                rows=calculate_station_rows(
+                    city.lines, city.station_lines, city.through_specs, date.fromisoformat(date_input.value)),
                 pagination=10
             )
             stations_table.add_slot("body-cell-name", """

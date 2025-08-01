@@ -282,8 +282,14 @@ def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> N
     else:
         changed = True
     AVAILABLE_LINES = lines
+    if SELECTED_LINE is not None and SELECTED_LINE.name not in AVAILABLE_LINES:
+        LINE_DRAWER.hide()
+        return
+
     line_drawer.refresh()
-    if changed:
+    if selected_line is None:
+        return
+    elif changed:
         LINE_DRAWER.show()
     else:
         LINE_DRAWER.toggle()

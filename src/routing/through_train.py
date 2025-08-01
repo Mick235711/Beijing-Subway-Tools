@@ -176,6 +176,7 @@ def parse_through_train(
             assert last_line is not None, last_line
             for through_train in result[through_spec]:
                 through_train.trains[line.name] = time_dict[through_train.trains[last_line.name].end_time_str()]
+                through_train.stations = list(through_train.arrival_times().keys())
 
             last_line = line
     return train_dict, result

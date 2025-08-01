@@ -70,7 +70,28 @@ def get_all_trains(
                         if station not in all_trains:
                             all_trains[station] = []
                         all_trains[station].append((date_group, train))
-    return dict(sorted(list(all_trains.items()), key=lambda x: len(x[1]), reverse=True))
+    return dict(sorted(all_trains.items(), key=lambda x: len(x[1]), reverse=True))
+
+
+def get_all_trains_through(
+    lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]], *, limit_date: date | None = None
+) -> dict[str, list[Train | ThroughTrain]]:
+    """ Organize into station -> trains/through train """
+    all_trains: dict[str, list[Train | ThroughTrain]] = {
+        station: [x[1] for x in v] for station, v in get_all_trains(lines, train_dict, limit_date=limit_date).items()
+    }
+    for spec, train_list in through_dict.items():
+        if limit_date is not None and not spec.covers(limit_date):
+            continue
+        for train in train_list:
+            for station in train.stations:
+                if station in train.skip_stations:
+                    continue
+                if station not in all_trains:
+                    all_trains[station] = []
+                all_trains[station].append(train)
+    return dict(sorted(all_trains.items(), key=lambda x: len(x[1]), reverse=True))
 
 
 def get_all_trains_from_set(
