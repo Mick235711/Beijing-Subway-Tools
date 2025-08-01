@@ -32,6 +32,9 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
     rows = []
     for line in lines.values():
         end_station = line.stations[0] if line.loop else line.stations[-1]
+        num_intervals = len(line.stations)
+        if not line.loop:
+            num_intervals -= 1
         row = {
             "index": line.index,
             "name": [
@@ -61,6 +64,7 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
             "end_station_sort": to_pinyin(end_station)[0],
             "distance": distance_str(line.total_distance()),
             "num_stations": len(line.stations),
+            "avg_distance": f"{line.total_distance() / num_intervals / 1000:.2f}km",
             "design_speed": speed_str(line.design_speed),
             "train_type": line.train_formal_name(),
             "train_capacity": line.train_capacity()
@@ -262,6 +266,11 @@ def info_tab(city: City) -> None:
                     {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "sortable": False,
                      "classes": "hidden", "headerClasses": "hidden"},
                     {"name": "distance", "label": "Distance", "field": "distance",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
+                        return parse(a) - parse(b);
+                     }"""},
+                    {"name": "avgDistance", "label": "Avg Distance", "field": "avg_distance",
                      ":sort": """(a, b, rowA, rowB) => {
                         const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
                         return parse(a) - parse(b);
