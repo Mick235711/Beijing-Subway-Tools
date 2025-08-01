@@ -169,7 +169,7 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
     padding-left: 0 !important;
 }}
 .q-timeline__subtitle {{
-    padding-right: 10px !important;
+    padding-right: 16px !important;
 }}
 .text-line-{line.index} {{
     color: {line.color} !important;
@@ -213,10 +213,14 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
         for i, station in enumerate(stations):
             if i > 0:
                 tally += dists[i - 1]
+            express_icon: str | None = None
+            for route in line.train_routes[direction].values():
+                if station in route.skip_stations:
+                    express_icon = "keyboard_double_arrow_down"
             with ui.timeline_entry(
                 subtitle=(None if not show_tally or i == 0 else distance_str(tally)),
                 side="right",
-                icon=(None if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
+                icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
             ) as entry:
                 if station in virtual_dict:
                     with ui.card().classes("q-pa-sm" + (" mb-2" if show_tally else " -mt-4")):
@@ -248,7 +252,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
                                     continue
                                 get_line_badge(line2, show_name=False, add_click=True,
                                                add_through=(line2.name in prev_lines or line2.name in next_lines))
-                                # TODO: express train icon, station badge
+                                # TODO: station badge
 
 
 def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:
