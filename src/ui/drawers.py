@@ -9,7 +9,7 @@ from nicegui.elements.drawer import RightDrawer
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
-from src.common.common import get_text_color, distance_str, speed_str, percentage_str
+from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin
 
 LINE_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
@@ -25,40 +25,48 @@ LINE_TYPES = {
 
 
 def get_line_badge(
-    line: Line, *,
+    line: Line, *, code_str: str | None = None,
     show_name: bool = True, add_click: bool = False, classes: str | None = None, add_through: bool = False
 ) -> None:
     """ Get line badge """
     global AVAILABLE_LINES
     with ui.badge(
-        line.name if show_name else line.get_badge(), color=line.color, text_color=get_text_color(line.color)
+        (line.name if show_name else line.get_badge()) if code_str is None else code_str,
+        color=line.color, text_color=get_text_color(line.color)
     ) as badge:
         if classes is not None:
             badge.classes(classes)
         if add_click:
             badge.on("click", lambda l=line: refresh_line_drawer(l, AVAILABLE_LINES))
         if line.badge_icon is not None:
-            ui.icon(line.badge_icon)
+            ui.icon(line.badge_icon).classes("q-ml-xs")
         if add_through:
-            ui.icon(LINE_TYPES["Through"][1])
+            ui.icon(LINE_TYPES["Through"][1]).classes("q-ml-xs")
 
 
 def get_station_badge(
-    station: str, line: Line | None = None, *,
-    prefer_line: Line | None = None, show_badges: bool = False, label_at_end: bool = False
+    station: str, line: Line | None = None, *, show_badges: bool = True, show_line_badges: bool = True,
+    prefer_line: Line | None = None, label_at_end: bool = False, add_click: bool = True
 ) -> None:
     """ Get station label & badge """
     global AVAILABLE_LINES
     station_lines = parse_station_lines(AVAILABLE_LINES)
     line_list = sorted({line} if line is not None else station_lines[station],
                        key=lambda l: (0 if prefer_line is not None and l.name == prefer_line.name else 1, l.index))
+    badges = {line.station_badges[line.stations.index(station)] for line in line_list}
     if not label_at_end:
         ui.label(station)
+        if show_badges:
+            for badge in badges:
+                if badge is None:
+                    continue
+                with ui.badge():
+                    ui.icon(badge)
     for inner_line in line_list:
-        if inner_line.code is not None:
-            ui.badge(inner_line.station_code(station), color=inner_line.color, text_color=get_text_color(inner_line.color))
-        elif show_badges:
-            get_line_badge(inner_line, show_name=False, add_click=True)
+        if not show_line_badges and inner_line.code is None:
+            continue
+        get_line_badge(inner_line, code_str=(None if inner_line.code is None else inner_line.station_code(station)),
+                       show_name=False, add_click=add_click)
     if label_at_end:
         ui.label(station)
 
@@ -84,7 +92,7 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
             color, icon = LINE_TYPES[line_type]
             with ui.badge(line_type, color=color):
                 if icon != "":
-                    ui.icon(icon)
+                    ui.icon(icon).classes("q-ml-xs")
 
     ui.separator()
     with ui.tabs() as tabs:
@@ -111,10 +119,14 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
                                     with ui.element("div").classes(
                                         "inline-flex flex-wrap items-center leading-tight gap-x-1"
                                     ):
-                                        get_station_badge(direction_stations[0], line)
+                                        get_station_badge(
+                                            direction_stations[0], line,
+                                            show_badges=False, show_line_badges=False, add_click=False
+                                        )
                                         ui.icon("autorenew" if line.loop else "arrow_right_alt")
                                         get_station_badge(
-                                            direction_stations[0] if line.loop else direction_stations[-1], line
+                                            direction_stations[0] if line.loop else direction_stations[-1], line,
+                                            show_badges=False, show_line_badges=False, add_click=False
                                         )
                                 with ui.item_section().props("side"):
                                     ui.label(direction)
@@ -180,6 +192,7 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
 }}
 .q-timeline__content {{
     padding-left: 0 !important;
+    gap: 0 !important;
 }}
 .q-timeline__subtitle {{
     padding-right: 16px !important;
@@ -200,6 +213,26 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
                     line_timeline(city, line, direction, show_tally=True, show_skips=True)
 
 
+def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, set[Line]]]:
+    """ Get a dictionary of station1 -> station2 -> lines of station2 virtual transfers """
+    virtual_dict: dict[str, dict[str, set[Line]]] = {}
+    for (station1, station2), transfer in city.virtual_transfers.items():
+        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
+            if from_l not in lines or to_l not in lines:
+                continue
+            if station1 not in virtual_dict:
+                virtual_dict[station1] = {}
+            if station2 not in virtual_dict[station1]:
+                virtual_dict[station1][station2] = set()
+            virtual_dict[station1][station2].add(lines[to_l])
+            if station2 not in virtual_dict:
+                virtual_dict[station2] = {}
+            if station1 not in virtual_dict[station2]:
+                virtual_dict[station2][station1] = set()
+            virtual_dict[station2][station1].add(lines[from_l])
+    return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
+
+
 @ui.refreshable
 def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, show_skips: bool) -> None:
     """ Update the data based on switch states """
@@ -209,21 +242,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
     station_lines = parse_station_lines(AVAILABLE_LINES)
     if line.loop:
         stations.append(stations[0])
-    virtual_dict: dict[str, dict[str, set[Line]]] = {}
-    for (station1, station2), transfer in city.virtual_transfers.items():
-        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
-            if from_l not in AVAILABLE_LINES or to_l not in AVAILABLE_LINES:
-                continue
-            if station1 not in virtual_dict:
-                virtual_dict[station1] = {}
-            if station2 not in virtual_dict[station1]:
-                virtual_dict[station1][station2] = set()
-            virtual_dict[station1][station2].add(AVAILABLE_LINES[to_l])
-            if station2 not in virtual_dict:
-                virtual_dict[station2] = {}
-            if station1 not in virtual_dict[station2]:
-                virtual_dict[station2][station1] = set()
-            virtual_dict[station2][station1].add(AVAILABLE_LINES[from_l])
+    virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
 
     tally = 0
     with ui.timeline(side="right", color=f"line-{line.index}", layout=("comfortable" if show_tally else "dense")):
@@ -241,13 +260,13 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                 icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
             ) as entry:
                 if station in virtual_dict:
-                    with ui.card().classes("q-pa-sm" + (" mb-2" if show_tally else " -mt-4")):
+                    with ui.card().classes("q-pa-sm mb-2"):
                         with ui.card_section().classes("p-0"):
                             ui.label("Virtual transfer:").classes("text-subtitle-1")
                             station2_set = set(virtual_dict[station].keys())
-                            for station2 in station2_set:
+                            for station2 in sorted(station2_set, key=lambda x: to_pinyin(x)[0]):
                                 with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
-                                    get_station_badge(station2, show_badges=True, label_at_end=True)
+                                    get_station_badge(station2)
                 if i != len(stations) - 1:
                     ui.label(f"{dists[i]}m")
             prev_lines: set[str] = set()
@@ -262,7 +281,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
             with entry.add_slot("title"):
                 with ui.column().classes("gap-y-1"):
                     with ui.row().classes("items-center gap-1"):
-                        get_station_badge(station, prefer_line=line)
+                        get_station_badge(station, prefer_line=line, show_badges=False, show_line_badges=False)
                     if len(station_lines[station]) > 1:
                         with ui.row().classes("items-center gap-x-1"):
                             for line2 in sorted(station_lines[station], key=lambda l: l.index):
