@@ -20,7 +20,7 @@
         {name: "菜户营", dist: 828},
         {name: "西铁营", dist: 1462},
         {name: "景风门", dist: 883},
-        {name: "北京南站", dist: 1164, aliases: ["Beijing South Railway Station"]},
+        {name: "北京南站", dist: 1164, aliases: ["Beijing South Railway Station"], badge_icon: "train"},
         {name: "永定门外", dist: 1950},
         {name: "景泰", dist: 1119},
         {name: "蒲黄榆", dist: 1025},

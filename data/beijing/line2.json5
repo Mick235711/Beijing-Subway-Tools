@@ -19,7 +19,7 @@
         {name: "和平门", dist: 851},
         {name: "前门", dist: 1171},
         {name: "崇文门", dist: 1634},
-        {name: "北京站", dist: 1023, aliases: ["Beijing Railway Station"]},
+        {name: "北京站", dist: 1023, aliases: ["Beijing Railway Station"], badge_icon: "train"},
         {name: "建国门", dist: 946},
         {name: "朝阳门", dist: 1736},
         {name: "东四十条", dist: 1027},

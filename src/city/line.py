@@ -39,6 +39,7 @@ class Line:
         self.must_include: set[str] = set()
         self.station_dists: list[int] = []
         self.station_aliases: dict[str, list[str]] = {}
+        self.station_badges: list[str | None] = []
         self.directions: dict[str, list[str]] = {}
         self.direction_aliases: dict[str, list[str]] = {}
         self.direction_base_route: dict[str, TrainRoute] = {}
@@ -97,9 +98,10 @@ class Line:
         """ Get string representation """
         return f"<{self.full_name()}: {self.line_str()}>"
 
-    def have_express(self) -> bool:
+    def have_express(self, direction: str | None = None) -> bool:
         """ Check if this line has express service """
-        return any(route.is_express() for route_dict in self.train_routes.values() for route in route_dict.values())
+        return any(route.is_express() and (direction is None or route.direction == direction)
+                   for route_dict in self.train_routes.values() for route in route_dict.values())
 
     def direction_stations(self, direction: str | None = None) -> list[str]:
         """ Returns the base route's station for this direction """
@@ -301,6 +303,10 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
                     line.station_indexes.append(f"{int(line.station_indexes[-1]) - 1:>02}")
                 else:
                     line.station_indexes.append(f"{int(line.station_indexes[-1]) + 1:>02}")
+            if "badge_icon" in station:
+                line.station_badges.append(station["badge_icon"])
+            else:
+                line.station_badges.append(None)
         if line.loop:
             line.station_dists.append(line_dict["stations"][0]["dist"])
     else:
@@ -308,6 +314,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
         line.station_dists = line_dict["station_dists"]
         line.station_aliases = line_dict["station_aliases"]
         line.station_indexes = line_dict["station_indexes"]
+        line.station_badges = [None for _ in line.stations]
         assert len(line.stations) == len(line.station_indexes), line_dict
         if line.loop:
             assert len(line.stations) == len(line.station_dists), line_dict

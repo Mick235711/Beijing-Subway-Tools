@@ -18,7 +18,7 @@
         {name: "草桥", dist: 1688},
         {name: "纪家庙", dist: 1550},
         {name: "首经贸", dist: 1119, aliases: ["Capital University of Economics and Business"]},
-        {name: "丰台站", dist: 1717, aliases: ["Fengtai Railway Station"]},
+        {name: "丰台站", dist: 1717, aliases: ["Fengtai Railway Station"], badge_icon: "train"},
         {name: "泥洼", dist: 954},
         {name: "西局", dist: 749},
         {name: "六里桥", dist: 1587},

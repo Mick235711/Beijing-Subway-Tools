@@ -12,7 +12,7 @@
         {name: "白石桥南", dist: 1096},
         {name: "白堆子", dist: 1044},
         {name: "军事博物馆", dist: 1912, aliases: ["Military Museum"]},
-        {name: "北京西站", dist: 1398, aliases: ["Beijing West Railway Station"]},
+        {name: "北京西站", dist: 1398, aliases: ["Beijing West Railway Station"], badge_icon: "train"},
         {name: "六里桥东", dist: 1171},
         {name: "六里桥", dist: 1309},
         {name: "七里庄", dist: 1779},

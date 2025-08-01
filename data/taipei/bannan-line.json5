@@ -16,12 +16,12 @@
         {name: "海山", dist: 1463},
         {name: "亞東醫院", dist: 1647, aliases: ["Far Eastern Hospital"]},
         {name: "府中", dist: 1314, aliases: ["The Lin Family Mansion and Garden"]},
-        {name: "板橋", dist: 653, aliases: ["Banqiao HSR"]},
+        {name: "板橋", dist: 653, aliases: ["Banqiao HSR"], badge_icon: "train"},
         {name: "新埔", dist: 1274},
         {name: "江子翠", dist: 866},
         {name: "龍山寺", dist: 3086, aliases: ["Longshan Temple", "Bangka Commercial Zone"]},
         {name: "西門", dist: 1340},
-        {name: "台北車站", dist: 1431, aliases: ["Taipei Main Station", "Taipei HSR"]},
+        {name: "台北車站", dist: 1431, aliases: ["Taipei Main Station", "Taipei HSR"], badge_icon: "train"},
         {name: "善導寺", dist: 671, aliases: ["Shandao Temple", "Huashan"]},
         {name: "忠孝新生", dist: 943, aliases: ["National Taipei University of Technology"]},
         {name: "忠孝復興", dist: 1129},
@@ -31,7 +31,7 @@
         {name: "永春", dist: 1135},
         {name: "後山埤", dist: 817, aliases: ["Wufenpu Commercial Zone"]},
         {name: "昆陽", dist: 1310},
-        {name: "南港", dist: 1185, aliases: ["Nangang HSR"]},
+        {name: "南港", dist: 1185, aliases: ["Nangang HSR"], badge_icon: "train"},
         {name: "南港展覽館", dist: 1053, aliases: ["Taipei Nangang Exhibition Center"]}
     ],
     train_routes: {

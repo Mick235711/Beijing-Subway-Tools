@@ -28,7 +28,7 @@
         {name: "宣武门", dist: 815},
         {name: "菜市口", dist: 1152},
         {name: "陶然亭", dist: 1200},
-        {name: "北京南站", dist: 1643, aliases: ["Beijing South Railway Station"]},
+        {name: "北京南站", dist: 1643, aliases: ["Beijing South Railway Station"], badge_icon: "train"},
         {name: "马家堡", dist: 1480},
         {name: "角门西", dist: 827},
         {name: "公益西桥", dist: 989},
@@ -39,7 +39,7 @@
         {name: "枣园", dist: 1096},
         {name: "清源路", dist: 1200},
         {name: "黄村西大街", dist: 1214},
-        {name: "黄村火车站", dist: 987, aliases: ["Huangcun Railway Station"]},
+        {name: "黄村火车站", dist: 987, aliases: ["Huangcun Railway Station"], badge_icon: "train"},
         {name: "义和庄", dist: 2035},
         {name: "生物医药基地", dist: 2918},
         {name: "天宫院", dist: 1811}

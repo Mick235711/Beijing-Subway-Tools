@@ -10,7 +10,7 @@
     carriage_type: "B",
     design_speed: 80,
     stations: [
-        {name: "亦庄火车站", aliases: ["Yizhuang Railway Station"]},
+        {name: "亦庄火车站", aliases: ["Yizhuang Railway Station"], badge_icon: "train"},
         {name: "次渠", dist: 1334},
         {name: "次渠南", dist: 1281},
         {name: "经海路", dist: 2086},

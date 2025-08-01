@@ -11,7 +11,7 @@
     carriage_type: "D",
     design_speed: 160,
     stations: [
-        {name: "大兴机场", aliases: ["Daxing Airport", "Daxing International Airport", "PKX"]},
+        {name: "大兴机场", aliases: ["Daxing Airport", "Daxing International Airport", "PKX"], badge_icon: "local_airport"},
         {name: "大兴新城", dist: 25303},
         {name: "草桥", dist: 13028}
     ],

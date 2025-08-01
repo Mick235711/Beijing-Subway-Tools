@@ -11,8 +11,8 @@
     carriage_type: "L",
     design_speed: 110,
     stations: [
-        {name: "3号航站楼", aliases: ["PEK T3", "Beijing Capital Airport Terminal 3"]},
-        {name: "2号航站楼", dist: 7243, aliases: ["PEK T1", "PEK T2", "Beijing Capital Airport Terminal 1", "Beijing Capital Airport Terminal 2"]},
+        {name: "3号航站楼", aliases: ["PEK T3", "Beijing Capital Airport Terminal 3"], badge_icon: "local_airport"},
+        {name: "2号航站楼", dist: 7243, aliases: ["PEK T1", "PEK T2", "Beijing Capital Airport Terminal 1", "Beijing Capital Airport Terminal 2"], badge_icon: "local_airport"},
         {name: "三元桥", dist: 20738},
         {name: "东直门", dist: 3022},
         {name: "北新桥", dist: 1622}

@@ -8,7 +8,7 @@
     carriage_type: "B",
     design_speed: 80,
     stations: [
-        {name: "北京西站", aliases: ["Beijing West Railway Station"]},
+        {name: "北京西站", aliases: ["Beijing West Railway Station"], badge_icon: "train"},
         {name: "湾子", dist: 935},
         {name: "达官营", dist: 734},
         {name: "广安门内", dist: 1875},

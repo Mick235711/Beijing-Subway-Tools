@@ -22,7 +22,7 @@
         {name: "朱辛庄", dist: 3799},
         {name: "生命科学园", dist: 2367},
         {name: "西二旗", dist: 5440},
-        {name: "清河站", dist: 1545, aliases: ["Qinghe Railway Station"]},
+        {name: "清河站", dist: 1545, aliases: ["Qinghe Railway Station"], badge_icon: "train"},
         {name: "朱房北", dist: 1652},
         {name: "清河小营桥", dist: 1158},
         {name: "学知园", dist: 2366},

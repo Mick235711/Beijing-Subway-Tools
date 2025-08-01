@@ -21,7 +21,7 @@
         {name: "橋和", dist: 635},
         {name: "中原", dist: 732},
         {name: "板新", dist: 1392},
-        {name: "板橋", dist: 952, aliases: ["Banqiao HSR"]},
+        {name: "板橋", dist: 952, aliases: ["Banqiao HSR"], badge_icon: "train"},
         {name: "新埔民生", dist: 1423},
         {name: "頭前庄", dist: 1632, aliases: ["Taipei Hospital"]},
         {name: "幸福", dist: 1155},

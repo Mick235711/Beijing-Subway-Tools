@@ -13,7 +13,7 @@
         {name: "团结湖", dist: 934},
         {name: "朝阳公园", dist: 1757, aliases: ["Chaoyang Park"]},
         {name: "石佛营", dist: 1669},
-        {name: "朝阳站", dist: 1218, aliases: ["Chaoyang Railway Station"]},
+        {name: "朝阳站", dist: 1218, aliases: ["Chaoyang Railway Station"], badge_icon: "train"},
         {name: "姚家园", dist: 2093},
         {name: "东坝南", dist: 2362},
         {name: "东坝", dist: 1544},

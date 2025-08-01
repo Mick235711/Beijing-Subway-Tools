@@ -13,7 +13,7 @@
         {name: "知春路", dist: 1206},
         {name: "五道口", dist: 1829},
         {name: "上地", dist: 4866},
-        {name: "清河站", dist: 1018, aliases: ["Qinghe Railway Station"]},
+        {name: "清河站", dist: 1018, aliases: ["Qinghe Railway Station"], badge_icon: "train"},
         {name: "西二旗", dist: 1545},
         {name: "龙泽", dist: 3623},
         {name: "回龙观", dist: 1423},

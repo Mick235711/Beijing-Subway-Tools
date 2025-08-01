@@ -177,14 +177,18 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
         """)
         for direction, tab in direction_tabs.items():
             with ui.tab_panel(tab).classes("p-0 flex flex-col h-full"):
-                ui.switch("Show tally distance", value=True,
-                          on_change=lambda v: line_timeline.refresh(show_tally=v.value))
+                with ui.column().classes("gap-y-0"):
+                    ui.switch("Show tally distance", value=True,
+                              on_change=lambda v: line_timeline.refresh(show_tally=v.value))
+                    if line.have_express(direction):
+                        ui.switch("Show express skips", value=True,
+                                  on_change=lambda v: line_timeline.refresh(show_skips=v.value))
                 with ui.scroll_area().classes("flex-grow"):
-                    line_timeline(city, line, direction, show_tally=True)
+                    line_timeline(city, line, direction, show_tally=True, show_skips=True)
 
 
 @ui.refreshable
-def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -> None:
+def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, show_skips: bool) -> None:
     """ Update the data based on switch states """
     global AVAILABLE_LINES
     dists = line.direction_dists(direction)[:]
@@ -213,10 +217,11 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
         for i, station in enumerate(stations):
             if i > 0:
                 tally += dists[i - 1]
-            express_icon: str | None = None
-            for route in line.train_routes[direction].values():
-                if station in route.skip_stations:
-                    express_icon = "keyboard_double_arrow_down"
+            express_icon = line.station_badges[line.stations.index(station)]
+            if show_skips:
+                for route in line.train_routes[direction].values():
+                    if station in route.skip_stations:
+                        express_icon = "keyboard_double_arrow_down"
             with ui.timeline_entry(
                 subtitle=(None if not show_tally or i == 0 else distance_str(tally)),
                 side="right",
@@ -252,7 +257,6 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -
                                     continue
                                 get_line_badge(line2, show_name=False, add_click=True,
                                                add_through=(line2.name in prev_lines or line2.name in next_lines))
-                                # TODO: station badge
 
 
 def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:

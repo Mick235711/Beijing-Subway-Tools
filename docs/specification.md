@@ -50,12 +50,13 @@ This specification describes the key-values within `<line x>.json5`.
 ## Station Specification Format
 These fields specify the elements of the array `stations`.
 
-| Key     | Required | Type   | Default | Value                                   |
-|---------|----------|--------|---------|-----------------------------------------|
-| name    | Yes      | string |         | Name of the line                        |
-| dist    | Yes      | int    |         | Distance to last station in meters      | 
-| aliases | No       | array  | []      | Aliases (English) for the station       |
-| index   | No       | string |         | Shorthand station code for this station |
+| Key        | Required | Type   | Default | Value                                   |
+|------------|----------|--------|---------|-----------------------------------------|
+| name       | Yes      | string |         | Name of the line                        |
+| dist       | Yes      | int    |         | Distance to last station in meters      | 
+| aliases    | No       | array  | []      | Aliases (English) for the station       |
+| index      | No       | string |         | Shorthand station code for this station |
+| badge_icon | No       | string |         | Optional icon for the station badge     |
 
 `dist` is not required for the first station.
 Must be in order of the line.
