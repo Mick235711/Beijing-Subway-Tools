@@ -38,16 +38,24 @@ def get_line_badge(line: Line, *, show_name: bool = True, add_click: bool = Fals
             ui.icon(line.badge_icon)
 
 
-def get_station_badge(station: str, line: Line | None = None, *, prefer_line: Line | None = None) -> None:
+def get_station_badge(
+    station: str, line: Line | None = None, *,
+    prefer_line: Line | None = None, show_badges: bool = False, label_at_end: bool = False
+) -> None:
     """ Get station label & badge """
     global AVAILABLE_LINES
     station_lines = parse_station_lines(AVAILABLE_LINES)
     line_list = sorted({line} if line is not None else station_lines[station],
                        key=lambda l: (0 if prefer_line is not None and l.name == prefer_line.name else 1, l.index))
-    ui.label(station)
+    if not label_at_end:
+        ui.label(station)
     for inner_line in line_list:
         if inner_line.code is not None:
             ui.badge(inner_line.station_code(station), color=inner_line.color, text_color=get_text_color(inner_line.color))
+        elif show_badges:
+            get_line_badge(inner_line, show_name=False, add_click=True)
+    if label_at_end:
+        ui.label(station)
 
 
 @ui.refreshable
@@ -167,11 +175,11 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
                 ui.switch("Show tally distance", value=True,
                           on_change=lambda v: line_timeline.refresh(show_tally=v.value))
                 with ui.scroll_area().classes("flex-grow"):
-                    line_timeline(line, direction, show_tally=True)
+                    line_timeline(city, line, direction, show_tally=True)
 
 
 @ui.refreshable
-def line_timeline(line: Line, direction: str, *, show_tally: bool) -> None:
+def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool) -> None:
     """ Update the data based on switch states """
     global AVAILABLE_LINES
     dists = line.direction_dists(direction)[:]
@@ -179,6 +187,22 @@ def line_timeline(line: Line, direction: str, *, show_tally: bool) -> None:
     station_lines = parse_station_lines(AVAILABLE_LINES)
     if line.loop:
         stations.append(stations[0])
+    virtual_dict: dict[str, dict[str, set[Line]]] = {}
+    for (station1, station2), transfer in city.virtual_transfers.items():
+        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
+            if from_l not in AVAILABLE_LINES or to_l not in AVAILABLE_LINES:
+                continue
+            if station1 not in virtual_dict:
+                virtual_dict[station1] = {}
+            if station2 not in virtual_dict[station1]:
+                virtual_dict[station1][station2] = set()
+            virtual_dict[station1][station2].add(AVAILABLE_LINES[to_l])
+            if station2 not in virtual_dict:
+                virtual_dict[station2] = {}
+            if station1 not in virtual_dict[station2]:
+                virtual_dict[station2][station1] = set()
+            virtual_dict[station2][station1].add(AVAILABLE_LINES[from_l])
+
     tally = 0
     with ui.timeline(side="right", color=f"line-{line.index}", layout=("comfortable" if show_tally else "dense")):
         for i, station in enumerate(stations):
@@ -189,6 +213,14 @@ def line_timeline(line: Line, direction: str, *, show_tally: bool) -> None:
                 side="right",
                 icon=(None if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
             ) as entry:
+                if station in virtual_dict:
+                    with ui.card().classes("q-pa-sm mb-2"):
+                        with ui.card_section().classes("p-0"):
+                            ui.label("Virtual transfer:").classes("text-subtitle-1")
+                            station2_set = set(virtual_dict[station].keys())
+                            for station2 in station2_set:
+                                with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
+                                    get_station_badge(station2, show_badges=True, label_at_end=True)
                 if i != len(stations) - 1:
                     ui.label(f"{dists[i]}m")
             with entry.add_slot("title"):
@@ -201,7 +233,7 @@ def line_timeline(line: Line, direction: str, *, show_tally: bool) -> None:
                                 if line2.name == line.name:
                                     continue
                                 get_line_badge(line2, show_name=False, add_click=True)
-                                # TODO: express train icon, virtual transfer
+                                # TODO: express train icon, through train
 
 
 def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:
