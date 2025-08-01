@@ -367,8 +367,12 @@
         // 参考：https://www.bilibili.com/video/BV1cHwveYEiA/
         "丽泽商务区": [
             {from: "14号线", to: "16号线", minutes: 0.5},
-            {from: "16号线", to: "14号线", minutes: 1}
-            // 节点14->16
+            {from: "16号线", to: "14号线", minutes: 1},
+            // 节点14->16, 非高峰&节假日可逆行
+            {
+                from: "16号线", to: "14号线", minutes: 0.5,
+                apply_time: [{date_group: "工作日", start: "10:00", end: "17:00"}, {date_group: "双休日"}]
+            }
         ],
         // 参考：https://www.bilibili.com/video/BV1PVcBekEd1/
         "工人体育场": [
