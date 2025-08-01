@@ -9,7 +9,7 @@ from nicegui import binding, ui
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str, suffix_s, get_text_color
+from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin
 from src.ui.drawers import refresh_line_drawer, LINE_TYPES
 
 MAX_TRANSFER_LINE_COUNT = 6
@@ -59,6 +59,29 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
     return sorted(rows, key=lambda r: r["index"])
 
 
+def calculate_station_rows(station_lines: dict[str, set[Line]], through_specs: list[ThroughSpec]) -> list[dict]:
+    """ Calculate rows for the station table """
+    rows = []
+    for station, line_set in station_lines.items():
+        lines = sorted(line_set, key=lambda l: l.index)
+        badges = {line.station_badges[line.stations.index(station)] for line in lines}
+        row = {
+            "name": (station, [
+                (station, "", "primary", "white", badge) for badge in badges if badge is not None
+            ] + [
+                (line.index, line.station_code(station) if line.code else line.get_badge(),
+                 line.color or "primary", get_text_color(line.color), line.badge_icon or "")
+                for line in lines
+            ]),
+            "num_lines": str(len(lines)),
+            "num_trains": 0,
+            "first_train": "00:00",
+            "last_train": "24:00"
+        }
+        rows.append(row)
+    return sorted(rows, key=lambda r: to_pinyin(r["name"][0])[0])
+
+
 def info_tab(city: City) -> None:
     """ Info tab for the main page """
     data = InfoData(city.lines, city.station_lines)
@@ -77,6 +100,7 @@ def info_tab(city: City) -> None:
             }
             data.station_lines = parse_station_lines(data.lines)
             lines_table.rows = calculate_line_rows(data.lines, city.through_specs)
+            stations_table.rows = calculate_station_rows(data.station_lines, city.through_specs)
             refresh_line_drawer(None, data.lines)
 
         loop_switch = ui.switch("Loop", value=True, on_change=on_switch_change)
@@ -165,10 +189,13 @@ def info_tab(city: City) -> None:
                         ))
                     ).classes(card_text)
         set_transfer_detail(False)
+        line_indexes = {line.index: line for line in city.lines.values()}
 
         ui.separator()
         with ui.column():
-            ui.label("Lines").classes("text-xl font-semibold mt-6 mb-2")
+            with ui.row().classes("w-full items-center justify-between"):
+                ui.label("Lines").classes("text-xl font-semibold mt-6 mb-2")
+                lines_search = ui.input("Search lines...")
             lines_table = ui.table(
                 columns=[
                     {"name": "index", "label": "Index", "field": "index"},
@@ -190,7 +217,8 @@ def info_tab(city: City) -> None:
                     {"name": "trainCapacity", "label": "Capacity", "field": "train_capacity"}
                 ],
                 column_defaults={"align": "right", "required": True, "sortable": True},
-                rows=calculate_line_rows(city.lines, city.through_specs)
+                rows=calculate_line_rows(city.lines, city.through_specs),
+                pagination=10
             )
             lines_table.add_slot("body-cell-name", """
 <q-td key="name" :props="props">
@@ -200,7 +228,6 @@ def info_tab(city: City) -> None:
     </q-badge>
 </q-td>
             """)
-            line_indexes = {line.index: line for line in city.lines.values()}
             lines_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             lines_table.add_slot("body-cell-start", """
 <q-td key="start" :props="props">
@@ -226,3 +253,33 @@ def info_tab(city: City) -> None:
     </q-badge>
 </q-td>
             """)
+            lines_search.bind_value(lines_table, "filter")
+
+        ui.separator()
+        with ui.column():
+            with ui.row().classes("w-full items-center justify-between"):
+                ui.label("Stations").classes("text-xl font-semibold mt-6 mb-2")
+                stations_search = ui.input("Search stations...")
+            stations_table = ui.table(
+                columns=[
+                    {"name": "name", "label": "Name", "field": "name", "sortable": False, "align": "center"},
+                    {"name": "numLines", "label": "# Lines", "field": "num_lines"},
+                    {"name": "numTrains", "label": "# Trains", "field": "num_trains"},
+                    {"name": "firstTrain", "label": "First Train", "field": "first_train", "align": "center"},
+                    {"name": "lastTrain", "label": "Last Train", "field": "last_train", "align": "center"}
+                ],
+                column_defaults={"align": "right", "required": True, "sortable": True},
+                rows=calculate_station_rows(city.station_lines, city.through_specs),
+                pagination=10
+            )
+            stations_table.add_slot("body-cell-name", """
+<q-td key="name" :props="props">
+    {{ props.value[0] }}
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('stationBadgeClick', index)" class="align-middle">
+        {{ name }}
+        <q-icon v-if="icon !== ''" :name="icon" :class="name === '' ? '' : 'q-ml-xs'" />
+    </q-badge>
+</q-td>
+            """)
+            stations_table.on("stationBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
+            stations_search.bind_value(stations_table, "filter")
