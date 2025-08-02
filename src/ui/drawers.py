@@ -343,17 +343,21 @@ def station_drawer(city: City, station: str) -> None:
             get_line_badge(line, add_click=True)
 
     ui.separator()
-    get_date_input(lambda d: station_cards.refresh(cur_date=d))
+    with ui.column().classes("gap-y-0"):
+        get_date_input(lambda d: station_cards.refresh(cur_date=d))
+        ui.switch("Full-Distance Only", on_change=lambda v: station_cards.refresh(full_only=v.value))
     station_cards(city, station, lines, cur_date=date.today())
 
 
 @ui.refreshable
-def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date) -> None:
+def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date, full_only: bool = False) -> None:
     """ Create cards for this station """
     global AVAILABLE_LINES
     train_dict = parse_all_trains(lines)
     train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
     train_list = get_all_trains_through(AVAILABLE_LINES, train_dict, through_dict, limit_date=cur_date)[station]
+    if full_only:
+        train_list = [train for train in train_list if train.is_full()]
     virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
     virtual_transfers = [] if station not in virtual_dict else sorted(
         set(virtual_dict[station].keys()), key=lambda x: to_pinyin(x[0])[0]
@@ -361,7 +365,7 @@ def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date
 
     card_caption = "text-subtitle-1 font-bold"
     card_text = "text-h6"
-    with ui.grid(rows=2, columns=2):
+    with ui.grid(rows=3, columns=2):
         num_transfer = len(lines)
         num_virtual = len(virtual_transfers)
         if num_virtual > 0:

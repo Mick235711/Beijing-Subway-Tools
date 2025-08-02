@@ -91,6 +91,15 @@ class ThroughTrain:
         """ Speed of the entire train """
         return segment_speed(self.distance(), self.duration())
 
+    def is_full(self) -> bool:
+        """ Determine if this train is a full-distance train """
+        # The criteria here is that the first and last train runs to both ends; we don't care about the middle trains
+        return self.first_train().stations[0] == self.first_train().line.direction_base_route[
+            self.first_train().direction
+        ].stations[0] and self.last_train().stations[-1] == self.last_train().line.direction_base_route[
+            self.last_train().direction
+        ].stations[-1]
+
     def duration_repr(self, *, with_speed: bool = False) -> str:
         """ One-line short duration string """
         base = f"{format_duration(self.duration())}, {distance_str(self.distance())}"
