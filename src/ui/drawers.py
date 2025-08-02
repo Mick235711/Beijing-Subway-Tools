@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import date
 from typing import Any, Literal
 
-from nicegui import ui
+from nicegui import binding, ui
 from nicegui.elements.drawer import RightDrawer
 from nicegui.elements.input import Input
 
@@ -377,92 +377,6 @@ def station_drawer(city: City, station: str) -> None:
     station_cards(city, station, lines, cur_date=date.today())
 
 
-@ui.refreshable
-def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date, full_only: bool = False) -> None:
-    """ Create cards for this station """
-    global AVAILABLE_LINES
-
-    # Get all the relevant lines
-    line_set = {l.name for l in lines}
-    relevant_lines = {l.name for l in lines}
-    for spec in city.through_specs:
-        if all(
-            l.name in AVAILABLE_LINES for l, _, _, _ in spec.spec
-        ) and any(l.name in line_set for l, _, _, _ in spec.spec):
-            relevant_lines.update(l.name for l, _, _, _ in spec.spec)
-
-    train_dict = parse_all_trains([AVAILABLE_LINES[l] for l in relevant_lines])
-    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
-    train_list = get_all_trains_through(AVAILABLE_LINES, train_dict, through_dict, limit_date=cur_date)[station]
-    train_list = [t for t in train_list if isinstance(t, ThroughTrain) or t.line.name in line_set]
-    if full_only:
-        train_list = [train for train in train_list if train.is_full()]
-    virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
-    virtual_transfers = [] if station not in virtual_dict else sorted(
-        set(virtual_dict[station].keys()), key=lambda x: to_pinyin(x[0])[0]
-    )
-
-    card_caption = "text-subtitle-1 font-bold"
-    card_text = "text-h6"
-    with (ui.column().classes("gap-y-4").classes("w-full")):
-        num_transfer = len(lines)
-        num_virtual = len(virtual_transfers)
-        with ui.grid(rows=(2 if num_virtual > 0 else 1), columns=2).classes("w-full"):
-            if num_virtual > 0:
-                with ui.card().classes("col-span-2 q-pa-sm"):
-                    with ui.card_section():
-                        ui.label("Virtual Transfers").classes(card_caption)
-                        for station2 in virtual_transfers:
-                            with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
-                                get_station_badge(station2)
-            with ui.card().classes("q-pa-sm"):
-                if num_virtual > 0:
-                    ui.tooltip("real + virtual")
-                with ui.card_section():
-                    ui.label("# Lines").classes(card_caption)
-                    with ui.row().classes("items-center"):
-                        ui.label(str(num_transfer)).classes(card_text)
-                        if num_virtual > 0:
-                            ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
-            with ui.card().classes("q-pa-sm"):
-                with ui.card_section():
-                    ui.label("# Trains").classes(card_caption)
-                    ui.label(str(len(train_list))).classes(card_text)
-        with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
-            with ui.card_section().classes("w-full"):
-                with ui.row().classes("items-center justify-between"):
-                    def count_clicked() -> None:
-                        """ Toggle button visibility and refresh table """
-                        if expand_button.icon == "expand":
-                            expand_button.set_icon("compress")
-                            train_count_table.create_table.refresh(split_direction=True)
-                        elif expand_button.icon == "compress":
-                            expand_button.set_icon("expand")
-                            train_count_table.create_table.refresh(split_direction=False)
-
-                    ui.label("Train For Each Line").classes(card_caption)
-                    expand_button = ui.button(icon="expand", on_click=count_clicked).props("flat").classes("p-0")
-                train_count_table = LineTable("count")
-                train_count_table.create_table(station, train_list)
-        with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
-            with ui.card_section().classes("w-full"):
-                with ui.row().classes("items-center justify-between"):
-                    def first_clicked(toggle_expand: bool = True) -> None:
-                        """ Toggle button visibility and refresh table """
-                        first_train_table.display_type = "first" if first_toggle.value == "First Train" else "last"
-                        if toggle_expand:
-                            expand_button2.set_icon("compress" if expand_button2.icon == "expand" else "expand")
-                        first_train_table.create_table.refresh(split_direction=(expand_button2.icon == "compress"))
-
-                    first_toggle = ui.toggle(
-                        ["First Train", "Last Train"], value="First Train",
-                        on_change=lambda: first_clicked(False)
-                    ).props("flat padding=0 no-caps").classes("gap-x-2")
-                    expand_button2 = ui.button(icon="expand", on_click=first_clicked).props("flat").classes("p-0")
-                first_train_table = LineTable("first")
-                first_train_table.create_table(station, train_list)
-
-
 class LineTable:
     """ Class for displaying a table of lines, directions and data """
 
@@ -511,6 +425,112 @@ class LineTable:
                                         else:
                                             ui.icon(LINE_TYPES["Through"][1])
                                         get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
+
+
+@binding.bindable_dataclass
+class StationCardData:
+    """ Data for station cards """
+    count_icon: Literal["expand", "compress"] = "expand"
+    first_icon: Literal["expand", "compress"] = "expand"
+    show_first: Literal["First Train", "Last Train"] = "First Train"
+
+    def count_clicked(self, train_count_table: LineTable) -> None:
+        """ Toggle button visibility and refresh table """
+        if self.count_icon == "expand":
+            self.count_icon = "compress"
+            train_count_table.create_table.refresh(split_direction=True)
+        elif self.count_icon == "compress":
+            self.count_icon = "expand"
+            train_count_table.create_table.refresh(split_direction=False)
+        else:
+            assert False, self.count_icon
+
+    def first_clicked(self, first_train_table: LineTable, *, toggle_expand: bool = True) -> None:
+        """ Toggle button visibility and refresh table """
+        if self.show_first == "First Train":
+            first_train_table.display_type = "first"
+        else:
+            first_train_table.display_type = "last"
+        if toggle_expand:
+            self.first_icon = "compress" if self.first_icon == "expand" else "expand"
+        first_train_table.create_table.refresh(split_direction=(self.first_icon == "compress"))
+
+
+@ui.refreshable
+def station_cards(
+    city: City, station: str, lines: list[Line],
+    *, cur_date: date, full_only: bool = False, card_data: StationCardData = StationCardData()
+) -> None:
+    """ Create cards for this station """
+    global AVAILABLE_LINES
+
+    # Get all the relevant lines
+    line_set = {l.name for l in lines}
+    relevant_lines = {l.name for l in lines}
+    for spec in city.through_specs:
+        if all(
+            l.name in AVAILABLE_LINES for l, _, _, _ in spec.spec
+        ) and any(l.name in line_set for l, _, _, _ in spec.spec):
+            relevant_lines.update(l.name for l, _, _, _ in spec.spec)
+
+    train_dict = parse_all_trains([AVAILABLE_LINES[l] for l in relevant_lines])
+    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
+    train_list = get_all_trains_through(AVAILABLE_LINES, train_dict, through_dict, limit_date=cur_date)[station]
+    train_list = [t for t in train_list if isinstance(t, ThroughTrain) or t.line.name in line_set]
+    if full_only:
+        train_list = [train for train in train_list if train.is_full()]
+    virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
+    virtual_transfers = [] if station not in virtual_dict else sorted(
+        set(virtual_dict[station].keys()), key=lambda x: to_pinyin(x[0])[0]
+    )
+
+    card_caption = "text-subtitle-1 font-bold"
+    card_text = "text-h6"
+    with ui.column().classes("gap-y-4").classes("w-full"):
+        num_transfer = len(lines)
+        num_virtual = len(virtual_transfers)
+        with ui.grid(rows=(2 if num_virtual > 0 else 1), columns=2).classes("w-full"):
+            if num_virtual > 0:
+                with ui.card().classes("col-span-2 q-pa-sm"):
+                    with ui.card_section():
+                        ui.label("Virtual Transfers").classes(card_caption)
+                        for station2 in virtual_transfers:
+                            with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
+                                get_station_badge(station2)
+            with ui.card().classes("q-pa-sm"):
+                if num_virtual > 0:
+                    ui.tooltip("real + virtual")
+                with ui.card_section():
+                    ui.label("# Lines").classes(card_caption)
+                    with ui.row().classes("items-center"):
+                        ui.label(str(num_transfer)).classes(card_text)
+                        if num_virtual > 0:
+                            ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
+            with ui.card().classes("q-pa-sm"):
+                with ui.card_section():
+                    ui.label("# Trains").classes(card_caption)
+                    ui.label(str(len(train_list))).classes(card_text)
+        with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
+            with ui.card_section().classes("w-full"):
+                train_count_table = LineTable("count")
+                with ui.row().classes("items-center justify-between"):
+                    ui.label("Train For Each Line").classes(card_caption)
+                    ui.button(
+                        icon=card_data.count_icon, on_click=lambda: card_data.count_clicked(train_count_table)
+                    ).props("flat").classes("p-0").bind_icon(card_data, "count_icon")
+                train_count_table.create_table(station, train_list, split_direction=(card_data.count_icon == "compress"))
+        with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
+            with ui.card_section().classes("w-full"):
+                first_train_table = LineTable("first" if card_data.show_first == "First Train" else "last")
+                with ui.row().classes("items-center justify-between"):
+                    ui.toggle(
+                        ["First Train", "Last Train"], value=card_data.show_first,
+                        on_change=lambda: card_data.first_clicked(first_train_table, toggle_expand=False)
+                    ).props("flat padding=0 no-caps").classes("gap-x-2").bind_value(card_data, "show_first")
+                    ui.button(
+                        icon=card_data.first_icon, on_click=lambda: card_data.first_clicked(first_train_table)
+                    ).props("flat").classes("p-0").bind_icon(card_data, "first_icon")
+                first_train_table.create_table(station, train_list, split_direction=(card_data.first_icon == "compress"))
 
 
 @ui.refreshable
