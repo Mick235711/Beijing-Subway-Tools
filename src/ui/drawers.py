@@ -14,9 +14,11 @@ from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin
 
-LINE_DRAWER: RightDrawer | None = None
+RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
+SELECTED_STATION: str | None = None
 AVAILABLE_LINES: dict[str, Line] = {}
+AVAILABLE_STATIONS: dict[str, set[Line]] = {}
 LINE_TYPES = {
     "Regular": ("primary", ""),
     "Express": ("red", "rocket"),
@@ -48,8 +50,9 @@ def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, 
 
 
 def get_line_badge(
-    line: Line, *, code_str: str | None = None, add_icon: tuple[str, Callable[[Line], Any]] | None = None,
-    show_name: bool = True, add_click: bool = False, classes: str | None = None, add_through: bool = False
+    line: Line, *, code_str: str | None = None,
+    show_name: bool = True, add_click: bool = False, add_through: bool = False,
+    classes: str | None = None, add_icon: tuple[str, Callable[[Line], Any]] | None = None
 ) -> None:
     """ Get line badge """
     global AVAILABLE_LINES
@@ -72,30 +75,41 @@ def get_line_badge(
 
 def get_station_badge(
     station: str, line: Line | None = None, *, show_badges: bool = True, show_line_badges: bool = True,
-    prefer_line: Line | None = None, label_at_end: bool = False, add_click: bool | Callable[[str], bool] = True
+    prefer_line: Line | None = None, label_at_end: bool = False,
+    add_click: bool = True, add_line_click: bool | Callable[[str], bool] = True,
+    classes: str | None = None
 ) -> None:
     """ Get station label & badge """
-    global AVAILABLE_LINES
-    station_lines = parse_station_lines(AVAILABLE_LINES)
-    line_list = sorted({line} if line is not None else station_lines[station],
+    global AVAILABLE_STATIONS
+    line_list = sorted({line} if line is not None else AVAILABLE_STATIONS[station],
                        key=lambda l: (0 if prefer_line is not None and l.name == prefer_line.name else 1, l.index))
-    badges = {line.station_badges[line.stations.index(station)] for line in line_list}
+    badges = {x for x in {line.station_badges[line.stations.index(station)] for line in line_list} if x is not None}
+    station_label = None
     if not label_at_end:
-        ui.label(station)
+        station_label = ui.label(station)
         if show_badges:
             for badge in badges:
-                if badge is None:
-                    continue
                 with ui.badge():
                     ui.icon(badge)
     for inner_line in line_list:
         if not show_line_badges and inner_line.code is None:
             continue
-        click = add_click if isinstance(add_click, bool) else add_click(inner_line.name)
+        click = add_line_click if isinstance(add_line_click, bool) else add_line_click(inner_line.name)
         get_line_badge(inner_line, code_str=(None if inner_line.code is None else inner_line.station_code(station)),
                        show_name=False, add_click=click)
     if label_at_end:
-        ui.label(station)
+        station_label = ui.label(station)
+        if show_badges:
+            for badge in badges:
+                with ui.badge():
+                    ui.icon(badge)
+    if station_label is not None:
+        if classes is not None:
+            station_label.classes(classes)
+        if add_click:
+            station_label.classes("cursor-pointer").on(
+                "click", lambda s=station: refresh_station_drawer(s, AVAILABLE_STATIONS)
+            )
 
 
 def line_drawer(city: City, line: Line) -> None:
@@ -143,12 +157,12 @@ def line_drawer(city: City, line: Line) -> None:
                                     ):
                                         get_station_badge(
                                             direction_stations[0], line,
-                                            show_badges=False, show_line_badges=False, add_click=False
+                                            show_badges=False, show_line_badges=False, add_line_click=False
                                         )
                                         ui.icon("autorenew" if line.loop else "arrow_right_alt")
                                         get_station_badge(
                                             direction_stations[0] if line.loop else direction_stations[-1], line,
-                                            show_badges=False, show_line_badges=False, add_click=False
+                                            show_badges=False, show_line_badges=False, add_line_click=False
                                         )
                                 with ui.item_section().props("side"):
                                     ui.label(direction)
@@ -285,7 +299,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                     with ui.row().classes("items-center gap-1"):
                         get_station_badge(
                             station, prefer_line=line, show_badges=False, show_line_badges=False,
-                            add_click=lambda l: l != line.name
+                            add_line_click=lambda l: l != line.name
                         )
                     if len(station_lines[station]) > 1:
                         with ui.row().classes("items-center gap-x-1"):
@@ -296,40 +310,84 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                                                add_through=(line2.name in prev_lines or line2.name in next_lines))
 
 
+def station_drawer(city: City, station: str) -> None:
+    """ Create station drawer """
+    global AVAILABLE_STATIONS
+    lines = sorted(AVAILABLE_STATIONS[station], key=lambda l: l.index)
+    with ui.element("div").classes("flex items-center flex-wrap gap-1"):
+        get_station_badge(
+            station, show_line_badges=False, add_click=False, classes="text-h5 text-bold"
+        )
+    with ui.element("div").classes("flex items-center flex-wrap gap-1"):
+        for line in lines:
+            get_line_badge(line, add_click=True)
+
+
 @ui.refreshable
 def right_drawer(
     city: City, drawer: RightDrawer, *,
     drawer_type: Literal["line", "station"] | None = None
 ) -> None:
     """ Create the right drawer """
-    global LINE_DRAWER, SELECTED_LINE
-    LINE_DRAWER = drawer
+    global RIGHT_DRAWER, SELECTED_LINE, SELECTED_STATION
+    RIGHT_DRAWER = drawer
     if drawer_type is None:
         return
     elif drawer_type == "line":
         if SELECTED_LINE is None:
             return
+        SELECTED_STATION = None
         line_drawer(city, SELECTED_LINE)
+    elif drawer_type == "station":
+        if SELECTED_STATION is None:
+            return
+        SELECTED_LINE = None
+        station_drawer(city, SELECTED_STATION)
 
 
 def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:
     """ Refresh line drawer """
-    global LINE_DRAWER, SELECTED_LINE, AVAILABLE_LINES
-    assert LINE_DRAWER is not None, (LINE_DRAWER, SELECTED_LINE, selected_line)
+    global RIGHT_DRAWER, SELECTED_LINE, AVAILABLE_LINES, AVAILABLE_STATIONS
+    assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_LINE, selected_line)
     if selected_line is not None:
         changed = (SELECTED_LINE is None or SELECTED_LINE.name != selected_line.name)
         SELECTED_LINE = selected_line
     else:
         changed = True
     AVAILABLE_LINES = lines
+    AVAILABLE_STATIONS = parse_station_lines(lines)
     if SELECTED_LINE is not None and SELECTED_LINE.name not in AVAILABLE_LINES:
-        LINE_DRAWER.hide()
+        RIGHT_DRAWER.hide()
         return
 
     right_drawer.refresh(drawer_type="line")
     if selected_line is None:
         return
     elif changed:
-        LINE_DRAWER.show()
+        RIGHT_DRAWER.show()
     else:
-        LINE_DRAWER.toggle()
+        RIGHT_DRAWER.toggle()
+
+
+def refresh_station_drawer(selected_station: str | None, station_lines: dict[str, set[Line]]) -> None:
+    """ Refresh station drawer """
+    global RIGHT_DRAWER, SELECTED_STATION, AVAILABLE_LINES, AVAILABLE_STATIONS
+    assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_STATION, selected_station)
+    if selected_station is not None:
+        changed = (SELECTED_STATION is None or SELECTED_STATION != selected_station)
+        SELECTED_STATION = selected_station
+    else:
+        changed = True
+    AVAILABLE_LINES = {l.name: l for ls in station_lines.values() for l in ls}
+    AVAILABLE_STATIONS = station_lines
+    if SELECTED_STATION is not None and SELECTED_STATION not in AVAILABLE_STATIONS:
+        RIGHT_DRAWER.hide()
+        return
+
+    right_drawer.refresh(drawer_type="station")
+    if selected_station is None:
+        return
+    elif changed:
+        RIGHT_DRAWER.show()
+    else:
+        RIGHT_DRAWER.toggle()

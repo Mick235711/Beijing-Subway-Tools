@@ -15,7 +15,7 @@ from src.common.common import distance_str, speed_str, suffix_s, get_text_color,
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.stats.common import get_all_trains_through
-from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict, get_line_badge
+from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict, get_line_badge, refresh_station_drawer
 
 MAX_TRANSFER_LINE_COUNT = 6
 
@@ -346,6 +346,8 @@ def info_tab(city: City) -> None:
                 rows=calculate_line_rows(city.lines, city.through_specs),
                 pagination=10
             )
+            lines_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
+            lines_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, data.station_lines))
             lines_table.add_slot("body-cell-name", """
 <q-td key="name" :props="props">
     <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
@@ -354,20 +356,19 @@ def info_tab(city: City) -> None:
     </q-badge>
 </q-td>
             """)
-            lines_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             lines_table.add_slot("body-cell-start", """
-<q-td key="start" :props="props">
+<q-td key="start" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
 </q-td>
             """)
             lines_table.add_slot("body-cell-end", """
-<q-td key="end" :props="props">
+<q-td key="end" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
@@ -434,6 +435,8 @@ def info_tab(city: City) -> None:
                 rows=calculate_station_rows(city.lines, city.station_lines, city, date.fromisoformat(date_input.value)),
                 pagination=10
             )
+            stations_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
+            stations_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, data.station_lines))
             stations_table.add_slot("body-cell-name", """
 <q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{ props.value[0] }}
@@ -442,7 +445,6 @@ def info_tab(city: City) -> None:
     </q-badge>
 </q-td>
             """)
-            stations_table.on("stationBadgeClick", lambda n: print(n.args))
             stations_table.add_slot("body-cell-lines", """
 <q-td key="lines" :props="props">
     <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="align-middle cursor-pointer">
@@ -451,7 +453,6 @@ def info_tab(city: City) -> None:
     </q-badge>
 </q-td>
             """)
-            stations_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             stations_table.add_slot("body-cell-virtualTransfers", """
 <q-td key="virtualTransfers" :props="props">
     <div class="inline-flex items-center align-middle flex-col">
