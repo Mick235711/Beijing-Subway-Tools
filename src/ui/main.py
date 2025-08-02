@@ -10,7 +10,7 @@ from nicegui import ui
 
 from src.city.city import get_all_cities
 from src.common.common import suffix_s
-from src.ui.drawers import line_drawer
+from src.ui.drawers import right_drawer
 from src.ui.info_tab import info_tab
 
 
@@ -58,7 +58,7 @@ async def main_page(city_name: str) -> None:
             ui.label("Route planning features will be implemented here.")
 
     with ui.right_drawer(value=False, top_corner=True, bottom_corner=True) as drawer:
-        line_drawer(city, drawer)
+        right_drawer(city, drawer)
         with ui.page_sticky(position="top-right", x_offset=20, y_offset=20):
             ui.button(icon="keyboard_double_arrow_right", on_click=lambda: drawer.hide()).props("fab color=accent")
 

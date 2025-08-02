@@ -5,7 +5,7 @@
 
 # Libraries
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Literal
 
 from nicegui import ui
 from nicegui.elements.drawer import RightDrawer
@@ -25,6 +25,26 @@ LINE_TYPES = {
     "End-Circle": ("purple", "arrow_circle_right"),
     "Through": ("indigo-7", "sync_alt")
 }
+
+
+def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, set[Line]]]:
+    """ Get a dictionary of station1 -> station2 -> lines of station2 virtual transfers """
+    virtual_dict: dict[str, dict[str, set[Line]]] = {}
+    for (station1, station2), transfer in city.virtual_transfers.items():
+        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
+            if from_l not in lines or to_l not in lines:
+                continue
+            if station1 not in virtual_dict:
+                virtual_dict[station1] = {}
+            if station2 not in virtual_dict[station1]:
+                virtual_dict[station1][station2] = set()
+            virtual_dict[station1][station2].add(lines[to_l])
+            if station2 not in virtual_dict:
+                virtual_dict[station2] = {}
+            if station1 not in virtual_dict[station2]:
+                virtual_dict[station2][station1] = set()
+            virtual_dict[station2][station1].add(lines[from_l])
+    return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
 
 
 def get_line_badge(
@@ -78,14 +98,9 @@ def get_station_badge(
         ui.label(station)
 
 
-@ui.refreshable
-def line_drawer(city: City, drawer: RightDrawer) -> None:
+def line_drawer(city: City, line: Line) -> None:
     """ Create line drawer """
-    global LINE_DRAWER, SELECTED_LINE, AVAILABLE_LINES, LINE_TYPES
-    LINE_DRAWER = drawer
-    if SELECTED_LINE is None:
-        return
-    line: Line = SELECTED_LINE
+    global AVAILABLE_LINES, LINE_TYPES
     get_line_badge(line, classes="text-h5 text-bold")
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         get_line_badge(line, show_name=False)
@@ -220,26 +235,6 @@ def line_drawer(city: City, drawer: RightDrawer) -> None:
                     line_timeline(city, line, direction, show_tally=True, show_skips=True)
 
 
-def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, set[Line]]]:
-    """ Get a dictionary of station1 -> station2 -> lines of station2 virtual transfers """
-    virtual_dict: dict[str, dict[str, set[Line]]] = {}
-    for (station1, station2), transfer in city.virtual_transfers.items():
-        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
-            if from_l not in lines or to_l not in lines:
-                continue
-            if station1 not in virtual_dict:
-                virtual_dict[station1] = {}
-            if station2 not in virtual_dict[station1]:
-                virtual_dict[station1][station2] = set()
-            virtual_dict[station1][station2].add(lines[to_l])
-            if station2 not in virtual_dict:
-                virtual_dict[station2] = {}
-            if station1 not in virtual_dict[station2]:
-                virtual_dict[station2][station1] = set()
-            virtual_dict[station2][station1].add(lines[from_l])
-    return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
-
-
 @ui.refreshable
 def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, show_skips: bool) -> None:
     """ Update the data based on switch states """
@@ -301,6 +296,22 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                                                add_through=(line2.name in prev_lines or line2.name in next_lines))
 
 
+@ui.refreshable
+def right_drawer(
+    city: City, drawer: RightDrawer, *,
+    drawer_type: Literal["line", "station"] | None = None
+) -> None:
+    """ Create the right drawer """
+    global LINE_DRAWER, SELECTED_LINE
+    LINE_DRAWER = drawer
+    if drawer_type is None:
+        return
+    elif drawer_type == "line":
+        if SELECTED_LINE is None:
+            return
+        line_drawer(city, SELECTED_LINE)
+
+
 def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:
     """ Refresh line drawer """
     global LINE_DRAWER, SELECTED_LINE, AVAILABLE_LINES
@@ -315,7 +326,7 @@ def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> N
         LINE_DRAWER.hide()
         return
 
-    line_drawer.refresh()
+    right_drawer.refresh(drawer_type="line")
     if selected_line is None:
         return
     elif changed:
