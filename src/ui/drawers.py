@@ -15,8 +15,8 @@ from nicegui.elements.input import Input
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin
-from src.routing.through_train import parse_through_train
-from src.routing.train import parse_all_trains
+from src.routing.through_train import parse_through_train, ThroughTrain
+from src.routing.train import parse_all_trains, Train
 from src.stats.common import get_all_trains_through
 
 RIGHT_DRAWER: RightDrawer | None = None
@@ -52,6 +52,34 @@ def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, 
                 virtual_dict[station2][station1] = set()
             virtual_dict[station2][station1].add(lines[from_l])
     return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
+
+
+def count_trains(
+    trains: list[Train | ThroughTrain], *, split_direction: bool = False
+) -> dict[tuple[str, ...], dict[tuple[str, ...], list[Train | ThroughTrain]]]:
+    """ Reorganize trains into line -> direction -> train. Direction is () if split_direction is False. """
+    result_dict: dict[tuple[str, ...], dict[tuple[str, ...], list[Train | ThroughTrain]]] = {}
+    index_dict: dict[tuple[str, ...], tuple[int, ...]] = {}
+    for train in trains:
+        if isinstance(train, Train):
+            line_name: tuple[str, ...] = (train.line.name,)
+            direction_name: tuple[str, ...] = (train.direction,)
+            line_index: tuple[int, ...] = (1, train.line.index)
+        else:
+            assert isinstance(train, ThroughTrain), train
+            line_name = tuple(l.name for l, _, _, _ in train.spec.spec)
+            direction_name = tuple(d for _, d, _, _ in train.spec.spec)
+            line_index = train.spec.line_index()
+        if not split_direction:
+            line_name = tuple(sorted(line_name))
+            direction_name = ()
+        if line_name not in result_dict:
+            result_dict[line_name] = {}
+        if direction_name not in result_dict[line_name]:
+            result_dict[line_name][direction_name] = []
+        result_dict[line_name][direction_name].append(train)
+        index_dict[line_name] = line_index
+    return result_dict
 
 
 def get_line_badge(
@@ -343,7 +371,7 @@ def station_drawer(city: City, station: str) -> None:
             get_line_badge(line, add_click=True)
 
     ui.separator()
-    with ui.column().classes("gap-y-0"):
+    with ui.column().classes("w-full gap-y-0"):
         get_date_input(lambda d: station_cards.refresh(cur_date=d))
         ui.switch("Full-Distance Only", on_change=lambda v: station_cards.refresh(full_only=v.value))
     station_cards(city, station, lines, cur_date=date.today())
@@ -353,9 +381,20 @@ def station_drawer(city: City, station: str) -> None:
 def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date, full_only: bool = False) -> None:
     """ Create cards for this station """
     global AVAILABLE_LINES
-    train_dict = parse_all_trains(lines)
+
+    # Get all the relevant lines
+    line_set = {l.name for l in lines}
+    relevant_lines = {l.name for l in lines}
+    for spec in city.through_specs:
+        if all(
+            l.name in AVAILABLE_LINES for l, _, _, _ in spec.spec
+        ) and any(l.name in line_set for l, _, _, _ in spec.spec):
+            relevant_lines.update(l.name for l, _, _, _ in spec.spec)
+
+    train_dict = parse_all_trains([AVAILABLE_LINES[l] for l in relevant_lines])
     train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
     train_list = get_all_trains_through(AVAILABLE_LINES, train_dict, through_dict, limit_date=cur_date)[station]
+    train_list = [t for t in train_list if isinstance(t, ThroughTrain) or t.line.name in line_set]
     if full_only:
         train_list = [train for train in train_list if train.is_full()]
     virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
@@ -365,29 +404,79 @@ def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date
 
     card_caption = "text-subtitle-1 font-bold"
     card_text = "text-h6"
-    with ui.grid(rows=3, columns=2):
+    with ui.column().classes("gap-y-4").classes("w-full"):
         num_transfer = len(lines)
         num_virtual = len(virtual_transfers)
-        if num_virtual > 0:
-            with ui.card().classes("col-span-2 q-pa-sm"):
-                with ui.card_section():
-                    ui.label("Virtual Transfers").classes(card_caption)
-                    for station2 in virtual_transfers:
-                        with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
-                            get_station_badge(station2)
-        with ui.card().classes("q-pa-sm"):
+        with ui.grid(rows=(2 if num_virtual > 0 else 1), columns=2).classes("w-full"):
             if num_virtual > 0:
-                ui.tooltip("real + virtual")
-            with ui.card_section():
-                ui.label("# Lines").classes(card_caption)
-                with ui.row().classes("items-center"):
-                    ui.label(str(num_transfer)).classes(card_text)
-                    if num_virtual > 0:
-                        ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
-        with ui.card().classes("q-pa-sm"):
-            with ui.card_section():
-                ui.label("# Trains").classes(card_caption)
-                ui.label(str(len(train_list))).classes(card_text)
+                with ui.card().classes("col-span-2 q-pa-sm"):
+                    with ui.card_section():
+                        ui.label("Virtual Transfers").classes(card_caption)
+                        for station2 in virtual_transfers:
+                            with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
+                                get_station_badge(station2)
+            with ui.card().classes("q-pa-sm"):
+                if num_virtual > 0:
+                    ui.tooltip("real + virtual")
+                with ui.card_section():
+                    ui.label("# Lines").classes(card_caption)
+                    with ui.row().classes("items-center"):
+                        ui.label(str(num_transfer)).classes(card_text)
+                        if num_virtual > 0:
+                            ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
+            with ui.card().classes("q-pa-sm"):
+                with ui.card_section():
+                    ui.label("# Trains").classes(card_caption)
+                    ui.label(str(len(train_list))).classes(card_text)
+        with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
+            with ui.card_section().classes("w-full"):
+                with ui.row().classes("items-center justify-between"):
+                    def expand_clicked() -> None:
+                        """ Toggle button visibility and refresh table """
+                        if expand_button.icon == "expand":
+                            expand_button.set_icon("compress")
+                            train_count_table.refresh(split_direction=True)
+                        elif expand_button.icon == "compress":
+                            expand_button.set_icon("expand")
+                            train_count_table.refresh(split_direction=False)
+
+                    ui.label("Train For Each Line").classes(card_caption)
+                    expand_button = ui.button(icon="expand", on_click=expand_clicked).props("flat").classes("p-0")
+                train_count_table(train_list)
+
+
+@ui.refreshable
+def train_count_table(train_list: list[Train | ThroughTrain], *, split_direction: bool = False) -> None:
+    """ Create a table for train counts """
+    global AVAILABLE_LINES, LINE_TYPES
+    train_dict = count_trains(train_list, split_direction=split_direction)
+
+    with ui.list().props("dense"):
+        for line_names, direction_dict in sorted(
+            train_dict.items(), key=lambda x: [len(x[0])] + [AVAILABLE_LINES[y].index for y in x[0]]
+        ):
+            for directions, trains in sorted(direction_dict.items(), key=lambda x: [to_pinyin(y)[0] for y in x[0]]):
+                with ui.item().classes("mb-2").props("dense").style("padding: 0"):
+                    with ui.item_section().style("min-width: 10% !important"):
+                        ui.label(str(len(trains)))
+                    with ui.item_section().props("side"):
+                        with ui.row().classes("items-center gap-x-1 gap-y-0"):
+                            first = True
+                            if split_direction:
+                                for line_name, direction in zip(line_names, directions):
+                                    if first:
+                                        first = False
+                                    else:
+                                        ui.icon("arrow_right_alt")
+                                    get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
+                                    ui.label(direction)
+                            else:
+                                for line_name in sorted(line_names, key=lambda x: AVAILABLE_LINES[x].index):
+                                    if first:
+                                        first = False
+                                    else:
+                                        ui.icon(LINE_TYPES["Through"][1])
+                                    get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
 
 
 @ui.refreshable

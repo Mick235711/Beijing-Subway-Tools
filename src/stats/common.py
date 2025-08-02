@@ -18,7 +18,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute, route_dist, route_dist_list
-from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser, stddev
+from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser, stddev, to_pinyin
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
@@ -48,7 +48,7 @@ def count_trains(trains: Iterable[T]) -> dict[str, dict[str, list[T]]]:
     for name, direction_dict in result_dict.items():
         for direction, train_list in direction_dict.items():
             result_dict[name][direction] = list(set(train_list))
-        result_dict[name] = dict(sorted(direction_dict.items(), key=lambda x: x[0]))
+        result_dict[name] = dict(sorted(result_dict[name].items(), key=lambda x: to_pinyin(x[0])[0]))
     return dict(sorted(result_dict.items(), key=lambda x: index_dict[x[0]]))
 
 
