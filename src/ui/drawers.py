@@ -345,49 +345,54 @@ def right_drawer(
         station_drawer(city, SELECTED_STATION)
 
 
-def refresh_line_drawer(selected_line: Line | None, lines: dict[str, Line]) -> None:
+def refresh_line_drawer(selected_line: Line, lines: dict[str, Line]) -> None:
     """ Refresh line drawer """
     global RIGHT_DRAWER, SELECTED_LINE, AVAILABLE_LINES, AVAILABLE_STATIONS
     assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_LINE, selected_line)
-    if selected_line is not None:
-        changed = (SELECTED_LINE is None or SELECTED_LINE.name != selected_line.name)
-        SELECTED_LINE = selected_line
-    else:
-        changed = True
+    changed = (SELECTED_LINE is None or SELECTED_LINE.name != selected_line.name)
+    SELECTED_LINE = selected_line
     AVAILABLE_LINES = lines
     AVAILABLE_STATIONS = parse_station_lines(lines)
-    if SELECTED_LINE is not None and SELECTED_LINE.name not in AVAILABLE_LINES:
+    if SELECTED_LINE.name not in AVAILABLE_LINES:
         RIGHT_DRAWER.hide()
         return
 
     right_drawer.refresh(drawer_type="line")
-    if selected_line is None:
-        return
-    elif changed:
+    if changed:
         RIGHT_DRAWER.show()
     else:
         RIGHT_DRAWER.toggle()
 
 
-def refresh_station_drawer(selected_station: str | None, station_lines: dict[str, set[Line]]) -> None:
+def refresh_station_drawer(selected_station: str, station_lines: dict[str, set[Line]]) -> None:
     """ Refresh station drawer """
     global RIGHT_DRAWER, SELECTED_STATION, AVAILABLE_LINES, AVAILABLE_STATIONS
     assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_STATION, selected_station)
-    if selected_station is not None:
-        changed = (SELECTED_STATION is None or SELECTED_STATION != selected_station)
-        SELECTED_STATION = selected_station
-    else:
-        changed = True
+    changed = (SELECTED_STATION is None or SELECTED_STATION != selected_station)
+    SELECTED_STATION = selected_station
     AVAILABLE_LINES = {l.name: l for ls in station_lines.values() for l in ls}
     AVAILABLE_STATIONS = station_lines
-    if SELECTED_STATION is not None and SELECTED_STATION not in AVAILABLE_STATIONS:
+    if SELECTED_STATION not in AVAILABLE_STATIONS:
         RIGHT_DRAWER.hide()
         return
 
     right_drawer.refresh(drawer_type="station")
-    if selected_station is None:
-        return
-    elif changed:
+    if changed:
         RIGHT_DRAWER.show()
     else:
         RIGHT_DRAWER.toggle()
+
+
+def refresh_drawer(lines: dict[str, Line], station_lines: dict[str, set[Line]]) -> None:
+    """ Refresh drawer on change """
+    global RIGHT_DRAWER, SELECTED_LINE, AVAILABLE_LINES, AVAILABLE_STATIONS
+    assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_LINE, lines)
+    AVAILABLE_LINES = lines
+    AVAILABLE_STATIONS = station_lines
+    if SELECTED_LINE is not None and SELECTED_LINE.name not in AVAILABLE_LINES:
+        RIGHT_DRAWER.hide()
+        return
+    if SELECTED_STATION is not None and SELECTED_STATION not in AVAILABLE_STATIONS:
+        RIGHT_DRAWER.hide()
+        return
+    right_drawer.refresh()

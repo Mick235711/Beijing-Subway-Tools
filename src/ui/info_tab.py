@@ -15,7 +15,8 @@ from src.common.common import distance_str, speed_str, suffix_s, get_text_color,
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.stats.common import get_all_trains_through
-from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict, get_line_badge, refresh_station_drawer
+from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict, get_line_badge, refresh_station_drawer, \
+    refresh_drawer
 
 MAX_TRANSFER_LINE_COUNT = 6
 
@@ -149,7 +150,7 @@ def info_tab(city: City) -> None:
                 }
                 data.station_lines = parse_station_lines(data.lines)
                 lines_table.rows = calculate_line_rows(data.lines, city.through_specs)
-                refresh_line_drawer(None, data.lines)
+                refresh_drawer(data.lines, data.station_lines)
 
                 with exclude_lines_chips.add_slot("selected"):
                     for line in sorted(data.exclude_lines, key=lambda l: city.lines[l].index):
