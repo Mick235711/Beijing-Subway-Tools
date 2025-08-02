@@ -15,7 +15,7 @@ from src.common.common import distance_str, speed_str, suffix_s, get_text_color,
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.stats.common import get_all_trains_through
-from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict
+from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict, get_line_badge
 
 MAX_TRANSFER_LINE_COUNT = 6
 
@@ -25,6 +25,7 @@ class InfoData:
     """ Data for the info tab """
     lines: dict[str, Line]
     station_lines: dict[str, set[Line]]
+    exclude_lines: list[str]
 
 
 def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]) -> list[dict]:
@@ -128,7 +129,7 @@ def calculate_station_rows(
 
 def info_tab(city: City) -> None:
     """ Info tab for the main page """
-    data = InfoData(city.lines, city.station_lines)
+    data = InfoData(city.lines, city.station_lines, [])
 
     with ui.row().classes("items-center justify-between"):
         ui.label("Include lines with:")
@@ -136,24 +137,78 @@ def info_tab(city: City) -> None:
         def on_switch_change(line_changed: bool = True) -> None:
             """ Update the data based on switch states """
             if line_changed:
+                exclude_set = set(data.exclude_lines)
                 data.lines = {
                     line.name: line for line in city.lines.values()
                     if (loop_switch.value or not line.loop) and
                        (circle_switch.value or line.end_circle_start is None) and
                        (fare_switch.value or len(line.must_include) == 0) and
-                       (express_switch.value or not line.have_express())
+                       (express_switch.value or not line.have_express()) and
+                       ((exclude_button.icon == "remove" and line.name not in exclude_set) or
+                        (exclude_button.icon == "add" and line.name in exclude_set))
                 }
                 data.station_lines = parse_station_lines(data.lines)
                 lines_table.rows = calculate_line_rows(data.lines, city.through_specs)
                 refresh_line_drawer(None, data.lines)
 
+                with exclude_lines_chips.add_slot("selected"):
+                    for line in sorted(data.exclude_lines, key=lambda l: city.lines[l].index):
+                        get_line_badge(
+                            city.lines[line], add_icon=("cancel", on_line_badge_click)
+                        )
+                exclude_lines_chips.update()
+
             stations_table.rows = calculate_station_rows(
-                data.lines, data.station_lines, city, date.fromisoformat(date_input.value))
+                data.lines, data.station_lines, city, date.fromisoformat(date_input.value)
+            )
+
+        def on_line_badge_click(line: Line) -> None:
+            """ Refresh the line drawer with the clicked line """
+            data.exclude_lines.remove(line.name)
+            on_switch_change()
 
         loop_switch = ui.switch("Loop", value=True, on_change=on_switch_change)
         circle_switch = ui.switch("End circle", value=True, on_change=on_switch_change)
         fare_switch = ui.switch("Different fare", value=True, on_change=on_switch_change)
         express_switch = ui.switch("Express service", value=True, on_change=on_switch_change)
+
+        def on_exclude_button_change() -> None:
+            """ Toggle the exclude button icon and update the data """
+            if exclude_button.icon == "remove":
+                exclude_button.set_icon("add")
+            else:
+                exclude_button.set_icon("remove")
+            on_switch_change()
+
+        ui.add_css("""
+.q-select .q-field__input--padding {
+    max-width: 50px;
+}
+        """)
+        exclude_button = ui.button(icon="remove", on_click=on_exclude_button_change).props("round flat")
+        exclude_lines_chips = ui.select(
+            {
+                line_name: """
+<div class="flex items-center justify-between w-full gap-x-2">
+    <div class="q-badge flex inline items-center no-wrap q-badge--single-line text-{}" style="background: {}" role="status">
+        {}
+        {}
+    </div>
+    <div class="text-right">{} {} {}</div>
+</div>
+                """.format(
+                    get_text_color(line.color), line.color, line_name, "" if line.badge_icon is None else
+                    f"""<i class="q-icon notranslate material-icons q-ml-xs" aria-hidden="true" role="presentation">{line.badge_icon}</i>""",
+                    line.stations[0],
+                    """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
+                    if line.loop else "&mdash;",
+                    line.stations[0] if line.loop else line.stations[-1]
+                ) for line_name, line in sorted(city.lines.items(), key=lambda x: x[1].index)
+            },
+            label="Lines to exclude", with_input=True, multiple=True, on_change=on_switch_change
+        ).props("use-chips clearable options-html").bind_label_from(
+            exclude_button, "icon", backward=lambda x: "Lines to " + ("exclude" if x == "remove" else "include")
+        ).bind_value(data, "exclude_lines")
 
     with ui.row():
         card_caption = "text-subtitle-1 font-bold"
@@ -188,7 +243,9 @@ def info_tab(city: City) -> None:
             ui.tooltip().bind_text_from(
                 data, "lines",
                 backward=lambda l:
-                f"Average {distance_str(sum([line.total_distance() for line in l.values()]) / len(l))} per line"
+                "Average " + (
+                    "N/A" if len(l) == 0 else distance_str(sum([line.total_distance() for line in l.values()]) / len(l))
+                ) + " per line"
             )
             with ui.card_section():
                 ui.label("Total Distance").classes(card_caption)
@@ -212,9 +269,11 @@ def info_tab(city: City) -> None:
             ui.tooltip().bind_text_from(
                 data, "station_lines",
                 backward=lambda sl:
-                "Average {:.2f} lines per station".format(sum(len(line.stations) for line in {
-                    l for line_set in sl.values() for l in line_set
-                }) / len(sl))
+                "N/A" if len(sl) == 0 else ("Average {:.2f} lines per station".format(
+                    sum(len(line.stations) for line in {
+                        l for line_set in sl.values() for l in line_set
+                    }) / len(sl)
+                ))
             )
             with ui.card_section():
                 ui.label("Transfer Stations").classes(card_caption)

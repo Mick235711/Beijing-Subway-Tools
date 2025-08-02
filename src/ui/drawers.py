@@ -4,6 +4,9 @@
 """ Frontend - Main Page - Drawers """
 
 # Libraries
+from collections.abc import Callable
+from typing import Any
+
 from nicegui import ui
 from nicegui.elements.drawer import RightDrawer
 
@@ -25,7 +28,7 @@ LINE_TYPES = {
 
 
 def get_line_badge(
-    line: Line, *, code_str: str | None = None,
+    line: Line, *, code_str: str | None = None, add_icon: tuple[str, Callable[[Line], Any]] | None = None,
     show_name: bool = True, add_click: bool = False, classes: str | None = None, add_through: bool = False
 ) -> None:
     """ Get line badge """
@@ -42,6 +45,8 @@ def get_line_badge(
             ui.icon(line.badge_icon).classes("q-ml-xs")
         if add_through:
             ui.icon(LINE_TYPES["Through"][1]).classes("q-ml-xs")
+        if add_icon is not None:
+            ui.icon(add_icon[0]).classes("q-ml-xs").on("click.stop.prevent", lambda: add_icon[1](line))
 
 
 def get_station_badge(
