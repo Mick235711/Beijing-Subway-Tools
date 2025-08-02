@@ -6,7 +6,7 @@
 # Libraries
 import argparse
 
-from nicegui import ui
+from nicegui import app, ui
 
 from src.city.city import get_all_cities
 from src.common.common import suffix_s
@@ -68,8 +68,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--browser", action="store_true", help="Browser mode")
-    group.add_argument("-s", "--window-size", help="Window size in pixels (widthxheight)",
-                       type=str, default="1600x1200")
+    group.add_argument("-s", "--window-size", help="Window size in pixels (widthxheight); maximize if not provided",
+                       type=str, required=False)
     group2 = parser.add_mutually_exclusive_group()
     group2.add_argument("--light", action="store_true", help="Light mode")
     group2.add_argument("--dark", action="store_true", help="Dark mode")
@@ -81,11 +81,15 @@ def main() -> None:
         dark = True
     else:
         dark = None
-    window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
 
     ui.navigate.to("/select_city")
-    ui.run(native=(not args.browser), dark=dark, window_size=(None if args.browser else (window_w, window_h)),
-           title="Beijing Subway Tools")
+    if not args.browser and args.window_size is None:
+        app.native.window_args = {"maximized": True}
+        ui.run(native=True, dark=dark, title="Beijing Subway Tools")
+    else:
+        window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
+        ui.run(native=(not args.browser), dark=dark, window_size=(None if args.browser else (window_w, window_h)),
+               title="Beijing Subway Tools")
 
 
 # Call main

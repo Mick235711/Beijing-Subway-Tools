@@ -451,14 +451,14 @@ def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date
                         """ Toggle button visibility and refresh table """
                         first_train_table.display_type = "first" if first_toggle.value == "First Train" else "last"
                         if toggle_expand:
-                            expand_button.set_icon("compress" if expand_button.icon == "expand" else "expand")
-                        first_train_table.create_table.refresh(split_direction=(expand_button.icon == "compress"))
+                            expand_button2.set_icon("compress" if expand_button2.icon == "expand" else "expand")
+                        first_train_table.create_table.refresh(split_direction=(expand_button2.icon == "compress"))
 
                     first_toggle = ui.toggle(
                         ["First Train", "Last Train"], value="First Train",
                         on_change=lambda: first_clicked(False)
                     ).props("flat padding=0 no-caps").classes("gap-x-2")
-                    expand_button = ui.button(icon="expand", on_click=first_clicked).props("flat").classes("p-0")
+                    expand_button2 = ui.button(icon="expand", on_click=first_clicked).props("flat").classes("p-0")
                 first_train_table = LineTable("first")
                 first_train_table.create_table(station, train_list)
 

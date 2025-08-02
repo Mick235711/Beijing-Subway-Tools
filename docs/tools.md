@@ -2734,7 +2734,8 @@ options:
   -h, --help            show this help message and exit
   --browser             Browser mode
   -s, --window-size WINDOW_SIZE
-                        Window size in pixels (widthxheight)
+                        Window size in pixels (widthxheight); maximize if not
+                        provided
   --light               Light mode
   --dark                Dark mode
 ```
