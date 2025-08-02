@@ -5,14 +5,19 @@
 
 # Libraries
 from collections.abc import Callable
+from datetime import date
 from typing import Any, Literal
 
 from nicegui import ui
 from nicegui.elements.drawer import RightDrawer
+from nicegui.elements.input import Input
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin
+from src.routing.through_train import parse_through_train
+from src.routing.train import parse_all_trains
+from src.stats.common import get_all_trains_through
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
@@ -110,6 +115,21 @@ def get_station_badge(
             station_label.classes("cursor-pointer").on(
                 "click", lambda s=station: refresh_station_drawer(s, AVAILABLE_STATIONS)
             )
+
+
+def get_date_input(callback: Callable[[date], Any] | None = None) -> Input:
+    """ Get an input box for date selection """
+    with ui.input(
+        "Date", value=date.today().isoformat(),
+        on_change=lambda: None if callback is None else callback(date.fromisoformat(date_input.value))
+    ) as date_input:  # type: Input
+        with ui.menu().props('no-parent-event') as menu:
+            with ui.date().bind_value(date_input):
+                with ui.row().classes('justify-end'):
+                    ui.button('Close', on_click=menu.close).props('flat')
+        with date_input.add_slot('append'):
+            ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
+    return date_input
 
 
 def line_drawer(city: City, line: Line) -> None:
@@ -251,7 +271,7 @@ def line_drawer(city: City, line: Line) -> None:
 
 @ui.refreshable
 def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, show_skips: bool) -> None:
-    """ Update the data based on switch states """
+    """ Create a timeline for this line """
     global AVAILABLE_LINES
     dists = line.direction_dists(direction)[:]
     stations = line.direction_stations(direction)[:]
@@ -321,6 +341,49 @@ def station_drawer(city: City, station: str) -> None:
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         for line in lines:
             get_line_badge(line, add_click=True)
+
+    ui.separator()
+    get_date_input(lambda d: station_cards.refresh(cur_date=d))
+    station_cards(city, station, lines, cur_date=date.today())
+
+
+@ui.refreshable
+def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date) -> None:
+    """ Create cards for this station """
+    global AVAILABLE_LINES
+    train_dict = parse_all_trains(lines)
+    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
+    train_list = get_all_trains_through(AVAILABLE_LINES, train_dict, through_dict, limit_date=cur_date)[station]
+    virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
+    virtual_transfers = [] if station not in virtual_dict else sorted(
+        set(virtual_dict[station].keys()), key=lambda x: to_pinyin(x[0])[0]
+    )
+
+    card_caption = "text-subtitle-1 font-bold"
+    card_text = "text-h6"
+    with ui.grid(rows=2, columns=2):
+        num_transfer = len(lines)
+        num_virtual = len(virtual_transfers)
+        if num_virtual > 0:
+            with ui.card().classes("col-span-2 q-pa-sm"):
+                with ui.card_section():
+                    ui.label("Virtual Transfers").classes(card_caption)
+                    for station2 in virtual_transfers:
+                        with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
+                            get_station_badge(station2)
+        with ui.card().classes("q-pa-sm"):
+            if num_virtual > 0:
+                ui.tooltip("real + virtual")
+            with ui.card_section():
+                ui.label("# Lines").classes(card_caption)
+                with ui.row().classes("items-center"):
+                    ui.label(str(num_transfer)).classes(card_text)
+                    if num_virtual > 0:
+                        ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
+        with ui.card().classes("q-pa-sm"):
+            with ui.card_section():
+                ui.label("# Trains").classes(card_caption)
+                ui.label(str(len(train_list))).classes(card_text)
 
 
 @ui.refreshable

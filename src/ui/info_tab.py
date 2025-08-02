@@ -16,7 +16,7 @@ from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.stats.common import get_all_trains_through
 from src.ui.drawers import refresh_line_drawer, LINE_TYPES, get_virtual_dict, get_line_badge, refresh_station_drawer, \
-    refresh_drawer
+    refresh_drawer, get_date_input
 
 MAX_TRANSFER_LINE_COUNT = 6
 
@@ -389,14 +389,7 @@ def info_tab(city: City) -> None:
         with ui.column():
             with ui.row().classes("w-full items-center justify-between"):
                 ui.label("Stations").classes("text-xl font-semibold mt-6 mb-2")
-                with ui.input("Date", value=date.today().isoformat(),
-                              on_change=lambda: on_switch_change(False)) as date_input:
-                    with ui.menu().props('no-parent-event') as menu:
-                        with ui.date().bind_value(date_input):
-                            with ui.row().classes('justify-end'):
-                                ui.button('Close', on_click=menu.close).props('flat')
-                    with date_input.add_slot('append'):
-                        ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
+                date_input = get_date_input(lambda _: on_switch_change(False))
                 stations_search = ui.input("Search stations...")
             stations_table = ui.table(
                 columns=[
