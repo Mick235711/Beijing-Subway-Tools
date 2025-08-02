@@ -14,7 +14,7 @@ from nicegui.elements.input import Input
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
-from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin
+from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains, Train
 from src.stats.common import get_all_trains_through
@@ -404,7 +404,7 @@ def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date
 
     card_caption = "text-subtitle-1 font-bold"
     card_text = "text-h6"
-    with ui.column().classes("gap-y-4").classes("w-full"):
+    with (ui.column().classes("gap-y-4").classes("w-full")):
         num_transfer = len(lines)
         num_virtual = len(virtual_transfers)
         with ui.grid(rows=(2 if num_virtual > 0 else 1), columns=2).classes("w-full"):
@@ -431,52 +431,86 @@ def station_cards(city: City, station: str, lines: list[Line], *, cur_date: date
         with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
             with ui.card_section().classes("w-full"):
                 with ui.row().classes("items-center justify-between"):
-                    def expand_clicked() -> None:
+                    def count_clicked() -> None:
                         """ Toggle button visibility and refresh table """
                         if expand_button.icon == "expand":
                             expand_button.set_icon("compress")
-                            train_count_table.refresh(split_direction=True)
+                            train_count_table.create_table.refresh(split_direction=True)
                         elif expand_button.icon == "compress":
                             expand_button.set_icon("expand")
-                            train_count_table.refresh(split_direction=False)
+                            train_count_table.create_table.refresh(split_direction=False)
 
                     ui.label("Train For Each Line").classes(card_caption)
-                    expand_button = ui.button(icon="expand", on_click=expand_clicked).props("flat").classes("p-0")
-                train_count_table(train_list)
+                    expand_button = ui.button(icon="expand", on_click=count_clicked).props("flat").classes("p-0")
+                train_count_table = LineTable("count")
+                train_count_table.create_table(station, train_list)
+        with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
+            with ui.card_section().classes("w-full"):
+                with ui.row().classes("items-center justify-between"):
+                    def first_clicked(toggle_expand: bool = True) -> None:
+                        """ Toggle button visibility and refresh table """
+                        first_train_table.display_type = "first" if first_toggle.value == "First Train" else "last"
+                        if toggle_expand:
+                            expand_button.set_icon("compress" if expand_button.icon == "expand" else "expand")
+                        first_train_table.create_table.refresh(split_direction=(expand_button.icon == "compress"))
+
+                    first_toggle = ui.toggle(
+                        ["First Train", "Last Train"], value="First Train",
+                        on_change=lambda: first_clicked(False)
+                    ).props("flat padding=0 no-caps").classes("gap-x-2")
+                    expand_button = ui.button(icon="expand", on_click=first_clicked).props("flat").classes("p-0")
+                first_train_table = LineTable("first")
+                first_train_table.create_table(station, train_list)
 
 
-@ui.refreshable
-def train_count_table(train_list: list[Train | ThroughTrain], *, split_direction: bool = False) -> None:
-    """ Create a table for train counts """
-    global AVAILABLE_LINES, LINE_TYPES
-    train_dict = count_trains(train_list, split_direction=split_direction)
+class LineTable:
+    """ Class for displaying a table of lines, directions and data """
 
-    with ui.list().props("dense"):
-        for line_names, direction_dict in sorted(
-            train_dict.items(), key=lambda x: [len(x[0])] + [AVAILABLE_LINES[y].index for y in x[0]]
-        ):
-            for directions, trains in sorted(direction_dict.items(), key=lambda x: [to_pinyin(y)[0] for y in x[0]]):
-                with ui.item().classes("mb-2").props("dense").style("padding: 0"):
-                    with ui.item_section().style("min-width: 10% !important"):
-                        ui.label(str(len(trains)))
-                    with ui.item_section().props("side"):
-                        with ui.row().classes("items-center gap-x-1 gap-y-0"):
-                            first = True
-                            if split_direction:
-                                for line_name, direction in zip(line_names, directions):
-                                    if first:
-                                        first = False
-                                    else:
-                                        ui.icon("arrow_right_alt")
-                                    get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
-                                    ui.label(direction)
+    def __init__(self, display_type: Literal["count", "first", "last"]) -> None:
+        """ Constructor """
+        self.display_type = display_type
+
+    @ui.refreshable_method
+    def create_table(
+        self, station: str, train_list: list[Train | ThroughTrain], *, split_direction: bool = False
+    ) -> None:
+        """ Create a table for train counts """
+        global AVAILABLE_LINES, LINE_TYPES
+        train_dict = count_trains(train_list, split_direction=split_direction)
+
+        with ui.list().props("dense"):
+            for line_names, direction_dict in sorted(
+                train_dict.items(), key=lambda x: [len(x[0])] + [AVAILABLE_LINES[y].index for y in x[0]]
+            ):
+                for directions, trains in sorted(direction_dict.items(), key=lambda x: [to_pinyin(y)[0] for y in x[0]]):
+                    with ui.item().classes("mb-2").props("dense").style("padding: 0"):
+                        with ui.item_section().style("min-width: 10% !important"):
+                            if self.display_type == "count":
+                                ui.label(str(len(trains)))
+                            elif self.display_type == "first":
+                                ui.label(min(get_time_str(*train.arrival_times()[station]) for train in trains))
+                            elif self.display_type == "last":
+                                ui.label(max(get_time_str(*train.arrival_times()[station]) for train in trains))
                             else:
-                                for line_name in sorted(line_names, key=lambda x: AVAILABLE_LINES[x].index):
-                                    if first:
-                                        first = False
-                                    else:
-                                        ui.icon(LINE_TYPES["Through"][1])
-                                    get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
+                                assert False, self.display_type
+                        with ui.item_section().props("side"):
+                            with ui.row().classes("items-center gap-x-1 gap-y-0"):
+                                first = True
+                                if split_direction:
+                                    for line_name, direction in zip(line_names, directions):
+                                        if first:
+                                            first = False
+                                        else:
+                                            ui.icon("arrow_right_alt")
+                                        get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
+                                        ui.label(direction)
+                                else:
+                                    for line_name in sorted(line_names, key=lambda x: AVAILABLE_LINES[x].index):
+                                        if first:
+                                            first = False
+                                        else:
+                                            ui.icon(LINE_TYPES["Through"][1])
+                                        get_line_badge(AVAILABLE_LINES[line_name], add_click=True)
 
 
 @ui.refreshable
