@@ -265,7 +265,7 @@ def info_tab(city: City) -> None:
                 for card in transfer_cards.values():
                     card.set_visibility(False)
 
-        with ui.card().on("click", lambda: set_transfer_detail(True)) as transfer_all_card:
+        with ui.card().classes("cursor-pointer").on("click", lambda: set_transfer_detail(True)) as transfer_all_card:
             ui.tooltip().bind_text_from(
                 data, "station_lines",
                 backward=lambda sl:
@@ -284,7 +284,7 @@ def info_tab(city: City) -> None:
 
         transfer_cards = {}
         for line_cnt in range(2, MAX_TRANSFER_LINE_COUNT + 1):
-            with ui.card().on("click", lambda: set_transfer_detail(False)) as transfer_card:
+            with ui.card().classes("cursor-pointer").on("click", lambda: set_transfer_detail(False)) as transfer_card:
                 transfer_cards[line_cnt] = transfer_card
                 with ui.card_section():
                     ui.label("Station With " + suffix_s("Line", line_cnt)).classes(card_caption)
@@ -348,7 +348,7 @@ def info_tab(city: City) -> None:
             )
             lines_table.add_slot("body-cell-name", """
 <q-td key="name" :props="props">
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
@@ -358,7 +358,7 @@ def info_tab(city: City) -> None:
             lines_table.add_slot("body-cell-start", """
 <q-td key="start" :props="props">
     {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
@@ -367,7 +367,7 @@ def info_tab(city: City) -> None:
             lines_table.add_slot("body-cell-end", """
 <q-td key="end" :props="props">
     {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
@@ -435,7 +435,7 @@ def info_tab(city: City) -> None:
                 pagination=10
             )
             stations_table.add_slot("body-cell-name", """
-<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])">
+<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{ props.value[0] }}
     <q-badge v-for="[color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" class="align-middle">
         <q-icon v-if="icon !== ''" :name="icon" />
@@ -445,7 +445,7 @@ def info_tab(city: City) -> None:
             stations_table.on("stationBadgeClick", lambda n: print(n.args))
             stations_table.add_slot("body-cell-lines", """
 <q-td key="lines" :props="props">
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="align-middle">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="align-middle cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" :class="name === '' ? '' : 'q-ml-xs'" />
     </q-badge>
@@ -455,12 +455,12 @@ def info_tab(city: City) -> None:
             stations_table.add_slot("body-cell-virtualTransfers", """
 <q-td key="virtualTransfers" :props="props">
     <div class="inline-flex items-center align-middle flex-col">
-        <div v-for="[station, badges, data] in props.value" class="inline-flex items-center align-middle gap-x-1" @click="$parent.$emit('stationBadgeClick', station)">
+        <div v-for="[station, badges, data] in props.value" class="inline-flex items-center align-middle gap-x-1" @click="$parent.$emit('stationBadgeClick', station)" class="cursor-pointer">
             {{ station }}
             <q-badge v-for="[color, textColor, icon] in badges" :style="{ background: color }" :text-color="textColor" class="align-middle">
                 <q-icon v-if="icon !== ''" :name="icon" />
             </q-badge>
-            <q-badge v-for="[index, name, color, textColor, icon] in data" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="align-middle">
+            <q-badge v-for="[index, name, color, textColor, icon] in data" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="align-middle cursor-pointer">
                 {{ name }}
                 <q-icon v-if="icon !== ''" :name="icon" :class="name === '' ? '' : 'q-ml-xs'" />
             </q-badge>

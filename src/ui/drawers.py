@@ -40,18 +40,19 @@ def get_line_badge(
         if classes is not None:
             badge.classes(classes)
         if add_click:
+            badge.classes("cursor-pointer")
             badge.on("click", lambda l=line: refresh_line_drawer(l, AVAILABLE_LINES))
         if line.badge_icon is not None:
             ui.icon(line.badge_icon).classes("q-ml-xs")
         if add_through:
             ui.icon(LINE_TYPES["Through"][1]).classes("q-ml-xs")
         if add_icon is not None:
-            ui.icon(add_icon[0]).classes("q-ml-xs").on("click.stop.prevent", lambda: add_icon[1](line))
+            ui.icon(add_icon[0]).classes("q-ml-xs cursor-pointer").on("click.stop.prevent", lambda: add_icon[1](line))
 
 
 def get_station_badge(
     station: str, line: Line | None = None, *, show_badges: bool = True, show_line_badges: bool = True,
-    prefer_line: Line | None = None, label_at_end: bool = False, add_click: bool = True
+    prefer_line: Line | None = None, label_at_end: bool = False, add_click: bool | Callable[[str], bool] = True
 ) -> None:
     """ Get station label & badge """
     global AVAILABLE_LINES
@@ -70,8 +71,9 @@ def get_station_badge(
     for inner_line in line_list:
         if not show_line_badges and inner_line.code is None:
             continue
+        click = add_click if isinstance(add_click, bool) else add_click(inner_line.name)
         get_line_badge(inner_line, code_str=(None if inner_line.code is None else inner_line.station_code(station)),
-                       show_name=False, add_click=add_click)
+                       show_name=False, add_click=click)
     if label_at_end:
         ui.label(station)
 
@@ -286,7 +288,10 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
             with entry.add_slot("title"):
                 with ui.column().classes("gap-y-1"):
                     with ui.row().classes("items-center gap-1"):
-                        get_station_badge(station, prefer_line=line, show_badges=False, show_line_badges=False)
+                        get_station_badge(
+                            station, prefer_line=line, show_badges=False, show_line_badges=False,
+                            add_click=lambda l: l != line.name
+                        )
                     if len(station_lines[station]) > 1:
                         with ui.row().classes("items-center gap-x-1"):
                             for line2 in sorted(station_lines[station], key=lambda l: l.index):
