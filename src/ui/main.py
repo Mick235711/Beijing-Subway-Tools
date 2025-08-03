@@ -5,13 +5,16 @@
 
 # Libraries
 import argparse
+from datetime import date
 
 from nicegui import app, ui
 
 from src.city.city import get_all_cities
+from src.city.line import Line
 from src.common.common import suffix_s
 from src.ui.drawers import right_drawer
-from src.ui.info_tab import info_tab
+from src.ui.info_tab import info_tab, InfoData
+from src.ui.trains_tab import trains_tab, TrainsData
 
 
 @ui.page("/select_city", title="Beijing Subway Tools - Select City")
@@ -41,15 +44,23 @@ async def main_page(city_name: str) -> None:
         with ui.row().classes("w-full justify-between items-center p-2"):
             with ui.tabs() as tabs:
                 info_tab_ = ui.tab("Basic Information", icon="info")
+                trains_tab_ = ui.tab("Trains", icon="train")
                 stats_tab_ = ui.tab("Statistics", icon="query_stats")
                 route_tab_ = ui.tab("Route Planning", icon="route")
             with ui.row().classes("items-center"):
                 ui.label(f"Selected City: {city_name}")
                 ui.button(on_click=lambda: ui.navigate.to("/select_city"), icon="change_circle")
 
-    with ui.tab_panels(tabs, value=info_tab_).classes("w-full"):
+    with ui.tab_panels(tabs, value=info_tab_).classes("w-full") as panels:
+        info_data = InfoData(city.lines, city.station_lines, [])
+        default_line = min(city.lines.values(), key=lambda l: l.index)
+        trains_data = TrainsData(default_line.name, list(default_line.directions.keys())[0], date.today())
+
         with ui.tab_panel(info_tab_):
-            info_tab(city)
+            info_tab(city, info_data)
+
+        with ui.tab_panel(trains_tab_):
+            trains_tab(city, trains_data)
 
         with ui.tab_panel(stats_tab_):
             ui.label("Statistics will be displayed here.")
@@ -57,8 +68,14 @@ async def main_page(city_name: str) -> None:
         with ui.tab_panel(route_tab_):
             ui.label("Route planning features will be implemented here.")
 
+    def switch_to_trains(line: Line, direction: str) -> None:
+        """ Switch to the train tab """
+        panels.set_value("Trains")
+        trains_data.line = line.name
+        trains_data.direction = direction
+
     with ui.right_drawer(value=False, top_corner=True, bottom_corner=True) as drawer:
-        right_drawer(city, drawer)
+        right_drawer(city, drawer, switch_to_trains)
         with ui.page_sticky(position="top-right", x_offset=20, y_offset=20):
             ui.button(icon="keyboard_double_arrow_right", on_click=lambda: drawer.hide()).props("fab color=accent")
 

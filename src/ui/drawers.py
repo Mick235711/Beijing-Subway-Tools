@@ -11,6 +11,7 @@ from typing import Any, Literal
 from nicegui import binding, ui
 from nicegui.elements.drawer import RightDrawer
 from nicegui.elements.input import Input
+from nicegui.elements.tabs import Tab
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
@@ -145,10 +146,10 @@ def get_station_badge(
             )
 
 
-def get_date_input(callback: Callable[[date], Any] | None = None) -> Input:
+def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str | None = "Date") -> Input:
     """ Get an input box for date selection """
     with ui.input(
-        "Date", value=date.today().isoformat(),
+        label, value=date.today().isoformat(),
         on_change=lambda: None if callback is None else callback(date.fromisoformat(date_input.value))
     ) as date_input:  # type: Input
         with ui.menu().props('no-parent-event') as menu:
@@ -160,7 +161,7 @@ def get_date_input(callback: Callable[[date], Any] | None = None) -> Input:
     return date_input
 
 
-def line_drawer(city: City, line: Line) -> None:
+def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], None]) -> None:
     """ Create line drawer """
     global AVAILABLE_LINES, LINE_TYPES
     get_line_badge(line, classes="text-h5 text-bold")
@@ -179,9 +180,18 @@ def line_drawer(city: City, line: Line) -> None:
                     ui.icon(icon).classes("q-ml-xs")
 
     ui.separator()
+    direction_tabs: dict[str, Tab] = {}
     with ui.tabs() as tabs:
         info_tab = ui.tab("Info")
-        direction_tabs = {direction: ui.tab(direction) for direction in line.directions.keys()}
+        for direction in line.directions.keys():
+            with ui.tab(direction) as inner_tab:
+                with ui.badge().props("floating").classes("cursor-pointer").on(
+                    "click.stop.prevent",
+                    lambda l=line, d=direction: switch_to_trains(l, d)
+                ):
+                    ui.tooltip("View routes and trains")
+                    ui.icon("launch")
+            direction_tabs[direction] = inner_tab
 
     virtual_transfers_set: set[str] = set()
     for station1, station2 in city.virtual_transfers.keys():
@@ -535,7 +545,7 @@ def station_cards(
 
 @ui.refreshable
 def right_drawer(
-    city: City, drawer: RightDrawer, *,
+    city: City, drawer: RightDrawer, switch_to_trains: Callable[[Line, str], None], *,
     drawer_type: Literal["line", "station"] | None = None
 ) -> None:
     """ Create the right drawer """
@@ -547,7 +557,7 @@ def right_drawer(
         if SELECTED_LINE is None:
             return
         SELECTED_STATION = None
-        line_drawer(city, SELECTED_LINE)
+        line_drawer(city, SELECTED_LINE, switch_to_trains)
     elif drawer_type == "station":
         if SELECTED_STATION is None:
             return

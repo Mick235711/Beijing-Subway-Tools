@@ -134,10 +134,51 @@ def calculate_station_rows(
     return sorted(rows, key=lambda r: to_pinyin(r["name"][0])[0])
 
 
-def info_tab(city: City) -> None:
-    """ Info tab for the main page """
-    data = InfoData(city.lines, city.station_lines, [])
+def get_line_selector_options(city: City) -> dict[str, str]:
+    """ Get options for the line selector """
+    return {
+        line_name: """
+<div class="flex items-center justify-between w-full gap-x-2">
+    <div class="q-badge flex inline items-center no-wrap q-badge--single-line text-{}" style="background: {}" role="status">
+        {}
+        {}
+    </div>
+    <div class="text-right">{} {} {}</div>
+</div>
+        """.format(
+            get_text_color(line.color), line.color, line_name, "" if line.badge_icon is None else
+            f"""<i class="q-icon notranslate material-icons q-ml-xs" aria-hidden="true" role="presentation">{line.badge_icon}</i>""",
+            line.stations[0],
+            """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
+            if line.loop else "&mdash;",
+            line.stations[0] if line.loop else line.stations[-1]
+        ) for line_name, line in sorted(city.lines.items(), key=lambda x: x[1].index)
+    }
 
+
+def get_direction_selector_options(line: Line) -> dict[str, str]:
+    """ Get options for the direction selector """
+    return {
+        direction: """
+<div class="flex items-center justify-between w-full gap-x-2">
+    <div>{}</div>
+    <div class="text-right">
+        {}
+        <i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">{}</i>
+        {}
+    </div>
+</div>
+        """.format(
+            direction,
+            stations[0],
+            "autorenew" if line.loop else "arrow_right_alt",
+            stations[0] if line.loop else stations[-1]
+        ) for direction, stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0])
+    }
+
+
+def info_tab(city: City, data: InfoData) -> None:
+    """ Info tab for the main page """
     with ui.row().classes("items-center justify-between"):
         ui.label("Include lines with:")
 
@@ -195,24 +236,7 @@ def info_tab(city: City) -> None:
         """)
         exclude_button = ui.button(icon="remove", on_click=on_exclude_button_change).props("round flat")
         exclude_lines_chips = ui.select(
-            {
-                line_name: """
-<div class="flex items-center justify-between w-full gap-x-2">
-    <div class="q-badge flex inline items-center no-wrap q-badge--single-line text-{}" style="background: {}" role="status">
-        {}
-        {}
-    </div>
-    <div class="text-right">{} {} {}</div>
-</div>
-                """.format(
-                    get_text_color(line.color), line.color, line_name, "" if line.badge_icon is None else
-                    f"""<i class="q-icon notranslate material-icons q-ml-xs" aria-hidden="true" role="presentation">{line.badge_icon}</i>""",
-                    line.stations[0],
-                    """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
-                    if line.loop else "&mdash;",
-                    line.stations[0] if line.loop else line.stations[-1]
-                ) for line_name, line in sorted(city.lines.items(), key=lambda x: x[1].index)
-            },
+            get_line_selector_options(city),
             label="Lines to exclude", with_input=True, multiple=True, on_change=on_switch_change
         ).props("use-chips clearable options-html").bind_label_from(
             exclude_button, "icon", backward=lambda x: "Lines to " + ("exclude" if x == "remove" else "include")
