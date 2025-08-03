@@ -10,7 +10,6 @@ from typing import Any, Literal
 
 from nicegui import binding, ui
 from nicegui.elements.drawer import RightDrawer
-from nicegui.elements.input import Input
 from nicegui.elements.tabs import Tab
 
 from src.city.city import City, parse_station_lines
@@ -19,68 +18,13 @@ from src.common.common import get_text_color, distance_str, speed_str, percentag
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains, Train
 from src.stats.common import get_all_trains_through
+from src.ui.common import LINE_TYPES, get_virtual_dict, count_trains, get_date_input
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
 SELECTED_STATION: str | None = None
 AVAILABLE_LINES: dict[str, Line] = {}
 AVAILABLE_STATIONS: dict[str, set[Line]] = {}
-LINE_TYPES = {
-    "Regular": ("primary", ""),
-    "Express": ("red", "rocket"),
-    "Loop": ("teal", "loop"),
-    "Different Fare": ("orange", "warning"),
-    "End-Circle": ("purple", "arrow_circle_right"),
-    "Through": ("indigo-7", "sync_alt")
-}
-
-
-def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, set[Line]]]:
-    """ Get a dictionary of station1 -> station2 -> lines of station2 virtual transfers """
-    virtual_dict: dict[str, dict[str, set[Line]]] = {}
-    for (station1, station2), transfer in city.virtual_transfers.items():
-        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
-            if from_l not in lines or to_l not in lines:
-                continue
-            if station1 not in virtual_dict:
-                virtual_dict[station1] = {}
-            if station2 not in virtual_dict[station1]:
-                virtual_dict[station1][station2] = set()
-            virtual_dict[station1][station2].add(lines[to_l])
-            if station2 not in virtual_dict:
-                virtual_dict[station2] = {}
-            if station1 not in virtual_dict[station2]:
-                virtual_dict[station2][station1] = set()
-            virtual_dict[station2][station1].add(lines[from_l])
-    return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
-
-
-def count_trains(
-    trains: list[Train | ThroughTrain], *, split_direction: bool = False
-) -> dict[tuple[str, ...], dict[tuple[str, ...], list[Train | ThroughTrain]]]:
-    """ Reorganize trains into line -> direction -> train. Direction is () if split_direction is False. """
-    result_dict: dict[tuple[str, ...], dict[tuple[str, ...], list[Train | ThroughTrain]]] = {}
-    index_dict: dict[tuple[str, ...], tuple[int, ...]] = {}
-    for train in trains:
-        if isinstance(train, Train):
-            line_name: tuple[str, ...] = (train.line.name,)
-            direction_name: tuple[str, ...] = (train.direction,)
-            line_index: tuple[int, ...] = (1, train.line.index)
-        else:
-            assert isinstance(train, ThroughTrain), train
-            line_name = tuple(l.name for l, _, _, _ in train.spec.spec)
-            direction_name = tuple(d for _, d, _, _ in train.spec.spec)
-            line_index = train.spec.line_index()
-        if not split_direction:
-            line_name = tuple(sorted(line_name))
-            direction_name = ()
-        if line_name not in result_dict:
-            result_dict[line_name] = {}
-        if direction_name not in result_dict[line_name]:
-            result_dict[line_name][direction_name] = []
-        result_dict[line_name][direction_name].append(train)
-        index_dict[line_name] = line_index
-    return result_dict
 
 
 def get_line_badge(
@@ -146,24 +90,9 @@ def get_station_badge(
             )
 
 
-def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str | None = "Date") -> Input:
-    """ Get an input box for date selection """
-    with ui.input(
-        label, value=date.today().isoformat(),
-        on_change=lambda: None if callback is None else callback(date.fromisoformat(date_input.value))
-    ) as date_input:  # type: Input
-        with ui.menu().props('no-parent-event') as menu:
-            with ui.date().bind_value(date_input):
-                with ui.row().classes('justify-end'):
-                    ui.button('Close', on_click=menu.close).props('flat')
-        with date_input.add_slot('append'):
-            ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
-    return date_input
-
-
 def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], None]) -> None:
     """ Create line drawer """
-    global AVAILABLE_LINES, LINE_TYPES
+    global AVAILABLE_LINES
     get_line_badge(line, classes="text-h5 text-bold")
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         get_line_badge(line, show_name=False)
@@ -399,7 +328,7 @@ class LineTable:
         self, station: str, train_list: list[Train | ThroughTrain], *, split_direction: bool = False
     ) -> None:
         """ Create a table for train counts """
-        global AVAILABLE_LINES, LINE_TYPES
+        global AVAILABLE_LINES
         train_dict = count_trains(train_list, split_direction=split_direction)
 
         with ui.list().props("dense"):
