@@ -12,6 +12,7 @@ from nicegui import app, ui
 from src.city.city import get_all_cities
 from src.city.line import Line
 from src.common.common import suffix_s
+from src.ui.common import get_default_line, get_default_direction
 from src.ui.drawers import right_drawer
 from src.ui.info_tab import info_tab, InfoData
 from src.ui.trains_tab import trains_tab, TrainsData
@@ -52,9 +53,9 @@ async def main_page(city_name: str) -> None:
                 ui.button(on_click=lambda: ui.navigate.to("/select_city"), icon="change_circle")
 
     with ui.tab_panels(tabs, value=info_tab_).classes("w-full") as panels:
-        info_data = InfoData(city.lines, city.station_lines, [])
-        default_line = min(city.lines.values(), key=lambda l: l.index)
-        trains_data = TrainsData(default_line.name, list(default_line.directions.keys())[0], date.today())
+        info_data = InfoData(city.lines, city.station_lines, [], [])
+        default_line = get_default_line(city.lines)
+        trains_data = TrainsData(info_data, default_line.name, get_default_direction(default_line), date.today())
 
         with ui.tab_panel(info_tab_):
             info_tab(city, info_data)

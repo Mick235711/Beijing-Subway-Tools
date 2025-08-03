@@ -40,7 +40,7 @@ def get_station_badge_html(line: Line, station_code: str) -> str:
     )
 
 
-def get_line_selector_options(city: City) -> dict[str, str]:
+def get_line_selector_options(lines: dict[str, Line]) -> dict[str, str]:
     """ Get options for the line selector """
     return {
         line_name: """
@@ -54,7 +54,7 @@ def get_line_selector_options(city: City) -> dict[str, str]:
             """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
             if line.loop else "&mdash;",
             line.stations[0] if line.loop else line.stations[-1]
-        ) for line_name, line in sorted(city.lines.items(), key=lambda x: x[1].index)
+        ) for line_name, line in sorted(lines.items(), key=lambda x: x[1].index)
     }
 
 def get_direction_selector_options(line: Line) -> dict[str, str]:
@@ -140,3 +140,14 @@ def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str 
         with date_input.add_slot('append'):
             ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
     return date_input
+
+
+def get_default_line(lines: dict[str, Line]) -> Line:
+    """ Get the default line from the line dictionary """
+    assert len(lines) > 0, lines
+    return min(lines.values(), key=lambda l: l.index)
+
+
+def get_default_direction(line: Line) -> str:
+    """ Get the default direction for a line """
+    return min(line.directions.keys(), key=lambda d: to_pinyin(d)[0])

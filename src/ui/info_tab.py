@@ -4,6 +4,7 @@
 """ Frontend - Main Page - Info Tab """
 
 # Libraries
+from collections.abc import Callable
 from datetime import date
 
 from nicegui import binding, ui
@@ -25,6 +26,7 @@ class InfoData:
     lines: dict[str, Line]
     station_lines: dict[str, set[Line]]
     exclude_lines: list[str]
+    on_line_change: list[Callable[[], None]]
 
 
 def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]) -> list[dict]:
@@ -159,6 +161,9 @@ def info_tab(city: City, data: InfoData) -> None:
                         get_line_badge(city.lines[line], add_icon=("cancel", on_line_badge_click))
                 exclude_lines_chips.update()
 
+                for callback in data.on_line_change:
+                    callback()
+
             stations_table.rows = calculate_station_rows(
                 data.lines, data.station_lines, city, date.fromisoformat(date_input.value),
                 full_only=date_full_switch.value
@@ -189,7 +194,7 @@ def info_tab(city: City, data: InfoData) -> None:
         """)
         exclude_button = ui.button(icon="remove", on_click=on_exclude_button_change).props("round flat")
         exclude_lines_chips = ui.select(
-            get_line_selector_options(city),
+            get_line_selector_options(city.lines),
             label="Lines to exclude", with_input=True, multiple=True, on_change=on_switch_change
         ).props("use-chips clearable options-html").bind_label_from(
             exclude_button, "icon", backward=lambda x: "Lines to " + ("exclude" if x == "remove" else "include")
