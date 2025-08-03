@@ -13,11 +13,8 @@ from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, get_time_str
-from src.routing.through_train import parse_through_train
-from src.routing.train import parse_all_trains
-from src.stats.common import get_all_trains_through
-from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input
-from src.ui.drawers import refresh_line_drawer, get_virtual_dict, get_line_badge, refresh_station_drawer, refresh_drawer
+from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input, get_all_trains
+from src.ui.drawers import refresh_line_drawer, get_line_badge, refresh_station_drawer, refresh_drawer
 
 
 @binding.bindable_dataclass
@@ -76,19 +73,11 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
 
 
 def calculate_station_rows(
-    lines: dict[str, Line], station_lines: dict[str, set[Line]], city: City, cur_date: date,
+    city: City, lines: dict[str, Line], station_lines: dict[str, set[Line]], cur_date: date,
     *, full_only: bool = False
 ) -> list[dict]:
     """ Calculate rows for the station table """
-    train_dict = parse_all_trains(list(lines.values()))
-    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
-    all_trains = get_all_trains_through(lines, train_dict, through_dict, limit_date=cur_date)
-    if full_only:
-        all_trains = {
-            station: [train for train in train_list if train.is_full()]
-            for station, train_list in all_trains.items()
-        }
-    virtual_dict = get_virtual_dict(city, lines)
+    all_trains, virtual_dict = get_all_trains(city, lines, cur_date, full_only=full_only)
 
     rows = []
     for station, line_set in station_lines.items():
@@ -165,7 +154,7 @@ def info_tab(city: City, data: InfoData) -> None:
                     callback()
 
             stations_table.rows = calculate_station_rows(
-                data.lines, data.station_lines, city, date.fromisoformat(date_input.value),
+                city, data.lines, data.station_lines, date.fromisoformat(date_input.value),
                 full_only=date_full_switch.value
             )
 
@@ -416,7 +405,7 @@ def info_tab(city: City, data: InfoData) -> None:
                     {"name": "lastTrain", "label": "Last Train", "field": "last_train", "align": "center"}
                 ],
                 column_defaults={"align": "right", "required": True, "sortable": True},
-                rows=calculate_station_rows(city.lines, city.station_lines, city, date.fromisoformat(date_input.value)),
+                rows=calculate_station_rows(city, city.lines, city.station_lines, date.fromisoformat(date_input.value)),
                 pagination=10
             )
             stations_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))

@@ -14,8 +14,9 @@ from nicegui.elements.input import Input
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_text_color, to_pinyin
-from src.routing.through_train import ThroughTrain
-from src.routing.train import Train
+from src.routing.through_train import ThroughTrain, parse_through_train
+from src.routing.train import Train, parse_all_trains
+from src.stats.common import get_all_trains_through
 
 MAX_TRANSFER_LINE_COUNT = 6
 LINE_TYPES = {
@@ -151,3 +152,37 @@ def get_default_line(lines: dict[str, Line]) -> Line:
 def get_default_direction(line: Line) -> str:
     """ Get the default direction for a line """
     return min(line.directions.keys(), key=lambda d: to_pinyin(d)[0])
+
+
+def get_all_trains(
+    city: City, lines: dict[str, Line], cur_date: date,
+    *, include_relevant_lines_only: set[str] | None = None, full_only: bool = False
+) -> tuple[dict[str, list[Train | ThroughTrain]], dict[str, dict[str, set[Line]]]]:
+    """ Calculate rows for the station table """
+    if include_relevant_lines_only is not None:
+        # Get all the relevant lines
+        relevant_lines = set(include_relevant_lines_only)
+        for spec in city.through_specs:
+            if all(
+                l.name in lines for l, _, _, _ in spec.spec
+            ) and any(l.name in include_relevant_lines_only for l, _, _, _ in spec.spec):
+                relevant_lines.update(l.name for l, _, _, _ in spec.spec)
+        train_dict = parse_all_trains([lines[l] for l in relevant_lines])
+    else:
+        train_dict = parse_all_trains(list(lines.values()))
+    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
+
+    all_trains = get_all_trains_through(lines, train_dict, through_dict, limit_date=cur_date)
+    if full_only:
+        all_trains = {
+            station: [train for train in train_list if train.is_full()]
+            for station, train_list in all_trains.items()
+        }
+    if include_relevant_lines_only is not None:
+        all_trains = {
+            station: [t for t in train_list if isinstance(t, ThroughTrain) or t.line.name in include_relevant_lines_only]
+            for station, train_list in all_trains.items()
+        }
+
+    virtual_dict = get_virtual_dict(city, lines)
+    return all_trains, virtual_dict

@@ -4,9 +4,10 @@
 """ Frontend - Main Page - Trains Tab """
 
 # Libraries
+from dataclasses import dataclass
 from datetime import date
 
-from nicegui import binding, ui
+from nicegui import ui
 
 from src.city.city import City
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
@@ -15,7 +16,7 @@ from src.ui.drawers import get_line_badge
 from src.ui.info_tab import InfoData
 
 
-@binding.bindable_dataclass
+@dataclass
 class TrainsData:
     """ Data for the train tab """
     info_data: InfoData

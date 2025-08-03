@@ -15,10 +15,9 @@ from nicegui.elements.tabs import Tab
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str
-from src.routing.through_train import parse_through_train, ThroughTrain
-from src.routing.train import parse_all_trains, Train
-from src.stats.common import get_all_trains_through
-from src.ui.common import LINE_TYPES, get_virtual_dict, count_trains, get_date_input
+from src.routing.through_train import ThroughTrain
+from src.routing.train import Train
+from src.ui.common import LINE_TYPES, get_virtual_dict, count_trains, get_date_input, get_all_trains
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
@@ -403,22 +402,11 @@ def station_cards(
     """ Create cards for this station """
     global AVAILABLE_LINES
 
-    # Get all the relevant lines
-    line_set = {l.name for l in lines}
-    relevant_lines = {l.name for l in lines}
-    for spec in city.through_specs:
-        if all(
-            l.name in AVAILABLE_LINES for l, _, _, _ in spec.spec
-        ) and any(l.name in line_set for l, _, _, _ in spec.spec):
-            relevant_lines.update(l.name for l, _, _, _ in spec.spec)
-
-    train_dict = parse_all_trains([AVAILABLE_LINES[l] for l in relevant_lines])
-    train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
-    train_list = get_all_trains_through(AVAILABLE_LINES, train_dict, through_dict, limit_date=cur_date)[station]
-    train_list = [t for t in train_list if isinstance(t, ThroughTrain) or t.line.name in line_set]
-    if full_only:
-        train_list = [train for train in train_list if train.is_full()]
-    virtual_dict = get_virtual_dict(city, AVAILABLE_LINES)
+    all_trains, virtual_dict = get_all_trains(
+        city, AVAILABLE_LINES, cur_date,
+        include_relevant_lines_only={l.name for l in lines}, full_only=full_only
+    )
+    train_list = all_trains[station]
     virtual_transfers = [] if station not in virtual_dict else sorted(
         set(virtual_dict[station].keys()), key=lambda x: to_pinyin(x[0])[0]
     )
