@@ -28,27 +28,34 @@ LINE_TYPES = {
 }
 
 
+def get_station_badge_html(line: Line, station_code: str) -> str:
+    """ Get the HTML for the station badge """
+    return """
+<div class="q-badge flex inline items-center no-wrap q-badge--single-line text-{}" style="background: {}" role="status">
+    {}
+    {}
+</div>""".format(
+        get_text_color(line.color), line.color, station_code, "" if line.badge_icon is None else
+        f"""<i class="q-icon notranslate material-icons q-ml-xs" aria-hidden="true" role="presentation">{line.badge_icon}</i>""",
+    )
+
+
 def get_line_selector_options(city: City) -> dict[str, str]:
     """ Get options for the line selector """
     return {
         line_name: """
 <div class="flex items-center justify-between w-full gap-x-2">
-    <div class="q-badge flex inline items-center no-wrap q-badge--single-line text-{}" style="background: {}" role="status">
-        {}
-        {}
-    </div>
+    {}
     <div class="text-right">{} {} {}</div>
 </div>
         """.format(
-            get_text_color(line.color), line.color, line_name, "" if line.badge_icon is None else
-            f"""<i class="q-icon notranslate material-icons q-ml-xs" aria-hidden="true" role="presentation">{line.badge_icon}</i>""",
+            get_station_badge_html(line, line_name),
             line.stations[0],
             """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
             if line.loop else "&mdash;",
             line.stations[0] if line.loop else line.stations[-1]
         ) for line_name, line in sorted(city.lines.items(), key=lambda x: x[1].index)
     }
-
 
 def get_direction_selector_options(line: Line) -> dict[str, str]:
     """ Get options for the direction selector """
@@ -57,16 +64,17 @@ def get_direction_selector_options(line: Line) -> dict[str, str]:
 <div class="flex items-center justify-between w-full gap-x-2">
     <div>{}</div>
     <div class="text-right">
-        {}
+        {}{}
         <i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">{}</i>
-        {}
+        {}{}
     </div>
 </div>
         """.format(
             direction,
-            stations[0],
+            stations[0], get_station_badge_html(line, line.station_code(stations[0])) if line.code else "",
             "autorenew" if line.loop else "arrow_right_alt",
-            stations[0] if line.loop else stations[-1]
+            stations[0] if line.loop else stations[-1],
+            get_station_badge_html(line, line.station_code(stations[0] if line.loop else stations[-1])) if line.code else ""
         ) for direction, stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0])
     }
 
