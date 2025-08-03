@@ -83,13 +83,14 @@ def main() -> None:
         dark = None
 
     ui.navigate.to("/select_city")
-    if not args.browser and args.window_size is None:
+    if args.browser:
+        ui.run(dark=dark, title="Beijing Subway Tools - Browser Mode")
+    elif args.window_size is None:
         app.native.window_args = {"maximized": True}
         ui.run(native=True, dark=dark, title="Beijing Subway Tools")
     else:
         window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
-        ui.run(native=(not args.browser), dark=dark, window_size=(None if args.browser else (window_w, window_h)),
-               title="Beijing Subway Tools")
+        ui.run(native=(not args.browser), dark=dark, window_size=(window_w, window_h), title="Beijing Subway Tools")
 
 
 # Call main
