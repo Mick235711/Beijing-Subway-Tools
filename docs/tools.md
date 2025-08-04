@@ -1459,23 +1459,24 @@ Max/Min 15 transfer times:
 
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
 ```
-usage: max_train_station.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-c]
+usage: max_train_station.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-c] [--show-all]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
   -a, --all             Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -s LIMIT_START, --limit-start LIMIT_START
+  -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit latest passing time of the trains
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   -c, --capacity        Output capacity data
+  --show-all            Show all results (including impossible cases)
 ```
 
 Show the train count (number of trains passing through) for each station.

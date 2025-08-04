@@ -52,6 +52,23 @@ def count_trains(trains: Iterable[T]) -> dict[str, dict[str, list[T]]]:
     return dict(sorted(result_dict.items(), key=lambda x: index_dict[x[0]]))
 
 
+def is_possible_to_board(train: Train | ThroughTrain, station: str, *, show_ending: bool = False) -> bool:
+    """ Determine if it is possible to board the train at the given station """
+    if isinstance(train, ThroughTrain):
+        last_train = train.last_train()
+    else:
+        last_train = train
+    if not show_ending and last_train.loop_next is None and station == train.stations[-1]:
+        return False
+    if station in train.skip_stations:
+        return False
+    if isinstance(train, Train) and train.line.end_circle_start is not None:
+        if train.direction in train.line.end_circle_spec:
+            if train.stations.index(station) > train.stations.index(train.line.end_circle_start):
+                return False
+    return True
+
+
 def get_all_trains(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], *, limit_date: date | None = None

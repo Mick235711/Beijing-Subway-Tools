@@ -212,7 +212,7 @@ def main() -> None:
     )
     line.timetables()[start][direction][date_group.name].pretty_print(with_time=time_dict)
     minutes = [x for x in time_dict.values() if x is not None]
-    print("Total " + suffix_s("train", len(time_dict)) + ". Average time = " +
+    print("Total " + suffix_s("train", len(minutes)) + ". Average time = " +
           f"{average(minutes):.2f} minutes (stddev = {stddev(minutes):.2f})" +
           f" (min {min(minutes)} - max {max(minutes)})")
     dist = line.two_station_dist(direction, start, end)

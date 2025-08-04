@@ -74,10 +74,10 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
 
 def calculate_station_rows(
     city: City, lines: dict[str, Line], station_lines: dict[str, set[Line]], cur_date: date,
-    *, full_only: bool = False
+    *, full_only: bool = False, show_ending: bool = False
 ) -> list[dict]:
     """ Calculate rows for the station table """
-    all_trains, virtual_dict = get_all_trains(city, lines, cur_date, full_only=full_only)
+    all_trains, virtual_dict = get_all_trains(city, lines, cur_date, full_only=full_only, show_ending=show_ending)
 
     rows = []
     for station, line_set in station_lines.items():
@@ -155,7 +155,7 @@ def info_tab(city: City, data: InfoData) -> None:
 
             stations_table.rows = calculate_station_rows(
                 city, data.lines, data.station_lines, date.fromisoformat(date_input.value),
-                full_only=date_full_switch.value
+                full_only=date_full_switch.value, show_ending=ending_switch.value
             )
 
         def on_line_badge_click(line: Line) -> None:
@@ -368,7 +368,8 @@ def info_tab(city: City, data: InfoData) -> None:
             with ui.row().classes("w-full items-center justify-between"):
                 ui.label("Stations").classes("text-xl font-semibold mt-6 mb-2")
                 date_input = get_date_input(lambda _: on_switch_change(False))
-                date_full_switch = ui.switch("Full-Distance Only", on_change=lambda: on_switch_change(False))
+                date_full_switch = ui.switch("Full-Distance only", on_change=lambda: on_switch_change(False))
+                ending_switch = ui.switch("Show ending trains", on_change=lambda: on_switch_change(False))
                 stations_search = ui.input("Search stations...")
             stations_table = ui.table(
                 columns=[

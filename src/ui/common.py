@@ -16,7 +16,7 @@ from src.city.line import Line
 from src.common.common import get_text_color, to_pinyin
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
-from src.stats.common import get_all_trains_through
+from src.stats.common import get_all_trains_through, is_possible_to_board
 
 MAX_TRANSFER_LINE_COUNT = 6
 LINE_TYPES = {
@@ -156,7 +156,7 @@ def get_default_direction(line: Line) -> str:
 
 def get_all_trains(
     city: City, lines: dict[str, Line], cur_date: date,
-    *, include_relevant_lines_only: set[str] | None = None, full_only: bool = False
+    *, include_relevant_lines_only: set[str] | None = None, full_only: bool = False, show_ending: bool = False
 ) -> tuple[dict[str, list[Train | ThroughTrain]], dict[str, dict[str, set[Line]]]]:
     """ Calculate rows for the station table """
     if include_relevant_lines_only is not None:
@@ -173,6 +173,10 @@ def get_all_trains(
     train_dict, through_dict = parse_through_train(train_dict, city.through_specs)
 
     all_trains = get_all_trains_through(lines, train_dict, through_dict, limit_date=cur_date)
+    all_trains = {
+        station: [train for train in train_list if is_possible_to_board(train, station, show_ending=show_ending)]
+        for station, train_list in all_trains.items()
+    }
     if full_only:
         all_trains = {
             station: [train for train in train_list if train.is_full()]

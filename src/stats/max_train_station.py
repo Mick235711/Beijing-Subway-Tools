@@ -11,19 +11,19 @@ from src.city.through_spec import ThroughSpec
 from src.common.common import suffix_s
 from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
-from src.stats.common import display_first, divide_by_line, parse_args_through
+from src.stats.common import display_first, divide_by_line, parse_args_through, is_possible_to_board
 
 
 def max_train_station(
     lines: dict[str, Line],
     date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
-    *, limit_num: int = 5, use_capacity: bool = False
+    *, limit_num: int = 5, use_capacity: bool = False, show_all: bool = False
 ) -> None:
     """ Print max/min # of trains for each station """
     all_trains: dict[str, list[Train | ThroughTrain]] = {}
     for _, train in get_train_set(date_group_dict, through_dict):
         for station in train.stations:
-            if station in train.skip_stations:
+            if not is_possible_to_board(train, station, show_ending=show_all):
                 continue
             if station not in all_trains:
                 all_trains[station] = []
@@ -46,9 +46,14 @@ def main() -> None:
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
         parser.add_argument("-c", "--capacity", action="store_true", help="Output capacity data")
+        parser.add_argument("--show-all", action="store_true",
+                            help="Show all results (including impossible cases)")
 
     date_group_dict, through_dict, args, _, lines = parse_args_through(append_arg)
-    max_train_station(lines, date_group_dict, through_dict, limit_num=args.limit_num, use_capacity=args.capacity)
+    max_train_station(
+        lines, date_group_dict, through_dict,
+        limit_num=args.limit_num, use_capacity=args.capacity, show_all=args.show_all
+    )
 
 
 # Call main

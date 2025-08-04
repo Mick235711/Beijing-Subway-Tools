@@ -311,7 +311,8 @@ def station_drawer(city: City, station: str) -> None:
     ui.separator()
     with ui.column().classes("w-full gap-y-0"):
         get_date_input(lambda d: station_cards.refresh(cur_date=d))
-        ui.switch("Full-Distance Only", on_change=lambda v: station_cards.refresh(full_only=v.value))
+        ui.switch("Full-Distance only", on_change=lambda v: station_cards.refresh(full_only=v.value))
+        ui.switch("Show ending trains", on_change=lambda v: station_cards.refresh(show_ending=v.value))
     station_cards(city, station, lines, cur_date=date.today())
 
 
@@ -335,6 +336,8 @@ class LineTable:
                 train_dict.items(), key=lambda x: [len(x[0])] + [AVAILABLE_LINES[y].index for y in x[0]]
             ):
                 for directions, trains in sorted(direction_dict.items(), key=lambda x: [to_pinyin(y)[0] for y in x[0]]):
+                    if len(trains) == 0:
+                        continue
                     with ui.item().classes("mb-2").props("dense").style("padding: 0"):
                         with ui.item_section().style("min-width: 10% !important"):
                             if self.display_type == "count":
@@ -397,14 +400,15 @@ class StationCardData:
 @ui.refreshable
 def station_cards(
     city: City, station: str, lines: list[Line],
-    *, cur_date: date, full_only: bool = False, card_data: StationCardData = StationCardData()
+    *, cur_date: date, full_only: bool = False, show_ending: bool = False,
+    card_data: StationCardData = StationCardData()
 ) -> None:
     """ Create cards for this station """
     global AVAILABLE_LINES
 
     all_trains, virtual_dict = get_all_trains(
         city, AVAILABLE_LINES, cur_date,
-        include_relevant_lines_only={l.name for l in lines}, full_only=full_only
+        include_relevant_lines_only={l.name for l in lines}, full_only=full_only, show_ending=show_ending
     )
     train_list = all_trains[station]
     virtual_transfers = [] if station not in virtual_dict else sorted(
