@@ -74,6 +74,8 @@ async def main_page(city_name: str) -> None:
         panels.set_value("Trains")
         trains_data.line = line.name
         trains_data.direction = direction
+        for callback in trains_data.info_data.on_line_change:
+            callback()
 
     with ui.right_drawer(value=False, top_corner=True, bottom_corner=True) as drawer:
         right_drawer(city, drawer, switch_to_trains)
