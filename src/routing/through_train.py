@@ -49,7 +49,7 @@ class ThroughTrain:
         for line, _, _, _ in self.spec.spec:
             train = self.trains[line.name]
             if first:
-                arrival_times = train.arrival_time
+                arrival_times = dict(train.arrival_time.items())
                 first = False
             else:
                 arrival_times.update({k: v for k, v in train.arrival_time.items() if k != train.stations[0]})
@@ -162,14 +162,13 @@ def parse_through_train(
         result[through_spec] = []
         last_line: Line | None = None
         for line, direction, date_group, route in through_spec.spec:
-            train_list = train_dict[line.name][direction][date_group.name]
             candidate_list, other_list = [], []
-            for train in train_list:
+            for train in train_dict[line.name][direction][date_group.name]:
                 if route in train.routes:
                     candidate_list.append(train)
                 else:
                     other_list.append(train)
-            train_list[:] = other_list
+            train_dict[line.name][direction][date_group.name] = other_list
             if len(result[through_spec]) == 0:
                 result[through_spec] = [
                     ThroughTrain(through_spec, {line.name: candidate}) for candidate in candidate_list

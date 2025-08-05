@@ -186,6 +186,11 @@ class Train:
 
     def two_station_dist(self, start_station: str, end_station: str) -> int:
         """ Distance between two stations """
+        if end_station not in self.arrival_time:
+            assert self.loop_next is not None, (self, start_station, end_station)
+            return self.two_station_dist(
+                start_station, self.stations[-1]
+            ) + self.loop_next.two_station_dist(self.loop_next.stations[0], end_station)
         return self.line.two_station_dist(self.direction, start_station, end_station)
 
     def two_station_duration_repr(self, start_station: str, end_station: str) -> str:
