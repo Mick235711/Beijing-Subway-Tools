@@ -21,7 +21,7 @@ from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple, parse_time, \
     add_min_tuple
-from src.dist_graph.adaptor import all_time_path, reduce_abstract_path
+from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, MixedRoutes, route_str, RouteData, select_routes
@@ -328,17 +328,19 @@ def analyze_routes(
         sys.exit(0)
     path_list: list[PathData] = []
     print("Calculating real-timed paths for " + suffix_s("route", len(routes)) +
-          ". The same number of progress bars will appear. Please wait patiently...")
-    for i, route in enumerate(routes):
-        paths = all_time_path(
-            city, train_dict, reduce_abstract_path(city.lines, route[0], route[1]), route[1], start_date,
-            exclude_next_day=exclude, exclude_edge=args.exclude_edge, prefix=f"Path #{i + 1:>{len(str(len(routes)))}}: "
-        )
+          ". Please wait patiently...")
+    path_dict = all_time_paths(
+        city, train_dict, {
+            i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
+        }, start_date, exclude_next_day=exclude, exclude_edge=args.exclude_edge,
+        prefix=lambda i, route, _: f"Path #{i + 1:>{len(str(len(routes)))}}: "
+    )
+    for i, paths in path_dict.items():
         if len(paths) == 0:
-            print(f"Warning: path #{i + 1} ({route_str(city.lines, route)}) have no available starting time. " +
+            print(f"Warning: path #{i + 1} ({route_str(city.lines, routes[i])}) have no available starting time. " +
                   "It is discarded automatically.")
             continue
-        path_list.append((i, route, paths))
+        path_list.append((i, routes[i], paths))
 
     _, best_dict, data_list = calculate_data(path_list, city.transfers, through_dict)
     time_only_mode = False

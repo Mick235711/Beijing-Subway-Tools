@@ -5,6 +5,7 @@
 
 # Libraries
 import multiprocessing as mp
+from collections.abc import Callable
 from datetime import date, time, timedelta
 from functools import partial
 from math import floor, ceil
@@ -307,6 +308,57 @@ def all_time_path(
                     continue
                 results.append((bfs_result.total_duration(), bfs_path, bfs_result))
     return reconstruct_paths(results)
+
+
+global to_trains_wrap_multi
+def to_trains_wrap_multi(
+    paths: dict[int, tuple[Path, str]], lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
+    cur_date: date, minute_tuple: tuple[int, int],
+    *, exclude_edge: bool = False
+) -> tuple[int, time, bool, tuple[BFSResult, BFSPath]]:
+    """ Wrap around the to_trains() method with multiple paths """
+    index, minute = minute_tuple
+    path, end_station = paths[index]
+    start_time, start_day = from_minutes(minute)
+    return index, start_time, start_day, to_trains(
+        lines, train_dict, transfer_dict, virtual_dict, path, end_station, cur_date, start_time, start_day,
+        exclude_edge=exclude_edge
+    )
+
+
+def all_time_paths(
+    city: City, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    paths: dict[int, tuple[Path, str]], start_date: date,
+    *, exclude_next_day: bool = False, exclude_edge: bool = False,
+    prefix: Callable[[int, Path, str], str] | None = None
+) -> dict[int, list[PathInfo]]:
+    """ Get the resolved list of paths in all possible timings """
+    # Loop through first train to last train
+    results: dict[int, list[PathInfo]] = {x: [] for x in paths.keys()}
+    all_list = [(index, minute) for index, (path, end_station) in paths.items() for minute in get_minute_list(
+        city.lines, train_dict, start_date, path[0][0],
+        limit_line=(None if path[0][1] is None else path[0][1].name),
+        limit_direction=(None if path[0][1] is None else path[0][1].determine_direction(
+            path[0][0], path[1][0] if len(path) > 1 else end_station
+        ))
+    )]
+    with tqdm(desc="Calculating", total=len(all_list)) as bar:
+        with mp.Pool() as pool:
+            for index, start_time, start_day, (bfs_result, bfs_path) in pool.imap_unordered(
+                partial(
+                    to_trains_wrap_multi, paths, city.lines, train_dict, city.transfers, city.virtual_transfers,
+                    start_date, exclude_edge=exclude_edge
+                ), all_list, chunksize=50
+            ):
+                prefix_str = "" if prefix is None else prefix(index, paths[index][0], paths[index][1])
+                bar.set_description(prefix_str + "Calculating " + city.station_full_name(paths[index][0][0][0]) +
+                                    " at " + get_time_repr(start_time, start_day))
+                bar.update()
+                if exclude_next_day and bfs_result.force_next_day:
+                    continue
+                results[index].append((bfs_result.total_duration(), bfs_path, bfs_result))
+    return {index: reconstruct_paths(inner_dict) for index, inner_dict in results.items()}
 
 
 def reduce_path(bfs_path: BFSPath, end_station: str) -> Path:
