@@ -62,7 +62,7 @@ def copy_graph(graph: Graph) -> Graph:
 def get_dist_graph(
     city: City, *,
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None,
-    include_virtual: bool = True, include_circle: bool = True
+    include_virtual: bool = True, include_circle: bool = True, ignore_dists: bool = False
 ) -> Graph:
     """ Get the distance graph for a city """
     lines = city.lines
@@ -95,7 +95,7 @@ def get_dist_graph(
                     end = 0
                 else:
                     end = i + 1
-                add_edge(graph, stations[i], stations[end], dist, line)
+                add_edge(graph, stations[i], stations[end], 1 if ignore_dists else dist, line)
                 
     # Add transfers
     if include_virtual:
@@ -408,6 +408,17 @@ def to_universe(graph: Graph) -> list[tuple[str, str, int]]:
             visited.add((to_station, from_station))
             edges.append((from_station, to_station, dist))
     return edges
+
+
+def to_line_graph(line: Line) -> list[list[tuple[str, str]]]:
+    """ Convert line into a Graphillion list of edges """
+    if line.end_circle_start is not None:
+        # We don't handle end circle in Graphillion now
+        index = line.stations.index(line.end_circle_start)
+        return [[(s1, s2)] for s1, s2 in zip(line.stations[index:-1], line.stations[index + 1:])]
+    if line.loop:
+        return [[(s1, s2)] for s1, s2 in zip(line.stations, line.stations[1:] + [line.stations[0]])]
+    return [[(s1, s2)] for s1, s2 in zip(line.stations[:-1], line.stations[1:])]
 
 
 def path_from_pairs(

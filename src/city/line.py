@@ -171,6 +171,27 @@ class Line:
             return data[direction]
         return average(data.values())
 
+    def route_distance(self, route: TrainRoute) -> float:
+        """ Total distance of a route """
+        return route_dist(
+            self.direction_stations(route.direction),
+            self.direction_dists(route.direction),
+            route.stations, route.loop
+        )
+
+    def two_station_intervals(
+        self, start_station: str, end_station: str, direction: str | None = None
+    ) -> list[tuple[str, str]]:
+        """ Return intervals between two stations """
+        stations = self.stations if direction is None else self.direction_stations(direction)
+        index1 = stations.index(start_station)
+        index2 = stations.index(end_station)
+        if index1 >= index2:
+            assert self.loop, (self, start_station, end_station)
+            next_index = 0 if (index1 == len(stations) - 1) else (index1 + 1)
+            return list(zip(stations[index1:] + stations[:index2], stations[next_index:] + stations[:index2 + 1]))
+        return list(zip(stations[index1:index2], stations[index1 + 1:index2 + 1]))
+
     def two_station_dist(self, direction: str, start_station: str, end_station: str) -> int:
         """ Distance between two stations """
         return stations_dist(

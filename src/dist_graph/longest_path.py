@@ -15,14 +15,15 @@ from tqdm import tqdm
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.bfs.shortest_path import ask_for_shortest_path, ask_for_shortest_time, display_info_min
 from src.city.ask_for_city import ask_for_city, ask_for_date, ask_for_time, ask_for_station
-from src.city.city import City
+from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.common.common import suffix_s
 from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains, all_time_path, \
-    to_universe, path_from_pairs
+    to_universe, path_from_pairs, to_line_graph
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
+from src.stats.common import get_virtual_dict
 
 try:
     from graphillion import GraphSet  # type: ignore
@@ -163,6 +164,56 @@ def get_longest_route(
     return euler_route(small_graph, start_station, end_station)
 
 
+def filter_line_once(
+    paths: GraphSet, station_lines: dict[str, set[Line]], virtual_dict: dict[str, dict[str, set[Line]]],
+    path_len: int, line: Line
+) -> list[GraphSet]:
+    """ Filter line such that it is included exactly once """
+    stations = line.stations[:]
+    if line.end_circle_start is not None:
+        index = stations.index(line.end_circle_start)
+        stations = stations[index:]
+    stations = [s for s in stations if len(station_lines[s]) > 1 or s in virtual_dict]
+    if stations[0] != line.stations[0]:
+        stations = [line.stations[0]] + stations
+    if stations[-1] != line.stations[-1]:
+        stations.append(line.stations[-1])
+    if line.loop:
+        stations.append(stations[0])
+    bad_list: list[GraphSet] = []
+    for start in range(1, len(stations) - (1 if line.loop else 2)):
+        start_station = stations[start]
+        end_station = stations[start + 1]
+        preserve_segments: list[list[tuple[str, str]]] = [line.two_station_intervals(start_station, end_station)]
+        discard_segments: list[list[tuple[str, str]]] = []
+        if line.loop:
+            preserve_segments.append(line.two_station_intervals(
+                stations[-2] if start == 1 else stations[start - 2], stations[start - 1]
+            ))
+        for start2 in range(start + 1, len(stations) - (2 if line.loop and start == 1 else 1)):
+            start_station2 = stations[start2]
+            end_station2 = stations[start2 + 1]
+            discard_segments.append(
+                line.two_station_intervals(stations[start - 1], start_station) +
+                line.two_station_intervals(start_station2, end_station2)
+            )
+        if line.loop:
+            for start2 in range(0, start - 2):
+                start_station2 = stations[start2]
+                end_station2 = stations[start2 + 1]
+                discard_segments.append(
+                    line.two_station_intervals(stations[start - 1], start_station) +
+                    line.two_station_intervals(start_station2, end_station2)
+                )
+        bad_paths = paths.supergraphs(GraphSet(discard_segments)).non_supergraphs(GraphSet(preserve_segments))
+        bad_list.append(bad_paths)
+        bad_len = bad_paths.len()
+        percentage = bad_len / path_len * 100
+        print(f"Line {line.full_name()} [{line.station_full_name(start_station)} - {line.station_full_name(end_station)}]" +
+              f": Bad length = {bad_len} ({percentage:.2f}%)")
+    return bad_list
+
+
 def find_longest(args: argparse.Namespace, *, existing_city: City | None = None) -> tuple[City, Path, str]:
     """ Longest-path algorithm """
     start: tuple[str, set[Line]] | None = None
@@ -198,11 +249,10 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         lines = city.lines
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
-    graph = get_dist_graph(
-        city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        include_virtual=(not args.exclude_virtual), include_circle=False
-    )
     if args.non_repeating:
+        graph = get_dist_graph(
+            city, include_lines=args.include_lines, include_circle=False, ignore_dists=args.ignore_dists
+        )
         if GraphSet is None:
             print("Non-repeating path finding requires graphillion library!")
             sys.exit(1)
@@ -223,20 +273,74 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             assert start is not None and end is not None, (start, end)
             paths = GraphSet.paths(start[0], end[0])
         print(" Done!")
-        print("Calculating longest path from all " + suffix_s("path", paths.len()) + "...", end="", flush=True)
-        max_path = next(paths.max_iter())
+
+        # Filter exclude_lines & virtual transfer
+        path_len = paths.len()
+        print("Original path length:", path_len)
+        if args.exclude_lines is not None:
+            exclude_lines = {x.strip() for x in args.exclude_lines.split(",")}
+            for line_name in exclude_lines:
+                line_graph = GraphSet(to_line_graph(lines[line_name]))
+                paths = paths.non_supergraphs(line_graph)
+                new_len = paths.len()
+                percentage = new_len / path_len * 100
+                print(f"Filtering {lines[line_name].full_name()}... New length = {new_len} ({percentage:.2f}%)")
+                path_len = new_len
+        if args.exclude_virtual:
+            virtual_graph = GraphSet([[(s1, s2)] for s1, s2 in city.virtual_transfers.keys()])
+            paths = paths.non_supergraphs(virtual_graph)
+            new_len = paths.len()
+            percentage = new_len / path_len * 100
+            print(f"Filtering virtual transfers... New length = {new_len} ({percentage:.2f}%)")
+            path_len = new_len
+            
+        lines = {k: v for k, v in lines.items() if k in train_dict.keys()}
+        if args.line_requirements == "each_once":
+            station_lines = parse_station_lines(lines)
+            virtual_dict = get_virtual_dict(city, lines)
+            bad_list: list[GraphSet] = []
+            for line_name in sorted(lines.keys(), key=lambda x: lines[x].index):
+                bad_list += filter_line_once(paths, station_lines, virtual_dict, path_len, lines[line_name])
+            print(f"Applying {len(bad_list)} filters...")
+            for bad_paths in tqdm(bad_list):
+                paths = paths - bad_paths
+            new_len = paths.len()
+            percentage = new_len / path_len * 100
+            print(f"After filtering, path length is {new_len} ({percentage:.2f}%)")
+            path_len = new_len
+        if args.line_requirements != "none":
+            for line_name, line in sorted(lines.items(), key=lambda x: x[1].index):
+                line_graph = GraphSet(to_line_graph(line))
+                new_paths = paths.supergraphs(line_graph)
+                new_len = new_paths.len()
+                if new_len == 0:
+                    print(f"Including {line.full_name()}... Empty! Skipping.")
+                    continue
+                percentage = new_len / path_len * 100
+                print(f"Including {line.full_name()}... New length = {new_len} ({percentage:.2f}%)")
+                paths = new_paths
+                path_len = new_len
+
+        print("Calculating " + (
+            "longest" if args.path_mode == "max" else "shortest"
+        ) + " path from all " + suffix_s("path", path_len) + "...", end="", flush=True)
+        best_path = next(paths.max_iter()) if args.path_mode == "max" else next(paths.min_iter())
         print(" Done!")
-        all_stations = set(x[0] for x in max_path) | set(x[1] for x in max_path)
+        all_stations = set(x[0] for x in best_path) | set(x[1] for x in best_path)
         if args.all:
-            candidates = [s for s in all_stations if len([x for x in max_path if s in x]) != 2]
-            assert len(candidates) == 2, (candidates, max_path)
+            candidates = [s for s in all_stations if len([x for x in best_path if s in x]) != 2]
+            assert len(candidates) == 2, (candidates, best_path)
             start_from = candidates[0]
         else:
             start_from = nx.utils.arbitrary_element(all_stations) if start is None else start[0]
         dist, route, end_station = path_from_pairs(
-            graph, lines, max_path, start_from=start_from, is_circular=args.circuit
+            graph, lines, best_path, start_from=start_from, is_circular=args.circuit
         )
     else:
+        graph = get_dist_graph(
+            city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+            include_virtual=(not args.exclude_virtual), include_circle=False, ignore_dists=args.ignore_dists
+        )
         possible_pairs: list[tuple[str | None, str | None]] = []
         if start is not None:
             assert end is not None
@@ -289,6 +393,10 @@ def longest_args(parser: argparse.ArgumentParser) -> None:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
     group.add_argument("-c", "--circuit", action="store_true", help="Calculate euler circuit")
+    parser.add_argument("--ignore-dists", action="store_true", help="Ignore distances (calculate only stations)")
+    parser.add_argument("--line-requirements", choices=["none", "each", "each_once"], default="none",
+                        help="Line requirements for path")
+    parser.add_argument("--path-mode", choices=["min", "max"], default="max", help="Path selection mode")
     parser.add_argument("--exclude-next-day", action="store_true",
                         help="Exclude path that spans into next day")
 

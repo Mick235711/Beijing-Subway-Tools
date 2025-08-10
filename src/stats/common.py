@@ -52,6 +52,26 @@ def count_trains(trains: Iterable[T]) -> dict[str, dict[str, list[T]]]:
     return dict(sorted(result_dict.items(), key=lambda x: index_dict[x[0]]))
 
 
+def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, set[Line]]]:
+    """ Get a dictionary of station1 -> station2 -> lines of station2 virtual transfers """
+    virtual_dict: dict[str, dict[str, set[Line]]] = {}
+    for (station1, station2), transfer in city.virtual_transfers.items():
+        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
+            if from_l not in lines or to_l not in lines:
+                continue
+            if station1 not in virtual_dict:
+                virtual_dict[station1] = {}
+            if station2 not in virtual_dict[station1]:
+                virtual_dict[station1][station2] = set()
+            virtual_dict[station1][station2].add(lines[to_l])
+            if station2 not in virtual_dict:
+                virtual_dict[station2] = {}
+            if station1 not in virtual_dict[station2]:
+                virtual_dict[station2][station1] = set()
+            virtual_dict[station2][station1].add(lines[from_l])
+    return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
+
+
 def is_possible_to_board(train: Train | ThroughTrain, station: str, *, show_ending: bool = False) -> bool:
     """ Determine if it is possible to board the train at the given station """
     if isinstance(train, ThroughTrain):

@@ -16,7 +16,7 @@ from src.city.line import Line
 from src.common.common import get_text_color, to_pinyin
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
-from src.stats.common import get_all_trains_through, is_possible_to_board
+from src.stats.common import get_all_trains_through, is_possible_to_board, get_virtual_dict
 
 MAX_TRANSFER_LINE_COUNT = 6
 LINE_TYPES = {
@@ -78,26 +78,6 @@ def get_direction_selector_options(line: Line) -> dict[str, str]:
             get_station_badge_html(line, line.station_code(stations[0] if line.loop else stations[-1])) if line.code else ""
         ) for direction, stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0])
     }
-
-
-def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, set[Line]]]:
-    """ Get a dictionary of station1 -> station2 -> lines of station2 virtual transfers """
-    virtual_dict: dict[str, dict[str, set[Line]]] = {}
-    for (station1, station2), transfer in city.virtual_transfers.items():
-        for (from_l, _, to_l, _) in transfer.transfer_time.keys():
-            if from_l not in lines or to_l not in lines:
-                continue
-            if station1 not in virtual_dict:
-                virtual_dict[station1] = {}
-            if station2 not in virtual_dict[station1]:
-                virtual_dict[station1][station2] = set()
-            virtual_dict[station1][station2].add(lines[to_l])
-            if station2 not in virtual_dict:
-                virtual_dict[station2] = {}
-            if station1 not in virtual_dict[station2]:
-                virtual_dict[station2][station1] = set()
-            virtual_dict[station2][station1].add(lines[from_l])
-    return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
 
 
 def count_trains(

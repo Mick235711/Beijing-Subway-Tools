@@ -17,7 +17,8 @@ from src.city.line import Line
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
-from src.ui.common import LINE_TYPES, get_virtual_dict, count_trains, get_date_input, get_all_trains
+from src.stats.common import get_virtual_dict
+from src.ui.common import LINE_TYPES, count_trains, get_date_input, get_all_trains
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None

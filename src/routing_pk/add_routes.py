@@ -532,6 +532,34 @@ def add_by_longest(city: City, args: argparse.Namespace) -> list[Route]:
         "Please select a path mode:",
         choices=(["Specify start/end"] + ([] if non_repeating else ["All paths"]) + ["Circuit only"])
     ).ask()
+    if non_repeating:
+        line_requirements = questionary.select(
+            "Please select requirements for lines in the resulting path:",
+            choices=["None", "Each at least once", "Each exactly once"]
+        ).ask()
+        if line_requirements is None:
+            sys.exit(0)
+        elif line_requirements == "None":
+            local_args.line_requirements = "none"
+        elif line_requirements == "Each at least once":
+            local_args.line_requirements = "each"
+        elif line_requirements == "Each exactly once":
+            local_args.line_requirements = "each_once"
+        else:
+            assert False, line_requirements
+
+        path_mode = questionary.select(
+            "Please select path mode:",
+            choices=["Longest", "Shortest"]
+        ).ask()
+        if path_mode is None:
+            sys.exit(0)
+        elif path_mode == "Longest":
+            local_args.path_mode = "max"
+        elif path_mode == "Shortest":
+            local_args.path_mode = "min"
+        else:
+            assert False, path_mode
     if mode is None:
         sys.exit(0)
     elif mode == "Specify start/end":
@@ -545,10 +573,15 @@ def add_by_longest(city: City, args: argparse.Namespace) -> list[Route]:
         local_args.circuit = True
     else:
         assert False, mode
+
     exclude = questionary.confirm("Exclude path that spans into next day?").ask()
     if exclude is None:
         sys.exit(0)
     local_args.exclude_next_day = exclude
+    ignore_dists = questionary.confirm("Calculate # of stations only instead of distance?").ask()
+    if ignore_dists is None:
+        sys.exit(0)
+    local_args.ignore_dists = ignore_dists
 
     _, route, end_station = find_longest(local_args, existing_city=city)
     return [(simplify_path(route, end_station), end_station)]
