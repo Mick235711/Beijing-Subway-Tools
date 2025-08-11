@@ -165,8 +165,8 @@ def get_longest_route(
 
 
 def filter_line_once(
-    paths: GraphSet, station_lines: dict[str, set[Line]], virtual_dict: dict[str, dict[str, set[Line]]],
-    path_len: int, line: Line
+    paths: GraphSet, path_len: int,
+    station_lines: dict[str, set[Line]], virtual_dict: dict[str, dict[str, set[Line]]], line: Line
 ) -> list[GraphSet]:
     """ Filter line such that it is included exactly once """
     stations = line.stations[:]
@@ -186,26 +186,22 @@ def filter_line_once(
         end_station = stations[start + 1]
         preserve_segments: list[list[tuple[str, str]]] = [line.two_station_intervals(start_station, end_station)]
         discard_segments: list[list[tuple[str, str]]] = []
+        indexes = list(range(start + 1, len(stations) - (2 if line.loop and start == 1 else 1)))
         if line.loop:
-            preserve_segments.append(line.two_station_intervals(
-                stations[-2] if start == 1 else stations[start - 2], stations[start - 1]
-            ))
-        for start2 in range(start + 1, len(stations) - (2 if line.loop and start == 1 else 1)):
+            indexes += list(range(0, start - 2))
+        for start2 in indexes:
             start_station2 = stations[start2]
             end_station2 = stations[start2 + 1]
             discard_segments.append(
                 line.two_station_intervals(stations[start - 1], start_station) +
                 line.two_station_intervals(start_station2, end_station2)
             )
-        if line.loop:
-            for start2 in range(0, start - 2):
-                start_station2 = stations[start2]
-                end_station2 = stations[start2 + 1]
-                discard_segments.append(
-                    line.two_station_intervals(stations[start - 1], start_station) +
-                    line.two_station_intervals(start_station2, end_station2)
-                )
         bad_paths = paths.supergraphs(GraphSet(discard_segments)).non_supergraphs(GraphSet(preserve_segments))
+        if line.loop:
+            additional = paths.supergraphs(GraphSet([
+                line.two_station_intervals(stations[start + 1], stations[start - 1])
+            ]))
+            bad_paths = bad_paths - additional
         bad_list.append(bad_paths)
         bad_len = bad_paths.len()
         percentage = bad_len / path_len * 100
@@ -300,7 +296,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             virtual_dict = get_virtual_dict(city, lines)
             bad_list: list[GraphSet] = []
             for line_name in sorted(lines.keys(), key=lambda x: lines[x].index):
-                bad_list += filter_line_once(paths, station_lines, virtual_dict, path_len, lines[line_name])
+                bad_list += filter_line_once(paths, path_len, station_lines, virtual_dict, lines[line_name])
             print(f"Applying {len(bad_list)} filters...")
             for bad_paths in tqdm(bad_list):
                 paths = paths - bad_paths
@@ -366,7 +362,9 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         dist, route, end_station = small_tuple
 
     print(f"Longest route is from {city.station_full_name(route[0][0])} " +
-          f"to {city.station_full_name(end_station)}, totalling {dist}m.\n")
+          f"to {city.station_full_name(end_station)}, totalling " + (
+              suffix_s("station", dist) if args.ignore_dists else f"{dist}m"
+          ) + ".\n")
 
     if start_time == time.max and start_day:
         # Populate min/max

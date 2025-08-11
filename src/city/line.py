@@ -107,6 +107,10 @@ class Line:
         """ Returns the base route's station for this direction """
         return self.stations if direction is None else self.direction_base_route[direction].stations
 
+    def base_direction(self) -> str:
+        """ Return the base direction of this line """
+        return [x for x, stations in self.directions.items() if stations == self.stations][0]
+
     def direction_dists(self, direction: str | None) -> list[int]:
         """ Return the distance of this direction """
         if direction is None or self.direction_stations(direction) == self.stations:
