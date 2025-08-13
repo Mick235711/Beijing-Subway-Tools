@@ -25,6 +25,7 @@ from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 
+# Duration, Path, BFS Result
 PathInfo = tuple[int, Path, BFSResult]
 
 

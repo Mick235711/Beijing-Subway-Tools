@@ -20,7 +20,7 @@ from src.city.city import City
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple, parse_time, \
-    add_min_tuple
+    add_min_tuple, distance_str
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
@@ -131,6 +131,32 @@ def print_routes_with_data(
                 print(f" (+{avg_min - min_avg:>{avg_max_len}.2f})", end="")
         print(f" ({min_info[0]:>{min_max_len}}-{max_info[0]:>{max_max_len}}) ", end="")
         print(route_str(city.lines, route))
+
+
+def routes_one_line(
+    city: City, data_list: list[RouteData], start_date: date
+) -> None:
+    """ Print one-line description of routes """
+    print("\nOne-line description of each path:")
+    for index, route, info_dict, percentage, avg_min, min_info, max_info in data_list:
+        min_time = min(info_dict.keys())
+        max_time = max(info_dict.keys())
+        path = min_info[1]
+        print(f"Path #{index + 1}:", end="")
+        if isinstance(route, list):
+            print(" [--Mixed Route--]", end="")
+        else:
+            end_station = route[1]
+            print(f" [{distance_str(path_distance(path, end_station))}, " +
+                  suffix_s("station", len(expand_path(path, end_station))) + ", " +
+                  suffix_s("transfer", total_transfer(path)), end="")
+            if city.fare_rules is not None:
+                print(", " + city.fare_rules.currency_str(
+                    city.fare_rules.get_total_fare(city.lines, path, end_station, start_date)
+                ), end="")
+            print("]", end="")
+        print(f" (avg {avg_min:.2f}, min {min_info[0]} - max {max_info[0]} minutes) ", end="")
+        print(f"depart at {min_time} - {max_time}, " + suffix_s("time", len(info_dict)))
 
 
 def show_segment_best(city: City, best_dict: dict[str, set[int]], data_list: list[RouteData]) -> None:
@@ -394,7 +420,7 @@ def analyze_routes(
             path_list = [(x[0], x[1], list(x[2].values())) for x in data_list]
         elif answer == "Print detailed statistics":
             index_dict = {value[0]: value for value in path_list}
-            index_str = questionary.select("Please select a route to print statistics for:", choices=(
+            index_str = questionary.select("Please select a route to print statistics for:", choices=["One-line"] + (
                 ["Aggregated", "Aggregated (Best routes for each time only)"] if len(data_list) > 1 else []
             ) + [
                 f"#{index + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route)}"
@@ -402,6 +428,8 @@ def analyze_routes(
             ]).ask()
             if index_str is None:
                 sys.exit(0)
+            elif index_str == "One-line":
+                routes_one_line(city, data_list, start_date)
             elif index_str == "Aggregated (Best routes for each time only)":
                 path_list_inner = []
                 for start_str, index_set in best_dict.items():
