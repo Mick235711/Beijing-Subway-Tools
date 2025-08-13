@@ -12,7 +12,8 @@ from nicegui import binding, ui
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, get_time_str
+from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, get_time_str, parse_time, \
+    diff_time_tuple, format_duration
 from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input, get_all_trains
 from src.ui.drawers import refresh_line_drawer, get_line_badge, refresh_station_drawer, refresh_drawer
 
@@ -99,6 +100,9 @@ def calculate_station_rows(
                 ]))
             virtual_transfers_sort = ", ".join(to_pinyin(x[0])[0] for x in virtual_transfers)
 
+        first_time = min(get_time_str(*train.arrival_times()[station]) for train in all_trains[station])
+        last_time = max(get_time_str(*train.arrival_times()[station]) for train in all_trains[station])
+        operating_time = diff_time_tuple(parse_time(last_time), parse_time(first_time))
         row = {
             "name": (station, [
                 ("primary", "white", badge) for badge in badges if badge is not None
@@ -116,8 +120,10 @@ def calculate_station_rows(
             "virtual_transfers_sort": virtual_transfers_sort,
             "num_lines": len(line_list),
             "num_trains": len(all_trains[station]),
-            "first_train": min(get_time_str(*train.arrival_times()[station]) for train in all_trains[station]),
-            "last_train": max(get_time_str(*train.arrival_times()[station]) for train in all_trains[station])
+            "first_train": first_time,
+            "last_train": last_time,
+            "operating_time": format_duration(operating_time),
+            "operating_time_sort": operating_time
         }
         rows.append(row)
     return sorted(rows, key=lambda r: to_pinyin(r["name"][0])[0])
@@ -403,7 +409,13 @@ def info_tab(city: City, data: InfoData) -> None:
                     {"name": "numLines", "label": "# Lines", "field": "num_lines"},
                     {"name": "numTrains", "label": "# Trains", "field": "num_trains"},
                     {"name": "firstTrain", "label": "First Train", "field": "first_train", "align": "center"},
-                    {"name": "lastTrain", "label": "Last Train", "field": "last_train", "align": "center"}
+                    {"name": "lastTrain", "label": "Last Train", "field": "last_train", "align": "center"},
+                    {"name": "opTime", "label": "Operating Time", "field": "operating_time",
+                     ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["operating_time_sort"]) - parseFloat(rowB["operating_time_sort"]);
+                     }"""},
+                    {"name": "opTimeSort", "label": "Operating Time Sort", "field": "operating_time_sort", "sortable": False,
+                     "classes": "hidden", "headerClasses": "hidden"}
                 ],
                 column_defaults={"align": "right", "required": True, "sortable": True},
                 rows=calculate_station_rows(city, city.lines, city.station_lines, date.fromisoformat(date_input.value)),
