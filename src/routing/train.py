@@ -37,9 +37,9 @@ class Train:
         """ Get string representation """
         if self.loop_next is not None:
             return (
-                    f"<{self.direction_repr()} " +
-                    f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " +
-                    f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} (loop)>"
+                f"<{self.direction_repr()} " +
+                f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " +
+                f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} (loop)>"
             )
         return f"<{self.direction_repr()} {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}" + \
             f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}>"
@@ -188,9 +188,12 @@ class Train:
         """ Distance between two stations """
         if end_station not in self.arrival_time:
             assert self.loop_next is not None, (self, start_station, end_station)
-            return self.two_station_dist(
-                start_station, self.stations[-1]
-            ) + self.loop_next.two_station_dist(self.loop_next.stations[0], end_station)
+            return self.line.two_station_dist(
+                self.direction, start_station, self.loop_next.stations[0]
+            ) + (
+                0 if end_station == self.loop_next.stations[0] else
+                self.loop_next.two_station_dist(self.loop_next.stations[0], end_station)
+            )
         return self.line.two_station_dist(self.direction, start_station, end_station)
 
     def two_station_duration_repr(self, start_station: str, end_station: str) -> str:

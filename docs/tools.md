@@ -2217,6 +2217,129 @@ Longest/Shortest Train Segments:
 #1976: 14 segments, 2h37min, 21.55km: 工作日 11号线 [4A] 新首钢 05:58 -> ... -> 新首钢 08:35
 </pre>
 
+### [`highest_speed.py`](/src/stats/longest_trains.py): Show train with the highest speed
+```
+usage: highest_speed.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-d {speed,duration,distance}] [--split {none,line,direction}] [--single-segment]
+
+options:
+  -h, --help            show this help message and exit
+  -n, --limit-num LIMIT_NUM
+                        Limit number of output
+  -a, --all             Show combined data for all date groups
+  -f, --full-only       Only include train that runs the full journey
+  -s, --limit-start LIMIT_START
+                        Limit earliest passing time of the trains
+  -e, --limit-end LIMIT_END
+                        Limit latest passing time of the trains
+  -i, --include-lines INCLUDE_LINES
+                        Include lines
+  -x, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  -d, --data-source {speed,duration,distance}
+                        Choose data source
+  --split {none,line,direction}
+                        Split mode
+  --single-segment      Show single segment only
+```
+
+Show trains with the fastest/slowest speed, or longest/shortest duration/distance.
+In addition, show segments (adjacent station pairs) with the same data averaged across all trains.
+If `--split line` is specified, then treat both direction of a line as a single entity.
+If `--split none` is specified, then treat all date groups as a single entity (only makes sense under `-a`).
+
+Example Usage:
+<pre>
+$ python3 src/stats/highest_speed.py -n 20 -a
+? Please select a city: <i>北京</i>
+All Dates:
+Fastest/Slowest Trains:
+#1: 114.99km/h: 平日 大兴机场线 出城 8节编组 [7D] 草桥 19:14 -&gt; 大兴机场 19:34 (20min, 38.33km) (36 tied)
+#2: 114.99km/h: 重点保障 大兴机场线 进城 4节编组 [4D] 大兴机场 20:44 -&gt; 草桥 21:04 (20min, 38.33km) (3 tied)
+#3: 114.99km/h: 重点保障 大兴机场线 出城 8节编组 [7D] 草桥 19:50 -&gt; 大兴机场 20:10 (20min, 38.33km) (109 tied)
+#4: 114.99km/h: 周日 大兴机场线 出城 8节编组 [7D] 草桥 19:14 -&gt; 大兴机场 19:34 (20min, 38.33km) (36 tied)
+#5: 109.52km/h: 平日 大兴机场线 进城 8节编组 [7D] 大兴机场 12:23 -&gt; 草桥 12:44 (21min, 38.33km) (108 tied)
+#6: 109.52km/h: 平日 大兴机场线 出城 8节编组 [7D] 草桥 09:07 -&gt; 大兴机场 09:28 (21min, 38.33km) (73 tied)
+#7: 109.52km/h: 重点保障 大兴机场线 进城 8节编组 [7D] 大兴机场 18:10 -&gt; 草桥 18:31 (21min, 38.33km) (121 tied)
+#8: 109.52km/h: 重点保障 大兴机场线 出城 8节编组 [7D] 草桥 21:40 -&gt; 大兴机场 22:01 (21min, 38.33km) (13 tied)
+#9: 109.52km/h: 周日 大兴机场线 进城 8节编组 [7D] 大兴机场 12:23 -&gt; 草桥 12:44 (21min, 38.33km) (107 tied)
+#10: 109.52km/h: 周日 大兴机场线 出城 8节编组 [7D] 草桥 09:07 -&gt; 大兴机场 09:28 (21min, 38.33km) (73 tied)
+#11: 104.54km/h: 平日 大兴机场线 进城 8节编组 [7D] 大兴机场 22:44 -&gt; 草桥 23:06 (22min, 38.33km)
+#12: 104.54km/h: 重点保障 大兴机场线 出城 4节编组 [4D] 草桥 20:51 -&gt; 大兴机场 21:13 (22min, 38.33km) (2 tied)
+#13: 104.54km/h: 周日 大兴机场线 进城 8节编组 [7D] 大兴机场 22:44 -&gt; 草桥 23:06 (22min, 38.33km) (4 tied)
+#14: 54.38km/h: 平日 首都机场线 进城 全程车 [4L] 3号航站楼 18:43 -&gt; 北新桥 19:19 (36min, 32.62km) (80 tied)
+#15: 52.91km/h: 平日 首都机场线 进城 全程车 [4L] 3号航站楼 06:48 -&gt; 北新桥 07:25 (37min, 32.62km)
+#16: 52.91km/h: 周五 首都机场线 进城 全程车 [4L] 3号航站楼 18:28 -&gt; 北新桥 19:05 (37min, 32.62km) (20 tied)
+#17: 51.79km/h: 平日 首都机场线 出城 全程车 [4L] 北新桥 07:08 -&gt; 2号航站楼 07:43 (35min, 30.21km) (5 tied)
+#18: 51.51km/h: 平日 首都机场线 进城 全程车 [4L] 3号航站楼 21:39 -&gt; 北新桥 22:17 (38min, 32.62km)
+#19: 51.51km/h: 周五 首都机场线 进城 全程车 [4L] 3号航站楼 11:02 -&gt; 北新桥 11:40 (38min, 32.62km) (63 tied)
+#20: 50.35km/h: 平日 首都机场线 出城 全程车 [4L] 北新桥 12:25 -&gt; 2号航站楼 13:01 (36min, 30.21km) (76 tied)
+...
+#689: 28.72km/h: 双休日 2号线 内环 北京站始发空车 [6B-] 北京站 05:17 -&gt; 积水潭 05:43 (loop) (26min, 12.44km)
+#690: 28.61km/h: 工作日 9号线 南行 全程车 [6B] 国家图书馆 17:15 -&gt; 郭公庄 17:48 (33min, 15.74km) (2 tied)
+#691: 28.16km/h: 工作日 2号线 外环 环行 [6B-] 西直门 21:10 -&gt; 西直门 21:59 (loop) (49min, 23.00km)
+#692: 28.16km/h: 工作日 2号线 内环 环行 [6B-] 积水潭 05:36 -&gt; 积水潭 06:25 (loop) (49min, 23.00km) (3 tied)
+#693: 28.16km/h: 双休日 2号线 外环 环行 [6B-] 西直门 21:04 -&gt; 西直门 21:53 (loop) (49min, 23.00km)
+#694: 28.16km/h: 双休日 2号线 内环 环行 [6B-] 积水潭 05:49 -&gt; 积水潭 06:38 (loop) (49min, 23.00km) (2 tied)
+#695: 27.65km/h: 工作日 2号线 内环 北京站始发空车 [6B-] 北京站 05:17 -&gt; 积水潭 05:44 (loop) (27min, 12.44km)
+#696: 27.60km/h: 工作日 S1线 进城 全程车 [6M] 石厂 17:12 -&gt; 苹果园 17:33 (21min, 9.66km)
+#697: 27.60km/h: 工作日 2号线 内环 环行 [6B-] 积水潭 21:36 -&gt; 积水潭 22:26 (loop) (50min, 23.00km)
+#698: 27.60km/h: 双休日 2号线 内环 环行 [6B-] 积水潭 21:54 -&gt; 积水潭 22:44 (loop) (50min, 23.00km)
+#699: 26.35km/h: 工作日 S1线 进城 全程车 [6M] 石厂 16:46 -&gt; 苹果园 17:08 (22min, 9.66km)
+#700: 26.08km/h: 工作日 西郊线 出城 全程车 [5LRT] 巴沟 11:54 -&gt; 香山 12:14 (20min, 8.69km) (149 tied)
+#701: 26.08km/h: 双休日 西郊线 出城 全程车 [5LRT] 巴沟 13:12 -&gt; 香山 13:32 (20min, 8.69km) (163 tied)
+#702: 24.90km/h: 工作日 11号线 北行 全程车 [4A] 新首钢 07:12 -&gt; 模式口 07:19 (7min, 2.90km) (18 tied)
+#703: 24.84km/h: 工作日 西郊线 进城 全程车 [5LRT] 香山 15:15 -&gt; 巴沟 15:36 (21min, 8.69km) (149 tied)
+#704: 24.84km/h: 双休日 西郊线 进城 全程车 [5LRT] 香山 14:40 -&gt; 巴沟 15:01 (21min, 8.69km) (163 tied)
+#705: 21.79km/h: 工作日 11号线 北行 全程车 [4A] 新首钢 06:08 -&gt; 模式口 06:16 (8min, 2.90km) (89 tied)
+#706: 21.79km/h: 双休日 11号线 北行 全程车 [4A] 新首钢 15:08 -&gt; 模式口 15:16 (8min, 2.90km) (102 tied)
+#707: 19.37km/h: 工作日 11号线 南行 全程车 [4A] 模式口 12:16 -&gt; 新首钢 12:25 (9min, 2.90km) (107 tied)
+#708: 19.37km/h: 双休日 11号线 南行 全程车 [4A] 模式口 22:08 -&gt; 新首钢 22:17 (9min, 2.90km) (102 tied)
+
+Fastest/Slowest Segments:
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 20021/20021 [00:17&lt;00:00, 1169.98it/s]
+#1: 126.47km/h: 大兴机场线 大兴机场 -&gt; 大兴新城 (avg over 344 trains: 126.47km/h, 12min, 25.30km)
+#2: 121.44km/h: 大兴机场线 草桥 -&gt; 大兴新城 (avg over 342 trains: 121.44km/h, 6.47min, 13.03km)
+#3: 108.44km/h: 大兴机场线 大兴新城 -&gt; 大兴机场 (avg over 342 trains: 108.44km/h, 14min, 25.30km)
+#4: 86.85km/h: 大兴机场线 大兴新城 -&gt; 草桥 (avg over 344 trains: 86.85km/h, 9min, 13.03km)
+#5: 80.70km/h: 14号线 园博园 -&gt; 张郭庄 (avg over 334 trains: 80.70km/h, 1min, 1.34km)
+#6: 79.71km/h: 14号线 张郭庄 -&gt; 园博园 (avg over 326 trains: 79.71km/h, 1.02min, 1.34km)
+#7: 79.59km/h: 16号线 北安河 -&gt; 温阳路 (avg over 273 trains: 79.59km/h, 2min, 2.65km)
+#8: 79.59km/h: 16号线 温阳路 -&gt; 北安河 (avg over 273 trains: 79.59km/h, 2min, 2.65km)
+#9: 69.77km/h: 17号线北段 天通苑东 -&gt; 未来科学城 (avg over 261 trains: 69.77km/h, 5.03min, 5.85km)
+#10: 69.72km/h: 17号线北段 左家庄 -&gt; 工人体育场 (avg over 261 trains: 69.72km/h, 2min, 2.32km)
+#11: 69.09km/h: 首都机场线 2号航站楼 -&gt; 三元桥 (avg over 182 trains: 69.09km/h, 18min, 20.74km)
+#12: 68.92km/h: 17号线北段 工人体育场 -&gt; 左家庄 (avg over 261 trains: 68.92km/h, 2.03min, 2.32km)
+#13: 66.25km/h: 昌平线 沙河高教园 -&gt; 南邵 (avg over 341 trains: 66.25km/h, 4.88min, 5.36km)
+#14: 66.10km/h: 首都机场线 三元桥 -&gt; 3号航站楼 (avg over 182 trains: 66.10km/h, 16.63min, 18.32km)
+#15: 65.83km/h: 17号线北段 未来科学城 -&gt; 天通苑东 (avg over 261 trains: 65.83km/h, 5.37min, 5.85km)
+#16: 63.84km/h: 昌平线 南邵 -&gt; 沙河高教园 (avg over 338 trains: 63.84km/h, 5.03min, 5.36km)
+#17: 63.31km/h: 房山线 大葆台 -&gt; 稻田 (avg over 343 trains: 63.31km/h, 6.13min, 6.47km)
+#18: 61.71km/h: 昌平线 西二旗 -&gt; 生命科学园 (avg over 412 trains: 61.71km/h, 5.32min, 5.44km)
+#19: 61.32km/h: 房山线 稻田 -&gt; 大葆台 (avg over 343 trains: 61.32km/h, 6.35min, 6.47km)
+#20: 61.06km/h: 15号线 南法信 -&gt; 后沙峪 (avg over 379 trains: 61.06km/h, 4.53min, 4.57km)
+...
+#950: 21.74km/h: 12号线 蓟门桥 -&gt; 大钟寺(12号线) (avg over 360 trains: 21.74km/h, 2.97min, 1.07km)
+#951: 21.51km/h: 1号线 国贸 -&gt; 永安里 (avg over 613 trains: 21.51km/h, 2.27min, 790m)
+#952: 21.32km/h: 8号线 王府井 -&gt; 金鱼胡同 (avg over 454 trains: 21.32km/h, 2.20min, 762m)
+#953: 20.96km/h: 8号线 永定门外 -&gt; 木樨园 (avg over 391 trains: 20.96km/h, 2.17min, 741m)
+#954: 20.94km/h: 9号线 白石桥南 -&gt; 白堆子 (avg over 442 trains: 20.94km/h, 3.03min, 1.04km)
+#955: 20.88km/h: 17号线 十里河 -&gt; 周家庄 (avg over 255 trains: 20.88km/h, 4.88min, 1.67km)
+#956: 20.01km/h: 4号线 中关村 -&gt; 北京大学东门 (avg over 556 trains: 20.01km/h, 2.73min, 887m)
+#957: 19.40km/h: 16号线 甘家口 -&gt; 玉渊潭东门 (avg over 273 trains: 19.40km/h, 3min, 970m)
+#958: 18.61km/h: 8号线 天桥 -&gt; 珠市口 (avg over 387 trains: 18.61km/h, 3min, 881m)
+#959: 18.06km/h: 西郊线 茶棚 -&gt; 颐和园西门 (avg over 312 trains: 18.06km/h, 5min, 1.50km)
+#960: 18.06km/h: 西郊线 颐和园西门 -&gt; 茶棚 (avg over 312 trains: 18.06km/h, 5min, 1.50km)
+#961: 17.73km/h: 11号线 金安桥 -&gt; 北辛安 (avg over 209 trains: 17.73km/h, 2.90min, 850m)
+#962: 17.62km/h: 1号线 南礼士路 -&gt; 复兴门 (avg over 613 trains: 17.62km/h, 1.60min, 424m)
+#963: 16.95km/h: 16号线 玉渊潭东门 -&gt; 木樨地(16号线) (avg over 273 trains: 16.95km/h, 2min, 565m)
+#964: 16.95km/h: 16号线 木樨地(16号线) -&gt; 玉渊潭东门 (avg over 273 trains: 16.95km/h, 2min, 565m)
+#965: 16.92km/h: 9号线 六里桥东 -&gt; 北京西站 (avg over 442 trains: 16.92km/h, 4.17min, 1.17km)
+#966: 16.58km/h: 9号线 北京西站 -&gt; 六里桥东 (avg over 442 trains: 16.58km/h, 4.27min, 1.17km)
+#967: 16.26km/h: 1号线 复兴门 -&gt; 南礼士路 (avg over 615 trains: 16.26km/h, 1.72min, 424m)
+#968: 14.37km/h: 11号线 新首钢 -&gt; 北辛安 (avg over 209 trains: 14.37km/h, 2.90min, 689m)
+#969: 13.78km/h: 11号线 北辛安 -&gt; 新首钢 (avg over 209 trains: 13.78km/h, 3min, 689m)
+</pre>
+
 # [`graph/`](/src/graph): Draw equ-time graphs
 ### [`draw_map.py`](/src/graph/draw_map.py): Draw equ-time maps originating from a station
 ```
