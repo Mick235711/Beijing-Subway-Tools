@@ -22,8 +22,8 @@ Route = tuple[AbstractPath, str]
 MixedRoutes = list[int]
 
 # Data for a route:
-# (index, route, start_time_str -> timed BFS path, percentage, average minute, the smallest info, the largest info)
-RouteData = tuple[int, Route | MixedRoutes, dict[str, PathInfo], float, float, PathInfo, PathInfo]
+# (index, route, start_time_str -> timed BFS path, percentage, percentage (tie), average minute, the smallest info, the largest info)
+RouteData = tuple[int, Route | MixedRoutes, dict[str, PathInfo], float, float, float, PathInfo, PathInfo]
 
 
 def route_str(lines: dict[str, Line], route: Route | MixedRoutes) -> str:

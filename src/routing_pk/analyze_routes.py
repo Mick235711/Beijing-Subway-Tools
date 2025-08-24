@@ -79,8 +79,9 @@ def calculate_data(
     data_list: list[RouteData] = []
     for index, route, inner_dict in temp_list:
         percentage = len([x for x in best_dict.values() if index in x]) / len(best_dict)
+        percentage_tie = len([x for x in best_dict.values() if index in x and len(x) > 1]) / len(best_dict)
         data_list.append((
-            index, route, inner_dict, percentage,
+            index, route, inner_dict, percentage, percentage_tie,
             average(x[0] for x in inner_dict.values()),
             min(list(inner_dict.values()), key=lambda x: x[0]),
             max(list(inner_dict.values()), key=lambda x: x[0])
@@ -109,15 +110,15 @@ def print_routes_with_data(
           inner + "(xx-xx) = min-max minutes.\n")
 
     percent_max_len = max(len(percentage_str(x[3])) for x in data_list)
-    min_avg = min(x[4] for x in data_list)
-    avg_max_len = max(len(f"{x[4]:.2f}" if show_absolute else f"{x[4] - min_avg:.2f}") for x in data_list)
-    min_max_len = max(len(str(x[5][0])) for x in data_list)
-    max_max_len = max(len(str(x[6][0])) for x in data_list)
+    min_avg = min(x[5] for x in data_list)
+    avg_max_len = max(len(f"{x[5]:.2f}" if show_absolute else f"{x[5] - min_avg:.2f}") for x in data_list)
+    min_max_len = max(len(str(x[6][0])) for x in data_list)
+    max_max_len = max(len(str(x[7][0])) for x in data_list)
     if aux_data is None:
         aux_max_len = 0
     else:
         aux_max_len = max(len(x) for x in aux_data.values())
-    for index, route, _, percentage, avg_min, min_info, max_info in data_list:
+    for index, route, _, percentage, _, avg_min, min_info, max_info in data_list:
         print(f"#{index + 1:>{len(str(len(data_list)))}}: ", end="")
         if aux_data is not None:
             print(f"{aux_data[index]:<{aux_max_len}}", end="")
@@ -134,15 +135,23 @@ def print_routes_with_data(
 
 
 def routes_one_line(
-    city: City, data_list: list[RouteData], start_date: date
+    city: City, data_list: list[RouteData], start_date: date, *, time_only_mode: bool = False
 ) -> None:
     """ Print one-line description of routes """
     print("\nOne-line description of each path:")
-    for index, route, info_dict, percentage, avg_min, min_info, max_info in data_list:
+    for index, route, info_dict, percentage, percentage_tie, avg_min, min_info, max_info in data_list:
         min_time = min(info_dict.keys())
         max_time = max(info_dict.keys())
+        min_arrive = min(get_time_str(x[2].arrival_time, x[2].arrival_day) for x in info_dict.values())
+        max_arrive = max(get_time_str(x[2].arrival_time, x[2].arrival_day) for x in info_dict.values())
         path = min_info[1]
         print(f"Path #{index + 1}:", end="")
+        if time_only_mode:
+            print(f" Best {percentage_str(percentage - percentage_tie)} - ", end="")
+            print(f"Tie {percentage_str(percentage_tie)} - ", end="")
+        else:
+            print(f" Best {percentage_str(percentage)} - ", end="")
+        print(f"Other {percentage_str(1 - percentage)}", end="")
         if isinstance(route, list):
             print(" [--Mixed Route--]", end="")
         else:
@@ -156,7 +165,9 @@ def routes_one_line(
                 ), end="")
             print("]", end="")
         print(f" (avg {avg_min:.2f}, min {min_info[0]} - max {max_info[0]} minutes) ", end="")
-        print(f"depart at {min_time} - {max_time}, " + suffix_s("time", len(info_dict)))
+        print(f"depart at {min_time} - {max_time}, ", end="")
+        print(f"arrive at {min_arrive} - {max_arrive}, ", end="")
+        print(suffix_s("departure time", len(info_dict)))
 
 
 def show_segment_best(city: City, best_dict: dict[str, set[int]], data_list: list[RouteData]) -> None:
@@ -218,10 +229,16 @@ def show_segment_best(city: City, best_dict: dict[str, set[int]], data_list: lis
             print()
 
 
-def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[RouteData]:
+def sort_routes(
+    city: City, cur_date: date, data_list: list[RouteData], *, time_only_mode: bool = False
+) -> list[RouteData]:
     """ Sort the path list """
-    choices = [
-        "Index", "Percentage", "Average Time", "Minimum Time", "Maximum Time", "First Departure", "Last Departure",
+    choices = ["Index", "Percentage"]
+    if time_only_mode:
+        choices += ["Percentage (w/o Tie)"]
+    choices += [
+        "Average Time", "Minimum Time", "Maximum Time",
+        "First Departure", "Last Departure", "Earliest Arrival", "Latest Arrival",
         "Transfer", "Station", "Distance"
     ]
     if city.fare_rules is not None:
@@ -233,12 +250,14 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
         return sorted(data_list, key=lambda x: x[0])
     elif criteria == "Percentage":
         return sorted(data_list, key=lambda x: x[3], reverse=True)
+    elif criteria == "Percentage (w/o Tie)":
+        return sorted(data_list, key=lambda x: x[3] - x[4], reverse=True)
     elif criteria == "Average Time":
-        return sorted(data_list, key=lambda x: x[4])
+        return sorted(data_list, key=lambda x: x[5])
     elif criteria == "Minimum Time":
-        return sorted(data_list, key=lambda x: x[5][0])
-    elif criteria == "Maximum Time":
         return sorted(data_list, key=lambda x: x[6][0])
+    elif criteria == "Maximum Time":
+        return sorted(data_list, key=lambda x: x[7][0])
     elif criteria == "First Departure":
         return sorted(data_list, key=lambda x: min(
             [get_time_str(y[2].initial_time, y[2].initial_day) for y in x[2].values()]
@@ -247,19 +266,70 @@ def sort_routes(city: City, cur_date: date, data_list: list[RouteData]) -> list[
         return sorted(data_list, key=lambda x: max(
             [get_time_str(y[2].initial_time, y[2].initial_day) for y in x[2].values()]
         ))
+    elif criteria == "Earliest Arrival":
+        return sorted(data_list, key=lambda x: min(
+            [get_time_str(y[2].arrival_time, y[2].arrival_day) for y in x[2].values()]
+        ))
+    elif criteria == "Latest Arrival":
+        return sorted(data_list, key=lambda x: max(
+            [get_time_str(y[2].arrival_time, y[2].arrival_day) for y in x[2].values()]
+        ))
     elif criteria == "Transfer":
-        return sorted(data_list, key=lambda x: total_transfer(x[5][1]))
+        return sorted(data_list, key=lambda x: total_transfer(x[6][1]))
     elif criteria == "Station":
-        return sorted(data_list, key=lambda x: len(expand_path(x[5][1], x[5][2].station)))
+        return sorted(data_list, key=lambda x: len(expand_path(x[6][1], x[6][2].station)))
     elif criteria == "Distance":
-        return sorted(data_list, key=lambda x: path_distance(x[5][1], x[5][2].station))
+        return sorted(data_list, key=lambda x: path_distance(x[6][1], x[6][2].station))
     elif criteria == "Fare":
         fare_rules = city.fare_rules
         assert fare_rules is not None, city
         return sorted(data_list,
-                      key=lambda x: fare_rules.get_total_fare(city.lines, x[5][1], x[5][2].station, cur_date))
+                      key=lambda x: fare_rules.get_total_fare(city.lines, x[6][1], x[6][2].station, cur_date))
     else:
         assert False, criteria
+
+
+def show_extreme(
+    city: City, best_dict: dict[str, set[int]], data_list: list[RouteData], *,
+    time_only_mode: bool = False, show_best: bool = False
+) -> None:
+    """ Show extreme departure/arrival times """
+    if show_best and time_only_mode:
+        real_best = questionary.confirm("Only show timing for best route that are not tie?").ask()
+        if real_best is None:
+            sys.exit(0)
+        mode = ""
+    else:
+        real_best = False
+        mode = questionary.select("Please select routes to display:", choices=[
+            "First Departure", "Last Departure", "Earliest Arrival", "Latest Arrival"
+        ]).ask()
+        if mode is None:
+            sys.exit(0)
+    aux_data: dict[int, str] = {}
+    for index, _, info_dict, *_ in data_list:
+        if show_best:
+            if real_best:
+                candidate_index = [k for k, v in best_dict.items() if index in v and len(v) == 1]
+            else:
+                candidate_index = [k for k, v in best_dict.items() if index in v]
+            if len(candidate_index) == 0:
+                aux_data[index] = "(None)"
+                continue
+            info = info_dict[candidate_index[0]]
+        elif mode == "First Departure":
+            info = min(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+        elif mode == "Last Departure":
+            info = max(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+        elif mode == "Earliest Arrival":
+            info = min(info_dict.values(), key=lambda x: get_time_str(x[2].arrival_time, x[2].arrival_day))
+        elif mode == "Latest Arrival":
+            info = max(info_dict.values(), key=lambda x: get_time_str(x[2].arrival_time, x[2].arrival_day))
+        else:
+            assert False, mode
+        aux_data[index] = info[2].time_str()
+    print()
+    print_routes_with_data(city, data_list, time_only_mode=time_only_mode, aux_data=aux_data)
 
 
 def strip_routes(path_list: list[PathData]) -> list[PathData]:
@@ -332,7 +402,7 @@ def new_best_route(
         if best_index not in indexes:
             continue
         info_dict[time_str] = temp_dict[best_index][2][time_str]
-    return len(path_list), sorted(indexes), [x[1] for x in sorted(list(info_dict.items()), key=lambda x: x[0])]
+    return len(path_list), sorted(indexes), [x[1] for x in sorted(info_dict.items(), key=lambda x: x[0])]
 
 
 def analyze_routes(
@@ -386,8 +456,7 @@ def analyze_routes(
         choices += [
             "Sort routes",
             "Print detailed statistics",
-            "Show first departure",
-            "Show last departure",
+            "Show departure/arrive extreme times",
             "Show example timing for best route"
         ]
         if not time_only_mode:
@@ -416,7 +485,7 @@ def analyze_routes(
                 path_list, city.transfers, through_dict, time_only_mode=time_only_mode
             )
         elif answer == "Sort routes":
-            data_list = sort_routes(city, start_date, data_list)
+            data_list = sort_routes(city, start_date, data_list, time_only_mode=time_only_mode)
             path_list = [(x[0], x[1], list(x[2].values())) for x in data_list]
         elif answer == "Print detailed statistics":
             index_dict = {value[0]: value for value in path_list}
@@ -429,7 +498,7 @@ def analyze_routes(
             if index_str is None:
                 sys.exit(0)
             elif index_str == "One-line":
-                routes_one_line(city, data_list, start_date)
+                routes_one_line(city, data_list, start_date, time_only_mode=time_only_mode)
             elif index_str == "Aggregated (Best routes for each time only)":
                 path_list_inner = []
                 for start_str, index_set in best_dict.items():
@@ -449,21 +518,8 @@ def analyze_routes(
         elif answer == "Show segmented best route for each timing":
             show_segment_best(city, best_dict, data_list)
         elif answer.startswith("Show"):
-            aux_data: dict[int, str] = {}
-            for index, _, info_dict, *_ in data_list:
-                if answer == "Show example timing for best route":
-                    candidate_index = [k for k, v in best_dict.items() if index in v]
-                    if len(candidate_index) == 0:
-                        aux_data[index] = "(None)"
-                        continue
-                    info = info_dict[candidate_index[0]]
-                elif "first" in answer:
-                    info = min(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
-                else:
-                    info = max(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
-                aux_data[index] = info[2].time_str()
-            print()
-            print_routes_with_data(city, data_list, time_only_mode=time_only_mode, aux_data=aux_data)
+            show_extreme(city, best_dict, data_list,
+                         time_only_mode=time_only_mode, show_best=(answer == "Show example timing for best route"))
         elif answer == "Draw selected routes":
             draw_selected(city, data_list, cmap, dpi=dpi, time_only_mode=time_only_mode)
         elif answer == "Draw route timing as line chart":
