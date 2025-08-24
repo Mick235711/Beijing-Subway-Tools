@@ -111,8 +111,6 @@ def ask_for_station(
     # Ask
     real_message = message or "Please select a station:"
     station = complete_pinyin(real_message, meta_information, aliases, sort=False, allow_empty=allow_empty)
-    if station.endswith(")"):
-        station = station[:station.rfind("(")].strip()
     return station, city.station_lines[station] if station != "" else set()
 
 
