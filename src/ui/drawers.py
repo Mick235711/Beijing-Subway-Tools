@@ -52,7 +52,8 @@ def get_line_badge(
 
 
 def get_station_badge(
-    station: str, line: Line | None = None, *, show_badges: bool = True, show_line_badges: bool = True,
+    station: str, line: Line | None = None, *,
+    show_badges: bool = True, show_code_badges: bool = True, show_line_badges: bool = True,
     prefer_line: Line | None = None, label_at_end: bool = False,
     add_click: bool = True, add_line_click: bool | Callable[[str], bool] = True,
     classes: str | None = None
@@ -70,6 +71,8 @@ def get_station_badge(
                 with ui.badge():
                     ui.icon(badge)
     for inner_line in line_list:
+        if not show_code_badges:
+            break
         if not show_line_badges and inner_line.code is None:
             continue
         click = add_line_click if isinstance(add_line_click, bool) else add_line_click(inner_line.name)
@@ -210,22 +213,22 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
 
 
         ui.add_css(f"""
-.q-timeline__subtitle {{
+.drawers-line-timeline .q-timeline__subtitle {{
     margin-bottom: 0;
 }}
-.q-timeline__content {{
+.drawers-line-timeline .q-timeline__content {{
     padding-left: 0 !important;
     gap: 0 !important;
 }}
-.q-timeline__subtitle {{
+.drawers-line-timeline .q-timeline__subtitle {{
     padding-right: 16px !important;
 }}
-.text-line-{line.index} {{
+.drawers-line-timeline .text-line-{line.index} {{
     color: {line.color} !important;
 }}
         """)
         for direction, tab in direction_tabs.items():
-            with ui.tab_panel(tab).classes("p-0 flex flex-col h-full"):
+            with ui.tab_panel(tab).classes("p-0 flex flex-col h-full drawers-line-timeline"):
                 with ui.column().classes("gap-y-0"):
                     ui.switch("Show tally distance", value=True,
                               on_change=lambda v: line_timeline.refresh(show_tally=v.value))
@@ -525,16 +528,22 @@ def refresh_station_drawer(selected_station: str, station_lines: dict[str, set[L
         RIGHT_DRAWER.toggle()
 
 
-def refresh_drawer(lines: dict[str, Line], station_lines: dict[str, set[Line]]) -> None:
-    """ Refresh drawer on change """
-    global RIGHT_DRAWER, SELECTED_LINE, AVAILABLE_LINES, AVAILABLE_STATIONS
-    assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_LINE, lines)
+def assign_globals(lines: dict[str, Line], station_lines: dict[str, set[Line]]) -> None:
+    """ Assign global variables """
+    global AVAILABLE_LINES, AVAILABLE_STATIONS
     AVAILABLE_LINES = lines
     AVAILABLE_STATIONS = station_lines
-    if SELECTED_LINE is not None and SELECTED_LINE.name not in AVAILABLE_LINES:
+
+
+def refresh_drawer(lines: dict[str, Line], station_lines: dict[str, set[Line]]) -> None:
+    """ Refresh drawer on change """
+    global RIGHT_DRAWER, SELECTED_LINE
+    assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_LINE, lines)
+    assign_globals(lines, station_lines)
+    if SELECTED_LINE is not None and SELECTED_LINE.name not in lines:
         RIGHT_DRAWER.hide()
         return
-    if SELECTED_STATION is not None and SELECTED_STATION not in AVAILABLE_STATIONS:
+    if SELECTED_STATION is not None and SELECTED_STATION not in station_lines:
         RIGHT_DRAWER.hide()
         return
     right_drawer.refresh()

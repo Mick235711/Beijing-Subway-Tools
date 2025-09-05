@@ -9,11 +9,13 @@ from datetime import date
 from nicegui import binding, ui
 
 from src.city.city import City
-from src.common.common import distance_str
+from src.city.line import Line
+from src.city.train_route import TrainRoute
+from src.common.common import distance_str, suffix_s
 from src.routing.train import parse_trains, Train
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
     get_default_direction
-from src.ui.drawers import get_line_badge
+from src.ui.drawers import get_line_badge, get_station_badge
 from src.ui.info_tab import InfoData
 
 
@@ -40,6 +42,12 @@ def trains_tab(city: City, data: TrainsData) -> None:
                     break
             assert train_list is not None, (data.line, data.cur_date)
             data.train_list = train_list
+
+            route_timeline.refresh(
+                station_lines=data.info_data.station_lines,
+                line=city.lines[data.line], direction=data.direction,
+                routes=city.lines[data.line].train_routes[data.direction]
+            )
 
         def on_direction_change(direction: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -128,3 +136,118 @@ def trains_tab(city: City, data: TrainsData) -> None:
                     data, "train_list",
                     backward=lambda tl: str(len(tl))
                 ).classes(card_text)
+
+        ui.separator()
+        with ui.column():
+            with ui.row().classes("w-full items-center justify-between"):
+                ui.label("Train Routes").classes("text-xl font-semibold")
+                ui.switch(
+                    "Show train count", value=True,
+                    on_change=lambda v: route_timeline.refresh(show_train_count=v.value)
+                )
+            route_timeline(
+                city, station_lines=data.info_data.station_lines,
+                line=city.lines[data.line], direction=data.direction,
+                routes=city.lines[data.line].train_routes[data.direction]
+            )
+
+
+@ui.refreshable
+def route_timeline(
+    city: City, *,
+    station_lines: dict[str, set[Line]], line: Line, direction: str, routes: dict[str, TrainRoute],
+    show_train_count: bool = True
+) -> None:
+    """ Create timelines for train routes """
+    ui.add_css(f"""
+.train-tab-timeline-parent .q-timeline__subtitle {{
+    margin-bottom: 0;
+}}
+.train-tab-timeline-parent .q-timeline__content {{
+    padding-left: 0 !important;
+    gap: 0 !important;
+    align-items: flex-end !important;
+}}
+.train-tab-timeline-parent .q-timeline__subtitle {{
+    padding-right: 16px !important;
+}}
+.text-line-{line.index} {{
+    color: {line.color} !important;
+}}
+.text-invisible {{
+    visibility: hidden;
+}}
+.skipped-station-dot .q-timeline__dot:before {{
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    border-width: 0 3px 3px 0;
+    border-radius: 0;
+    border-bottom: 3px solid;
+    border-right: 3px solid;
+    background: linear-gradient(to top right,
+             rgba(0,0,0,0) 0%,
+             rgba(0,0,0,0) calc(50% - 1.51px),
+             currentColor calc(50% - 1.5px),
+             currentColor 50%,
+             currentColor calc(50% + 1.5px),
+             rgba(0,0,0,0) calc(50% + 1.51px),
+             rgba(0,0,0,0) 100%);
+}}
+    """)
+    stations = line.direction_stations(direction)
+    with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
+        train_tally = 0
+        with ui.timeline(color=f"line-{line.index}").classes("w-auto"):
+            for i, station in enumerate(stations):
+                express_icon = line.station_badges[line.stations.index(station)]
+                with ui.timeline_entry(
+                    icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
+                ) as entry:
+                    if show_train_count and i != len(stations) - 1:
+                        ui.label(suffix_s("train", train_tally))
+                with entry.add_slot("title"):
+                    with ui.column().classes("gap-y-1 items-end"):
+                        with ui.row().classes("items-center gap-1"):
+                            get_station_badge(
+                                station, line, show_badges=False, show_line_badges=False,
+                                add_line_click=lambda l: l != line.name
+                            )
+                        if len(station_lines[station]) > 1:
+                            with ui.row().classes("items-center gap-x-1"):
+                                for line2 in sorted(station_lines[station], key=lambda l: l.index):
+                                    if line2.name == line.name:
+                                        continue
+                                    get_line_badge(line2, show_name=False, add_click=True)
+
+        for route in sorted(routes.values(), key=lambda r: (stations.index(r.stations[0]), -line.route_distance(r))):
+            if route.stations == stations and len(route.skip_stations) == 0:
+                continue
+            route_stations = route.stations[:]
+            start_index = stations.index(route_stations[0])
+            if start_index != 0:
+                route_stations = stations[:start_index] + route_stations
+            with ui.timeline(color=f"line-{line.index}").classes("w-auto"):
+                for i, station in enumerate(route_stations):
+                    express_icon = line.station_badges[line.stations.index(station)]
+                    with ui.timeline_entry(
+                        icon=(express_icon if (i != 0 and i != len(route_stations) - 1) or not line.loop else "replay"),
+                        color=("invisible" if i < start_index else None)
+                    ).style("padding-right: 10px !important") as entry:
+                        if station in route.skip_stations:
+                            entry.classes("skipped-station-dot")
+                        if show_train_count and i != len(route_stations) - 1:
+                            ui.label(suffix_s("train", train_tally)).classes("invisible text-nowrap w-0")
+                    with entry.add_slot("title"):
+                        with ui.column().classes("gap-y-1 items-end invisible text-nowrap w-0"):
+                            with ui.row().classes("items-center gap-1"):
+                                get_station_badge(
+                                    station, line, show_badges=False, show_code_badges=False, show_line_badges=False,
+                                    add_line_click=lambda l: l != line.name
+                                )
+                            if len(station_lines[station]) > 1:
+                                with ui.row().classes("items-center gap-x-1 w-0"):
+                                    for line2 in sorted(station_lines[station], key=lambda l: l.index):
+                                        if line2.name == line.name:
+                                            continue
+                                        get_line_badge(line2, show_name=False, add_click=True)
+                                        break

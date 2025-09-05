@@ -131,7 +131,7 @@ def calculate_station_rows(
 
 def info_tab(city: City, data: InfoData) -> None:
     """ Info tab for the main page """
-    with ui.row().classes("items-center justify-between"):
+    with ui.row().classes("items-center justify-between info-tab-selection"):
         ui.label("Include lines with:")
 
         def on_switch_change(line_changed: bool = True) -> None:
@@ -183,7 +183,7 @@ def info_tab(city: City, data: InfoData) -> None:
             on_switch_change()
 
         ui.add_css("""
-.q-select .q-field__input--padding {
+.info-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;
 }
         """)
