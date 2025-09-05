@@ -29,24 +29,29 @@ class TrainsData:
     train_list: list[Train]
 
 
+def get_train_list(city: City, data: TrainsData) -> list[Train]:
+    """ Get a list of trains """
+    train_dict = parse_trains(city.lines[data.line], only_direction={data.direction})[data.direction]
+    train_list: list[Train] | None = None
+    for date_group, inner_list in train_dict.items():
+        if city.lines[data.line].date_groups[date_group].covers(data.cur_date):
+            train_list = inner_list[:]
+            break
+    assert train_list is not None, (data.line, data.cur_date)
+    return train_list
+
+
 def trains_tab(city: City, data: TrainsData) -> None:
     """ Train tab for the main page """
     with ui.row().classes("items-center justify-between"):
         def on_any_change() -> None:
             """ Update the train list based on current data """
-            train_dict = parse_trains(city.lines[data.line], only_direction={data.direction})[data.direction]
-            train_list: list[Train] | None = None
-            for date_group, inner_list in train_dict.items():
-                if city.lines[data.line].date_groups[date_group].covers(data.cur_date):
-                    train_list = inner_list[:]
-                    break
-            assert train_list is not None, (data.line, data.cur_date)
-            data.train_list = train_list
+            data.train_list = get_train_list(city, data)
 
             route_timeline.refresh(
                 station_lines=data.info_data.station_lines,
                 line=city.lines[data.line], direction=data.direction,
-                routes=city.lines[data.line].train_routes[data.direction]
+                train_list=data.train_list
             )
 
         def on_direction_change(direction: str | None = None) -> None:
@@ -148,14 +153,14 @@ def trains_tab(city: City, data: TrainsData) -> None:
             route_timeline(
                 city, station_lines=data.info_data.station_lines,
                 line=city.lines[data.line], direction=data.direction,
-                routes=city.lines[data.line].train_routes[data.direction]
+                train_list=get_train_list(city, data)
             )
 
 
 @ui.refreshable
 def route_timeline(
     city: City, *,
-    station_lines: dict[str, set[Line]], line: Line, direction: str, routes: dict[str, TrainRoute],
+    station_lines: dict[str, set[Line]], line: Line, direction: str, train_list: list[Train],
     show_train_count: bool = True
 ) -> None:
     """ Create timelines for train routes """
@@ -195,10 +200,16 @@ def route_timeline(
 }}
     """)
     stations = line.direction_stations(direction)
+    routes: dict[str, TrainRoute] = {}
+    for train in train_list:
+        for route in train.routes:
+            routes[route.name] = route
     with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
         train_tally = 0
         with ui.timeline(color=f"line-{line.index}").classes("w-auto"):
             for i, station in enumerate(stations):
+                train_tally += len([t for t in train_list if t.stations[0] == station])
+                train_tally -= len([t for t in train_list if t.stations[-1] == station])
                 express_icon = line.station_badges[line.stations.index(station)]
                 with ui.timeline_entry(
                     icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
@@ -236,7 +247,7 @@ def route_timeline(
                         if station in route.skip_stations:
                             entry.classes("skipped-station-dot")
                         if show_train_count and i != len(route_stations) - 1:
-                            ui.label(suffix_s("train", train_tally)).classes("invisible text-nowrap w-0")
+                            ui.label("train").classes("invisible text-nowrap w-0")
                     with entry.add_slot("title"):
                         with ui.column().classes("gap-y-1 items-end invisible text-nowrap w-0"):
                             with ui.row().classes("items-center gap-1"):
