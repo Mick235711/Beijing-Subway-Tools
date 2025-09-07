@@ -11,7 +11,8 @@ from collections.abc import Iterable
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
 from src.common.common import diff_time, get_time_repr, get_time_str, format_duration, \
-    distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple, pad_to
+    distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple, pad_to, \
+    to_pinyin
 from src.timetable.timetable import Timetable, route_stations, route_skip_stations, route_without_timetable
 
 
@@ -145,12 +146,16 @@ class Train:
             base += f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}"
         return base
 
+    def routes_str(self) -> str:
+        """ Get string representation of all routes """
+        return "+".join(sorted([r.name for r in self.routes], key=lambda n: to_pinyin(n)[0]))
+
     def direction_repr(self, reverse: bool = False) -> str:
         """ Get string representation for direction and routing """
         if reverse:
-            return (f"[{self.train_code()}] " + "+".join(x.name for x in self.routes) +
+            return (f"[{self.train_code()}] " + self.routes_str() +
                     f" {self.direction} {self.line.full_name()}")
-        return (f"{self.line.full_name()} {self.direction} " + "+".join(x.name for x in self.routes) +
+        return (f"{self.line.full_name()} {self.direction} " + self.routes_str() +
                 f" [{self.train_code()}]")
 
     def station_repr(self, station: str, reverse: bool = False) -> str:

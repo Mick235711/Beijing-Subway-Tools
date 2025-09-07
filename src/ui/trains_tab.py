@@ -11,7 +11,7 @@ from nicegui import binding, ui
 from src.city.city import City
 from src.city.line import Line
 from src.city.train_route import TrainRoute, route_dist
-from src.common.common import distance_str, suffix_s, to_pinyin, get_text_color
+from src.common.common import distance_str, suffix_s, to_pinyin, get_text_color, format_duration, speed_str
 from src.routing.train import parse_trains, Train
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
     get_default_direction, ROUTE_TYPES
@@ -58,6 +58,7 @@ def trains_tab(city: City, data: TrainsData) -> None:
                 line=city.lines[data.line], direction=data.direction,
                 train_list=data.train_list
             )
+            train_table.refresh(station_lines=data.info_data.station_lines, train_list=data.train_list)
 
         def on_direction_change(direction: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -169,6 +170,7 @@ def trains_tab(city: City, data: TrainsData) -> None:
                     line=city.lines[data.line], direction=data.direction,
                     train_list=train_list
                 )
+                train_table(station_lines=data.info_data.station_lines, train_list=train_list)
 
 
 @ui.refreshable
@@ -358,6 +360,17 @@ def route_table(
     with ui.row().classes("w-full items-center justify-between"):
         ui.label("Train Routes").classes("text-xl font-semibold mt-6 mb-2")
         routes_search = ui.input("Search routes...")
+
+    def on_selection_change(rows) -> None:
+        """ Handle table selection changes """
+        highlight_routes = None if len(rows.selection) == 0 else {r["name"] for r in rows.selection}
+        route_timeline.refresh(highlight_routes=highlight_routes)
+        if highlight_routes is None:
+            new_train_list = train_list[:]
+        else:
+            new_train_list = [t for t in train_list if any(r.name in highlight_routes for r in t.routes)]
+        train_table.refresh(train_list=new_train_list)
+
     routes_table = ui.table(
         columns=[
             {"name": "name", "label": "Name", "field": "name",
@@ -392,9 +405,7 @@ def route_table(
         rows=calculate_route_rows(city, lines, line, direction, routes, train_list),
         row_key="name",
         selection="multiple",
-        on_select=lambda rows: route_timeline.refresh(
-            highlight_routes=(None if len(rows.selection) == 0 else {r["name"] for r in rows.selection})
-        )
+        on_select=on_selection_change
     )
     routes_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], lines))
     routes_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
@@ -406,7 +417,7 @@ def route_table(
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
 </q-td>
-            """)
+    """)
     routes_table.add_slot("body-cell-end", """
 <q-td key="end" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{ props.value[0] }}
@@ -415,7 +426,7 @@ def route_table(
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
 </q-td>
-            """)
+    """)
     routes_table.add_slot("body-cell-routeType", """
 <q-td key="routeType" :props="props">
     <q-badge v-for="[type, color, icon] in props.value" :color="color">
@@ -423,5 +434,114 @@ def route_table(
         <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
     </q-badge>
 </q-td>
-            """)
+    """)
     routes_search.bind_value(routes_table, "filter")
+
+
+def calculate_train_rows(
+    train_list: list[Train]
+) -> list[dict]:
+    """ Calculate rows for the train table """
+    rows = []
+    route_dict: dict[str, int] = {}
+    for train in sorted(
+        train_list, key=lambda t: sorted(
+            [r.name for r in t.routes], key=lambda n: to_pinyin(n)[0]
+        ) + [t.start_time_str()]
+    ):
+        end_station = train.loop_next.stations[0] if train.loop_next is not None else train.stations[-1]
+        route_id = train.routes_str()
+        if route_id not in route_dict:
+            route_dict[route_id] = 0
+        route_dict[route_id] += 1
+        train_id = f"{route_id}#{route_dict[route_id]}"
+        row = {
+            "id": train_id,
+            "id_sort": to_pinyin(train_id)[0],
+            "start_station": train.stations[0],
+            "start_station_sort": to_pinyin(train.stations[0])[0],
+            "start_time": train.start_time_str(),
+            "end_station": end_station,
+            "end_station_sort": to_pinyin(end_station)[0],
+            "end_time": train.loop_next.start_time_str() if train.loop_next is not None else train.end_time_str(),
+            "duration": format_duration(train.duration()),
+            "duration_sort": train.duration(),
+            "distance": distance_str(train.distance()),
+            "num_stations": len(train.stations) + (1 if train.loop_next is not None else 0),
+            "avg_speed": speed_str(train.speed()),
+            "train_code": train.train_code()
+        }
+        rows.append(row)
+    return rows
+
+
+@ui.refreshable
+def train_table(
+    *, station_lines: dict[str, set[Line]], train_list: list[Train]
+) -> None:
+    """ Create a table for trains """
+    with ui.row().classes("w-full items-center justify-between"):
+        ui.label("Trains").classes("text-xl font-semibold mt-6 mb-2")
+        trains_search = ui.input("Search trains...")
+    trains_table = ui.table(
+        columns=[
+            {"name": "id", "label": "ID", "field": "id",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["id_sort"].localeCompare(rowB["id_sort"]);
+                     }"""},
+            {"name": "idSort", "label": "ID Sort", "field": "id_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "start", "label": "Start", "field": "start_station",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
+                     }"""},
+            {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "startTime", "label": "Start Time", "field": "start_time", "align": "center"},
+            {"name": "end", "label": "End", "field": "end_station",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
+                     }"""},
+            {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "endTime", "label": "End Time", "field": "end_time", "align": "center"},
+            {"name": "duration", "label": "Duration", "field": "duration",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["duration_sort"]) - parseFloat(rowB["duration_sort"]);
+                     }"""},
+            {"name": "durationSort", "label": "Duration Sort", "field": "duration_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "distance", "label": "Distance", "field": "distance",
+             ":sort": """(a, b, rowA, rowB) => {
+                        const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
+                        return parse(a) - parse(b);
+                     }"""},
+            {"name": "stationNum", "label": "Stations", "field": "num_stations"},
+            {"name": "speed", "label": "Avg Speed", "field": "avg_speed",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(a) - parseFloat(b);
+                     }"""},
+            {"name": "trainCode", "label": "Code", "field": "train_code", "align": "center"}
+        ],
+        column_defaults={"align": "right", "required": True, "sortable": True},
+        rows=calculate_train_rows(train_list),
+        pagination=10
+    )
+    # trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(n.args))
+    trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
+    trains_table.add_slot("body-cell-id", """
+<q-td key="name" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+    {{ props.value }}
+</q-td>
+    """)
+    trains_table.add_slot("body-cell-start", """
+<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
+    {{ props.value }}
+</q-td>
+    """)
+    trains_table.add_slot("body-cell-end", """
+<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
+    {{ props.value }}
+</q-td>
+    """)
+    trains_search.bind_value(trains_table, "filter")
