@@ -158,7 +158,7 @@ def trains_tab(city: City, data: TrainsData) -> None:
                         on_change=lambda v: route_timeline.refresh(show_train_count=v.value)
                     )
                 route_timeline(
-                    city, station_lines=data.info_data.station_lines,
+                    station_lines=data.info_data.station_lines,
                     line=city.lines[data.line], direction=data.direction,
                     train_list=train_list
                 )
@@ -173,9 +173,8 @@ def trains_tab(city: City, data: TrainsData) -> None:
 
 @ui.refreshable
 def route_timeline(
-    city: City, *,
-    station_lines: dict[str, set[Line]], line: Line, direction: str, train_list: list[Train],
-    show_train_count: bool = True
+    *, station_lines: dict[str, set[Line]], line: Line, direction: str, train_list: list[Train],
+    show_train_count: bool = True, highlight_routes: set[str] | None = None
 ) -> None:
     """ Create timelines for train routes """
     ui.add_css(f"""
@@ -220,7 +219,11 @@ def route_timeline(
             routes[route.name] = route
     with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
         train_tally = 0
-        with ui.timeline(color=f"line-{line.index}").classes("w-auto"):
+        dim = highlight_routes is not None and all(
+            routes[r].stations != stations or len(routes[r].skip_stations) > 0 for r in highlight_routes
+        )
+        timeline_color = "gray-50/10" if dim else f"line-{line.index}"
+        with ui.timeline(color=timeline_color).classes("w-auto"):
             for i, station in enumerate(stations):
                 train_tally += len([t for t in train_list if t.stations[0] == station])
                 train_tally -= len([t for t in train_list if t.stations[-1] == station])
@@ -246,11 +249,13 @@ def route_timeline(
         for route in sorted(routes.values(), key=lambda r: (stations.index(r.stations[0]), -line.route_distance(r))):
             if route.stations == stations and len(route.skip_stations) == 0:
                 continue
+            dim = highlight_routes is not None and route.name not in highlight_routes
+            timeline_color = "gray-50/10" if dim else f"line-{line.index}"
             route_stations = route.stations[:]
             start_index = stations.index(route_stations[0])
             if start_index != 0:
                 route_stations = stations[:start_index] + route_stations
-            with ui.timeline(color=f"line-{line.index}").classes("w-auto"):
+            with ui.timeline(color=timeline_color).classes("w-auto"):
                 for i, station in enumerate(route_stations):
                     express_icon = line.station_badges[line.stations.index(station)]
                     with ui.timeline_entry(
@@ -385,7 +390,11 @@ def route_table(
         ],
         column_defaults={"align": "right", "required": True, "sortable": True},
         rows=calculate_route_rows(city, lines, line, direction, routes, train_list),
-        pagination=10
+        row_key="name",
+        selection="multiple",
+        on_select=lambda rows: route_timeline.refresh(
+            highlight_routes=(None if len(rows.selection) == 0 else {r["name"] for r in rows.selection})
+        )
     )
     routes_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], lines))
     routes_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
