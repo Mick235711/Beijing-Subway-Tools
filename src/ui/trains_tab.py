@@ -222,7 +222,9 @@ def route_timeline(
     with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
         train_tally = 0
         dim = highlight_routes is not None and all(
-            routes[r].stations != stations or len(routes[r].skip_stations) > 0 for r in highlight_routes
+            routes[r].stations != stations or len(routes[r].skip_stations) > 0 or
+            (line.loop and (routes[r].starts_with is not None or routes[r].ends_with is not None or not routes[r].loop))
+            for r in highlight_routes
         )
         timeline_color = "gray-50/10" if dim else f"line-{line.index}"
         with ui.timeline(color=timeline_color).classes("w-auto"):
@@ -250,7 +252,8 @@ def route_timeline(
 
         for route in sorted(routes.values(), key=lambda r: (stations.index(r.stations[0]), -line.route_distance(r))):
             if route.stations == stations and len(route.skip_stations) == 0:
-                continue
+                if not line.loop or (route.starts_with is None and route.ends_with is None and route.loop):
+                    continue
             dim = highlight_routes is not None and route.name not in highlight_routes
             timeline_color = "gray-50/10" if dim else f"line-{line.index}"
             route_stations = route.stations[:]
@@ -260,8 +263,13 @@ def route_timeline(
             with ui.timeline(color=timeline_color).classes("w-auto"):
                 for i, station in enumerate(route_stations):
                     express_icon = line.station_badges[line.stations.index(station)]
+                    if line.loop:
+                        if i == 0 and route.starts_with is None:
+                            express_icon = "replay"
+                        elif i == len(route_stations) - 1 and (route.ends_with is None and route.loop):
+                            express_icon = "replay"
                     with ui.timeline_entry(
-                        icon=(express_icon if (i != 0 and i != len(route_stations) - 1) or not line.loop else "replay"),
+                        icon=express_icon,
                         color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
                         if station in route.skip_stations:

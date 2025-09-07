@@ -23,6 +23,8 @@ class TrainRoute:
         self.skip_timetable = False
         self.carriage_num = carriage_num
         self.loop = loop
+        self.starts_with: str | None = None
+        self.ends_with: str | None = None
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -68,8 +70,10 @@ def parse_train_route(direction: str, base: list[str],
 
     if "starts_with" in spec:
         route.stations = route.stations[route.stations.index(spec["starts_with"]):]
+        route.starts_with = spec["starts_with"]
     if "ends_with" in spec:
         route.stations = route.stations[:route.stations.index(spec["ends_with"]) + 1]
+        route.ends_with = spec["ends_with"]
     if "skip" in spec:
         route.skip_stations = set(spec["skip"])
         assert all(ss in route.stations for ss in route.skip_stations), spec
