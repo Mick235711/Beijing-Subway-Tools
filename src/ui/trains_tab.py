@@ -10,6 +10,7 @@ from nicegui import binding, ui
 
 from src.city.city import City
 from src.city.line import Line
+from src.city.through_spec import ThroughSpecEntry
 from src.city.train_route import TrainRoute, route_dist
 from src.common.common import distance_str, suffix_s, to_pinyin, get_text_color, format_duration, speed_str
 from src.routing.train import parse_trains, Train
@@ -50,12 +51,12 @@ def trains_tab(city: City, data: TrainsData) -> None:
 
             route_timeline.refresh(
                 station_lines=data.info_data.station_lines,
-                line=city.lines[data.line], direction=data.direction,
+                line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                 train_list=data.train_list
             )
             route_table.refresh(
                 station_lines=data.info_data.station_lines,
-                line=city.lines[data.line], direction=data.direction,
+                line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                 train_list=data.train_list
             )
             train_table.refresh(station_lines=data.info_data.station_lines, train_list=data.train_list)
@@ -159,24 +160,59 @@ def trains_tab(city: City, data: TrainsData) -> None:
                         on_change=lambda v: route_timeline.refresh(show_train_count=v.value)
                     )
                 route_timeline(
-                    station_lines=data.info_data.station_lines,
-                    line=city.lines[data.line], direction=data.direction,
+                    city, station_lines=data.info_data.station_lines,
+                    line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                     train_list=train_list
                 )
 
             with ui.column():
                 route_table(
                     city, station_lines=data.info_data.station_lines,
-                    line=city.lines[data.line], direction=data.direction,
+                    line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                     train_list=train_list
                 )
                 train_table(station_lines=data.info_data.station_lines, train_list=train_list)
 
 
+def get_through(
+    city: City, lines: dict[str, Line],
+    line: Line, direction: str, cur_date: date, route: TrainRoute
+) -> tuple[bool, tuple[ThroughSpecEntry | None, ThroughSpecEntry | None]]:
+    """ Get through route corresponding to a single route """
+    matched_list: list[tuple[ThroughSpecEntry | None, ThroughSpecEntry | None]] = []
+    for spec in city.through_specs:
+        if not all(l.name in lines.keys() for l, _, _, _ in spec.spec):
+            continue
+        for i, (spec_line, spec_direction, spec_dg, spec_route) in enumerate(spec.spec):
+            if line.name == spec_line.name and direction == spec_direction and spec_dg.covers(cur_date) and\
+                    route.name == spec_route.name:
+                matched_list.append((None if i == 0 else spec.spec[i - 1],
+                                     None if i == len(spec.spec) - 1 else spec.spec[i + 1]))
+    if len(matched_list) == 0:
+        return False, (None, None)
+    assert len(matched_list) == 1, (line, direction, route, matched_list)
+    return True, matched_list[0]
+
+
+def split_route(
+    city: City, lines: dict[str, Line], stations: list[str],
+    line: Line, direction: str, cur_date: date, route: TrainRoute
+) -> tuple[bool, tuple[ThroughSpecEntry | None, ThroughSpecEntry | None]]:
+    """ Determine whether to split route into its own timeline """
+    have_through, entries = get_through(city, lines, line, direction, cur_date, route)
+    if route.name == line.direction_base_route[direction].name:
+        return False, entries
+    if route.stations == stations and len(route.skip_stations) == 0:
+        if line.loop:
+            return have_through or route.starts_with is not None or route.ends_with is not None or not route.loop, entries
+        return have_through, entries
+    return True, entries
+
+
 @ui.refreshable
 def route_timeline(
-    *, station_lines: dict[str, set[Line]], line: Line, direction: str, train_list: list[Train],
-    show_train_count: bool = True, highlight_routes: set[str] | None = None
+    city: City, *, station_lines: dict[str, set[Line]], line: Line, direction: str, cur_date: date,
+    train_list: list[Train], show_train_count: bool = True, highlight_routes: set[str] | None = None
 ) -> None:
     """ Create timelines for train routes """
     ui.add_css(f"""
@@ -214,6 +250,8 @@ def route_timeline(
              rgba(0,0,0,0) 100%);
 }}
     """)
+
+    lines = {l.name: l for ls in station_lines.values() for l in ls}
     stations = line.direction_stations(direction)
     routes: dict[str, TrainRoute] = {}
     for train in train_list:
@@ -222,9 +260,10 @@ def route_timeline(
     with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
         train_tally = 0
         dim = highlight_routes is not None and all(
-            routes[r].stations != stations or len(routes[r].skip_stations) > 0 or
-            (line.loop and (routes[r].starts_with is not None or routes[r].ends_with is not None or not routes[r].loop))
-            for r in highlight_routes
+            split_route(city, lines, stations, line, direction, cur_date, routes[r])[0] for r in highlight_routes
+        )
+        _, (entry_before, entry_after) = get_through(
+            city, lines, line, direction, cur_date, line.direction_base_route[direction]
         )
         timeline_color = "gray-50/10" if dim else f"line-{line.index}"
         with ui.timeline(color=timeline_color).classes("w-auto"):
@@ -232,9 +271,11 @@ def route_timeline(
                 train_tally += len([t for t in train_list if t.stations[0] == station])
                 train_tally -= len([t for t in train_list if t.stations[-1] == station])
                 express_icon = line.station_badges[line.stations.index(station)]
-                with ui.timeline_entry(
-                    icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
-                ) as entry:
+                if line.loop and (i == 0 or i == len(stations) - 1):
+                    express_icon = "replay"
+                elif (i == 0 and entry_before is not None) or (i == len(stations) - 1 and entry_after is not None):
+                    express_icon = "sync_alt"
+                with ui.timeline_entry(icon=express_icon) as entry:
                     if show_train_count and i != len(stations) - 1:
                         ui.label(suffix_s("train", train_tally))
                 with entry.add_slot("title"):
@@ -251,9 +292,9 @@ def route_timeline(
                                     get_line_badge(line2, show_name=False, add_click=True)
 
         for route in sorted(routes.values(), key=lambda r: (stations.index(r.stations[0]), -line.route_distance(r))):
-            if route.stations == stations and len(route.skip_stations) == 0:
-                if not line.loop or (route.starts_with is None and route.ends_with is None and route.loop):
-                    continue
+            split, (entry_before, entry_after) = split_route(city, lines, stations, line, direction, cur_date, route)
+            if not split:
+                continue
             dim = highlight_routes is not None and route.name not in highlight_routes
             timeline_color = "gray-50/10" if dim else f"line-{line.index}"
             route_stations = route.stations[:]
@@ -263,15 +304,21 @@ def route_timeline(
             with ui.timeline(color=timeline_color).classes("w-auto"):
                 for i, station in enumerate(route_stations):
                     express_icon = line.station_badges[line.stations.index(station)]
-                    if line.loop:
-                        if i == 0 and route.starts_with is None:
-                            express_icon = "replay"
-                        elif i == len(route_stations) - 1 and (route.ends_with is None and route.loop):
-                            express_icon = "replay"
+                    if line.loop and (
+                        (i == 0 and route.starts_with is None) or
+                        (i == len(route_stations) - 1 and (route.ends_with is None and route.loop))
+                    ):
+                        express_icon = "replay"
+                    elif (i == start_index and entry_before is not None) or (
+                        i == len(route_stations) - 1 and entry_after is not None
+                    ):
+                        express_icon = "sync_alt"
                     with ui.timeline_entry(
                         icon=express_icon,
                         color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
+                        if start_index > 0 and express_icon == "sync_alt":
+                            entry.classes("mt-[-8px]")
                         if station in route.skip_stations:
                             entry.classes("skipped-station-dot")
                         if show_train_count and i != len(route_stations) - 1:
@@ -312,7 +359,7 @@ def get_route_type(stations: list[str], route: TrainRoute) -> list[str]:
 
 def calculate_route_rows(
     city: City, lines: dict[str, Line],
-    line: Line, direction: str, routes: dict[str, TrainRoute], train_list: list[Train]
+    line: Line, direction: str, cur_date: date, routes: dict[str, TrainRoute], train_list: list[Train]
 ) -> list[dict]:
     """ Calculate rows for the route table """
     stations = line.direction_stations(direction)
@@ -323,10 +370,9 @@ def calculate_route_rows(
             "name": route_name,
             "name_sort": to_pinyin(route_name)[0],
             "route_type": [(x, ROUTE_TYPES[x][0], ROUTE_TYPES[x][1]) for x in get_route_type(stations, route)] + (
-                [("Through", ROUTE_TYPES["Through"][0], ROUTE_TYPES["Through"][1])] if any(
-                    any(l.name == line.name and d == direction and route_name == r.name for l, d, _, r in spec.spec) and
-                    all(l.name in lines.keys() for l, _, _, _ in spec.spec) for spec in city.through_specs
-                ) else []
+                [("Through", ROUTE_TYPES["Through"][0], ROUTE_TYPES["Through"][1])] if get_through(
+                    city, lines, line, direction, cur_date, route
+                )[0] else []
             ),
             "num_trains": len([t for t in train_list if route_name in {r.name for r in t.routes}]),
             "start_station": [route.stations[0]] + (
@@ -355,7 +401,7 @@ def calculate_route_rows(
 @ui.refreshable
 def route_table(
     city: City, *,
-    station_lines: dict[str, set[Line]], line: Line, direction: str, train_list: list[Train],
+    station_lines: dict[str, set[Line]], line: Line, direction: str, cur_date: date, train_list: list[Train],
 ) -> None:
     """ Create a table for train routes """
     lines = {l.name: l for ls in station_lines.values() for l in ls}
@@ -410,7 +456,7 @@ def route_table(
             {"name": "trainType", "label": "Train Type", "field": "train_type", "sortable": False, "align": "center"}
         ],
         column_defaults={"align": "right", "required": True, "sortable": True},
-        rows=calculate_route_rows(city, lines, line, direction, routes, train_list),
+        rows=calculate_route_rows(city, lines, line, direction, cur_date, routes, train_list),
         row_key="name",
         selection="multiple",
         on_select=on_selection_change

@@ -13,10 +13,13 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute
 
 
+ThroughSpecEntry = tuple[Line, str, DateGroup, TrainRoute]
+
+
 class ThroughSpec:
     """ A class for storing through train specifications """
 
-    def __init__(self, spec: list[tuple[Line, str, DateGroup, TrainRoute]]) -> None:
+    def __init__(self, spec: list[ThroughSpecEntry]) -> None:
         """ Constructor """
         # list of (line, direction, date_group, route)
         self.spec = spec
