@@ -27,6 +27,14 @@ LINE_TYPES = {
     "End-Circle": ("purple", "arrow_circle_right"),
     "Through": ("indigo-7", "sync_alt")
 }
+ROUTE_TYPES = {
+    "Full": ("primary", ""),
+    "Express": ("red", "rocket"),
+    "Short-Turn": ("orange", "u_turn_left"),
+    "Middle-Start": ("purple", "start"),
+    "Loop": ("teal", "loop"),
+    "Through": ("indigo-7", "sync_alt")
+}
 
 
 def get_station_badge_html(line: Line, station_code: str) -> str:
