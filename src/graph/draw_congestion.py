@@ -266,7 +266,7 @@ def print_congestion(
         line_metric_unit = lambda x: f"{x:.2f} ppl / station"
     else:
         assert False, line_metric
-    display_first(sorted(list(line_stats.items()), key=lambda x: (
+    display_first(sorted(line_stats.items(), key=lambda x: (
         -line_metric_func(lines, *x, line_metric=line_metric), lines[x[0]].index
     )), lambda x: line_metric_unit(
         line_metric_func(lines, *x, line_metric=line_metric)
@@ -280,7 +280,7 @@ def print_congestion(
         load_metric_unit = lambda x: percentage_str(x)
     else:
         assert False, load_metric
-    display_first(sorted(list(load_dict.items()), key=lambda x: (
+    display_first(sorted(load_dict.items(), key=lambda x: (
         -load_metric_func(*x, load_metric=load_metric),
         to_pinyin(x[0][0])[0], to_pinyin(x[0][1])[0], None if x[0][2] is None else lines[x[0][2]].index
     )), lambda x: load_metric_unit(load_metric_func(*x, load_metric=load_metric)) + ": " + load_metric_suffix(
@@ -320,7 +320,7 @@ def print_congestion(
                         direction_key = (station, (direction_key[1][1], direction_key[1][0]))
                 direction_dict[direction_key] = direction_dict.get(direction_key, 0) + inner_people
 
-        for (station, (inner_from, inner_to)), people in sorted(list(direction_dict.items()), key=lambda x: -x[1]):
+        for (station, (inner_from, inner_to)), people in sorted(direction_dict.items(), key=lambda x: -x[1]):
             basis = station_full_name(station, lines) + " "
             basis += inner_repr(lines, inner_from, inner_to, have_direction=have_direction)
             transfer_data.append((people, basis))
@@ -356,7 +356,7 @@ def print_congestion(
             basis += lines[to_l].full_name() + " ("
             first = True
             people_total = 0.0
-            for (from_station, to_station), people in sorted(list(line_inner.items()), key=lambda x: -x[1]):
+            for (from_station, to_station), people in sorted(line_inner.items(), key=lambda x: -x[1]):
                 people_total += people
                 if first:
                     first = False
@@ -499,7 +499,7 @@ def main() -> None:
 
     args = map_args(append_arg, contour_args=False, multi_source=False, include_limits=False, have_single=True)
     city = ask_for_city()
-    load_factor = parse_load_factor(set(list(city.station_lines.keys())), args.load_factor)
+    load_factor = parse_load_factor(set(city.station_lines.keys()), args.load_factor)
     start_date = ask_for_date()
     time_set = ask_for_time_seq()
 

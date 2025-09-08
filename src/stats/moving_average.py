@@ -84,7 +84,7 @@ def get_section_data(
     line = list(train_date_set)[0][1].line
     all_trains = get_all_trains_from_set({line.name: line}, train_date_set)
     processed_dict: dict[str, dict[tuple[str, str, str], list[Train]]] = {}
-    for date_group, train in set(x for y in all_trains.values() for x in y):
+    for date_group, train in {x for y in all_trains.values() for x in y}:
         if train.line.name not in processed_dict:
             processed_dict[train.line.name] = {}
         for station in train.stations:

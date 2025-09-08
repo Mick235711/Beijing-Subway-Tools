@@ -55,7 +55,7 @@ def all_station_bfs(
 
     results: dict[str, dict[str, dict[int, PathInfo]]] = {}
     for (cur_station, start_time, start_day), bfs_result in multi_result:
-        bfs_stations = set([x[0] for x in bfs_result.keys()])
+        bfs_stations = {x[0] for x in bfs_result.keys()}
         for station in bfs_stations:
             if station not in stations:
                 continue
@@ -256,7 +256,7 @@ def main() -> None:
     )
     exclude_stations: set[str] = set()
     if args.compare_against == "fare":
-        exclude_stations = set(x[0] for x in city.virtual_transfers.keys()) | set(x[1] for x in city.virtual_transfers.keys())
+        exclude_stations = {x[0] for x in city.virtual_transfers.keys()} | {x[1] for x in city.virtual_transfers.keys()}
     print_paths(paths_basis, paths_compare, city.lines, exclude_stations, start_date, through_dict, city.fare_rules,
                 pair_source=args.pair_source, delta_metric=delta_metric, limit_num=args.limit_num)
 

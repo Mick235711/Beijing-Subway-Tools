@@ -76,14 +76,14 @@ class Transfer:
         """ Retrieve the smallest transfer time available, given limited parameters """
         if from_line is None:
             assert from_direction is None, (from_line, from_direction)
-            possible_from = list(set((x[0], x[1]) for x in self.transfer_time.keys()))
+            possible_from = list({(x[0], x[1]) for x in self.transfer_time.keys()})
         elif from_direction is None:
             possible_from = [(from_line.name, x) for x in from_line.directions.keys()]
         else:
             possible_from = [(from_line.name, from_direction)]
         if to_line is None:
             assert to_direction is None, (to_line, to_direction)
-            possible_to = list(set((x[2], x[3]) for x in self.transfer_time.keys()))
+            possible_to = list({(x[2], x[3]) for x in self.transfer_time.keys()})
         elif to_direction is None:
             possible_to = [(to_line.name, x) for x in to_line.directions.keys()]
         else:

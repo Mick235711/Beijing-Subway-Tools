@@ -62,7 +62,7 @@ class DateGroup:
         """ Key for sorting """
         if self.dates is not None:
             return True, None
-        return False, tuple(sorted(list(self.weekday)))
+        return False, tuple(sorted(self.weekday))
 
 
 class TimeInterval:

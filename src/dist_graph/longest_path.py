@@ -322,7 +322,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         ) + " path from all " + suffix_s("path", path_len) + "...", end="", flush=True)
         best_path = next(paths.max_iter()) if args.path_mode == "max" else next(paths.min_iter())
         print(" Done!")
-        all_stations = set(x[0] for x in best_path) | set(x[1] for x in best_path)
+        all_stations = {x[0] for x in best_path} | {x[1] for x in best_path}
         if args.all:
             candidates = [s for s in all_stations if len([x for x in best_path if s in x]) != 2]
             assert len(candidates) == 2, (candidates, best_path)

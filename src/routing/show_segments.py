@@ -40,7 +40,7 @@ def organize_loop(train_list: Sequence[Train]) -> Sequence[Segment]:
 def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Segment]:
     """ Organize a timetable into train segments """
     associate: list[tuple[Train | ThroughTrain, Train | ThroughTrain]] = []
-    all_carriage_num = set(train.carriage_num for train in all_trains)
+    all_carriage_num = {train.carriage_num for train in all_trains}
     for carriage_num in all_carriage_num:
         end_station_dict: dict[str, list[Train | ThroughTrain]] = {}
         for train in all_trains:
@@ -232,9 +232,9 @@ def main() -> None:
 
         # Get regular segments for all lines involved
         regular_list: list[Train] = []
-        specs = list(set(item for spec in line_spec for item in spec.spec))
+        specs = list({item for spec in line_spec for item in spec.spec})
         for line, direction, date_group, _ in specs:
-            regular_list += [train for train in train_dict[line.name][direction][date_group.name]]
+            regular_list += train_dict[line.name][direction][date_group.name]
         loop_dict = list(parse_through_segments(cast(list[ThroughTrain], train_list), regular_list))
 
     meta_information: dict[str, str] = {}

@@ -54,7 +54,7 @@ def minute_trains(
     """ Print train number & capacity per minute """
     minute_dict: dict[str, dict[str, int]] = {"Total": {}}
     index_dict: dict[str, int] = {}
-    for _, train in set(t for x in all_trains.values() for t in x):
+    for _, train in {t for x in all_trains.values() for t in x}:
         if full_only and not train.is_full():
             continue
         if train.line.name not in minute_dict:

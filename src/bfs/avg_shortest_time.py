@@ -43,10 +43,10 @@ def get_minute_list(
     all_arrival = [train.arrival_time[start_station] for train in all_trains
                    if (limit_line is None or train.line.name == limit_line) and
                    (limit_direction is None or train.direction == limit_direction)]
-    all_minutes = list(sorted(set(to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival)))
+    all_minutes = list({to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival})
     limit_start_num = 0 if limit_start is None else to_minutes(limit_start, limit_start_day)
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
-    all_list = list(x for x in all_minutes if limit_start_num <= x <= limit_end_num)
+    all_list = [x for x in all_minutes if limit_start_num <= x <= limit_end_num]
     return all_list
 
 
@@ -104,7 +104,7 @@ def all_time_bfs(
                 multi_result.append(elem)
 
     for _, _, bfs_result in multi_result:
-        stations = set([x[0] for x in bfs_result.keys()])
+        stations = {x[0] for x in bfs_result.keys()}
         for station in stations:
             result = get_result(bfs_result, station, transfer_dict, through_dict)
             if result is None:
@@ -148,10 +148,10 @@ def calculate_shortest(
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
-        coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([(list(
+        coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([([
             (station, (train.line.name, train.direction) if isinstance(train, Train) else None)
             for station, train in path[1]
-        ), path) for path in times_paths])
+        ], path) for path in times_paths])
         result_dict[station] = (
             average(times), stddev(times),
             average(total_transfer(path, through_dict=through_dict) for _, path, _ in times_paths),
@@ -379,7 +379,7 @@ def find_avg_paths(
         include_lines=args.include_lines, exclude_lines=args.exclude_lines,
         exclude_virtual=args.exclude_virtual, exclude_edge=args.exclude_edge, include_express=args.include_express,
     )
-    result_dict = dict(sorted(list(result_dict.items()),
+    result_dict = dict(sorted(result_dict.items(),
                               key=lambda x: (x[1][data_criteria.index(args.data_source)], x[1][0], to_pinyin(x[0])[0])))
 
     result: list[tuple[str, list[tuple[float, AbstractPath, list[PathInfo]]]]] = []

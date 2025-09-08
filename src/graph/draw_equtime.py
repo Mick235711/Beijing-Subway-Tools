@@ -48,7 +48,7 @@ def main() -> None:
     map_obj = ask_for_map(city)
     result_dict = {
         station: result_dict1[station] - result_dict2[station]
-        for station in set(list(result_dict1.keys())).intersection(result_dict2.keys())
+        for station in set(result_dict1.keys()).intersection(result_dict2.keys())
     }
 
     img = Image.open(map_obj.path)
@@ -58,11 +58,11 @@ def main() -> None:
     # Draw extremes: two starting points, and unreachable
     draw_station_filled(draw, station1, cmap(0.0), map_obj)
     draw_station_filled(draw, station2, cmap(1.0), map_obj)
-    for station in set(list(result_dict1.keys())).difference(result_dict2.keys()):
+    for station in set(result_dict1.keys()).difference(result_dict2.keys()):
         if station == station1 or station == station2:
             continue
         draw_station(draw, station, cmap(0.0), map_obj, "-Inf")
-    for station in set(list(result_dict2.keys())).difference(result_dict1.keys()):
+    for station in set(result_dict2.keys()).difference(result_dict1.keys()):
         if station == station1 or station == station2:
             continue
         draw_station(draw, station, cmap(1.0), map_obj, "Inf")

@@ -103,7 +103,7 @@ def display_info_min(
     max_info = max(infos, key=lambda x: x[0])
     min_time = min(infos, key=lambda x: (get_time_str(x[2].initial_time, x[2].initial_day), x[0]))
     max_time = max(infos, key=lambda x: (get_time_str(x[2].initial_time, x[2].initial_day), x[0]))
-    times = set(get_time_str(x[2].initial_time, x[2].initial_day) for x in infos)
+    times = {get_time_str(x[2].initial_time, x[2].initial_day) for x in infos}
     print("Average over all " + suffix_s("path", len(infos)) + " with " +
           suffix_s("distinct starting time", len(times)) +
           f" ({get_time_repr(min_time[2].initial_time, min_time[2].initial_day)} - " +

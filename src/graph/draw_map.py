@@ -193,9 +193,9 @@ def draw_contours(
         if have_minus:
             level_list = [level for level in levels if level <= min(min_value, 0)]
             levels = ([max(level_list)] if len(level_list) > 0 else []) + processed_levels
-            levels = sorted(list(set(levels)))
+            levels = sorted(set(levels))
         else:
-            levels = sorted(x for x in list(set(processed_levels)) if x != 0)
+            levels = sorted(x for x in set(processed_levels) if x != 0)
         print("Drawing levels: [" + ", ".join(
             str(f) if f not in regularize_focus and f not in regularize_style
             else f"{f} (" + ", ".join(
@@ -283,7 +283,7 @@ def draw_contour_wrap(
         ax, img.size, *args,
         label_num=cmd_args.label_num, line_width=cmd_args.line_width, levels=levels,
         focus_contour=(
-            set(int(x) for x in parse_comma(cmd_args.focus)) if cmd_args.focus is not None else default_contours
+            {int(x) for x in parse_comma(cmd_args.focus)} if cmd_args.focus is not None else default_contours
         ), contour_styles=parse_contour_spec(cmd_args.style_spec)
     )
     print(f"Drawing contours done! Saving to {output}...")

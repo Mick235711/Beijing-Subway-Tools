@@ -66,7 +66,7 @@ def ask_for_line_with_through(
         lines = {name: line for name, line in lines.items() if line.loop}
         payload = None
     else:
-        payload = [spec for spec in through_specs]
+        payload = list(through_specs)
     if only_express:
         lines = {name: line for name, line in lines.items() if line.have_express()}
         if payload is not None:
@@ -103,7 +103,7 @@ def ask_for_station(
             continue
         station = city.station_full_name(station)
         meta_information[station] = ", ".join(
-            line.full_name() for line in sorted(list(lines_set), key=lambda x: x.index)
+            line.full_name() for line in sorted(lines_set, key=lambda x: x.index)
         )
     meta_information = dict(sorted(meta_information.items(), key=lambda x: to_pinyin(x[0])[0]))
     aliases = dict(sorted(aliases.items(), key=lambda x: to_pinyin(x[0])[0]))
@@ -187,8 +187,8 @@ def ask_for_station_in_line(
         if with_direction is None:
             stations = list(line.timetables().keys())
         else:
-            stations = list(station for station in line.directions[with_direction]
-                            if station in line.timetables() and with_direction in line.timetables()[station])
+            stations = [station for station in line.directions[with_direction]
+                        if station in line.timetables() and with_direction in line.timetables()[station]]
     else:
         stations = line.stations
     for station in stations:

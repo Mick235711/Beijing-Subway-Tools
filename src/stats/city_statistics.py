@@ -73,7 +73,7 @@ def display_station_name_info(lines: dict[str, Line], *, limit_num: int = 15) ->
     """ Display station name info """
     print("\n=====> Station Name Information <=====")
     station_lines = parse_station_lines(lines)
-    names = set(list(station_lines.keys()))
+    names = set(station_lines.keys())
     name_sum = sum(len(name) for name in names)
     print(f"Average # of name characters per station: {name_sum / len(names):.2f}")
     print_cnt({name: name for name in names}, "Name", "character", 5)
@@ -88,7 +88,7 @@ def display_station_name_info(lines: dict[str, Line], *, limit_num: int = 15) ->
         [ch for ch, cnt in name_counter if cnt == 1], key=lambda x: to_pinyin(x)[0])))
     print("Average # of name characters in each line:")
     display_first(
-        sorted(list(lines.values()), key=lambda l: sum(len(name) for name in l.stations) / len(l.stations)),
+        sorted(lines.values(), key=lambda l: sum(len(name) for name in l.stations) / len(l.stations)),
         lambda x: f"{sum(len(name) for name in x.stations) / len(x.stations):.2f} characters: {x}",
         limit_num=limit_num
     )
@@ -219,7 +219,7 @@ def display_transfer_time_info(
         filter_transfer_time(lines, t.station, t.second_station, t.special_time, show_all=show_all)
     ) for t in transfers_list]
 
-    num_stations = len(set(x[0] for x in transfer_times) | set(x[1] for x in transfer_times))
+    num_stations = len({x[0] for x in transfer_times} | {x[1] for x in transfer_times})
     print("Total # of transfer station involved:", num_stations)
     num_pairs = len([x for t in transfer_times for x in t[2].values()])
     print("Total # of transfer pairs:", num_pairs)

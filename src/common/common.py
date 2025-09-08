@@ -351,7 +351,7 @@ def circular_dist(stations: list[str], station1: str, station2: str) -> int:
 def distribute_braces(values: dict[T, int]) -> dict[str, T]:
     """ Distribute brace to values """
     res: dict[str, T] = {}
-    values = dict(sorted(list(values.items()), key=lambda x: x[1], reverse=True))
+    values = dict(sorted(values.items(), key=lambda x: x[1], reverse=True))
     for i, value in enumerate(values.keys()):
         brace = possible_braces[i % len(possible_braces)]
         brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
@@ -543,7 +543,7 @@ def parse_comma(field: str | None) -> set[str]:
     if field is None:
         return set()
     elif "," in field:
-        return set(x.strip() for x in field.split(","))
+        return {x.strip() for x in field.split(",")}
     else:
         return {field.strip()}
 

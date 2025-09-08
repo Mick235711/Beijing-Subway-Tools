@@ -14,7 +14,7 @@ from src.stats.common import parse_args, append_table_args, output_table
 
 def get_segment_data(train_date_set: set[tuple[str, Train]], *, sort_by: SegmentSort = "distance") -> tuple:
     """ Get avg/min/max segment/chain data """
-    train_set = set(x[1] for x in train_date_set)
+    train_set = {x[1] for x in train_date_set}
     line = list(train_set)[0].line
     segments = get_all_segments({line.name: line}, list(train_set))[line.name]
     return sequence_data(
@@ -26,20 +26,20 @@ def get_segment_data(train_date_set: set[tuple[str, Train]], *, sort_by: Segment
 
 def get_speed_data(train_date_set: set[tuple[str, Train]]) -> tuple:
     """ Get avg/min/max speed data """
-    train_set = set(x[1] for x in train_date_set)
+    train_set = {x[1] for x in train_date_set}
     return sequence_data(list(train_set), key=lambda x: x.speed())
 
 
 def get_duration_data(train_date_set: set[tuple[str, Train]]) -> tuple:
     """ Get avg/min/max duration data """
-    train_set = set(x[1] for x in train_date_set)
+    train_set = {x[1] for x in train_date_set}
     return sequence_data(list(train_set), key=lambda x: x.duration())
 
 
 def get_capacity_data(train_date_set: set[tuple[str, Train]]) -> tuple:
     """ Get capacity data """
     # Populate
-    train_set = set(x[1] for x in train_date_set)
+    train_set = {x[1] for x in train_date_set}
     line = list(train_set)[0].line
     total_distance = line.total_distance()
     train_distance = sum(train.distance() for train in train_set) / 10000

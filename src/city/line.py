@@ -259,7 +259,7 @@ class Line:
 def station_codes(station: str, lines: dict[str, Line] | set[Line]) -> list[tuple[Line, str]]:
     """ Get codes for station """
     if isinstance(lines, set):
-        processed_lines = sorted(list(lines), key=lambda x: x.index)
+        processed_lines = sorted(lines, key=lambda x: x.index)
     else:
         processed_lines = sorted([x for x in lines.values() if station in x.stations], key=lambda x: x.index)
     if any(x.code is not None for x in processed_lines):

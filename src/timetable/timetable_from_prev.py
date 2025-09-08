@@ -110,7 +110,7 @@ def do_modification(
         if train.leaving_time.hour == hour and train.next_day == next_day:
             continue
         new_trains[train.leaving_time] = train
-    return dict(sorted(list(new_trains.items()), key=lambda x: x[1].sort_key_str()))
+    return dict(sorted(new_trains.items(), key=lambda x: x[1].sort_key_str()))
 
 
 def generate_next(

@@ -57,11 +57,11 @@ def print_routes(lines: dict[str, Line], routes: list[Route]) -> None:
 def select_stations(city: City, stations: list[str]) -> str:
     """ Select a station from a list of stations """
     choices = {f"{city.station_full_name(station)} (" + ", ".join(
-        [l.full_name() for l in sorted(list(city.station_lines[station]), key=lambda l: l.index)]
+        [l.full_name() for l in sorted(city.station_lines[station], key=lambda l: l.index)]
     ) + ")": station for station in stations}
     answer = questionary.select(
         "Please select a transfer station:",
-        choices=[x[0] for x in sorted(list(choices.items()), key=lambda x: to_pinyin(x[1])[0])]
+        choices=[x[0] for x in sorted(choices.items(), key=lambda x: to_pinyin(x[1])[0])]
     ).ask()
     if answer is None:
         sys.exit(0)

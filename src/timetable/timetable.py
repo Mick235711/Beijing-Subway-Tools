@@ -86,7 +86,7 @@ class Timetable:
 
     def trains_sorted(self) -> list[Train]:
         """ All trains sorted by time """
-        return sorted(list(self.trains.values()), key=lambda x: x.sort_key_str())
+        return sorted(self.trains.values(), key=lambda x: x.sort_key_str())
 
     def pretty_print(
         self, *, with_time: dict[str, int | None] | None = None,
@@ -113,7 +113,7 @@ class Timetable:
         brace_dict_r[self.base_route] = ""
 
         # Print!
-        hour_dict = dict(sorted(list(hour_dict.items()), key=lambda x: x[0][0] + (24 if x[0][1] else 0)))
+        hour_dict = dict(sorted(hour_dict.items(), key=lambda x: x[0][0] + (24 if x[0][1] else 0)))
         for (hour, hour_next_day), trains in hour_dict.items():
             print(f"{hour % 24:>02}| ", end="")
             first = True
@@ -178,14 +178,14 @@ def route_skip_stations(routes: TrainRoute | list[TrainRoute], skip_timetable: b
         if skip_timetable and not route.skip_timetable:
             continue
         skipped.update(route.skip_stations)
-    return set(skip for skip in skipped if skip in stations)
+    return {skip for skip in skipped if skip in stations}
 
 
 def route_without_timetable(routes: TrainRoute | list[TrainRoute]) -> set[str]:
     """ Return the stations of this route that does not have a timetable """
     skip_stations = route_skip_stations(routes)
     skip_temp = route_skip_stations(routes, True)
-    return set(s for s in skip_stations if s not in skip_temp)
+    return {s for s in skip_stations if s not in skip_temp}
 
 
 def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
@@ -227,7 +227,7 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
                 leaving_time, next_day = add_min(leaving_time, delta, next_day)
                 trains[leaving_time] = Timetable.Train(
                     station, date_group, leaving_time, base_route, next_day)
-    trains = dict(sorted(list(trains.items()), key=lambda x: x[1].sort_key_str()))
+    trains = dict(sorted(trains.items(), key=lambda x: x[1].sort_key_str()))
 
     # Add filters
     for entry in filters:

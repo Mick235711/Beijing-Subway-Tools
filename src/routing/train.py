@@ -413,7 +413,7 @@ def filter_route(
         routes_dict = []
     processed_dict: dict[int, list[Timetable.Train]] = {}
     for train in timetable.trains.values():
-        routes = list(sorted(train.route_iter(), key=lambda r: r.name))
+        routes = sorted(train.route_iter(), key=lambda r: r.name)
         if routes not in routes_dict:
             routes_dict.append(routes)
         route_id = routes_dict.index(routes)
@@ -506,9 +506,9 @@ def parse_all_trains(
     result: dict[str, dict[str, dict[str, list[Train]]]] = {}
     index_dict: dict[str, int] = {}
     if isinstance(include_lines, str):
-        include_lines = set(x.strip() for x in include_lines.split(","))
+        include_lines = {x.strip() for x in include_lines.split(",")}
     if isinstance(exclude_lines, str):
-        exclude_lines = set(x.strip() for x in exclude_lines.split(","))
+        exclude_lines = {x.strip() for x in exclude_lines.split(",")}
     for line in lines:
         if include_lines is not None and line.name not in include_lines:
             continue

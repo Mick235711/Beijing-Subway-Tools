@@ -200,7 +200,7 @@ def k_shortest_path(
                 lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
                 station, saved_arrival_time,
                 initial_line_direction=(None if i == 0 else line_direction),
-                exclude_stations=set(x[0] for x in trace[:i]),
+                exclude_stations={x[0] for x in trace[:i]},
                 exclude_edges=exclude_edges, exclude_edge=exclude_edge, include_express=include_express
             )
             if saved_train != train:

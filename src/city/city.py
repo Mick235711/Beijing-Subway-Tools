@@ -111,9 +111,9 @@ def parse_city(city_root: str) -> City:
 
     city.station_lines = parse_station_lines(city.lines)
     for line_obj in city.force_set:
-        line_obj.must_include = set(x for x in line_obj.stations if all(
+        line_obj.must_include = {x for x in line_obj.stations if all(
             l in city.force_set or x in l.must_include for l in city.station_lines[x]
-        ))
+        )}
     return city
 
 

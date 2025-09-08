@@ -127,9 +127,9 @@ def validate_shorthand(
         return "Cannot end with a station!"
 
     # 2. Determine if the start/end line is in the start/end set
-    if start is not None and start[0].index not in set(l.index for l in start_lines):
+    if start is not None and start[0].index not in {l.index for l in start_lines}:
         return f"Start line {start[0].full_name()} not accessible from start station!"
-    if end is not None and end[0].index not in set(l.index for l in end_lines):
+    if end is not None and end[0].index not in {l.index for l in end_lines}:
         return f"End line {end[0].full_name()} not accessible from end station!"
 
     # 3. Determine if each pair of lines have a common transfer station
@@ -285,7 +285,7 @@ def add_by_shorthand(city: City) -> list[Route]:
     # First, display info for adding by shorthand
     print("\n=====> Add by shorthand syntax <=====")
     print("For reference, the index and lines for this city:")
-    for name, line in sorted(list(city.lines.items()), key=lambda x: x[1].index):
+    for name, line in sorted(city.lines.items(), key=lambda x: x[1].index):
         print(f"{line.index}: {name} - {line!r}, directions: ", end="")
         first = True
         for direction in line.directions.keys():

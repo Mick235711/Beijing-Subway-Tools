@@ -477,7 +477,7 @@ def validate_timetable(
     if tolerate:
         # assign the corresponding route to every train in current
         # first let's sort everything by time
-        prev_sorted = [x[1] for x in sorted(list(prev.trains.items()), key=lambda x: get_time_str(x[0], x[1].next_day))]
+        prev_sorted = [x[1] for x in sorted(prev.trains.items(), key=lambda x: get_time_str(x[0], x[1].next_day))]
         new_table = Timetable({
             cur_time: cur_train for cur_time, cur_train in current.trains.items()
             if list(cur_train.route_iter()) == [current.base_route]

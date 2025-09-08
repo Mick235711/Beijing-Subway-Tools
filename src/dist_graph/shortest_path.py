@@ -32,7 +32,7 @@ def get_path_index(
 ) -> tuple[int, int]:
     """ Get the sorting index for a path """
     if new_entry is not None:
-        parent2 = {k: v for k, v in parents.items()}
+        parent2 = dict(parents.items())
         parent2[station] = new_entry
     else:
         parent2 = parents
@@ -56,7 +56,7 @@ def shortest_path(
     """ Dijkstra's algorithm for the single-source shortest paths """
     # Initialize arrays
     distances = {station: -1 for station in graph.keys()}
-    parents: dict[str, tuple[str, Line | None] | None] = {station: None for station in graph.keys()}
+    parents: dict[str, tuple[str, Line | None] | None] = dict.fromkeys(graph.keys())
     distances[from_station] = 0
 
     # Initialize heap
@@ -151,7 +151,7 @@ def shortest_path(
             for adj_station, adj_line, edge_dist in reverse_adjacent[to_station]:
                 if adj_line is None or distances[adj_station] == -1:
                     continue
-                if to_station in set(x[0] for x in get_path(parents, adj_station)):
+                if to_station in {x[0] for x in get_path(parents, adj_station)}:
                     continue
                 if ignore_dists:
                     adj_dist = distances[adj_station] + 1

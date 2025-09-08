@@ -85,7 +85,7 @@ def draw_line_chart(city: City, start_date: date, data_list: list[RouteData]) ->
     for index, route, time_dict, *_ in data_list:
         x = []
         y = []
-        for time_str, path_info in sorted(list(time_dict.items())):
+        for time_str, path_info in sorted(time_dict.items()):
             cur_time, next_day = parse_time(time_str)
             cur_date = start_date
             if next_day:
