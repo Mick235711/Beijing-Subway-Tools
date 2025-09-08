@@ -451,10 +451,12 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_last_advanced.py`](/src/routing/show_last_advanced.py): Show advanced last train time of a line
 ```
-usage: show_last_advanced.py [-h] [--output-format {long,short}] [--exclude-edge] [--exclude-virtual] [--full-mode {direction,true_full}] [--this-full-only] [--show-all]
+usage: show_last_advanced.py [-h] [-m {station,train}] [--output-format {long,short}] [--exclude-edge] [--exclude-virtual] [--full-mode {direction,true_full}] [--this-full-only] [--show-all]
 
 options:
   -h, --help            show this help message and exit
+  -m, --mode {station,train}
+                        Selection Mode
   --output-format {long,short}
                         Display Format
   --exclude-edge        Exclude edge case in transfer

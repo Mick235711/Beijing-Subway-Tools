@@ -221,7 +221,7 @@ def main() -> None:
     parser.add_argument("-f", "--find-train", action="store_true", help="Find a train in the segment")
     args = parser.parse_args()
 
-    city, train_dict, line_spec, train_list = ask_for_through_train(ignore_direction=True, exclude_end_circle=True)
+    city, _, train_dict, line_spec, train_list = ask_for_through_train(ignore_direction=True, exclude_end_circle=True)
     if isinstance(line_spec, Line):
         is_loop = line_spec.loop
         if not is_loop:

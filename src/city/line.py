@@ -6,6 +6,7 @@
 # Libraries
 import os
 import re
+from datetime import date
 
 import pyjson5
 
@@ -247,6 +248,12 @@ class Line:
             if stations.index(station1) < stations.index(station2):
                 return direction
         assert False, (self, station1, station2)
+
+    def determine_date_group(self, cur_date: date) -> DateGroup:
+        """ Determine the date group by date """
+        candidates = [dg for dg in self.date_groups.values() if dg.covers(cur_date)]
+        assert len(candidates) == 1, (cur_date, candidates)
+        return candidates[0]
 
 
 def station_codes(station: str, lines: dict[str, Line] | set[Line]) -> list[tuple[Line, str]]:

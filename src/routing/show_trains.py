@@ -41,7 +41,7 @@ def main() -> None:
     parser.add_argument("-s", "--with-speed", action="store_true", help="Display segment speeds")
     args = parser.parse_args()
 
-    _, _, _, train_list = ask_for_through_train()
+    *_, train_list = ask_for_through_train()
     ask_for_train(train_list, with_speed=args.with_speed).pretty_print(with_speed=args.with_speed)
 
 

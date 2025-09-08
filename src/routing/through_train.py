@@ -20,6 +20,7 @@ class ThroughTrain:
         self.spec = spec
         self.stations = self.spec.stations()
         self.skip_stations = self.spec.skip_stations()
+        self.without_timetable = {s for t in trains.values() for s in t.without_timetable}
         self.trains = trains  # line -> train
         self.carriage_type = self.first_train().line.carriage_type
         self.carriage_num = self.first_train().carriage_num
@@ -54,6 +55,17 @@ class ThroughTrain:
             else:
                 arrival_times.update({k: v for k, v in train.arrival_time.items() if k != train.stations[0]})
         return arrival_times
+
+    def station_lines(self, *, prev_on_transfer: bool = True) -> dict[str, tuple[Line, str, Train]]:
+        """ Return the station -> (line, direction, train) mapping """
+        station_lines: dict[str, tuple[Line, str, Train]] = {}
+        for line, direction, _, _ in self.spec.spec:
+            train = self.trains[line.name]
+            for station in train.stations:
+                if station in station_lines and prev_on_transfer:
+                    continue
+                station_lines[station] = (line, direction, train)
+        return station_lines
 
     def line_repr(self) -> str:
         """ One-line short representation """

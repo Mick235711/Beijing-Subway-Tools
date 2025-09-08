@@ -360,9 +360,10 @@ def ask_for_train_list(*, only_express: bool = False) -> list[Train]:
 
 
 def ask_for_through_train(
-    *, only_express: bool = False, ignore_direction: bool = False, exclude_end_circle: bool = False
+    *, only_express: bool = False, ignore_direction: bool = False, exclude_end_circle: bool = False,
+    always_ask_date: bool = False
 ) -> tuple[
-    City, dict[str, dict[str, dict[str, list[Train]]]],
+    City, date | DateGroup, dict[str, dict[str, dict[str, list[Train]]]],
     Line | list[ThroughSpec], list[Train] | list[ThroughTrain]
 ]:
     """ Ask for a list of train or through train """
@@ -373,15 +374,23 @@ def ask_for_through_train(
         city.lines, through_dict.keys(), only_express=only_express, exclude_end_circle=exclude_end_circle
     )
     if isinstance(line, Line):
+        if not ignore_direction:
+            direction = ask_for_direction(line, only_express=only_express)
+        else:
+            direction = ""  # just to silence type checker
+        if always_ask_date:
+            cur_date_temp = ask_for_date()
+            cur_date: date | DateGroup = cur_date_temp
+            date_group_name = line.determine_date_group(cur_date_temp).name
+        else:
+            cur_date = ask_for_date_group(line)
+            date_group_name = cur_date.name
         if ignore_direction:
-            date_group = ask_for_date_group(line)
-            return city, train_dict, line, [
+            return city, cur_date, train_dict, line, [
                 train for direction in train_dict[line.name].keys()
-                for train in train_dict[line.name][direction][date_group.name]
+                for train in train_dict[line.name][direction][date_group_name]
             ]
-        direction = ask_for_direction(line, only_express=only_express)
-        date_group = ask_for_date_group(line)
-        return city, train_dict, line, train_dict[line.name][direction][date_group.name]
+        return city, cur_date, train_dict, line, train_dict[line.name][direction][date_group_name]
 
     cur_date = ask_for_date()
     candidate = [route for route in line if route.covers(cur_date)]
@@ -394,7 +403,7 @@ def ask_for_through_train(
             {route.route_str(): (route.stations(use_full_name=True), False) for route in candidate},
             include_default=False
         )
-        return city, train_dict, line, [
+        return city, cur_date, train_dict, line, [
             train for through_spec, trains in through_dict.items() if through_spec.route_str() == direction
             for train in trains
         ]
@@ -404,7 +413,7 @@ def ask_for_through_train(
     )
     through_spec_candidate = [route for route in candidate if route.direction_str() == direction]
     assert len(through_spec_candidate) == 1, through_spec_candidate
-    return city, train_dict, line, through_dict[through_spec_candidate[0]]
+    return city, cur_date, train_dict, line, through_dict[through_spec_candidate[0]]
 
 
 def ask_for_timetable() -> tuple[Line, str, str, DateGroup, Timetable]:
