@@ -2223,6 +2223,7 @@ Longest/Shortest Train Segments:
 ### [`highest_speed.py`](/src/stats/longest_trains.py): Show train with the highest speed
 ```
 usage: highest_speed.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-d {speed,duration,distance}] [--split {none,line,direction}] [--single-segment]
+                        [--exclude-express]
 
 options:
   -h, --help            show this help message and exit
@@ -2243,6 +2244,7 @@ options:
   --split {none,line,direction}
                         Split mode
   --single-segment      Show single segment only
+  --exclude-express     Exclude express trains
 ```
 
 Show trains with the fastest/slowest speed, or longest/shortest duration/distance.

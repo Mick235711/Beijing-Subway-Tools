@@ -112,6 +112,10 @@ class ThroughTrain:
             self.last_train().direction
         ].stations[-1]
 
+    def is_express(self) -> bool:
+        """ Determine if this train is an express train """
+        return any(t.is_express() for t in self.trains.values())
+
     def duration_repr(self, *, with_speed: bool = False) -> str:
         """ One-line short duration string """
         base = f"{format_duration(self.duration())}, {distance_str(self.distance())}"

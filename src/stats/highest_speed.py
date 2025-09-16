@@ -28,7 +28,8 @@ DATA_STRINGS = {
 def highest_speed_train(
     date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     args: argparse.Namespace, *, data_source: Literal["speed", "duration", "distance"] = "speed",
-    limit_num: int = 5, split_mode: Literal["none", "line", "direction"] = "direction"
+    limit_num: int = 5, split_mode: Literal["none", "line", "direction"] = "direction",
+    exclude_express: bool = False
 ) -> None:
     """ Print fastest/slowest N trains of the whole city """
     print(DATA_STRINGS[data_source][0] + " " + ("Full " if args.full_only else "") + "Trains:")
@@ -36,6 +37,9 @@ def highest_speed_train(
     # Remove tied trains
     train_set_processed: dict[tuple[str, str, str, int], tuple[str, Train | ThroughTrain, int]] = {}
     for date_group, train in get_train_set(date_group_dict, through_dict):
+        if exclude_express and train.is_express():
+            continue
+
         if isinstance(train, Train):
             line_name = train.line.name
             direction_name = "" if split_mode != "direction" else train.direction
@@ -76,7 +80,8 @@ def compute_data(train: Train, station1: str, station2: str) -> tuple[float, int
 def highest_speed_segment(
     date_group_dict: dict[str, list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     args: argparse.Namespace, *, data_source: Literal["speed", "duration", "distance"] = "speed",
-    limit_num: int = 5, split_mode: Literal["none", "line", "direction"] = "direction"
+    limit_num: int = 5, split_mode: Literal["none", "line", "direction"] = "direction",
+    exclude_express: bool = False
 ) -> None:
     """ Print fastest/slowest N segments of the whole city """
     print(DATA_STRINGS[data_source][0] + " " + ("Full " if args.full_only else "") + "Segments:")
@@ -84,6 +89,9 @@ def highest_speed_segment(
     # Remove tied trains
     train_set_processed: dict[tuple[str, str, str], tuple[Line, list[Train], str, str, list[tuple[float, int, int]]]] = {}
     for _, train in tqdm(get_train_set(date_group_dict, through_dict)):
+        if exclude_express and train.is_express():
+            continue
+
         segments: list[tuple[Line, str, str, Train, tuple[float, int, int]]] = []
         if isinstance(train, Train):
             stations = [s for s in train.stations if s not in train.skip_stations]
@@ -142,16 +150,19 @@ def main() -> None:
             "none", "line", "direction"
         ], default="direction", help="Split mode")
         parser.add_argument("--single-segment", action="store_true", help="Show single segment only")
+        parser.add_argument("--exclude-express", action="store_true", help="Exclude express trains")
 
     date_group_dict, through_dict, args, *_ = parse_args_through(append_arg)
     highest_speed_train(
         date_group_dict, through_dict, args,
-        data_source=args.data_source, limit_num=args.limit_num, split_mode=args.split
+        data_source=args.data_source, limit_num=args.limit_num, split_mode=args.split,
+        exclude_express=args.exclude_express
     )
     print()
     highest_speed_segment(
         date_group_dict, through_dict, args,
-        data_source=args.data_source, limit_num=args.limit_num, split_mode=args.split
+        data_source=args.data_source, limit_num=args.limit_num, split_mode=args.split,
+        exclude_express=args.exclude_express
     )
 
 
