@@ -1838,20 +1838,21 @@ Earliest -> Latest Last Trains:
 
 ### [`shortest_dist.py`](/src/stats/shortest_dist.py): Show the shortest/longest distance between stations
 ```
-usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [-d {single_station,station,distance,fare}]
+usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [-d {single_station,station,distance,fare}] [-r]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-single      Exclude single-direction lines
-  -d {single_station,station,distance,fare}, --data-source {single_station,station,distance,fare}
+  -d, --data-source {single_station,station,distance,fare}
                         Path criteria
+  -r, --reverse         Reverse sorting
 ```
 
 Show the shortest/longest N station distance figures. Do not consider trains, so no parameter like `-a` and `-f`.

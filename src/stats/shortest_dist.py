@@ -37,7 +37,7 @@ AbstractPathKey = tuple[tuple[str, tuple[str, str] | None], ...]
 
 def shortest_dists(
     city: City, paths: dict[str, dict[str, list[tuple[int | float, Path]]]], unit: Callable[[int | float], str],
-    *, limit_num: int = 5
+    *, limit_num: int = 5, reverse: bool = False
 ) -> None:
     """ Print the shortest/longest N distances of the whole city """
     processed_dict: dict[tuple[int | float, AbstractPathKey, str, str], AbstractPath] = {}
@@ -53,7 +53,7 @@ def shortest_dists(
     display_first(
         sorted(processed_dict.items(), key=lambda x: (x[0][0], tuple(
             city.lines[l[1][0]].index for l in x[0][1] if l[1] is not None
-        ), tuple(to_pinyin(l[0])[0] for l in x[0][1]))),
+        ), tuple(to_pinyin(l[0])[0] for l in x[0][1])), reverse=reverse),
         lambda data: f"{unit(data[0][0])}: {city.station_full_name(data[0][2])} " + (
             "<->" if reverse_path(data[0][3], city, data[1]) is not None else "->"
         ) + f" {city.station_full_name(data[0][3])} (" + path_shorthand(
@@ -71,6 +71,7 @@ def main() -> None:
         parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
         parser.add_argument("-d", "--data-source", choices=["single_station", "station", "distance", "fare"],
                             default="single_station", help="Path criteria")
+        parser.add_argument("-r", "--reverse", action="store_true", help="Reverse sorting")
     _, args, city, lines = parse_args(append_arg, include_passing_limit=False, include_train_ctrl=False)
 
     graph = get_dist_graph(
@@ -90,7 +91,7 @@ def main() -> None:
 
     if args.data_source == "single_station":
         print("Shortest/Longest Station Distances:")
-        shortest_dists(city, get_single_station_paths(graph), unit, limit_num=args.limit_num)
+        shortest_dists(city, get_single_station_paths(graph), unit, limit_num=args.limit_num, reverse=args.reverse)
     else:
         if args.data_source == "fare":
             if city.fare_rules is None:
@@ -118,7 +119,7 @@ def main() -> None:
                 for start, inner_dict in shortest_dict.items()
             }
         print("Shortest/Longest Path " + args.data_source.capitalize() + "s:")
-        shortest_dists(city, processed_dict, unit, limit_num=args.limit_num)
+        shortest_dists(city, processed_dict, unit, limit_num=args.limit_num, reverse=args.reverse)
 
 
 # Call main
