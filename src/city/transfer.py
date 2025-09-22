@@ -59,7 +59,8 @@ class Transfer:
         key = (from_line.name if isinstance(from_line, Line) else from_line, from_direction,
                to_line.name if isinstance(to_line, Line) else to_line, to_direction)
         if key[0] == key[2]:
-            assert key[1] != key[3], key
+            # FIXME: full solution to same-line transfer
+            # assert key[1] != key[3], key
             return 0.0, False
         if key in self.special_time:
             special_time, interval = self.special_time[key]

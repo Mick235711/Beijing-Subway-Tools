@@ -265,8 +265,9 @@ def combine_trains(path1: Path, path2: Path, end_station: str) -> Path:
     elif prev_station in next_train.arrival_time and next_station in next_train.arrival_time_virtual(prev_station):
         return [(prev_station, next_train)]
     else:
-        # FIXME: We have a problem; both train cannot reach each other. Bail out for now
-        assert False, (path1, path2)
+        # FIXME: We have a problem; both train cannot reach each other.
+        # We make a special case for same-line transfer for now.
+        return path1 + path2
 
 
 def get_all_trains_single(
