@@ -14,8 +14,8 @@ from nicegui.elements.tabs import Tab
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
-from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, to_list, \
-    format_duration, suffix_s
+from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
+    get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
@@ -62,8 +62,13 @@ def get_station_badge(
 ) -> None:
     """ Get station label & badge """
     global AVAILABLE_STATIONS
-    line_list = sorted(to_list(line) if line is not None else AVAILABLE_STATIONS[station],
-                       key=lambda l: (0 if prefer_line is not None and l.name == prefer_line.name else 1, l.index))
+    if isinstance(line, list):
+        line_list = line[:]
+    elif isinstance(line, Line):
+        line_list = [line]
+    else:
+        line_list = sorted(AVAILABLE_STATIONS[station],
+                           key=lambda l: (0 if prefer_line is not None and l.name == prefer_line.name else 1, l.index))
     badges = {x for x in {line.station_badges[line.stations.index(station)] for line in line_list} if x is not None}
     station_label = None
     if not label_at_end:
@@ -262,6 +267,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                 for route in line.train_routes[direction].values():
                     if station in route.skip_stations:
                         express_icon = "keyboard_double_arrow_down"
+
             with ui.timeline_entry(
                 subtitle=(None if not show_tally or i == 0 else distance_str(tally)),
                 side="right",
@@ -277,6 +283,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                                     get_station_badge(station2)
                 if i != len(stations) - 1:
                     ui.label(f"{dists[i]}m")
+
             prev_lines: set[str] = set()
             next_lines: set[str] = set()
             for spec in city.through_specs:
@@ -286,6 +293,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                 next_ld = spec.query_next_line(station, line, direction)
                 if next_ld is not None:
                     next_lines.add(next_ld[0].name)
+
             with entry.add_slot("title"):
                 with ui.column().classes("gap-y-1"):
                     with ui.row().classes("items-center gap-1"):
@@ -596,43 +604,153 @@ def train_drawer(city: City, train: Train, train_id: str) -> None:
                             ui.badge(full_train.train_code())
                         ui.label(f"Capacity: {full_train.train_capacity()} people").classes("text-subtitle-1")
 
-        ui.add_css(f"""
-.drawers-train-timeline .q-timeline__subtitle {{
+        ui.add_css("""
+.drawers-train-timeline .q-timeline__subtitle {
     margin-bottom: 0;
-}}
-.drawers-train-timeline .q-timeline__content {{
+}
+.drawers-train-timeline .q-timeline__content {
     padding-left: 0 !important;
     gap: 0 !important;
-}}
-.drawers-train-timeline .q-timeline__subtitle {{
+}
+.drawers-train-timeline .q-timeline__subtitle {
     padding-right: 16px !important;
-}}
+}
+        """)
+        for line in lines:
+            ui.add_css(f"""
 .drawers-train-timeline .text-line-{line.index} {{
     color: {line.color} !important;
 }}
-        """)
-        with ui.tab_panel(timetable_tab).classes("p-0 flex flex-col h-full drawers-line-timeline"):
-            with ui.column().classes("gap-y-0"):
-                ui.select(
+            """)
+        with ui.tab_panel(timetable_tab).classes("p-0 flex flex-col h-full drawers-train-timeline"):
+            with ui.column().classes("gap-y-0 w-full"):
+                train_select = ui.select(
                     {"none": "None", "duration": "Duration", "distance": "Distance", "speed": "Speed"},
                     value="none", label="Show interval as",
                     on_change=lambda v: train_timeline.refresh(interval_metric=v.value)
                 ).classes("w-full")
-                ui.switch("Show tally for each station", value=True,
-                          on_change=lambda v: train_timeline.refresh(show_tally=v.value))
+                ui.switch(
+                    "Show tally for each station", value=True,
+                    on_change=lambda v: train_timeline.refresh(show_tally=v.value)
+                ).bind_visibility_from(train_select, "value", backward=lambda v: v != "none")
                 if full_train.is_express():
                     ui.switch("Show skipped stations", value=True,
                               on_change=lambda v: train_timeline.refresh(show_skips=v.value))
             with ui.scroll_area().classes("flex-grow"):
-                train_timeline(city, full_train, show_tally=True, show_skips=True)
+                train_timeline(full_train, show_tally=True, show_skips=True)
 
 
 @ui.refreshable
 def train_timeline(
-    city: City, train: Train | ThroughTrain, *,
+    train: Train | ThroughTrain, *,
     interval_metric: Literal["none", "duration", "distance", "speed"] = "none", show_tally: bool, show_skips: bool
 ) -> None:
     """ Create a timeline for this train """
+    global AVAILABLE_LINES
+    if isinstance(train, Train):
+        stations = [(s, train.line, train) for s in train.stations]
+        first_train = train
+        last_train = train
+    else:
+        station_lines_temp = train.station_lines(prev_on_transfer=False)
+        stations = [(s, station_lines_temp[s][0], station_lines_temp[s][2]) for s in train.stations]
+        first_train = train.first_train()
+        last_train = train.last_train()
+    station_lines = parse_station_lines(AVAILABLE_LINES)
+    if last_train.loop_next is not None:
+        stations.append((last_train.loop_next.stations[0], last_train.loop_next.line, last_train.loop_next))
+    arrival_times = train.arrival_times()
+
+    tally_duration = 0
+    interval_duration: int | None = 0
+    tally_dist = 0
+    interval_dist: int | None = 0
+    with ui.timeline(side="right", layout="comfortable"):
+        for i, (station, line, single_train) in enumerate(stations):
+            if i == len(stations) - 1 and last_train.loop_next is not None:
+                arrival_time: TimeSpec | None = last_train.loop_next.arrival_time[station]
+            else:
+                arrival_time = None if station not in arrival_times else arrival_times[station]
+            if i < len(stations) - 1:
+                next_station = stations[i + 1][0]
+                if i == len(stations) - 2 and last_train.loop_next is not None:
+                    next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
+                else:
+                    if not show_skips or (station in arrival_times and next_station not in arrival_times):
+                        j = i + 2
+                        while next_station in train.skip_stations and j < len(stations):
+                            next_station = stations[j][0]
+                            j += 1
+                        assert next_station not in train.skip_stations, (train, stations, next_station)
+                    next_time = None if next_station not in arrival_times else arrival_times[next_station]
+                if next_time is None or arrival_time is None:
+                    interval_duration = None
+                    interval_dist = None
+                else:
+                    interval_duration = diff_time_tuple(next_time, arrival_time)
+                    interval_dist = train.two_station_dist(station, next_station)
+
+            express_icon = line.station_badges[line.stations.index(station)]
+            if i > 0 and station == single_train.stations[0]:
+                express_icon = "south"
+            elif station in train.skip_stations:
+                if not show_skips:
+                    continue
+                express_icon = "keyboard_double_arrow_down"
+            if interval_metric == "none" or i == len(stations) - 1:
+                interval_str: str | None = None
+            elif interval_metric == "duration":
+                interval_str = None if interval_duration is None else format_duration(interval_duration)
+            elif interval_metric == "distance":
+                interval_str = None if interval_dist is None else distance_str(interval_dist)
+            elif interval_metric == "speed":
+                interval_str = None if interval_duration is None or interval_dist is None else speed_str(
+                    segment_speed(interval_dist, interval_duration)
+                )
+            if interval_metric == "none" or i == 0:
+                tally_str: str | None = None
+            elif interval_metric == "duration":
+                tally_str = None if interval_duration is None else "+" + format_duration(tally_duration)
+            elif interval_metric == "distance":
+                tally_str = None if interval_dist is None else "+" + distance_str(tally_dist)
+            elif interval_metric == "speed":
+                tally_str = None if interval_duration is None or interval_dist is None else speed_str(
+                    segment_speed(tally_dist, tally_duration)
+                )
+
+            if arrival_time is None:
+                subtitle = "passing"
+            else:
+                subtitle = get_time_repr(*arrival_time)
+                if show_tally and tally_str is not None:
+                    subtitle += "\n" + tally_str
+            with ui.timeline_entry(
+                subtitle=subtitle, side="right", color=f"line-{line.index}",
+                icon=(express_icon if (i != 0 or first_train.loop_prev is None) and
+                                      (i != len(stations) - 1 or last_train.loop_next is None) else "replay")
+            ) as entry:
+                if i != len(stations) - 1 and interval_str is not None:
+                    ui.label(interval_str)
+
+            with entry.add_slot("title"):
+                with ui.column().classes("gap-y-1"):
+                    with ui.row().classes("items-center gap-1"):
+                        get_station_badge(
+                            station, prefer_line=line, show_badges=False, show_line_badges=False,
+                            add_line_click=lambda l, ln=line.name: l != ln  # type: ignore
+                        )
+
+                    prev_line = line if i == 0 else stations[i - 1][1]
+                    other_lines = [l for l in station_lines[station] if l.name != line.name and l.name != prev_line.name]
+                    if len(other_lines) > 0:
+                        with ui.row().classes("items-center gap-x-1"):
+                            for line2 in sorted(other_lines, key=lambda l: l.index):
+                                get_line_badge(line2, show_name=False, add_click=True)
+
+            if interval_duration is not None:
+                tally_duration += interval_duration
+            if interval_dist is not None:
+                tally_dist += interval_dist
 
 
 @ui.refreshable

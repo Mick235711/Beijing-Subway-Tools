@@ -64,6 +64,23 @@ class ThroughTrain:
                 arrival_times.update({k: v for k, v in train.arrival_time.items() if k != train.stations[0]})
         return arrival_times
 
+    def two_station_dist(self, start_station: str, end_station: str) -> int:
+        """ Distance between two stations """
+        tally = 0
+        start = False
+        for i, (line, train) in enumerate(self.trains.items()):
+            if start:
+                if end_station in train.stations or i == len(self.trains) - 1:
+                    return tally + train.two_station_dist(train.stations[0], end_station)
+                tally += train.distance()
+            if start_station in train.stations and end_station in train.stations:
+                return train.two_station_dist(start_station, end_station)
+            elif start_station in train.stations:
+                tally += train.two_station_dist(start_station, train.stations[-1])
+                start = True
+        assert False, (self, start_station, end_station)
+
+
     def station_lines(self, *, prev_on_transfer: bool = True) -> dict[str, tuple[Line, str, Train]]:
         """ Return the station -> (line, direction, train) mapping """
         station_lines: dict[str, tuple[Line, str, Train]] = {}
