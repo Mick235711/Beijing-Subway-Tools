@@ -14,15 +14,16 @@ from nicegui.elements.tabs import Tab
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
-from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str
-from src.routing.through_train import ThroughTrain
-from src.routing.train import Train
+from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, to_list
+from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
+from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
-from src.ui.common import LINE_TYPES, count_trains, get_date_input, get_all_trains
+from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
 SELECTED_STATION: str | None = None
+SELECTED_TRAIN: tuple[Train, str] | None = None  # (train, train_id)
 AVAILABLE_LINES: dict[str, Line] = {}
 AVAILABLE_STATIONS: dict[str, set[Line]] = {}
 
@@ -52,7 +53,7 @@ def get_line_badge(
 
 
 def get_station_badge(
-    station: str, line: Line | None = None, *,
+    station: str, line: Line | list[Line] | None = None, *,
     show_badges: bool = True, show_code_badges: bool = True, show_line_badges: bool = True,
     prefer_line: Line | None = None, label_at_end: bool = False,
     add_click: bool = True, add_line_click: bool | Callable[[str], bool] = True,
@@ -60,7 +61,7 @@ def get_station_badge(
 ) -> None:
     """ Get station label & badge """
     global AVAILABLE_STATIONS
-    line_list = sorted({line} if line is not None else AVAILABLE_STATIONS[station],
+    line_list = sorted(to_list(line) if line is not None else AVAILABLE_STATIONS[station],
                        key=lambda l: (0 if prefer_line is not None and l.name == prefer_line.name else 1, l.index))
     badges = {x for x in {line.station_badges[line.stations.index(station)] for line in line_list} if x is not None}
     station_label = None
@@ -89,7 +90,7 @@ def get_station_badge(
             station_label.classes(classes)
         if add_click:
             station_label.classes("cursor-pointer").on(
-                "click", lambda s=station: refresh_station_drawer(s, AVAILABLE_STATIONS)
+                "click.stop", lambda s=station: refresh_station_drawer(s, AVAILABLE_STATIONS)
             )
 
 
@@ -468,13 +469,96 @@ def station_cards(
                 first_train_table.create_table(station, train_list, split_direction=(card_data.first_icon == "compress"))
 
 
+def get_train_type(train: Train | ThroughTrain) -> list[str]:
+    """ Get route types for train """
+    if isinstance(train, Train):
+        stations = train.line.direction_stations(train.direction)
+        start, end = stations[0], stations[-1]
+        last_train = train
+    else:
+        start = train.first_train().line.direction_stations(train.first_train().direction)[0]
+        end = train.last_train().line.direction_stations(train.last_train().direction)[-1]
+        last_train = train.last_train()
+
+    types: list[str] = []
+    if last_train.loop_next is not None:
+        types.append("Loop")
+    elif train.stations[-1] != end:
+        types.append("Short-Turn")
+    else:
+        types.append("Full")
+    if train.stations[0] != start:
+        if types[0] == "Full":
+            types = types[1:]
+        types = ["Middle-Start"] + types
+    if train.is_express():
+        types.append("Express")
+    return types
+
+
+def train_drawer(city: City, train: Train, train_id: str) -> None:
+    """ Create train drawer """
+    global AVAILABLE_LINES
+    train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
+    result = find_through_train(through_dict, train)
+    if result is None:
+        full_train: Train | ThroughTrain = train
+        first_train = train
+        last_train = train
+        lines = [train.line]
+    else:
+        full_train = result[1]
+        first_train = full_train.first_train()
+        last_train = full_train.last_train()
+        lines = [t.line for t in full_train.trains.values()]
+
+    ui.label(train_id).classes("text-h5 text-bold")
+    with ui.element("div").classes("inline-flex flex-wrap items-center leading-tight gap-x-1"):
+        get_station_badge(full_train.stations[0], first_train.line, show_badges=False, show_line_badges=False)
+        ui.label(full_train.start_time_repr())
+
+        if len(lines) > 1:
+            assert isinstance(full_train, ThroughTrain), full_train
+            for prev_line, inner_line in zip(lines, lines[1:]):
+                inner_train = full_train.trains[inner_line.name]
+                ui.icon("arrow_right_alt")
+                get_station_badge(
+                    inner_train.stations[0], [prev_line, inner_train.line],
+                    show_badges=False, show_line_badges=False
+                )
+                ui.label(inner_train.start_time_repr())
+
+        ui.icon("replay" if last_train.loop_next is not None else "arrow_right_alt")
+        get_station_badge(last_train.last_station(), last_train.line, show_badges=False, show_line_badges=False)
+        ui.label(last_train.loop_next.start_time_repr() if last_train.loop_next is not None
+                 else full_train.end_time_repr())
+    with ui.element("div").classes("flex items-center flex-wrap gap-1"):
+        for line in lines:
+            get_line_badge(line, add_click=True)
+        if len(lines) > 1:
+            color, icon = ROUTE_TYPES["Through"]
+            with ui.badge("Through", color=color):
+                if icon != "":
+                    ui.icon(icon).classes("q-ml-xs")
+    with ui.element("div").classes("flex items-center flex-wrap gap-1"):
+        route_types = get_train_type(full_train)
+        for route_type in route_types:
+            color, icon = ROUTE_TYPES[route_type]
+            with ui.badge(route_type, color=color):
+                if icon != "":
+                    ui.icon(icon).classes("q-ml-xs")
+
+    ui.separator()
+
+
 @ui.refreshable
 def right_drawer(
     city: City, drawer: RightDrawer, switch_to_trains: Callable[[Line, str], None], *,
-    drawer_type: Literal["line", "station"] | None = None
+    drawer_type: Literal["line", "station", "train"] | None = None
 ) -> None:
     """ Create the right drawer """
-    global RIGHT_DRAWER, SELECTED_LINE, SELECTED_STATION
+    global RIGHT_DRAWER, SELECTED_LINE, SELECTED_STATION, SELECTED_TRAIN
     RIGHT_DRAWER = drawer
     if drawer_type is None:
         return
@@ -482,12 +566,20 @@ def right_drawer(
         if SELECTED_LINE is None:
             return
         SELECTED_STATION = None
+        SELECTED_TRAIN = None
         line_drawer(city, SELECTED_LINE, switch_to_trains)
     elif drawer_type == "station":
         if SELECTED_STATION is None:
             return
         SELECTED_LINE = None
+        SELECTED_TRAIN = None
         station_drawer(city, SELECTED_STATION)
+    elif drawer_type == "train":
+        if SELECTED_TRAIN is None:
+            return
+        SELECTED_LINE = None
+        SELECTED_STATION = None
+        train_drawer(city, SELECTED_TRAIN[0], SELECTED_TRAIN[1])
 
 
 def refresh_line_drawer(selected_line: Line, lines: dict[str, Line]) -> None:
@@ -528,6 +620,27 @@ def refresh_station_drawer(selected_station: str, station_lines: dict[str, set[L
         RIGHT_DRAWER.toggle()
 
 
+def refresh_train_drawer(
+    selected_train: Train, train_id: str, station_lines: dict[str, set[Line]]
+) -> None:
+    """ Refresh train drawer """
+    global RIGHT_DRAWER, SELECTED_TRAIN, AVAILABLE_LINES, AVAILABLE_STATIONS
+    assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_TRAIN, selected_train)
+    changed = (SELECTED_TRAIN is None or SELECTED_TRAIN != selected_train)
+    SELECTED_TRAIN = (selected_train, train_id)
+    AVAILABLE_LINES = {l.name: l for ls in station_lines.values() for l in ls}
+    AVAILABLE_STATIONS = station_lines
+    if SELECTED_TRAIN[0].line.name not in AVAILABLE_LINES:
+        RIGHT_DRAWER.hide()
+        return
+
+    right_drawer.refresh(drawer_type="train")
+    if changed:
+        RIGHT_DRAWER.show()
+    else:
+        RIGHT_DRAWER.toggle()
+
+
 def assign_globals(lines: dict[str, Line], station_lines: dict[str, set[Line]]) -> None:
     """ Assign global variables """
     global AVAILABLE_LINES, AVAILABLE_STATIONS
@@ -544,6 +657,9 @@ def refresh_drawer(lines: dict[str, Line], station_lines: dict[str, set[Line]]) 
         RIGHT_DRAWER.hide()
         return
     if SELECTED_STATION is not None and SELECTED_STATION not in station_lines:
+        RIGHT_DRAWER.hide()
+        return
+    if SELECTED_TRAIN is not None and SELECTED_TRAIN[0].line.name not in AVAILABLE_LINES:
         RIGHT_DRAWER.hide()
         return
     right_drawer.refresh()

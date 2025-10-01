@@ -16,7 +16,8 @@ from src.common.common import distance_str, suffix_s, to_pinyin, get_text_color,
 from src.routing.train import parse_trains, Train
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
     get_default_direction, ROUTE_TYPES
-from src.ui.drawers import get_line_badge, get_station_badge, refresh_line_drawer, refresh_station_drawer
+from src.ui.drawers import get_line_badge, get_station_badge, refresh_line_drawer, refresh_station_drawer, \
+    refresh_train_drawer
 from src.ui.info_tab import InfoData
 
 
@@ -274,7 +275,7 @@ def route_timeline(
                     express_icon = "sync_alt"
                 with ui.timeline_entry(icon=express_icon) as entry:
                     if show_train_count and i != len(stations) - 1:
-                        ui.label(suffix_s("train", train_tally))
+                        ui.label(suffix_s("train", train_tally)).on("click.stop", lambda: None)
                 with entry.add_slot("title"):
                     with ui.column().classes("gap-y-1 items-end"):
                         with ui.row().classes("items-center gap-1"):
@@ -362,6 +363,7 @@ def calculate_route_rows(
 ) -> list[dict]:
     """ Calculate rows for the route table """
     stations = line.direction_stations(direction)
+    dists = line.direction_dists(direction)
     rows = []
     for route_name, route in routes.items():
         end_station = stations[0] if route.loop else route.stations[-1]
@@ -388,8 +390,8 @@ def calculate_route_rows(
                 ]]
             ),
             "end_station_sort": to_pinyin(end_station)[0],
-            "distance": distance_str(route_dist(line.stations, line.station_dists, route.stations, route.loop)),
-            "distance_raw": route_dist(line.stations, line.station_dists, route.stations, route.loop),
+            "distance": distance_str(route_dist(stations, dists, route.stations, route.loop)),
+            "distance_raw": route_dist(stations, dists, route.stations, route.loop),
             "num_stations": len(route.stations),
             "train_type": line.carriage_type.train_formal_name(route.carriage_num)
         }
@@ -498,16 +500,16 @@ def route_table(
 
 def calculate_train_rows(
     train_list: list[Train]
-) -> list[dict]:
+) -> tuple[list[dict], dict[str, Train]]:
     """ Calculate rows for the train table """
     rows = []
+    train_dict: dict[str, Train] = {}
     route_dict: dict[str, int] = {}
     for train in sorted(
         train_list, key=lambda t: sorted(
             [r.name for r in t.routes], key=lambda n: to_pinyin(n)[0]
         ) + [t.start_time_str()]
     ):
-        end_station = train.loop_next.stations[0] if train.loop_next is not None else train.stations[-1]
         route_id = train.routes_str()
         if route_id not in route_dict:
             route_dict[route_id] = 0
@@ -519,18 +521,19 @@ def calculate_train_rows(
             "start_station": train.stations[0],
             "start_station_sort": to_pinyin(train.stations[0])[0],
             "start_time": train.start_time_str(),
-            "end_station": end_station,
-            "end_station_sort": to_pinyin(end_station)[0],
+            "end_station": train.last_station(),
+            "end_station_sort": to_pinyin(train.last_station())[0],
             "end_time": train.loop_next.start_time_str() if train.loop_next is not None else train.end_time_str(),
             "duration": format_duration(train.duration()),
             "duration_sort": train.duration(),
             "distance": distance_str(train.distance()),
             "num_stations": len(train.stations) + (1 if train.loop_next is not None else 0),
             "avg_speed": speed_str(train.speed()),
-            "train_code": train.train_code()
+            "train_code": train.train_code(),
         }
         rows.append(row)
-    return rows
+        train_dict[train_id] = train
+    return rows, train_dict
 
 
 @ui.refreshable
@@ -541,6 +544,8 @@ def train_table(
     with ui.row().classes("w-full items-center justify-between"):
         ui.label("Trains").classes("text-xl font-semibold mt-6 mb-2")
         trains_search = ui.input("Search trains...")
+
+    train_rows, train_dict = calculate_train_rows(train_list)
     trains_table = ui.table(
         columns=[
             {"name": "id", "label": "ID", "field": "id",
@@ -582,10 +587,12 @@ def train_table(
             {"name": "trainCode", "label": "Code", "field": "train_code", "align": "center"}
         ],
         column_defaults={"align": "right", "required": True, "sortable": True},
-        rows=calculate_train_rows(train_list),
+        rows=train_rows,
         pagination=10
     )
-    # trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(n.args))
+    trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(
+        train_dict[n.args], n.args, station_lines
+    ))
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
     trains_table.add_slot("body-cell-id", """
 <q-td key="name" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">

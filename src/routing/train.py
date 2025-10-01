@@ -34,6 +34,12 @@ class Train:
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
 
+    def last_station(self) -> str:
+        """ Get last station in the timetable """
+        if self.loop_next is not None:
+            return self.loop_next.stations[0]
+        return self.stations[-1]
+
     def __repr__(self) -> str:
         """ Get string representation """
         if self.loop_next is not None:
