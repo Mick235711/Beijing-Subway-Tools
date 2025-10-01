@@ -35,6 +35,14 @@ class ThroughTrain:
         """ Capacity for this line """
         return self.carriage_type.train_capacity(self.carriage_num)
 
+    def train_code(self) -> str:
+        """ Code name for this line """
+        return self.carriage_type.train_code(self.carriage_num)
+
+    def train_formal_name(self) -> str:
+        """ Formal name for a train """
+        return self.carriage_type.train_formal_name(self.carriage_num)
+
     def first_train(self) -> Train:
         """ Return first train """
         return self.trains[self.spec.spec[0][0].name]

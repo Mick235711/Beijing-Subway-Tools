@@ -14,7 +14,8 @@ from nicegui.elements.tabs import Tab
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
-from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, to_list
+from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, to_list, \
+    format_duration, suffix_s
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
@@ -550,6 +551,88 @@ def train_drawer(city: City, train: Train, train_id: str) -> None:
                     ui.icon(icon).classes("q-ml-xs")
 
     ui.separator()
+    with ui.tabs() as tabs:
+        info_tab = ui.tab("Info")
+        timetable_tab = ui.tab("Timetable")
+
+    num_stations = len(full_train.stations) - len(full_train.skip_stations)
+    with ui.tab_panels(tabs, value=info_tab).classes("w-full h-full"):
+        with ui.tab_panel(info_tab).classes("p-1"):
+            card_caption = "text-subtitle-1 font-bold"
+            card_text = "text-h6"
+
+            with ui.grid(rows=4, columns=2):
+                with ui.card().classes("q-pa-sm"):
+                    ui.tooltip(str(full_train.distance()) + "m")
+                    with ui.card_section():
+                        ui.label("Distance").classes(card_caption)
+                        ui.label(distance_str(full_train.distance())).classes(card_text)
+                with ui.card().classes("q-pa-sm"):
+                    with ui.card_section():
+                        ui.label("Stations").classes(card_caption)
+                        ui.label(str(num_stations)).classes(card_text)
+                        if len(full_train.skip_stations) > 0:
+                            ui.label(f"Skips: {len(full_train.skip_stations)}").classes("text-subtitle-1")
+                with ui.card().classes("q-pa-sm"):
+                    ui.tooltip(suffix_s("minute", full_train.duration()))
+                    with ui.card_section():
+                        ui.label("Duration").classes(card_caption)
+                        ui.label(format_duration(full_train.duration())).classes(card_text)
+                with ui.card().classes("q-pa-sm"):
+                    avg_dist = full_train.distance() / (num_stations - (1 if last_train.loop_next is None else 0))
+                    ui.tooltip(f"{avg_dist:.2f}m")
+                    with ui.card_section():
+                        ui.label("Average Distance").classes(card_caption)
+                        ui.label(distance_str(avg_dist)).classes(card_text)
+                with ui.card().classes("col-span-2 q-pa-sm"):
+                    with ui.card_section():
+                        ui.label("Average Speed").classes(card_caption)
+                        ui.label(speed_str(full_train.speed())).classes(card_text)
+                with ui.card().classes("col-span-2 q-pa-sm"):
+                    with ui.card_section():
+                        ui.label("Train Type").classes(card_caption)
+                        with ui.row().classes("items-center"):
+                            ui.label(full_train.train_formal_name()).classes(card_text)
+                            ui.badge(full_train.train_code())
+                        ui.label(f"Capacity: {full_train.train_capacity()} people").classes("text-subtitle-1")
+
+        ui.add_css(f"""
+.drawers-train-timeline .q-timeline__subtitle {{
+    margin-bottom: 0;
+}}
+.drawers-train-timeline .q-timeline__content {{
+    padding-left: 0 !important;
+    gap: 0 !important;
+}}
+.drawers-train-timeline .q-timeline__subtitle {{
+    padding-right: 16px !important;
+}}
+.drawers-train-timeline .text-line-{line.index} {{
+    color: {line.color} !important;
+}}
+        """)
+        with ui.tab_panel(timetable_tab).classes("p-0 flex flex-col h-full drawers-line-timeline"):
+            with ui.column().classes("gap-y-0"):
+                ui.select(
+                    {"none": "None", "duration": "Duration", "distance": "Distance", "speed": "Speed"},
+                    value="none", label="Show interval as",
+                    on_change=lambda v: train_timeline.refresh(interval_metric=v.value)
+                ).classes("w-full")
+                ui.switch("Show tally for each station", value=True,
+                          on_change=lambda v: train_timeline.refresh(show_tally=v.value))
+                if full_train.is_express():
+                    ui.switch("Show skipped stations", value=True,
+                              on_change=lambda v: train_timeline.refresh(show_skips=v.value))
+            with ui.scroll_area().classes("flex-grow"):
+                train_timeline(city, full_train, show_tally=True, show_skips=True)
+
+
+@ui.refreshable
+def train_timeline(
+    city: City, train: Train | ThroughTrain, *,
+    interval_metric: Literal["none", "duration", "distance", "speed"] = "none", show_tally: bool, show_skips: bool
+) -> None:
+    """ Create a timeline for this train """
 
 
 @ui.refreshable
