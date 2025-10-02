@@ -114,7 +114,7 @@ def trains_tab(city: City, data: TrainsData) -> None:
         get_date_input(on_date_change, label=None)
         on_line_change()
 
-    with (ui.row()):
+    with ui.row():
         card_caption = "text-subtitle-1 font-bold"
         card_text = "text-h5"
 

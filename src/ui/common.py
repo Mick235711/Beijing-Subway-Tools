@@ -37,7 +37,7 @@ ROUTE_TYPES = {
 }
 
 
-def get_station_badge_html(line: Line, station_code: str) -> str:
+def get_badge_html(line: Line, station_code: str) -> str:
     """ Get the HTML for the station badge """
     return """
 <div class="q-badge flex inline items-center no-wrap q-badge--single-line text-{}" style="background: {}" role="status">
@@ -58,7 +58,7 @@ def get_line_selector_options(lines: dict[str, Line]) -> dict[str, str]:
     <div class="text-right">{} {} {}</div>
 </div>
         """.format(
-            get_station_badge_html(line, line_name),
+            get_badge_html(line, line_name),
             line.stations[0],
             """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
             if line.loop else "&mdash;",
@@ -80,11 +80,31 @@ def get_direction_selector_options(line: Line) -> dict[str, str]:
 </div>
         """.format(
             direction,
-            stations[0], get_station_badge_html(line, line.station_code(stations[0])) if line.code else "",
+            stations[0], get_badge_html(line, line.station_code(stations[0])) if line.code else "",
             "autorenew" if line.loop else "arrow_right_alt",
             stations[0] if line.loop else stations[-1],
-            get_station_badge_html(line, line.station_code(stations[0] if line.loop else stations[-1])) if line.code else ""
+            get_badge_html(line, line.station_code(stations[0] if line.loop else stations[-1])) if line.code else ""
         ) for direction, stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0])
+    }
+
+
+def get_station_selector_options(station_lines: dict[str, set[Line]]) -> dict[str, str]:
+    """ Get options for the station selector """
+    return {
+        station: """
+<div class="flex items-center justify-between w-full gap-x-2">
+    <div>{}</div>
+    <div class="text-right">
+        {}
+    </div>
+</div>
+        """.format(
+            station,
+            "\n".join(
+                get_badge_html(line, line.station_code(station) if line.code is not None else line.get_badge())
+                for line in sorted(lines, key=lambda l: l.index)
+            )
+        ) for station, lines in sorted(station_lines.items(), key=lambda x: to_pinyin(x[0])[0])
     }
 
 
@@ -140,6 +160,12 @@ def get_default_line(lines: dict[str, Line]) -> Line:
 def get_default_direction(line: Line) -> str:
     """ Get the default direction for a line """
     return min(line.directions.keys(), key=lambda d: to_pinyin(d)[0])
+
+
+def get_default_station(stations: set[str]) -> str:
+    """ Get the default station from the station dictionary """
+    assert len(stations) > 0, stations
+    return min(stations, key=lambda x: to_pinyin(x)[0])
 
 
 def get_all_trains(

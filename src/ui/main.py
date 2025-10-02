@@ -12,9 +12,10 @@ from nicegui import app, ui
 from src.city.city import get_all_cities
 from src.city.line import Line
 from src.common.common import suffix_s
-from src.ui.common import get_default_line, get_default_direction
+from src.ui.common import get_default_line, get_default_direction, get_default_station
 from src.ui.drawers import right_drawer, assign_globals
 from src.ui.info_tab import info_tab, InfoData
+from src.ui.timetable_tab import timetable_tab, TimetableData
 from src.ui.trains_tab import trains_tab, TrainsData
 
 
@@ -46,6 +47,7 @@ async def main_page(city_name: str) -> None:
             with ui.tabs() as tabs:
                 info_tab_ = ui.tab("Basic Information", icon="info")
                 trains_tab_ = ui.tab("Trains", icon="train")
+                timetable_tab_ = ui.tab("Timetable", icon="departure_board")
                 stats_tab_ = ui.tab("Statistics", icon="query_stats")
                 route_tab_ = ui.tab("Route Planning", icon="route")
             with ui.row().classes("items-center"):
@@ -56,6 +58,7 @@ async def main_page(city_name: str) -> None:
         info_data = InfoData(city.lines, city.station_lines, [], [])
         default_line = get_default_line(city.lines)
         trains_data = TrainsData(info_data, default_line.name, get_default_direction(default_line), date.today(), [])
+        timetable_data = TimetableData(info_data, get_default_station(set(city.station_lines.keys())), date.today(), {})
         assign_globals(city.lines, city.station_lines)
 
         with ui.tab_panel(info_tab_):
@@ -63,6 +66,9 @@ async def main_page(city_name: str) -> None:
 
         with ui.tab_panel(trains_tab_):
             trains_tab(city, trains_data)
+
+        with ui.tab_panel(timetable_tab_):
+            timetable_tab(city, timetable_data)
 
         with ui.tab_panel(stats_tab_):
             ui.label("Statistics will be displayed here.")
