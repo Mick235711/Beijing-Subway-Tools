@@ -15,8 +15,8 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.common.common import to_pinyin, get_time_str, show_direction
 from src.routing.train import Train, parse_trains
-from src.ui.common import get_date_input, get_default_station, get_station_selector_options
-from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge
+from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, get_train_id
+from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import BOX_HEIGHT, StyleBase, assign_styles, apply_style, SuperText, SINGLE_TEXTS
 
@@ -52,7 +52,8 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             data.train_dict = get_train_dict(city, data)
 
             skipped_switch.set_visibility(any(
-                data.station in t.skip_stations for tl in data.train_dict.values() for t in tl
+                data.station in t.arrival_time and data.station in t.skip_stations
+                for tl in data.train_dict.values() for t in tl
             ))
             timetables.refresh(
                 station_lines=data.info_data.station_lines, station=data.station,
@@ -60,7 +61,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                 hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
             )
 
-        def on_station_change(station: str | None = None) -> None:
+        def on_station_change(station: str | None = None, new_date: date | None = None) -> None:
             """ Update the data based on selection states """
             if len(data.info_data.lines) == 0:
                 select_station.set_options([])
@@ -76,6 +77,12 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             select_station.set_options(get_station_selector_options(city.station_lines))
             select_station.set_value(data.station)
             select_station.update()
+
+            if new_date is not None:
+                data.cur_date = new_date
+                date_input.set_value(new_date.isoformat())
+                date_input.update()
+
             on_any_change()
 
         def on_date_change(new_date: date) -> None:
@@ -83,7 +90,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             data.cur_date = new_date
             on_any_change()
 
-        data.info_data.on_line_change.append(lambda: on_station_change(data.station))
+        data.info_data.on_line_change.append(lambda: on_station_change(data.station, data.cur_date))
         ui.add_css("""
 .timetable-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;
@@ -95,7 +102,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             [], with_input=True
         ).props(add="options-html", remove="fill-input hide-selected").on_value_change(on_station_change)
         ui.label(" on date ")
-        get_date_input(on_date_change, label=None)
+        date_input = get_date_input(on_date_change, label=None)
 
     with ui.row().classes("items-center justify-between"):
         ui.label("Hour display mode: ")
@@ -143,9 +150,9 @@ def timetables(
                         ]
 
                         if hour_display == "prefix":
-                            single_prefix_timetable(line, station, train_list)
+                            single_prefix_timetable(city, line, station, train_list)
                         else:
-                            single_title_timetable(line, station, train_list)
+                            single_title_timetable(city, line, station, train_list)
                     with expansion.add_slot("header"):
                         with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
                             get_line_badge(line, add_click=True)
@@ -175,11 +182,12 @@ def group_trains(
 
 DEFAULT_HOUR_COLOR = "bg-sky-500/50"
 DEFAULT_LABEL = f"w-[{BOX_HEIGHT}px] h-[{BOX_HEIGHT}px] text-center"
-DEFAULT_HOUR_LABEL = DEFAULT_LABEL + " " + DEFAULT_HOUR_COLOR
+DEFAULT_HOUR_LABEL = DEFAULT_LABEL + " " + DEFAULT_HOUR_COLOR + " cursor-pointer"
 
 
 def single_hour_timetable(
-    station: str, hour: int, next_day: bool, train_list: list[Train], styles: dict[TrainRoute, StyleBase]
+    city: City, station: str, hour: int, next_day: bool, train_list: list[Train], styles: dict[TrainRoute, StyleBase],
+    train_id_dict: dict[str, Train]
 ) -> list[Element]:
     """ Display timetable for a single hour """
     trains = sorted([
@@ -189,7 +197,10 @@ def single_hour_timetable(
     for train in trains:
         arrival_time = train.arrival_time[station][0]
         style, inner = apply_style(styles, train.routes)
-        with ui.label(f"{arrival_time.minute:>02}").classes(DEFAULT_LABEL).style(style) as label:
+        train_id = find_train_id(train_id_dict, train)
+        with ui.label(f"{arrival_time.minute:>02}").on(
+            "click", lambda t=train, i=train_id: refresh_train_drawer(t, i, train_id_dict, city.station_lines)
+        ).classes(DEFAULT_LABEL + " cursor-pointer").style(style) as label:
             if len(inner) > 0:
                 with ui.element("span").style(SuperText.inner_style()):
                     ui.label(inner)
@@ -239,11 +250,12 @@ def change_color(elements: list[Element], new_color: str, remove_color: str | No
         element.classes(add=f"bg-[{new_color}]", remove=remove_color)
 
 
-def single_prefix_timetable(line: Line, station: str, train_list: list[Train]) -> None:
+def single_prefix_timetable(city: City, line: Line, station: str, train_list: list[Train]) -> None:
     """ Display a single timetable with prefix hours """
     # Assign styles to each route
     hour_dict, routes = group_trains(station, train_list)
     styles = assign_styles(routes, train_list)
+    train_id_dict = get_train_id(train_list)
 
     rows = len(hour_dict)
     hour_labels: list[Element] = []
@@ -256,12 +268,12 @@ def single_prefix_timetable(line: Line, station: str, train_list: list[Train]) -
                         ui.color_picker(
                             on_pick=lambda e: change_color(hour_labels, e.color, DEFAULT_HOUR_COLOR)
                         )
-                    single_hour_timetable(station, hour, next_day, train_list, styles)
+                    single_hour_timetable(city, station, hour, next_day, train_list, styles, train_id_dict)
 
     show_legend(line, hour_labels, styles)
 
 
-def single_title_timetable(line: Line, station: str, train_list: list[Train]) -> None:
+def single_title_timetable(city: City, line: Line, station: str, train_list: list[Train]) -> None:
     """ Display a single timetable with title hours """
 
 

@@ -84,8 +84,16 @@ async def main_page(city_name: str) -> None:
         for callback in trains_data.info_data.on_line_change:
             callback()
 
+    def switch_to_timetable(station: str, cur_date: date) -> None:
+        """ Switch to the timetable tab """
+        panels.set_value("Timetable")
+        timetable_data.station = station
+        timetable_data.cur_date = cur_date
+        for callback in timetable_data.info_data.on_line_change:
+            callback()
+
     with ui.right_drawer(value=False, top_corner=True, bottom_corner=True) as drawer:
-        right_drawer(city, drawer, switch_to_trains)
+        right_drawer(city, drawer, switch_to_trains, switch_to_timetable)
         with ui.page_sticky(position="top-right", x_offset=20, y_offset=20):
             ui.button(icon="keyboard_double_arrow_right", on_click=lambda: drawer.hide()).props("fab color=accent")
 

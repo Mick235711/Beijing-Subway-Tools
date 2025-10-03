@@ -320,7 +320,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
                                                add_through=(line2.name in prev_lines or line2.name in next_lines))
 
 
-def station_drawer(city: City, station: str) -> None:
+def station_drawer(city: City, station: str, switch_to_timetable: Callable[[str, date], None]) -> None:
     """ Create station drawer """
     global AVAILABLE_STATIONS
     lines = sorted(AVAILABLE_STATIONS[station], key=lambda l: l.index)
@@ -334,10 +334,15 @@ def station_drawer(city: City, station: str) -> None:
 
     ui.separator()
     with ui.column().classes("w-full gap-y-0"):
-        get_date_input(lambda d: station_cards.refresh(cur_date=d))
+        date_input = get_date_input(lambda d: station_cards.refresh(cur_date=d))
         ui.switch("Full-Distance only", on_change=lambda v: station_cards.refresh(full_only=v.value))
         ui.switch("Show ending trains", on_change=lambda v: station_cards.refresh(show_ending=v.value))
     station_cards(city, station, lines, cur_date=date.today())
+
+    ui.button(
+        "Show Timetable", icon="launch",
+        on_click=lambda: switch_to_timetable(station, date.fromisoformat(date_input.value))
+    ).props("outline").classes("w-full")
 
 
 class LineTable:
@@ -784,7 +789,8 @@ def train_timeline(
 
 @ui.refreshable
 def right_drawer(
-    city: City, drawer: RightDrawer, switch_to_trains: Callable[[Line, str], None], *,
+    city: City, drawer: RightDrawer,
+    switch_to_trains: Callable[[Line, str], None], switch_to_timetable: Callable[[str, date], None], *,
     drawer_type: Literal["line", "station", "train"] | None = None, train_dict: dict[str, Train] | None = None
 ) -> None:
     """ Create the right drawer """
@@ -803,7 +809,7 @@ def right_drawer(
             return
         SELECTED_LINE = None
         SELECTED_TRAIN = None
-        station_drawer(city, SELECTED_STATION)
+        station_drawer(city, SELECTED_STATION, switch_to_timetable)
     elif drawer_type == "train":
         if SELECTED_TRAIN is None:
             return
