@@ -101,18 +101,22 @@ def get_station_badge(
             )
 
 
-def get_line_direction_repr(line: Line, direction_stations: list[str]) -> None:
+def get_line_direction_repr(line: Line, direction_stations: list[str] | None = None) -> None:
     """ Display line directions """
     with ui.element("div").classes(
         "inline-flex flex-wrap items-center leading-tight gap-x-1"
     ):
+        stations = direction_stations or line.stations
         get_station_badge(
-            direction_stations[0], line,
+            stations[0], line,
             show_badges=False, show_line_badges=False, add_line_click=False
         )
-        ui.icon("autorenew" if line.loop else "arrow_right_alt")
+        if direction_stations is None and not line.loop:
+            ui.label("—")
+        else:
+            ui.icon("autorenew" if line.loop else "arrow_right_alt")
         get_station_badge(
-            direction_stations[0] if line.loop else direction_stations[-1], line,
+            stations[0] if line.loop else stations[-1], line,
             show_badges=False, show_line_badges=False, add_line_click=False
         )
 
