@@ -9,8 +9,11 @@ from datetime import date
 from nicegui import binding, ui
 
 from src.city.city import City
+from src.city.line import Line
+from src.common.common import to_pinyin
 from src.routing.train import Train, parse_trains
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options
+from src.ui.drawers import get_line_badge, get_line_direction_repr
 from src.ui.info_tab import InfoData
 
 
@@ -43,6 +46,11 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         def on_any_change() -> None:
             """ Update the train dict based on current data """
             data.train_dict = get_train_dict(city, data)
+
+            timetables.refresh(
+                station_lines=data.info_data.station_lines, station=data.station,
+                cur_date=data.cur_date, train_dict=data.train_dict
+            )
 
         def on_station_change(station: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -81,3 +89,33 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         ui.label(" on date ")
         get_date_input(on_date_change, label=None)
         on_station_change()
+
+    timetables(
+        city, station_lines=data.info_data.station_lines, station=data.station,
+        cur_date=data.cur_date, train_dict=data.train_dict
+    )
+
+
+@ui.refreshable
+def timetables(
+    city: City, *,
+    station_lines: dict[str, set[Line]], station: str, cur_date: date, train_dict: dict[tuple[str, str], list[Train]]
+) -> None:
+    """ Display the timetables """
+    lines = sorted(station_lines[station], key=lambda l: l.index)
+    first = True
+    with ui.column().classes("gap-y-4 w-full"):
+        for line in lines:
+            if first:
+                first = False
+            else:
+                ui.separator()
+            with ui.row().classes("w-full"):
+                for direction, direction_stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0]):
+                    with ui.expansion(value=True) as expansion:
+                        ui.label(line.name)
+                    with expansion.add_slot("header"):
+                        with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
+                            get_line_badge(line, add_click=True)
+                            ui.label(direction)
+                            get_line_direction_repr(line, direction_stations)

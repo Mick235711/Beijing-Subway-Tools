@@ -36,8 +36,9 @@ def get_line_badge(
 ) -> None:
     """ Get line badge """
     global AVAILABLE_LINES
+    line_name = line.name if show_name else line.get_badge()
     with ui.badge(
-        (line.name if show_name else line.get_badge()) if code_str is None else code_str,
+        line_name if code_str is None else code_str,
         color=line.color, text_color=get_text_color(line.color)
     ) as badge:
         if classes is not None:
@@ -100,6 +101,22 @@ def get_station_badge(
             )
 
 
+def get_line_direction_repr(line: Line, direction_stations: list[str]) -> None:
+    """ Display line directions """
+    with ui.element("div").classes(
+        "inline-flex flex-wrap items-center leading-tight gap-x-1"
+    ):
+        get_station_badge(
+            direction_stations[0], line,
+            show_badges=False, show_line_badges=False, add_line_click=False
+        )
+        ui.icon("autorenew" if line.loop else "arrow_right_alt")
+        get_station_badge(
+            direction_stations[0] if line.loop else direction_stations[-1], line,
+            show_badges=False, show_line_badges=False, add_line_click=False
+        )
+
+
 def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], None]) -> None:
     """ Create line drawer """
     global AVAILABLE_LINES
@@ -149,18 +166,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                         for direction, direction_stations in line.directions.items():
                             with ui.item().classes("mb-2").props("dense").style("padding: 0"):
                                 with ui.item_section():
-                                    with ui.element("div").classes(
-                                        "inline-flex flex-wrap items-center leading-tight gap-x-1"
-                                    ):
-                                        get_station_badge(
-                                            direction_stations[0], line,
-                                            show_badges=False, show_line_badges=False, add_line_click=False
-                                        )
-                                        ui.icon("autorenew" if line.loop else "arrow_right_alt")
-                                        get_station_badge(
-                                            direction_stations[0] if line.loop else direction_stations[-1], line,
-                                            show_badges=False, show_line_badges=False, add_line_click=False
-                                        )
+                                    get_line_direction_repr(line, direction_stations)
                                 with ui.item_section().props("side"):
                                     ui.label(direction)
 
@@ -431,7 +437,7 @@ def station_cards(
 
     card_caption = "text-subtitle-1 font-bold"
     card_text = "text-h6"
-    with ui.column().classes("gap-y-4").classes("w-full"):
+    with ui.column().classes("gap-y-4 w-full"):
         num_transfer = len(lines)
         num_virtual = len(virtual_transfers)
         with ui.grid(rows=(2 if num_virtual > 0 else 1), columns=2).classes("w-full"):
