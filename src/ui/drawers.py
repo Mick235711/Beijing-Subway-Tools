@@ -19,7 +19,7 @@ from src.common.common import get_text_color, distance_str, speed_str, percentag
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
-from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains
+from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains, find_train_id
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
@@ -505,9 +505,9 @@ def get_train_type(train: Train | ThroughTrain) -> list[str]:
     return types
 
 
-def train_drawer(city: City, train: Train, train_id: str) -> None:
+def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[str, Train]) -> None:
     """ Create train drawer """
-    global AVAILABLE_LINES
+    global AVAILABLE_LINES, AVAILABLE_STATIONS
     train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
     _, through_dict = parse_through_train(train_dict, city.through_specs)
     result = find_through_train(through_dict, train)
@@ -636,8 +636,27 @@ def train_drawer(city: City, train: Train, train_id: str) -> None:
                 if full_train.is_express():
                     ui.switch("Show skipped stations", value=True,
                               on_change=lambda v: train_timeline.refresh(show_skips=v.value))
+
+            if first_train.loop_prev is not None:
+                prev_id = find_train_id(train_id_dict, first_train.loop_prev)
+                ui.button(
+                    "Previous: " + prev_id, icon="keyboard_double_arrow_up",
+                    on_click=lambda: refresh_train_drawer(
+                        first_train.loop_prev, prev_id, train_id_dict, AVAILABLE_STATIONS
+                    )
+                ).props("no-caps outline").classes("gap-y-0 w-full")
+
             with ui.scroll_area().classes("flex-grow"):
                 train_timeline(full_train, show_tally=True, show_skips=True)
+
+            if last_train.loop_next is not None:
+                next_id = find_train_id(train_id_dict, last_train.loop_next)
+                ui.button(
+                    "Next: " + next_id, icon="keyboard_double_arrow_down",
+                    on_click=lambda: refresh_train_drawer(
+                        last_train.loop_next, next_id, train_id_dict, AVAILABLE_STATIONS
+                    )
+                ).props("no-caps outline").classes("gap-y-0 w-full")
 
 
 @ui.refreshable
@@ -756,7 +775,7 @@ def train_timeline(
 @ui.refreshable
 def right_drawer(
     city: City, drawer: RightDrawer, switch_to_trains: Callable[[Line, str], None], *,
-    drawer_type: Literal["line", "station", "train"] | None = None
+    drawer_type: Literal["line", "station", "train"] | None = None, train_dict: dict[str, Train] | None = None
 ) -> None:
     """ Create the right drawer """
     global RIGHT_DRAWER, SELECTED_LINE, SELECTED_STATION, SELECTED_TRAIN
@@ -780,7 +799,8 @@ def right_drawer(
             return
         SELECTED_LINE = None
         SELECTED_STATION = None
-        train_drawer(city, SELECTED_TRAIN[0], SELECTED_TRAIN[1])
+        assert train_dict is not None, train_dict
+        train_drawer(city, SELECTED_TRAIN[0], SELECTED_TRAIN[1], train_dict)
 
 
 def refresh_line_drawer(selected_line: Line, lines: dict[str, Line]) -> None:
@@ -822,7 +842,7 @@ def refresh_station_drawer(selected_station: str, station_lines: dict[str, set[L
 
 
 def refresh_train_drawer(
-    selected_train: Train, train_id: str, station_lines: dict[str, set[Line]]
+    selected_train: Train, train_id: str, train_dict: dict[str, Train], station_lines: dict[str, set[Line]]
 ) -> None:
     """ Refresh train drawer """
     global RIGHT_DRAWER, SELECTED_TRAIN, AVAILABLE_LINES, AVAILABLE_STATIONS
@@ -835,7 +855,7 @@ def refresh_train_drawer(
         RIGHT_DRAWER.hide()
         return
 
-    right_drawer.refresh(drawer_type="train")
+    right_drawer.refresh(train_dict=train_dict, drawer_type="train")
     if changed:
         RIGHT_DRAWER.show()
     else:

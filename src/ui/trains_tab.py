@@ -15,7 +15,7 @@ from src.city.train_route import TrainRoute, route_dist
 from src.common.common import distance_str, suffix_s, to_pinyin, get_text_color, format_duration, speed_str
 from src.routing.train import parse_trains, Train
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
-    get_default_direction, ROUTE_TYPES
+    get_default_direction, ROUTE_TYPES, get_train_id
 from src.ui.drawers import get_line_badge, get_station_badge, refresh_line_drawer, refresh_station_drawer, \
     refresh_train_drawer
 from src.ui.info_tab import InfoData
@@ -60,7 +60,9 @@ def trains_tab(city: City, data: TrainsData) -> None:
                 line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                 train_list=data.train_list
             )
-            train_table.refresh(station_lines=data.info_data.station_lines, train_list=data.train_list)
+            train_table.refresh(
+                station_lines=data.info_data.station_lines, full_list=data.train_list, train_list=data.train_list
+            )
 
         def on_direction_change(direction: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -172,7 +174,7 @@ def trains_tab(city: City, data: TrainsData) -> None:
                     line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                     train_list=train_list
                 )
-                train_table(station_lines=data.info_data.station_lines, train_list=train_list)
+                train_table(station_lines=data.info_data.station_lines, full_list=train_list, train_list=train_list)
 
 
 def get_through(
@@ -498,23 +500,11 @@ def route_table(
     routes_search.bind_value(routes_table, "filter")
 
 
-def calculate_train_rows(
-    train_list: list[Train]
-) -> tuple[list[dict], dict[str, Train]]:
+def calculate_train_rows(train_list: list[Train]) -> list[dict]:
     """ Calculate rows for the train table """
     rows = []
-    train_dict: dict[str, Train] = {}
-    route_dict: dict[str, int] = {}
-    for train in sorted(
-        train_list, key=lambda t: sorted(
-            [r.name for r in t.routes], key=lambda n: to_pinyin(n)[0]
-        ) + [t.start_time_str()]
-    ):
-        route_id = train.routes_str()
-        if route_id not in route_dict:
-            route_dict[route_id] = 0
-        route_dict[route_id] += 1
-        train_id = f"{route_id}#{route_dict[route_id]}"
+    train_dict = get_train_id(train_list)
+    for train_id, train in train_dict.items():
         row = {
             "id": train_id,
             "id_sort": to_pinyin(train_id)[0],
@@ -532,20 +522,19 @@ def calculate_train_rows(
             "train_code": train.train_code(),
         }
         rows.append(row)
-        train_dict[train_id] = train
-    return rows, train_dict
+    return rows
 
 
 @ui.refreshable
 def train_table(
-    *, station_lines: dict[str, set[Line]], train_list: list[Train]
+    *, station_lines: dict[str, set[Line]], full_list: list[Train], train_list: list[Train]
 ) -> None:
     """ Create a table for trains """
     with ui.row().classes("w-full items-center justify-between"):
         ui.label("Trains").classes("text-xl font-semibold mt-6 mb-2")
         trains_search = ui.input("Search trains...")
 
-    train_rows, train_dict = calculate_train_rows(train_list)
+    train_rows = calculate_train_rows(train_list)
     trains_table = ui.table(
         columns=[
             {"name": "id", "label": "ID", "field": "id",
@@ -590,8 +579,9 @@ def train_table(
         rows=train_rows,
         pagination=10
     )
+    train_dict = get_train_id(full_list)
     trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(
-        train_dict[n.args], n.args, station_lines
+        train_dict[n.args], n.args, train_dict, station_lines
     ))
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
     trains_table.add_slot("body-cell-id", """
