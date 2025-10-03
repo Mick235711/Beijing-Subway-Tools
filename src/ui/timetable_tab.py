@@ -8,6 +8,7 @@ from datetime import date
 from typing import Literal
 
 from nicegui import binding, ui
+from nicegui.element import Element
 
 from src.city.city import City
 from src.city.line import Line
@@ -170,14 +171,26 @@ def group_trains(
 
 def single_hour_timetable(
     station: str, hour: int, next_day: bool, train_list: list[Train]
-) -> None:
+) -> list[Element]:
     """ Display timetable for a single hour """
     trains = sorted([
         t for t in train_list if t.arrival_time[station][0].hour == hour and t.arrival_time[station][1] == next_day
     ], key=lambda t: get_time_str(*t.arrival_time[station]))
+    labels: list[Element] = []
     for train in trains:
         arrival_time = train.arrival_time[station][0]
-        ui.label(f"{arrival_time.minute:>02}").classes("w-[20px] h-[20px] text-center")
+        labels.append(ui.label(f"{arrival_time.minute:>02}").classes("w-[20px] h-[20px] text-center"))
+    return labels
+
+
+def change_color(elements: list[Element], new_color: str, remove_color: str | None = None) -> None:
+    """ Change the background color of a list of elements """
+    for element in elements:
+        element.classes(add=f"bg-[{new_color}]", remove=remove_color)
+
+
+DEFAULT_HOUR_COLOR = "bg-sky-500/50"
+DEFAULT_HOUR_LABEL = "w-[20px] h-[20px] text-center " + DEFAULT_HOUR_COLOR
 
 
 def single_prefix_timetable(
@@ -185,12 +198,24 @@ def single_prefix_timetable(
 ) -> None:
     """ Display a single timetable with prefix hours """
     rows = len(hour_dict)
+    hour_labels: list[Element] = []
     with ui.scroll_area().classes(f"w-full h-[{24 * rows - 4 + 32}px] mt-[-16px]"):
         with ui.column().classes("gap-y-[4px] w-full"):
             for (hour, next_day), train_list in sorted(hour_dict.items(), key=lambda x: (1 if x[0][1] else 0, x[0][0])):
                 with ui.row().classes("gap-x-[8px] w-full no-wrap"):
-                    ui.label(f"{hour:>02}").classes("w-[20px] h-[20px] text-center bg-sky-500/50")
+                    with ui.label(f"{hour:>02}").classes(DEFAULT_HOUR_LABEL) as hour_label:
+                        hour_labels.append(hour_label)
+                        ui.color_picker(
+                            on_pick=lambda e: change_color(hour_labels, e.color, DEFAULT_HOUR_COLOR)
+                        )
                     single_hour_timetable(station, hour, next_day, train_list)
+
+    with ui.row().classes("gap-x-[8px]"):
+        with ui.label("05").classes(DEFAULT_HOUR_LABEL) as hour_label:
+            hour_labels.append(hour_label)
+            ui.color_picker(on_pick=lambda e: change_color(hour_labels, e.color, DEFAULT_HOUR_COLOR))
+        ui.label("00").classes("w-[20px] h-[20px] text-center")
+        ui.label("represents 05:00")
 
 
 def single_title_timetable(
