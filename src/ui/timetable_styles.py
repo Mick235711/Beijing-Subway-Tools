@@ -109,12 +109,20 @@ class SuperText(StyleBase):
 def get_one_text(route: TrainRoute) -> str:
     """ Get a single text representing the route """
     global SINGLE_TEXTS
+    if route in SINGLE_TEXTS:
+        return SINGLE_TEXTS[route]
     for text in route.name:
         if text in set(SINGLE_TEXTS.values()):
             continue
         SINGLE_TEXTS[route] = text
         return text
     assert False, (SINGLE_TEXTS, route)
+
+
+def replace_one_text(route: TrainRoute, new_text: str) -> None:
+    """ Replace the text representing the route """
+    global SINGLE_TEXTS
+    SINGLE_TEXTS[route] = new_text
 
 
 def apply_style(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute]) -> tuple[str, str]:
@@ -135,7 +143,7 @@ def apply_style(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute]) -
             css += style.apply_style()
     if len(super_texts) > 0:
         css += SuperText().apply_style()
-        return css, super_texts
+        return css, "".join(sorted(super_texts, key=lambda x: to_pinyin(x)[0]))
     return css, ""
 
 
