@@ -51,9 +51,13 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             """ Update the train dict based on current data """
             data.train_dict = get_train_dict(city, data)
 
+            skipped_switch.set_visibility(any(
+                data.station in t.skip_stations for tl in data.train_dict.values() for t in tl
+            ))
             timetables.refresh(
                 station_lines=data.info_data.station_lines, station=data.station,
-                cur_date=data.cur_date, train_dict=data.train_dict, hour_display=display_toggle.value.lower()
+                cur_date=data.cur_date, train_dict=data.train_dict,
+                hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
             )
 
         def on_station_change(station: str | None = None) -> None:
@@ -96,6 +100,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
     with ui.row().classes("items-center justify-between"):
         ui.label("Hour display mode: ")
         display_toggle = ui.toggle(["Prefix", "Title", "Combined"], value="Prefix", on_change=on_any_change)
+        skipped_switch = ui.switch("Show skipping trains", on_change=on_any_change)
 
     on_station_change()
     timetables(
@@ -108,7 +113,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
 def timetables(
     city: City, *,
     station_lines: dict[str, set[Line]], station: str, cur_date: date, train_dict: dict[tuple[str, str], list[Train]],
-    hour_display: Literal["prefix", "title", "combined"] = "prefix"
+    hour_display: Literal["prefix", "title", "combined"] = "prefix", show_skipped: bool = False
 ) -> None:
     """ Display the timetables """
     lines = sorted(station_lines[station], key=lambda l: l.index)
@@ -129,12 +134,12 @@ def timetables(
                         get_line_direction_repr(line)
                 continue
 
-            with ui.row().classes("w-full items-center justify-between"):
+            with ui.row().classes("w-full items-start justify-between"):
                 for direction, direction_stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0]):
                     with ui.expansion(value=True).classes("w-[48%]") as expansion:
                         train_list = [
                             t for t in train_dict[(line.name, direction)]
-                            if station in t.arrival_time and station not in t.skip_stations
+                            if station in t.arrival_time and (show_skipped or station not in t.skip_stations)
                         ]
 
                         if hour_display == "prefix":
