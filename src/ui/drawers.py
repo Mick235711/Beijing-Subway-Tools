@@ -164,7 +164,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
             card_text = "text-h6"
 
             with ui.card().classes("q-pa-sm w-full"):
-                with ui.card_section().classes("w-full"):
+                with ui.card_section().classes("w-full p-0"):
                     ui.label("Directions").classes(card_caption + " mb-2")
                     with ui.list().props("dense"):
                         for direction, direction_stations in line.directions.items():
@@ -182,7 +182,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                         ui.tooltip(" / ".join(
                             f"{direction}: {line.total_distance(direction)}m" for direction in line.directions.keys()
                         ))
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Distance").classes(card_caption)
                         ui.label(distance_str(line.total_distance())).classes(card_text)
                 with ui.card().classes("q-pa-sm"):
@@ -190,19 +190,19 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                     if not line.loop:
                         num_intervals -= 1
                     ui.tooltip("Average distance: " + distance_str(line.total_distance() / num_intervals))
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Stations").classes(card_caption)
                         ui.label(str(len(line.stations))).classes(card_text)
                 with ui.card().classes("q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Index").classes(card_caption)
                         ui.label(str(line.index)).classes(card_text)
                 with ui.card().classes("q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Design Speed").classes(card_caption)
                         ui.label(speed_str(line.design_speed)).classes(card_text)
                 with ui.card().classes("col-span-2 q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Train Type").classes(card_caption)
                         with ui.row().classes("items-center"):
                             ui.label(line.train_formal_name()).classes(card_text)
@@ -215,7 +215,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                 with ui.card().classes("q-pa-sm"):
                     if num_virtual > 0:
                         ui.tooltip("real + virtual")
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("# Transfer").classes(card_caption)
                         with ui.row().classes("items-center"):
                             ui.label(str(num_transfer)).classes(card_text)
@@ -224,7 +224,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                 with ui.card().classes("q-pa-sm"):
                     if num_virtual > 0:
                         ui.tooltip("Each virtual counts as half")
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("% Transfer").classes(card_caption)
                         ui.label(percentage_str((num_transfer + num_virtual / 2) / len(line.stations))).classes(card_text)
 
@@ -452,7 +452,7 @@ def station_cards(
         with ui.grid(rows=(2 if num_virtual > 0 else 1), columns=2).classes("w-full"):
             if num_virtual > 0:
                 with ui.card().classes("col-span-2 q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Virtual Transfers").classes(card_caption)
                         for station2 in virtual_transfers:
                             with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
@@ -460,18 +460,18 @@ def station_cards(
             with ui.card().classes("q-pa-sm"):
                 if num_virtual > 0:
                     ui.tooltip("real + virtual")
-                with ui.card_section():
+                with ui.card_section().classes("p-0"):
                     ui.label("# Lines").classes(card_caption)
                     with ui.row().classes("items-center"):
                         ui.label(str(num_transfer)).classes(card_text)
                         if num_virtual > 0:
                             ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
             with ui.card().classes("q-pa-sm"):
-                with ui.card_section():
+                with ui.card_section().classes("p-0"):
                     ui.label("# Trains").classes(card_caption)
                     ui.label(str(len(train_list))).classes(card_text)
         with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
-            with ui.card_section().classes("w-full"):
+            with ui.card_section().classes("w-full p-0"):
                 train_count_table = LineTable("count")
                 with ui.row().classes("items-center justify-between"):
                     ui.label("Train For Each Line").classes(card_caption)
@@ -480,7 +480,7 @@ def station_cards(
                     ).props("flat").classes("p-0").bind_icon(card_data, "count_icon")
                 train_count_table.create_table(station, train_list, split_direction=(card_data.count_icon == "compress"))
         with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
-            with ui.card_section().classes("w-full"):
+            with ui.card_section().classes("w-full p-0"):
                 first_train_table = LineTable("first" if card_data.show_first == "First Train" else "last")
                 with ui.row().classes("items-center justify-between"):
                     ui.toggle(
@@ -587,32 +587,32 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
             with ui.grid(rows=4, columns=2):
                 with ui.card().classes("q-pa-sm"):
                     ui.tooltip(str(full_train.distance()) + "m")
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Distance").classes(card_caption)
                         ui.label(distance_str(full_train.distance())).classes(card_text)
                 with ui.card().classes("q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Stations").classes(card_caption)
                         ui.label(str(num_stations)).classes(card_text)
                         if len(full_train.skip_stations) > 0:
                             ui.label(f"Skips: {len(full_train.skip_stations)}").classes("text-subtitle-1")
                 with ui.card().classes("q-pa-sm"):
                     ui.tooltip(suffix_s("minute", full_train.duration()))
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Duration").classes(card_caption)
                         ui.label(format_duration(full_train.duration())).classes(card_text)
                 with ui.card().classes("q-pa-sm"):
                     avg_dist = full_train.distance() / (num_stations - (1 if last_train.loop_next is None else 0))
                     ui.tooltip(f"{avg_dist:.2f}m")
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Average Distance").classes(card_caption)
                         ui.label(distance_str(avg_dist)).classes(card_text)
                 with ui.card().classes("col-span-2 q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Average Speed").classes(card_caption)
                         ui.label(speed_str(full_train.speed())).classes(card_text)
                 with ui.card().classes("col-span-2 q-pa-sm"):
-                    with ui.card_section():
+                    with ui.card_section().classes("p-0"):
                         ui.label("Train Type").classes(card_caption)
                         with ui.row().classes("items-center"):
                             ui.label(full_train.train_formal_name()).classes(card_text)

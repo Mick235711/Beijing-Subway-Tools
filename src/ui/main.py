@@ -19,7 +19,7 @@ from src.ui.timetable_tab import timetable_tab, TimetableData
 from src.ui.trains_tab import trains_tab, TrainsData
 
 
-@ui.page("/select_city", title="Beijing Subway Tools - Select City")
+@ui.page("/", title="Beijing Subway Tools - Select City")
 async def city_selector() -> None:
     """ City selection page """
     cities = get_all_cities()
@@ -52,7 +52,7 @@ async def main_page(city_name: str) -> None:
                 route_tab_ = ui.tab("Route Planning", icon="route")
             with ui.row().classes("items-center"):
                 ui.label(f"Selected City: {city_name}")
-                ui.button(on_click=lambda: ui.navigate.to("/select_city"), icon="change_circle")
+                ui.button(on_click=lambda: ui.navigate.to("/"), icon="change_circle")
 
     with ui.tab_panels(tabs, value=info_tab_).classes("w-full") as panels:
         info_data = InfoData(city.lines, city.station_lines, [], [])
@@ -117,7 +117,6 @@ def main() -> None:
     else:
         dark = None
 
-    ui.navigate.to("/select_city")
     if args.browser:
         ui.run(dark=dark, title="Beijing Subway Tools - Browser Mode")
     elif args.window_size is None:
