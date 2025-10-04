@@ -12,7 +12,7 @@ from nicegui import ui
 from nicegui.elements.input import Input
 
 from src.city.city import City
-from src.city.line import Line
+from src.city.line import Line, station_full_name
 from src.common.common import get_text_color, to_pinyin
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
@@ -53,11 +53,14 @@ def get_line_selector_options(lines: dict[str, Line]) -> dict[str, str]:
     """ Get options for the line selector """
     return {
         line_name: """
-<div class="flex items-center justify-between w-full gap-x-2">
+<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="{}">
     {}
     <div class="text-right">{} {} {}</div>
 </div>
         """.format(
+            ",".join(to_pinyin(line.full_name())) + " " + ",".join(to_pinyin(line.stations[0])) + (
+                "" if line.loop else (" " + ",".join(to_pinyin(line.stations[-1])))
+            ),
             get_badge_html(line, line_name),
             line.stations[0],
             """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
@@ -70,7 +73,7 @@ def get_direction_selector_options(line: Line) -> dict[str, str]:
     """ Get options for the direction selector """
     return {
         direction: """
-<div class="flex items-center justify-between w-full gap-x-2">
+<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="{}">
     <div>{}</div>
     <div class="text-right">
         {}{}
@@ -79,6 +82,9 @@ def get_direction_selector_options(line: Line) -> dict[str, str]:
     </div>
 </div>
         """.format(
+            ",".join(to_pinyin(direction)) + " " + ",".join(to_pinyin(line.station_full_name(stations[0]))) + (
+                "" if line.loop else (" " + ",".join(to_pinyin(line.station_full_name(stations[-1]))))
+            ),
             direction,
             stations[0], get_badge_html(line, line.station_code(stations[0])) if line.code else "",
             "autorenew" if line.loop else "arrow_right_alt",
@@ -92,13 +98,14 @@ def get_station_selector_options(station_lines: dict[str, set[Line]]) -> dict[st
     """ Get options for the station selector """
     return {
         station: """
-<div class="flex items-center justify-between w-full gap-x-2">
+<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="{}">
     <div>{}</div>
     <div class="text-right">
         {}
     </div>
 </div>
         """.format(
+            ",".join(to_pinyin(station_full_name(station, station_lines[station]))),
             station,
             "\n".join(
                 get_badge_html(line, line.station_code(station) if line.code is not None else line.get_badge())
