@@ -15,7 +15,7 @@ from nicegui.elements.label import Label
 from src.city.city import City
 from src.city.line import Line
 from src.city.train_route import TrainRoute
-from src.common.common import to_pinyin, get_time_str, show_direction
+from src.common.common import to_pinyin, get_time_str, show_direction, suffix_s
 from src.routing.train import Train, parse_trains
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, get_train_id
 from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer
@@ -349,7 +349,9 @@ def show_legend(
                     with ui.label("00").classes(DEFAULT_LABEL_CLICK).style(style.apply_style()) as label:
                         show_legend_menu(minute_labels[route], label, styles, route)
                 ui.label("=")
-                ui.label(route.name + ":")
+                with ui.label(route.name + ":"):
+                    if len(route.skip_stations) > 0:
+                        ui.tooltip("Skips " + suffix_s("station", len(route.skip_stations)))
                 get_route_repr(line, route)
 
 

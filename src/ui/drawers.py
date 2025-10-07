@@ -232,16 +232,17 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
         ui.add_css(f"""
 .drawers-line-timeline .q-timeline__subtitle {{
     margin-bottom: 0;
+    padding-right: 16px !important;
 }}
 .drawers-line-timeline .q-timeline__content {{
     padding-left: 0 !important;
     gap: 0 !important;
 }}
-.drawers-line-timeline .q-timeline__subtitle {{
-    padding-right: 16px !important;
-}}
 .drawers-line-timeline .text-line-{line.index} {{
     color: {line.color} !important;
+}}
+.drawers-line-timeline .q-timeline__entry--icon .q-timeline__content {{
+    padding-top: 8px !important;
 }}
         """)
         for direction, tab in direction_tabs.items():
@@ -622,13 +623,14 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
         ui.add_css("""
 .drawers-train-timeline .q-timeline__subtitle {
     margin-bottom: 0;
+    padding-right: 16px !important;
 }
 .drawers-train-timeline .q-timeline__content {
     padding-left: 0 !important;
     gap: 0 !important;
 }
-.drawers-train-timeline .q-timeline__subtitle {
-    padding-right: 16px !important;
+.drawers-train-timeline .q-timeline__entry--icon .q-timeline__content {
+    padding-top: 8px !important;
 }
         """)
         for line in lines:

@@ -206,14 +206,15 @@ def route_timeline(
     ui.add_css(f"""
 .train-tab-timeline-parent .q-timeline__subtitle {{
     margin-bottom: 0;
+    padding-right: 16px !important;
 }}
 .train-tab-timeline-parent .q-timeline__content {{
     padding-left: 0 !important;
     gap: 0 !important;
     align-items: flex-end !important;
 }}
-.train-tab-timeline-parent .q-timeline__subtitle {{
-    padding-right: 16px !important;
+.train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__content {{
+    padding-top: 8px !important;
 }}
 .text-line-{line.index} {{
     color: {line.color} !important;
