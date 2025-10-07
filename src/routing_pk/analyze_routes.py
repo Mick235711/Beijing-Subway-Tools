@@ -156,7 +156,8 @@ def routes_one_line(
             print(" [--Mixed Route--]", end="")
         else:
             end_station = route[1]
-            print(f" [{distance_str(path_distance(path, end_station))}, " +
+            distance = path_distance(path, end_station)
+            print(f" [{distance}m ({distance_str(distance)}), " +
                   suffix_s("station", len(expand_path(path, end_station))) + ", " +
                   suffix_s("transfer", total_transfer(path)), end="")
             if city.fare_rules is not None:

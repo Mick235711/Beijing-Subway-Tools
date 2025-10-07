@@ -173,9 +173,11 @@ def filter_line_once(
     if line.end_circle_start is not None:
         index = stations.index(line.end_circle_start)
         stations = stations[index:]
+    else:
+        index = 0
     stations = [s for s in stations if len(station_lines[s]) > 1 or s in virtual_dict]
-    if stations[0] != line.stations[0]:
-        stations = [line.stations[0]] + stations
+    if stations[0] != line.stations[index]:
+        stations = [line.stations[index]] + stations
     if stations[-1] != line.stations[-1]:
         stations.append(line.stations[-1])
     if line.loop:
@@ -293,7 +295,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         lines = {k: v for k, v in lines.items() if k in train_dict.keys()}
         if args.line_requirements == "each_once":
             station_lines = parse_station_lines(lines)
-            virtual_dict = get_virtual_dict(city, lines)
+            virtual_dict = {} if args.exclude_virtual else get_virtual_dict(city, lines)
             bad_list: list[GraphSet] = []
             for line_name in sorted(lines.keys(), key=lambda x: lines[x].index):
                 bad_list += filter_line_once(paths, path_len, station_lines, virtual_dict, lines[line_name])
