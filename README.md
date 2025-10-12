@@ -21,7 +21,8 @@ follow, and also [a-new-line-from-scratch.md](docs/a-new-line-from-scratch.md) f
 See [tools.md](docs/tools.md) for a description of all usable tools and their parameters.
 
 # Data Sources & License
-This work is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-All data present are based on openly available sources obtained from the official Beijing Subway website.
+This work is licensed under [MIT](/LICENSE).
+
+All data present are based on openly available sources obtained from the official Beijing Subway and other official websites.
 
 There may be many mistakes in the data given as I'm human and can and will make mistakes.
