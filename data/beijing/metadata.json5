@@ -203,6 +203,10 @@
                 apply_time: [{end: "07:00"}, {start: "09:00", end: "17:00"}, {start: "19:00"}]
             }
         ],
+        // 参考：https://www.bilibili.com/video/BV1Ffk6BWEZy/
+        "大红门": [
+            {from: "8号线", to: "10号线", minutes: 3}
+        ],
         "六里桥": [
             {from: "9号线", to: "10号线", minutes: 0.5}
         ],
