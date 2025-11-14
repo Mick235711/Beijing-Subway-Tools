@@ -363,7 +363,8 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         assert small_tuple is not None
         dist, route, end_station = small_tuple
 
-    print(f"Longest route is from {city.station_full_name(route[0][0])} " +
+    prefix = "Longest" if args.path_mode == "max" else "Shortest"
+    print(f"{prefix} route is from {city.station_full_name(route[0][0])} " +
           f"to {city.station_full_name(end_station)}, totalling " + (
               suffix_s("station", dist) if args.ignore_dists else f"{dist}m"
           ) + ".\n")
@@ -380,7 +381,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             lines, train_dict, city.transfers, virtual_transfers, route, end_station,
             start_date, start_time, start_day, exclude_edge=args.exclude_edge
         )
-        print("Longest Route Possible:")
+        print(f"{prefix} Route Possible:")
         result.pretty_print_path(bfs_path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)
 
     return city, route, end_station
