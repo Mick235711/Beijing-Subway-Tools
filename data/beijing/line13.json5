@@ -1,5 +1,5 @@
-// 数据截止2025/05/01，八通线，大兴线完全并入1号线和4号线描述
-// 13号线时刻表 新7版
+// 数据截止2025/11/15，八通线，大兴线完全并入1号线和4号线描述
+// 13号线时刻表 新8版
 {
     name: "13号线",
     color: "#F4DA40",
@@ -52,20 +52,20 @@
             "东行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:34", delta: [7, 6, 9, 6, 6, 6, 7, 5, 7, 7, 4, 4, 4, 4]},
-                        {first_train: "07:01", delta: [3, 5, [5, [4]], [2, [3, 3, 3, 3, 2]], [2, [3, 3, 3, 2, 3]], 3, 3, 3, 2]},
-                        {first_train: "08:39", delta: [[2, [3, 3, 2, 3, 3]], [3, [3, 2, 3, 3, 3]], 2, 3]},
-                        {first_train: "09:57", delta: [3, 3, 2, 3, 6, 6, 6, 6, [44, [8]], 5, 6, 6, 3]},
-                        {first_train: "16:48", delta: [5, 4, 4, 4, [53, [3]], [8, [4, 5]], 3, 7, [12, [6]], 7, [4, [8]]]},
-                        {first_train: "23:05", delta: [9, 9, 10, 10, 11]}
+                        {first_train: "05:34", delta: [7, 7, 8, 6, 6, 6, 7, 5, 7, 7, 4, 4, 4, 4]},
+                        {first_train: "07:01", delta: [[7, [4]], [9, [3]], [2, [4, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]]]},
+                        {first_train: "10:00", delta: [2, 3, 3, 6, 6, 6, 6, [40, [8]], 9, 7, 8, 8]},
+                        {first_train: "16:29", delta: [6, 6, 3, 4, 5, 4, 4, [12, [4, 3, 3, 3]], 3, 4]},
+                        {first_train: "19:48", delta: [5, 4, [2, [5, 5, 4, 5]], 4, 3, 5, 4, 5, 4, [12, [6]]]},
+                        {first_train: "22:18", delta: [7, 8, 9, 7, 8, 8, 9, 9, 10, 10, 12]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:34", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:04", skip_trains: 1, until: "10:05"},
-                        {plan: "霍营回库车", first_train: "18:59", skip_trains: 1, until: "19:41"},
-                        {plan: "霍营回库车", first_train: "20:56", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["21:54", "22:12"]},
-                        {plan: "霍营回库车", first_train: "22:49", until: "23:54"}
+                        {plan: "霍营回库车", trains: ["08:38", "08:50"]},
+                        {plan: "霍营回库车", first_train: "09:00", skip_trains: 1, until: "10:05"},
+                        {plan: "霍营回库车", first_train: "18:58", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:21", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["20:39", "20:56", "21:12", "21:30", "21:54", "22:12"]},
+                        {plan: "霍营回库车", first_train: "22:49", until: "23:55"}
                     ]
                 },
                 "双休日": {
@@ -83,21 +83,20 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:30", delta: [8, 7, 8, 6, 6, 6, 6, 7, 8, [6, [4]], 5, 3, 5, [4, [4]]]},
-                        {first_train: "07:29", delta: [3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3]},
-                        {first_train: "08:47", delta: [[3, [3, 3, 3, 2, 3]], [2, [3, 3, 2, 3, 3]], 3, 2]},
-                        {first_train: "10:05", delta: [6, 6, 6, 6, [44, [8]], 5, 5, 6, 3, 3, 5, 4, 5]},
-                        {first_train: "17:01", delta: [[54, [3]], [7, [5, 4]], 5, 5, 7, [12, [6]], 7, 8, 8, 8]},
-                        {first_train: "22:53", delta: [9, 8, 9, 10, 10, 8]}
+                        {first_train: "07:29", delta: [[52, [3]], 6, 6, 6, 6, [44, [8]], 5, 5, 6, 3, 3, 5]},
+                        {first_train: "16:52", delta: [5, 4, [12, [3, 4, 3, 3]], 3, 4, 4, 4, 5, 4, 5]},
+                        {first_train: "20:11", delta: [5, 4, 6, 4, 4, 5, 3, 4, 5, 5, 7, [12, [6]], 7]},
+                        {first_train: "22:30", delta: [8, 7, 8, 9, 8, 9, 10, 10, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:30", until: "06:24"},
                         {plan: "霍营出库车", first_train: "06:36", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:17"]},
-                        {plan: "霍营出库车", first_train: "07:32", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:52", skip_trains: 2, until: "09:24"},
-                        {plan: "霍营出库车", trains: ["16:26", "16:40", "16:48"]},
-                        {plan: "霍营出库车", first_train: "17:01", skip_trains: 1, until: "18:01"},
-                        {plan: "霍营出库车", first_train: "18:10", skip_trains: 2, until: "18:55"}
+                        {plan: "霍营出库车", trains: ["07:17", "07:32", "07:38", "07:50", "07:59", "08:05"]},
+                        {plan: "霍营出库车", first_train: "08:20", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:59", "09:11", "09:20", "16:26", "16:40", "16:48", "17:01", "17:08"]},
+                        {plan: "霍营出库车", first_train: "17:17", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:40", skip_trains: 1, until: "18:19"},
+                        {plan: "霍营出库车", trains: ["18:29", "18:39", "18:52"]}
                     ]
                 },
                 "双休日": {
@@ -116,18 +115,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:38", delta: [7, 7, 8, 6, 6, 7, 7, 5, 7, 6, 5, 4, 4, 3]},
-                        {first_train: "07:05", delta: [4, 4, 4, 5, 4, 3, 5, [2, [3, 3, 2, 3, 3]], [2, [3, 2, 3, 3, 3]], 3, 2, 3, 3]},
-                        {first_train: "08:44", delta: [[2, [2, 3, 3, 3, 3, 2, 3, 3, 3]], [2, [3, 2, 3, 3]]]},
-                        {first_train: "09:59", delta: [3, 2, 3, 3, 3, 5, 6, 6, 7, [41, [8]], 7, 8]},
-                        {first_train: "16:28", delta: [5, 6, 6, 3, 5, 4, 5, 4, [54, [3]], [7, [5, 4]], 5]},
-                        {first_train: "21:01", delta: [3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
+                        {first_train: "07:05", delta: [4, 4, 4, 5, 4, 3, 5, [53, [3]], 6, 6, 6, 6, [40, [8]]]},
+                        {first_train: "16:05", delta: [7, 8, 8, 5, 6, 6, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "19:45", delta: [3, 5, 4, 5, 4, 5, 5, 5, 4, 6, 4, 4, 5]},
+                        {first_train: "20:47", delta: [4, 5, 5, 3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:38", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:09", skip_trains: 1, until: "10:10"},
-                        {plan: "霍营回库车", first_train: "19:03", skip_trains: 1, until: "19:45"},
-                        {plan: "霍营回库车", first_train: "21:01", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["21:58", "22:16"]},
+                        {plan: "霍营回库车", trains: ["08:43", "08:55"]},
+                        {plan: "霍营回库车", first_train: "09:04", skip_trains: 1, until: "10:10"},
+                        {plan: "霍营回库车", first_train: "19:03", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:26", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["20:44", "21:01", "21:16", "21:34", "21:58", "22:16"]},
                         {plan: "霍营回库车", first_train: "22:53", until: "23:58"}
                     ]
                 },
@@ -145,21 +143,20 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:26", delta: [8, 7, 8, 6, 6, 6, 6, 7, 8, [6, [4]], 5, 3, 5, [4, [4]]]},
-                        {first_train: "07:25", delta: [3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3]},
-                        {first_train: "08:43", delta: [[3, [3, 3, 3, 2, 3]], [2, [3, 3, 2, 3, 3]], 3, 2]},
-                        {first_train: "10:01", delta: [6, 6, 6, 6, [44, [8]], 5, 5, 6, 3, 3, 5, 4, 5]},
-                        {first_train: "16:57", delta: [[54, [3]], [7, [5, 4]], 5, 5, 7, [12, [6]], 7, 8, 8, 8]},
-                        {first_train: "22:49", delta: [9, 8, 9, 10, 10, 8]}
+                        {first_train: "07:25", delta: [[52, [3]], 6, 6, 6, 6, [44, [8]], 5, 5, 6, 3, 3, 5]},
+                        {first_train: "16:48", delta: [5, 4, [12, [3, 4, 3, 3]], 3, 4, 4, 4, 5, 4, 5]},
+                        {first_train: "20:07", delta: [5, 4, 6, 4, 4, 5, 3, 4, 5, 5, 7, [12, [6]], 7]},
+                        {first_train: "22:26", delta: [8, 7, 8, 9, 8, 9, 10, 10, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:26", until: "06:20"},
                         {plan: "霍营出库车", first_train: "06:32", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:13"]},
-                        {plan: "霍营出库车", first_train: "07:28", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:48", skip_trains: 2, until: "09:20"},
-                        {plan: "霍营出库车", trains: ["16:22", "16:36", "16:44"]},
-                        {plan: "霍营出库车", first_train: "16:57", skip_trains: 1, until: "17:57"},
-                        {plan: "霍营出库车", first_train: "18:06", skip_trains: 2, until: "18:51"}
+                        {plan: "霍营出库车", trains: ["07:13", "07:28", "07:34", "07:46", "07:55", "08:01"]},
+                        {plan: "霍营出库车", first_train: "08:16", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:55", "09:07", "09:16", "16:22", "16:36", "16:44", "16:57", "17:04"]},
+                        {plan: "霍营出库车", first_train: "17:13", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:36", skip_trains: 1, until: "18:15"},
+                        {plan: "霍营出库车", trains: ["18:25", "18:35", "18:48"]}
                     ]
                 },
                 "双休日": {
@@ -178,18 +175,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:41", delta: [7, 6, 8, 6, 6, 7, 7, 5, 7, 7, 4, 4, 4, 4]},
-                        {first_train: "07:08", delta: [3, 5, [5, [4]], 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3]},
-                        {first_train: "08:54", delta: [[3, [3, 3, 3, 2, 3]], [2, [3, 3, 2, 3, 3]], 3, 2]},
-                        {first_train: "10:12", delta: [3, 6, 6, 6, 6, [41, [8]], 7, 8, 9, 4, 6, 6, 3]},
-                        {first_train: "16:55", delta: [4, 5, 4, [54, [3]], [7, [5, 4]], 5, 5, 3, 7, [12, [6]]]},
-                        {first_train: "22:32", delta: [[5, [8]], 9, 9, 10, 10, 11]}
+                        {first_train: "07:08", delta: [3, 5, [5, [4]], [53, [3]], 6, 6, 6, 6, [41, [8]], 7, 8]},
+                        {first_train: "16:31", delta: [4, 6, 6, 3, 5, 4, 5, 4, [12, [3, 4, 3, 3]], 3]},
+                        {first_train: "19:51", delta: [4, 4, 5, 4, 5, 5, 5, 4, 6, 4, 4, 5, 3, 4]},
+                        {first_train: "20:58", delta: [5, 3, 7, [12, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:40", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:11", skip_trains: 1, until: "10:12"},
-                        {plan: "霍营回库车", first_train: "19:05", skip_trains: 1, until: "19:47"},
-                        {plan: "霍营回库车", first_train: "21:03", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:01", "22:19"]},
+                        {plan: "霍营回库车", trains: ["08:45", "08:57"]},
+                        {plan: "霍营回库车", first_train: "09:06", skip_trains: 1, until: "10:12"},
+                        {plan: "霍营回库车", first_train: "19:05", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:28", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["20:46", "21:03", "21:19", "21:37", "22:01", "22:19"]},
                         {plan: "霍营回库车", first_train: "22:56", until: "00:01"}
                     ]
                 },
@@ -207,21 +203,21 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:24", delta: [8, 7, 7, 6, 6, 7, 6, 6, 8, 5, [2, [3, 5, 4, 4]]]},
-                        {first_train: "07:06", delta: [5, 4, 3, 4, 4, [2, [2, 3, 3, 3, 3]], 2, 3, 3, 3, 2, 3, 3]},
-                        {first_train: "08:16", delta: [[2, [3, 2, 3, 3]], [2, [3, 3, 2, 3, 3]], [3, [3, 2, 3, 3, 3]]]},
-                        {first_train: "09:50", delta: [3, 3, 3, 5, 6, 6, 7, [44, [8]], 5, 5, 6, 3]},
-                        {first_train: "16:37", delta: [4, 5, 4, 4, 4, [53, [3]], [7, [4, 5]], 4, 6, 6, 7, [10, [6]]]},
-                        {first_train: "22:09", delta: [7, 8, 7, 8, 7, 9, 8, 9, 10, 10, 8]}
+                        {first_train: "07:06", delta: [5, 4, 3, 4, 4, [51, [3]], 6, 6, 6, 6, [44, [8]]]},
+                        {first_train: "16:20", delta: [5, 6, 3, 3, 4, 5, 4, 4, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "19:37", delta: [4, 5, 4, 5, 5, 4, 6, 4, 5, 5, 3, 5, 4, 4]},
+                        {first_train: "20:44", delta: [6, 6, 7, [11, [6]], 7, 7, 8, 8, 7, 9, 8, 9, 10]},
+                        {first_train: "23:32", delta: [8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:24", until: "06:17"},
                         {plan: "霍营出库车", first_train: "06:30", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:11"]},
-                        {plan: "霍营出库车", first_train: "07:26", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:45", skip_trains: 2, until: "09:17"},
-                        {plan: "霍营出库车", trains: ["16:20", "16:34", "16:41"]},
-                        {plan: "霍营出库车", first_train: "16:54", skip_trains: 1, until: "17:55"},
-                        {plan: "霍营出库车", first_train: "18:04", skip_trains: 2, until: "18:49"}
+                        {plan: "霍营出库车", trains: ["07:11", "07:26", "07:32", "07:44", "07:53", "07:59"]},
+                        {plan: "霍营出库车", first_train: "08:14", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:53", "09:05", "09:14", "16:20", "16:34", "16:41", "16:54", "17:01"]},
+                        {plan: "霍营出库车", first_train: "17:11", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:34", skip_trains: 1, until: "18:13"},
+                        {plan: "霍营出库车", trains: ["18:22", "18:32", "18:45"]}
                     ]
                 },
                 "双休日": {
@@ -239,17 +235,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:44", delta: [7, 7, 8, 6, 6, 6, 7, 5, 7, 7, 4, 4, 4, 4]},
-                        {first_train: "07:11", delta: [[7, [4]], [3, [3, 3, 3, 3, 2]], [3, [3, 3, 3, 2, 3]], 3, 3, 2, 3, 3, 3, 3, 2, 3]},
-                        {first_train: "09:31", delta: [[3, [3, 2, 3, 3, 3]], 2, 3, 6, 6, 6, 6, [44, [8]]]},
-                        {first_train: "16:39", delta: [6, 6, 3, 4, 5, 4, 4, 4, [53, [3]], [8, [4, 5]], 3]},
-                        {first_train: "21:16", delta: [[12, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
+                        {first_train: "07:11", delta: [[7, [4]], [53, [3]], 6, 6, 6, 6, [44, [8]], 5, 6, 6, 3]},
+                        {first_train: "16:58", delta: [5, 4, 4, [12, [4, 3, 3, 3]], 4, 3, 4, 5, 4, [2, [5, 5, 4, 5]]]},
+                        {first_train: "20:49", delta: [3, 5, 4, 5, 3, 7, [12, [6]], 7, [5, [8]], 9, 9]},
+                        {first_train: "23:43", delta: [10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:44", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:14", skip_trains: 1, until: "10:15"},
-                        {plan: "霍营回库车", first_train: "19:09", skip_trains: 1, until: "19:51"},
-                        {plan: "霍营回库车", first_train: "21:06", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:04", "22:22"]},
+                        {plan: "霍营回库车", trains: ["08:48", "09:00"]},
+                        {plan: "霍营回库车", first_train: "09:09", skip_trains: 1, until: "10:15"},
+                        {plan: "霍营回库车", first_train: "19:08", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:31", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["20:49", "21:06", "21:22", "21:40", "22:04", "22:22"]},
                         {plan: "霍营回库车", first_train: "22:59", until: "00:04"}
                     ]
                 },
@@ -267,21 +263,21 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:21", delta: [8, 7, 7, 6, 6, 7, 6, 6, 8, 5, 3, 4, 5, 3]},
-                        {first_train: "06:46", delta: [5, 4, 4, 4, 5, 3, 4, 4, 4, [2, [2, 3, 3, 3, 3, 2, 3, 3, 3]], 2, 3, 3, 3, 3, 2, 3, 3]},
-                        {first_train: "08:38", delta: [[2, [3, 2, 3, 3]], [2, [3, 3, 2, 3, 3]], [2, [3, 2, 3, 3, 3]]]},
-                        {first_train: "10:01", delta: [6, 6, 7, [44, [8]], 5, 5, 6, 3, 3, 4, 5, 4]},
-                        {first_train: "16:51", delta: [4, [53, [3]], [7, [4, 5]], 4, 6, 6, 7, [11, [6]], 7, 8]},
-                        {first_train: "22:28", delta: [8, 7, 9, 8, 9, 10, 10, 8]}
+                        {first_train: "06:46", delta: [5, 4, 4, 4, 5, 3, 4, 4, 4, [51, [3]], 6, 6, 6]},
+                        {first_train: "10:20", delta: [[44, [8]], 5, 5, 6, 3, 3, 4, 5, 4, 4, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "19:34", delta: [4, 5, 4, 5, 5, 4, 6, 4, 5, 5, 3, 5, 4]},
+                        {first_train: "20:37", delta: [4, 6, 6, 7, [11, [6]], 7, 7, 8, 8, 7, 9, 8, 9]},
+                        {first_train: "23:19", delta: [10, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:21", until: "06:14"},
                         {plan: "霍营出库车", first_train: "06:27", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:08"]},
-                        {plan: "霍营出库车", first_train: "07:23", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:42", skip_trains: 2, until: "09:14"},
-                        {plan: "霍营出库车", trains: ["16:17", "16:31", "16:38"]},
-                        {plan: "霍营出库车", first_train: "16:51", skip_trains: 1, until: "17:52"},
-                        {plan: "霍营出库车", first_train: "18:01", skip_trains: 2, until: "18:46"}
+                        {plan: "霍营出库车", trains: ["07:08", "07:23", "07:29", "07:41", "07:50", "07:56"]},
+                        {plan: "霍营出库车", first_train: "08:11", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:50", "09:02", "09:11", "16:17", "16:31", "16:38", "16:51", "16:58"]},
+                        {plan: "霍营出库车", first_train: "17:08", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:31", skip_trains: 1, until: "18:10"},
+                        {plan: "霍营出库车", trains: ["18:19", "18:29", "18:42"]}
                     ]
                 },
                 "双休日": {
@@ -299,18 +295,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:49", delta: [7, 7, 8, 6, 6, 7, 7, 5, 7, 6, 5, 4, 4, 3]},
-                        {first_train: "07:16", delta: [4, 4, 4, 5, 4, 3, 5, [2, [3, 3, 3, 2]], 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3]},
-                        {first_train: "09:25", delta: [[3, [3, 3, 3, 2, 3]], 3, 3, 2, 3, 3, 3, 5, 6]},
-                        {first_train: "10:41", delta: [7, [41, [8]], 7, 8, 8, 5, 6, 6, 3, 5, 4, 5, 4, [53, [3]]]},
-                        {first_train: "19:59", delta: [[7, [5, 4]], 5, 5, 3, [13, [6]], 7, [5, [8]], 9, 9, 10]},
-                        {first_train: "23:58", delta: [11]}
+                        {first_train: "07:16", delta: [4, 4, 4, 5, 4, 3, 5, [53, [3]], 6, 6, 6, 6, [40, [8]]]},
+                        {first_train: "16:16", delta: [7, 8, 8, 5, 6, 6, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "19:56", delta: [3, 5, 4, 5, 4, 5, 5, 5, 4, 6, 4, 4, 5]},
+                        {first_train: "20:58", delta: [4, 5, 5, 3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:49", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:20", skip_trains: 1, until: "10:21"},
-                        {plan: "霍营回库车", first_train: "19:14", skip_trains: 1, until: "19:56"},
-                        {plan: "霍营回库车", first_train: "21:12", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:09", "22:27"]},
+                        {plan: "霍营回库车", trains: ["08:54", "09:06"]},
+                        {plan: "霍营回库车", first_train: "09:15", skip_trains: 1, until: "10:21"},
+                        {plan: "霍营回库车", first_train: "19:14", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:37", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["20:55", "21:12", "21:27", "21:45", "22:09", "22:27"]},
                         {plan: "霍营回库车", first_train: "23:04", until: "00:09"}
                     ]
                 },
@@ -328,21 +323,20 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:15", delta: [8, 7, 7, 6, 6, 7, 6, 7, 7, 5, [2, [3, 5, 4, 4]]]},
-                        {first_train: "06:57", delta: [5, 4, 3, 5, [2, [3, 3, 2, 3, 3]], [2, [3, 2, 3, 3, 3]], 3, 2, 3, 3]},
-                        {first_train: "08:24", delta: [[2, [2, 3, 3, 3, 3, 2, 3, 3, 3]], [2, [3, 2, 3, 3]]]},
-                        {first_train: "09:39", delta: [3, 2, 3, 3, 6, 6, 6, 6, [44, [8]], 5, 5, 6]},
-                        {first_train: "16:25", delta: [3, 5, 4, 5, 4, [54, [3]], [7, [5, 4]], 5, 5, 6, 7, [10, [6]]]},
-                        {first_train: "22:00", delta: [7, 8, 7, 8, 7, 9, 8, 9, 10, 10, 8]}
+                        {first_train: "06:57", delta: [5, 4, 3, 5, [52, [3]], 6, 6, 6, 6, [44, [8]], 5]},
+                        {first_train: "16:16", delta: [6, 3, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]], 3, 3]},
+                        {first_train: "19:33", delta: [4, 4, 5, 5, 5, 5, 4, 6, 4, 4, 5, 3, 4, 4]},
+                        {first_train: "20:41", delta: [6, 7, [11, [6]], 7, 7, 8, 8, 7, 9, 8, 9, 10, 10, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:15", until: "06:09"},
                         {plan: "霍营出库车", first_train: "06:21", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:02"]},
-                        {plan: "霍营出库车", first_train: "07:17", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:36", skip_trains: 2, until: "09:08"},
-                        {plan: "霍营出库车", trains: ["16:11", "16:25", "16:33"]},
-                        {plan: "霍营出库车", first_train: "16:46", skip_trains: 1, until: "17:46"},
-                        {plan: "霍营出库车", first_train: "17:55", skip_trains: 2, until: "18:40"}
+                        {plan: "霍营出库车", trains: ["07:02", "07:17", "07:23", "07:35", "07:44", "07:50"]},
+                        {plan: "霍营出库车", first_train: "08:05", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:44", "08:56", "09:05", "16:11", "16:25", "16:33", "16:46", "16:52"]},
+                        {plan: "霍营出库车", first_train: "17:02", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:25", skip_trains: 1, until: "18:04"},
+                        {plan: "霍营出库车", trains: ["18:14", "18:23", "18:36"]}
                     ]
                 },
                 "双休日": {
@@ -360,18 +354,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:52", delta: [7, 6, 8, 6, 6, 7, 7, 5, 7, 7, 4, 4, 4, 3]},
-                        {first_train: "07:18", delta: [4, 4, 5, 4, 4, 3, 5, [2, [3, 3, 3, 2, 3]], 3, 3, 2, 3, 3, 3, 3, 2, 3]},
-                        {first_train: "08:43", delta: [[3, [3, 2, 3, 3, 3]], [2, [2, 3, 3, 3, 3, 2, 3, 3, 3]]]},
-                        {first_train: "10:18", delta: [2, 3, 3, 5, 6, 6, 7, [41, [8]], 7, 8, 8, 5]},
-                        {first_train: "16:52", delta: [6, 3, 5, 4, 5, 4, [54, [3]], [7, [5, 4]], 5, 5, 3]},
-                        {first_train: "21:24", delta: [[12, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
+                        {first_train: "07:18", delta: [4, 4, 5, 4, 4, 3, 5, [53, [3]], 6, 6, 6, 6, [40, [8]]]},
+                        {first_train: "16:18", delta: [7, 8, 8, 5, 6, 6, 3, 5, 4, 5, 4, [12, [3, 4, 3, 3]]]},
+                        {first_train: "19:58", delta: [4, 4, 4, 5, 4, 5, 5, 5, 4, 6, 4, 4, 5]},
+                        {first_train: "21:00", delta: [4, 5, 5, 3, 7, [12, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:51", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:22", skip_trains: 1, until: "10:23"},
-                        {plan: "霍营回库车", first_train: "19:16", skip_trains: 1, until: "19:58"},
-                        {plan: "霍营回库车", first_train: "21:14", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:12", "22:30"]},
+                        {plan: "霍营回库车", trains: ["08:56", "09:08"]},
+                        {plan: "霍营回库车", first_train: "09:17", skip_trains: 1, until: "10:23"},
+                        {plan: "霍营回库车", first_train: "19:16", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:39", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["20:57", "21:14", "21:30", "21:48", "22:12", "22:30"]},
                         {plan: "霍营回库车", first_train: "23:07", until: "00:12"}
                     ]
                 },
@@ -389,21 +382,20 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:13", delta: [8, 7, 7, 6, 6, 7, 6, 6, 8, 5, 3, 4, [2, [4, 4, 4, 5]]]},
-                        {first_train: "07:03", delta: [4, 4, 4, [2, [2, 3, 3, 3]], [2, [3, 2, 3, 3]], 3, 3, 2, 3, 3, 3, 3, 2, 3]},
-                        {first_train: "08:27", delta: [[3, [3, 2, 3, 3, 3]], 2, 3, [2, [3, 3, 3, 2]], 3]},
-                        {first_train: "09:42", delta: [3, 3, 5, 6, 6, 7, [44, [8]], 5, 5, 6, 3, 3, 4]},
-                        {first_train: "16:35", delta: [4, 4, 4, [53, [3]], [8, [4, 5]], 7, [12, [6]], 7, 8, 8]},
-                        {first_train: "22:28", delta: [7, 9, 8, 9, 10, 10, 8]}
+                        {first_train: "07:03", delta: [4, 4, 4, [51, [3]], 6, 6, 6, 6, [44, [8]], 5, 5]},
+                        {first_train: "16:20", delta: [3, 3, 4, 5, 4, 4, 4, [12, [3, 3, 4, 3]], 3, 4]},
+                        {first_train: "19:35", delta: [4, 5, 5, 4, 6, 4, 5, 5, 3, 5, 4, 4, 4, 5]},
+                        {first_train: "20:45", delta: [[12, [6]], 7, 8, 8, 8, 7, 9, 8, 9, 10, 10, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:13", until: "06:06"},
                         {plan: "霍营出库车", first_train: "06:19", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:00"]},
-                        {plan: "霍营出库车", first_train: "07:15", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:34", skip_trains: 2, until: "09:06"},
-                        {plan: "霍营出库车", trains: ["16:09", "16:23", "16:30"]},
-                        {plan: "霍营出库车", first_train: "16:43", skip_trains: 1, until: "17:44"},
-                        {plan: "霍营出库车", first_train: "17:53", skip_trains: 2, until: "18:38"}
+                        {plan: "霍营出库车", trains: ["07:00", "07:15", "07:21", "07:33", "07:42", "07:48"]},
+                        {plan: "霍营出库车", first_train: "08:03", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:42", "08:54", "09:03", "16:09", "16:23", "16:30", "16:43", "16:50"]},
+                        {plan: "霍营出库车", first_train: "17:00", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:23", skip_trains: 1, until: "18:02"},
+                        {plan: "霍营出库车", trains: ["18:11", "18:21", "18:34"]}
                     ]
                 },
                 "双休日": {
@@ -421,18 +413,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:54", delta: [7, 7, 8, 6, 7, 6, 7, 5, 7, 6, 5, 4, 4, 3]},
-                        {first_train: "07:21", delta: [4, 4, 4, 5, 4, 3, 4, 4, [2, [3, 2, 3, 3]], 3, 3, 2, 3, 3, 3, 3, 2, 3]},
-                        {first_train: "08:43", delta: [[2, [3, 2, 3, 3, 3]], [2, [2, 3, 3, 3, 3]], 2, 3, 3, 3, 2, 3, 3]},
-                        {first_train: "10:01", delta: [[2, [3, 2, 3, 3, 3]], 5, 6, 6, 7, [41, [8]], 7, 8]},
-                        {first_train: "16:44", delta: [5, 6, 6, 3, 5, 4, 5, 4, [54, [3]], [7, [5, 4]], 5]},
-                        {first_train: "21:17", delta: [3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
+                        {first_train: "07:21", delta: [4, 4, 4, 5, 4, 3, 4, 4, [52, [3]], 5, 6, 6, 7, [40, [8]]]},
+                        {first_train: "16:21", delta: [7, 8, 8, 5, 6, 6, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "20:01", delta: [3, 5, 4, 5, 4, 5, 5, 5, 4, 6, 4, 4, 5]},
+                        {first_train: "21:03", delta: [4, 5, 5, 3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:54", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:25", skip_trains: 1, until: "10:26"},
-                        {plan: "霍营回库车", first_train: "19:19", skip_trains: 1, until: "20:01"},
-                        {plan: "霍营回库车", first_train: "21:17", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:14", "22:32"]},
+                        {plan: "霍营回库车", trains: ["08:59", "09:11"]},
+                        {plan: "霍营回库车", first_train: "09:20", skip_trains: 1, until: "10:26"},
+                        {plan: "霍营回库车", first_train: "19:19", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:42", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["21:00", "21:17", "21:32", "21:50", "22:14", "22:32"]},
                         {plan: "霍营回库车", first_train: "23:09", until: "00:14"}
                     ]
                 },
@@ -450,22 +441,21 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:10", delta: [8, 7, 7, 6, 6, 7, 6, 7, 7, 5, [2, [3, 5, 4, 4]]]},
-                        {first_train: "06:52", delta: [5, 4, 3, 4, 4, [2, [3, 2, 3, 3]], 3, 3, 2, 3, 3, 3, 3, 2, 3]},
-                        {first_train: "08:02", delta: [[2, [3, 2, 3, 3, 3]], [2, [2, 3, 3, 3, 3]], [2, [2, 3, 3, 3]]]},
-                        {first_train: "09:23", delta: [2, 3, 3, 3, 3, 2, 3, 3, 5, 6, 6, 7, [43, [8]]]},
-                        {first_train: "16:01", delta: [5, 5, 6, 3, 3, 5, 4, 5, 4, [54, [3]], [7, [5, 4]]]},
-                        {first_train: "20:31", delta: [5, 6, 7, [11, [6]], 7, 8, 7, 8, 7, 9, 8, 9, 10]},
+                        {first_train: "06:52", delta: [5, 4, 3, 4, 4, [51, [3]], 6, 6, 6, 6, [44, [8]]]},
+                        {first_train: "16:06", delta: [5, 6, 3, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]], 3]},
+                        {first_train: "19:23", delta: [5, 4, 4, 5, 5, 5, 5, 4, 6, 4, 4, 5, 3, 4]},
+                        {first_train: "20:30", delta: [6, 6, 7, [11, [6]], 7, 7, 8, 8, 7, 9, 8, 9, 10]},
                         {first_train: "23:18", delta: [8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:10", until: "06:04"},
                         {plan: "霍营出库车", first_train: "06:16", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["06:57"]},
-                        {plan: "霍营出库车", first_train: "07:12", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:31", skip_trains: 2, until: "09:03"},
-                        {plan: "霍营出库车", trains: ["16:06", "16:20", "16:28"]},
-                        {plan: "霍营出库车", first_train: "16:41", skip_trains: 1, until: "17:41"},
-                        {plan: "霍营出库车", first_train: "17:50", skip_trains: 2, until: "18:35"}
+                        {plan: "霍营出库车", trains: ["06:57", "07:12", "07:18", "07:30", "07:39", "07:45"]},
+                        {plan: "霍营出库车", first_train: "08:00", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:39", "08:51", "09:00", "16:06", "16:20", "16:28", "16:41", "16:47"]},
+                        {plan: "霍营出库车", first_train: "16:57", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:20", skip_trains: 1, until: "17:59"},
+                        {plan: "霍营出库车", trains: ["18:09", "18:18", "18:31"]}
                     ]
                 },
                 "双休日": {
@@ -483,18 +473,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:59", delta: [7, 7, 8, 6, 7, 6, 7, 5, 7, 6, 5, 4, 4, 3]},
-                        {first_train: "07:26", delta: [4, 4, 4, 5, 4, 3, 5, [2, [3, 3, 2, 3, 3]], [2, [3, 2, 3, 3, 3]], 3, 2, 3, 3]},
-                        {first_train: "09:05", delta: [[2, [2, 3, 3, 3, 3, 2, 3, 3, 3]], [2, [3, 2, 3, 3]]]},
-                        {first_train: "10:20", delta: [3, 2, 3, 3, 3, 5, 6, 6, 7, [41, [8]], 7, 8]},
-                        {first_train: "16:49", delta: [5, 6, 6, 3, 5, 4, 5, 4, [54, [3]], [7, [5, 4]], 5]},
-                        {first_train: "21:22", delta: [3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
+                        {first_train: "07:26", delta: [4, 4, 4, 5, 4, 3, 5, [53, [3]], 6, 6, 6, 6, [40, [8]]]},
+                        {first_train: "16:26", delta: [7, 8, 8, 5, 6, 6, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "20:06", delta: [3, 5, 4, 5, 4, 5, 5, 5, 4, 6, 4, 4, 5]},
+                        {first_train: "21:08", delta: [4, 5, 5, 3, [13, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "08:59", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:30", skip_trains: 1, until: "10:31"},
-                        {plan: "霍营回库车", first_train: "19:24", skip_trains: 1, until: "20:06"},
-                        {plan: "霍营回库车", first_train: "21:22", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:19", "22:37"]},
+                        {plan: "霍营回库车", trains: ["09:04", "09:16"]},
+                        {plan: "霍营回库车", first_train: "09:25", skip_trains: 1, until: "10:31"},
+                        {plan: "霍营回库车", first_train: "19:24", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:47", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["21:05", "21:22", "21:37", "21:55", "22:19", "22:37"]},
                         {plan: "霍营回库车", first_train: "23:14", until: "00:19"}
                     ]
                 },
@@ -512,21 +501,21 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:05", delta: [8, 7, 7, 6, 6, 7, 6, 6, 8, 5, 3, 4, 5, 3]},
-                        {first_train: "06:30", delta: [5, 4, 4, 4, 5, 3, 4, 4, 4, [2, [2, 3, 3, 3, 3, 2, 3, 3, 3]], 2, 3, 3, 3, 3, 2, 3, 3]},
-                        {first_train: "08:22", delta: [[2, [3, 2, 3, 3]], [2, [3, 3, 2, 3, 3]], [2, [3, 2, 3, 3, 3]]]},
-                        {first_train: "09:45", delta: [6, 6, 7, [44, [8]], 5, 5, 6, 3, 3, 4, 5, 4]},
-                        {first_train: "16:35", delta: [4, [53, [3]], [7, [4, 5]], 4, 6, 6, 7, [11, [6]], 7, 8]},
-                        {first_train: "22:12", delta: [8, 7, 9, 8, 9, 10, 10, 8]}
+                        {first_train: "06:30", delta: [5, 4, 4, 4, 5, 3, 4, 4, 4, [51, [3]], 6, 6, 6]},
+                        {first_train: "10:04", delta: [[44, [8]], 5, 5, 6, 3, 3, 4, 5, 4, 4, 4, [12, [3, 3, 4, 3]]]},
+                        {first_train: "19:18", delta: [4, 5, 4, 5, 5, 4, 6, 4, 5, 5, 3, 5, 4]},
+                        {first_train: "20:21", delta: [4, 6, 6, 7, [11, [6]], 7, 7, 8, 8, 7, 9, 8, 9]},
+                        {first_train: "23:03", delta: [10, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:05", until: "05:58"},
                         {plan: "霍营出库车", first_train: "06:11", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["06:52"]},
-                        {plan: "霍营出库车", first_train: "07:07", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:26", skip_trains: 2, until: "08:58"},
-                        {plan: "霍营出库车", trains: ["16:01", "16:15", "16:22"]},
-                        {plan: "霍营出库车", first_train: "16:35", skip_trains: 1, until: "17:36"},
-                        {plan: "霍营出库车", first_train: "17:45", skip_trains: 2, until: "18:30"}
+                        {plan: "霍营出库车", trains: ["06:52", "07:07", "07:13", "07:25", "07:34", "07:40"]},
+                        {plan: "霍营出库车", first_train: "07:55", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:34", "08:46", "08:55", "16:01", "16:15", "16:22", "16:35", "16:42"]},
+                        {plan: "霍营出库车", first_train: "16:52", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:15", skip_trains: 1, until: "17:54"},
+                        {plan: "霍营出库车", trains: ["18:03", "18:13", "18:26"]}
                     ]
                 },
                 "双休日": {
@@ -544,18 +533,17 @@
                 "工作日": {
                     schedule: [
                         {first_train: "06:02", delta: [7, 6, 9, 6, 8, 4, 7, 5, 7, 7, 4, 4, 4, 4]},
-                        {first_train: "07:29", delta: [3, 5, [5, [4]], [2, [3, 3, 3, 3, 2]], [2, [3, 3, 3, 2, 3]], 3, 3, 3, 2]},
-                        {first_train: "09:07", delta: [[2, [3, 3, 2, 3, 3]], [3, [3, 2, 3, 3, 3]], 2, 3]},
-                        {first_train: "10:25", delta: [3, 3, 2, 3, 6, 6, 6, 6, [44, [8]], 5, 6, 6, 3]},
-                        {first_train: "17:16", delta: [5, 4, 4, 4, [53, [3]], [8, [4, 5]], 3, 7, [12, [6]], 7, [4, [8]]]},
-                        {first_train: "23:33", delta: [9, 9, 10, 10, 11]}
+                        {first_train: "07:29", delta: [3, 5, [5, [4]], [53, [3]], 6, 6, 6, 6, [44, [8]], 5, 6]},
+                        {first_train: "17:09", delta: [3, 4, 5, 4, 4, [12, [4, 3, 3, 3]], 4, 3, 4, 5]},
+                        {first_train: "20:25", delta: [[2, [5, 5, 4, 5]], 4, 3, 5, 4, 5, 3, 7, [12, [6]]]},
+                        {first_train: "22:53", delta: [[5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
-                        {plan: "霍营回库车", first_train: "09:02", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:32", skip_trains: 1, until: "10:33"},
-                        {plan: "霍营回库车", first_train: "19:27", skip_trains: 1, until: "20:09"},
-                        {plan: "霍营回库车", first_train: "21:24", skip_trains: 2, count: 3},
-                        {plan: "霍营回库车", trains: ["22:22", "22:40"]},
+                        {plan: "霍营回库车", trains: ["09:06", "09:18"]},
+                        {plan: "霍营回库车", first_train: "09:27", skip_trains: 1, until: "10:33"},
+                        {plan: "霍营回库车", first_train: "19:26", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:49", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["21:07", "21:24", "21:40", "21:58", "22:22", "22:40"]},
                         {plan: "霍营回库车", first_train: "23:17", until: "00:22"}
                     ]
                 },
@@ -573,21 +561,21 @@
                 "工作日": {
                     schedule: [
                         {first_train: "05:02", delta: [8, 7, 8, 6, 6, 6, 6, 7, 7, 5, [2, [3, 5, 4, 4]]]},
-                        {first_train: "06:44", delta: [5, 4, 3, 5, [2, [3, 3, 3, 2]], 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3]},
-                        {first_train: "08:41", delta: [[3, [3, 3, 3, 2, 3]], 3, 3, 2, 3, 3, 6, 6, 6]},
-                        {first_train: "10:01", delta: [[44, [8]], 5, 5, 6, 3, 3, 5, 4, 5, 4, [54, [3]], [7, [4, 5]]]},
-                        {first_train: "20:22", delta: [6, 6, 7, [11, [6]], 7, 8, 7, 8, 7, 9, 8, 9]},
-                        {first_train: "23:00", delta: [10, 8, 5, [5, [10]]]}
+                        {first_train: "06:44", delta: [5, 4, 3, 5, [52, [3]], 6, 6, 6, 6, [44, [8]], 5]},
+                        {first_train: "16:03", delta: [6, 3, 3, 5, 4, 5, 4, [12, [3, 3, 4, 3]], 3, 3]},
+                        {first_train: "19:20", delta: [3, 5, 5, 5, 4, 6, 4, 6, 4, 3, 6, 3, 4, 3]},
+                        {first_train: "20:28", delta: [6, 7, [11, [6]], 7, 7, 8, 8, 7, 9, 8, 9, 10, 10]},
+                        {first_train: "23:18", delta: [5, [5, [10]]]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:02", until: "05:56"},
                         {plan: "霍营出库车", first_train: "06:08", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["06:49"]},
-                        {plan: "霍营出库车", first_train: "07:04", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:23", skip_trains: 2, until: "08:55"},
-                        {plan: "霍营出库车", trains: ["15:58", "16:12", "16:20"]},
-                        {plan: "霍营出库车", first_train: "16:33", skip_trains: 1, until: "17:33"},
-                        {plan: "霍营出库车", first_train: "17:42", skip_trains: 2, until: "18:27"},
+                        {plan: "霍营出库车", trains: ["06:49", "07:04", "07:10", "07:22", "07:31", "07:37"]},
+                        {plan: "霍营出库车", first_train: "07:52", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:31", "08:43", "08:52", "15:58", "16:12", "16:20", "16:33", "16:39"]},
+                        {plan: "霍营出库车", first_train: "16:49", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:12", skip_trains: 1, until: "17:51"},
+                        {plan: "霍营出库车", trains: ["18:01", "18:10", "18:23"]},
                         {plan: "回龙观回库车", first_train: "23:23", until: "00:13"}
                     ]
                 },
@@ -608,17 +596,18 @@
                 "工作日": {
                     schedule: [
                         {first_train: "04:59", delta: [10, 9, 12, 12, 11, 12, 7, 7, 8, 6, 8, 4, 7, 5]},
-                        {first_train: "07:04", delta: [7, 4, 4, 4, 4, 5, [7, [4]], [3, [3, 3, 3, 3, 2]], [2, [3, 3, 3, 2, 3]]]},
-                        {first_train: "09:13", delta: [3, 3, 3, 2, 3, 3, 2, 3, 3, 4, 2, 3, 2, [2, [3, 3, 2, 3, 3]]]},
-                        {first_train: "10:21", delta: [2, 3, 2, 3, 3, 2, 3, 6, 6, 6, 6, [43, [8]]]},
-                        {first_train: "16:56", delta: [4, 6, 6, 3, 4, 5, 4, 4, 4, [53, [3]], [8, [4, 5]]]},
+                        {first_train: "07:04", delta: [7, 4, 4, 4, 4, 5, [7, [4]], [53, [3]], 6, 6, 6, 6, [42, [8]]]},
+                        {first_train: "16:47", delta: [9, 4, 6, 6, 3, 4, 5, 4, 4, [12, [4, 3, 3, 3]]]},
+                        {first_train: "20:12", delta: [3, 4, 5, 4, [2, [5, 5, 4, 5]], 4, 3, 5, 4, 5]},
                         {first_train: "21:30", delta: [7, [12, [6]], 7, [5, [8]], 9, 9, 10, 10, 11]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "04:59", until: "05:53"},
-                        {plan: "霍营回库车", first_train: "09:05", skip_trains: 2, count: 4},
-                        {plan: "霍营回库车", first_train: "09:35", skip_trains: 1, until: "10:36"},
-                        {plan: "霍营回库车", first_train: "19:30", skip_trains: 1, until: "20:12"},
+                        {plan: "霍营回库车", trains: ["09:09", "09:21"]},
+                        {plan: "霍营回库车", first_train: "09:30", skip_trains: 1, until: "10:36"},
+                        {plan: "霍营回库车", first_train: "19:29", skip_trains: 1, count: 3},
+                        {plan: "霍营回库车", first_train: "19:52", skip_trains: 1, count: 4},
+                        {plan: "霍营回库车", trains: ["21:10"]},
                         {plan: "霍营回库车", first_train: "21:27", skip_trains: 2, count: 3},
                         {plan: "霍营回库车", trains: ["22:25", "22:43"]},
                         {plan: "霍营回库车", first_train: "23:20", until: "00:25"}
@@ -639,21 +628,22 @@
                 "工作日": {
                     schedule: [
                         {first_train: "04:57", delta: [6, 8, 8, 9, 4, 8, 6, 5, 9, 5, 3, 5, 4, 4]},
-                        {first_train: "06:24", delta: [5, 3, 5, 4, 5, 3, 3, 6, [2, [3, 3, 3, 2]], 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3]},
-                        {first_train: "08:38", delta: [[3, [3, 3, 3, 2, 3]], 3, 3, 2, 3, 3, 6, 6, 6]},
-                        {first_train: "09:58", delta: [[44, [8]], 5, 4, 7, 3, 3, 5, 4, 5, 4, [55, [3]], [7, [6, 3]]]},
-                        {first_train: "20:25", delta: [6, 7, [11, [6]], 7, 8, 7, 8, 7, 9, 8, 9, 10]},
-                        {first_train: "23:07", delta: [8, 5, [5, [10]]]}
+                        {first_train: "06:24", delta: [5, 3, 5, 4, 5, 3, 3, 6, [17, [3]], [4, [2, 4, 3]], [2, [3, 2, 4, 3]]]},
+                        {first_train: "08:51", delta: [4, [13, [3]], 6, 6, 6, 6, [44, [8]], 5, 4, 7, 3]},
+                        {first_train: "16:12", delta: [5, 4, 5, 4, [6, [3, 3, 4, 3]], 3, 3, 4, 2, 4, 3, 3, 4, 3, 3, 3, 4, 3, 3, 4, 3, 3]},
+                        {first_train: "18:46", delta: [[2, [4, 3, 3, 3]], 4, 3, 6, 4, 6, 3, 7, 3, 7]},
+                        {first_train: "19:58", delta: [3, 7, 3, 3, 3, 8, 6, 7, [7, [6]], 5, 7, 6, 6]},
+                        {first_train: "21:51", delta: [7, 8, 7, 8, 9, 8, 9, 10, 10, 8, 5, [5, [10]]]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "04:57", until: "05:51"},
                         {plan: "霍营出库车", first_train: "06:05", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["06:46"]},
-                        {plan: "霍营出库车", first_train: "07:01", skip_trains: 1, count: 3},
-                        {plan: "霍营出库车", first_train: "07:20", skip_trains: 2, until: "08:52"},
-                        {plan: "霍营出库车", trains: ["15:55", "16:09", "16:17"]},
-                        {plan: "霍营出库车", first_train: "16:30", skip_trains: 1, until: "17:30"},
-                        {plan: "霍营出库车", first_train: "17:39", skip_trains: 2, until: "18:24"},
+                        {plan: "霍营出库车", trains: ["06:46", "07:01", "07:07", "07:19", "07:28", "07:34"]},
+                        {plan: "霍营出库车", first_train: "07:49", skip_trains: 2, count: 4},
+                        {plan: "霍营出库车", trains: ["08:28", "08:40", "08:49", "15:55", "16:09", "16:17", "16:30", "16:36"]},
+                        {plan: "霍营出库车", first_train: "16:46", skip_trains: 1, count: 3},
+                        {plan: "霍营出库车", first_train: "17:09", skip_trains: 1, until: "17:48"},
+                        {plan: "霍营出库车", trains: ["17:58", "18:07", "18:20"]},
                         {plan: "回龙观回库车", first_train: "23:20", until: "00:10"}
                     ]
                 },
@@ -675,12 +665,12 @@
                     schedule: [
                         {first_train: "05:04", delta: [10, 9, 6, 6, 7, 6, 5, 5, 5, 7, 7, 3, 4, 4]},
                         {first_train: "06:32", delta: [6, 5, 4, 4, 3, 4, 5, 3, 4, 6, 5, 4, 4, 3]},
-                        {first_train: "07:37", delta: [4, 4, 4, 5, 4, 3, 5, [2, [3, 3, 2, 3, 3]], [2, [3, 2, 3, 3, 3]]]},
-                        {first_train: "09:05", delta: [2, 6, 3, 5, 3, 6, 2, [2, [6, 5, 6, 6, 5, 6, 5]]]},
-                        {first_train: "10:56", delta: [6, 7, [34, [8]], 4, 4, 8, 8, 3, 5, 8, 8, 6]},
-                        {first_train: "16:38", delta: [6, 3, 5, 7, 3, 3, 6, 6, 3, 5, 4, 5, 4, [37, [3]]]},
-                        {first_train: "19:32", delta: [[8, [6]], [7, [5, 4]], 5, 8, 7, 11, 7, 11, 6, 7, 11]},
-                        {first_train: "22:43", delta: [11, 7, 8, 8]}
+                        {first_train: "07:37", delta: [4, 4, 4, 5, 4, 3, 5, [22, [3]], 6, 3, 3, 6, 3, [15, [6]]]},
+                        {first_train: "11:09", delta: [[34, [8]], [3, [4, 4, 8]], 8, 7, 8, 6, 3, 4, 6, 6]},
+                        {first_train: "17:20", delta: [5, 4, 5, 4, [8, [3, 3, 4, 3]], 3, 3, 4, 6, 7]},
+                        {first_train: "19:51", delta: [3, 7, 6, 7, 6, 5, 4, 5, 4, 5, 5, 5, 4, 6]},
+                        {first_train: "21:07", delta: [4, 8, 4, 5, 8, 7, 11, 7, 11, 6, 7, 11, 7, 11]},
+                        {first_train: "23:01", delta: [8, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:04", count: 3},
@@ -688,8 +678,8 @@
                         {plan: "立水桥出库车", first_train: "05:29", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:20"]},
                         {plan: "立水桥出库车", first_train: "06:28", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "15:45", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["16:47", "16:59"]}
+                        {plan: "立水桥出库车", first_train: "15:45", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["16:58"]}
                     ]
                 },
                 "双休日": {
@@ -707,20 +697,22 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:55", delta: [8, 8, 8, 7, 6, 4, 6, 5, 5, 6, 6, 4, 4, 5, 3, 5, 4, 4, 4, 5, 3, 5]},
-                        {first_train: "07:54", delta: [[2, [4, 4, 5, 4, 4, 4]], 4, 4, [2, [3, 3, 3, 2, 3]]]},
-                        {first_train: "09:23", delta: [3, 2, [7, [3]], 4, 3, 5, [6, [4]], 8, [3, [8, 4, 4]]]},
-                        {first_train: "11:29", delta: [8, 4, 4, [32, [8]], 6, 8, 5, 8, [9, [6]], 5, 4, [2, [5, 4, 6, 3]]]},
-                        {first_train: "18:12", delta: [4, 5, 4, [38, [3]], 7, [8, [6]], 3, 3, 6, 6, 3]},
-                        {first_train: "21:38", delta: [7, 4, 4, 4, 4, 8, 3, 4, 9, 8, 9, 10, 10, 8]},
-                        {first_train: "23:15", delta: [10, 10, 10, 10, 5, 5]}
+                        {first_train: "05:55", delta: [8, 8, 8, 7, 6, 4, 6, 5, 5, 6, 5, 4, 3, 5]},
+                        {first_train: "07:19", delta: [6, 5, 4, 3, 3, [4, [5, 4]], 3, 5, 4, 3, 5, 4]},
+                        {first_train: "08:45", delta: [4, [20, [3]], 4, 3, 5, 4, 4, 4, 4, [4, [8, 4, 4, 8]]]},
+                        {first_train: "12:01", delta: [[30, [8]], 6, 8, 5, 8, 6, [2, [3, 7, 6, 7]], 6, 7]},
+                        {first_train: "17:39", delta: [6, 4, 5, 5, 5, 4, 4, 5, 4, [8, [4, 3, 3, 3]]]},
+                        {first_train: "20:09", delta: [3, 3, 4, 7, [8, [6]], 5, 4, 3, 6, 6, 4, 3, 7]},
+                        {first_train: "21:57", delta: [4, 6, 5, 4, 9, 8, 9, 10, 10, 8, 5, 10, 10, 10]},
+                        {first_train: "23:55", delta: [5, 5]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:31", skip_trains: 1, until: "10:21"},
-                        {plan: "立水桥回库车", first_train: "10:45", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:41"]},
-                        {plan: "立水桥回库车", first_train: "19:13", skip_trains: 2, until: "20:16"},
-                        {plan: "立水桥回库车", trains: ["21:17", "21:35", "21:49", "21:57", "22:12", "00:00"]},
+                        {plan: "立水桥回库车", first_train: "09:31", skip_trains: 1, until: "10:13"},
+                        {plan: "立水桥回库车", first_train: "10:29", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "19:17", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:59", "20:15", "21:23"]},
+                        {plan: "立水桥回库车", first_train: "21:42", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["00:00"]},
                         {plan: "回龙观回库车", first_train: "23:15", count: 5},
                         {plan: "回龙观回库车", trains: ["00:05"]}
                     ]
@@ -744,11 +736,12 @@
                     schedule: [
                         {first_train: "05:08", delta: [10, 9, 5, 7, 6, 6, 6, 4, 6, 7, 7, 3, 3, 4]},
                         {first_train: "06:35", delta: [6, 5, 4, 4, 3, 4, 5, 3, 4, 7, 4, 4, 4, 4]},
-                        {first_train: "07:41", delta: [3, 5, [5, [4]], 3, [2, [3, 3, 3, 2]], [2, [3, 3, 3, 3, 2]]]},
-                        {first_train: "09:05", delta: [3, 4, 4, 4, 5, 3, 5, 4, 4, 6, 5, 6, [4, [6, 5]]]},
-                        {first_train: "10:48", delta: [[4, [6]], [34, [8]], [2, [4, 4, 8, 8]], 6, 3, 6, 4, 4]},
-                        {first_train: "17:02", delta: [3, 3, 6, 6, 3, 5, 4, 5, 4, [38, [3]], [8, [6]], [7, [5, 4]]]},
-                        {first_train: "21:31", delta: [8, 9, 10, 8, 10, 6, 8, 10, 8, 10, 7, 8, 8]}
+                        {first_train: "07:41", delta: [3, 5, [5, [4]], [21, [3]], 4, 5, 3, 4, 5, 4, 5, [14, [6]]]},
+                        {first_train: "11:12", delta: [[34, [8]], 4, 4, 8, 5, 3, 8, 5, 3, 8, 8, 7, 8]},
+                        {first_train: "17:01", delta: [4, 3, 6, 6, 3, 5, 4, 5, 4, [8, [3, 4, 3, 3]]]},
+                        {first_train: "19:28", delta: [4, 3, 6, 7, 6, 4, 6, 7, 6, 7, 4, 4, 5, 4]},
+                        {first_train: "20:46", delta: [5, 5, 4, 6, 4, 5, 7, 4, 5, 8, 9, 10, 8, 10]},
+                        {first_train: "22:22", delta: [8, 10, 8, 10, 7, 8, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:08", count: 3},
@@ -756,8 +749,8 @@
                         {plan: "立水桥出库车", first_train: "05:32", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:24"]},
                         {plan: "立水桥出库车", first_train: "06:31", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "15:48", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["16:51", "17:02"]}
+                        {plan: "立水桥出库车", first_train: "15:48", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["17:01"]}
                     ]
                 },
                 "双休日": {
@@ -775,20 +768,22 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:52", delta: [8, 8, 8, 7, 6, 4, 6, 4, 6, 6, 6, 4, 4, 5, 3, 5, 4, 4, 4, 5, 3, 5]},
-                        {first_train: "07:51", delta: [[2, [4, 4, 5, 4, 4, 4]], 4, 4, [2, [3, 3, 3, 2, 3]]]},
-                        {first_train: "09:20", delta: [3, 2, [7, [3]], 4, 3, 5, [6, [4]], 8, [3, [8, 4, 4]]]},
-                        {first_train: "11:26", delta: [8, 4, 4, [32, [8]], 6, 8, 5, 8, [9, [6]], 5, 4, [2, [5, 4, 6, 3]]]},
-                        {first_train: "18:09", delta: [4, 5, 4, [38, [3]], 7, [8, [6]], 3, 3, 6, 6, 3]},
-                        {first_train: "21:35", delta: [7, 4, 4, 4, 4, 8, 3, 4, 9, 8, 9, 10, 10, 8]},
-                        {first_train: "23:12", delta: [10, 10, 10, 10, 5, 5]}
+                        {first_train: "05:52", delta: [8, 8, 8, 7, 6, 4, 6, 4, 6, 6, 5, 4, 3, 5]},
+                        {first_train: "07:16", delta: [6, 5, 4, 3, 3, [4, [5, 4]], 3, 5, 4, 3, 5, 4]},
+                        {first_train: "08:42", delta: [4, [20, [3]], 4, 3, 5, 4, 4, 4, 4, [4, [8, 4, 4, 8]]]},
+                        {first_train: "11:58", delta: [[30, [8]], 6, 8, 5, 8, 6, [2, [3, 7, 6, 7]], 6, 7]},
+                        {first_train: "17:36", delta: [6, 4, 5, 5, 5, 4, 4, 5, 4, [8, [4, 3, 3, 3]]]},
+                        {first_train: "20:06", delta: [3, 3, 4, 7, [8, [6]], 5, 4, 3, 6, 6, 4, 3, 7]},
+                        {first_train: "21:54", delta: [4, 6, 5, 4, 9, 8, 9, 10, 10, 8, 5, 10, 10, 10]},
+                        {first_train: "23:52", delta: [5, 5]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:28", skip_trains: 1, until: "10:18"},
-                        {plan: "立水桥回库车", first_train: "10:42", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:38"]},
-                        {plan: "立水桥回库车", first_train: "19:10", skip_trains: 2, until: "20:13"},
-                        {plan: "立水桥回库车", trains: ["21:14", "21:32", "21:46", "21:54", "22:09", "23:57"]},
+                        {plan: "立水桥回库车", first_train: "09:28", skip_trains: 1, until: "10:10"},
+                        {plan: "立水桥回库车", first_train: "10:26", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "19:14", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:56", "20:12", "21:20"]},
+                        {plan: "立水桥回库车", first_train: "21:39", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["23:57"]},
                         {plan: "回龙观回库车", first_train: "23:12", count: 5},
                         {plan: "回龙观回库车", trains: ["00:02"]}
                     ]
@@ -812,12 +807,12 @@
                     schedule: [
                         {first_train: "05:15", delta: [10, 9, 6, 6, 6, 7, 5, 5, 5, 7, 7, 3, 4, 3]},
                         {first_train: "06:43", delta: [6, 5, 4, 3, 4, 3, 6, 2, 5, 6, 4, 5, 3, 4]},
-                        {first_train: "07:48", delta: [4, 4, 4, 5, 3, 4, 4, 4, [2, [2, 3, 3, 3, 3, 2, 3, 3, 3]]]},
-                        {first_train: "09:12", delta: [3, 4, 5, 3, 5, 4, 4, 4, 5, 5, 6, 5, 6, [4, [6, 5]]]},
-                        {first_train: "11:01", delta: [6, 6, 7, [34, [8]], 4, 4, 8, 8, 3, 5, 8, 8]},
-                        {first_train: "16:46", delta: [3, 6, 3, 5, 7, 3, 3, 6, 6, 3, 4, 5, 4, 4]},
-                        {first_train: "17:52", delta: [[37, [3]], [8, [6]], [7, [4, 5]], 4, 9, 8, 10, 8, 10, 6]},
-                        {first_train: "22:37", delta: [10, 8, 10, 7, 8, 8]}
+                        {first_train: "07:48", delta: [4, 4, 4, 5, 3, 4, 4, 4, [20, [3]], 4, 5, 3, 4]},
+                        {first_train: "09:41", delta: [4, 5, [11, [6]], 5, 6, 6, 7, [34, [8]], [3, [4, 4, 8]]]},
+                        {first_train: "16:48", delta: [7, 8, 6, 3, 4, 6, 6, 3, 4, 5, 4, 4, 4, [8, [3, 3, 4, 3]]]},
+                        {first_train: "19:39", delta: [3, 7, 6, 7, 4, 6, 6, 7, 6, 4, 5, 4, 5]},
+                        {first_train: "20:54", delta: [4, 6, 4, 5, 5, 4, 8, 4, 4, 9, 8, 10, 8, 10]},
+                        {first_train: "22:29", delta: [8, 10, 8, 10, 7, 8, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:15", count: 3},
@@ -825,8 +820,8 @@
                         {plan: "立水桥出库车", first_train: "05:40", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:31"]},
                         {plan: "立水桥出库车", first_train: "06:38", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "15:56", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["16:58", "17:10"]}
+                        {plan: "立水桥出库车", first_train: "15:56", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["17:09"]}
                     ]
                 },
                 "双休日": {
@@ -844,19 +839,22 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:44", delta: [8, 9, 7, 7, 6, 4, 7, 3, 7, 6, 5, [4, [5, 4, 4, 4, 5, 3]]]},
-                        {first_train: "08:38", delta: [4, [2, [3, 2, 3, 3, 3]], 2, [10, [3]], [8, [4]], 8, [3, [8, 4, 4]]]},
-                        {first_train: "11:18", delta: [8, 4, 4, [32, [8]], 6, 8, 6, 7, [9, [6]], 5, 4, [2, [5, 4, 6, 3]]]},
-                        {first_train: "18:01", delta: [4, 5, 4, [37, [3]], 4, 6, 7, [7, [6]], 3, 3, 6]},
-                        {first_train: "21:22", delta: [3, 3, 7, 4, 4, 4, 3, 8, 4, 3, 9, 8, 9, 10]},
-                        {first_train: "22:51", delta: [8, 5, 10, 10, 10, 10, 6, 4]}
+                        {first_train: "05:44", delta: [8, 9, 7, 7, 6, 4, 7, 3, 7, 6, 5, 4, 3, 5]},
+                        {first_train: "07:09", delta: [5, 6, 4, 3, 3, [4, [4, 5]], 3, 4, 5, 3, 4, 5]},
+                        {first_train: "08:34", delta: [5, [21, [3]], [6, [4]], [4, [8, 4, 4, 8]], [31, [8]], 6, 8]},
+                        {first_train: "16:10", delta: [7, 7, 3, 6, 7, 6, 4, 6, 7, 6, 7, 6, 7, 5]},
+                        {first_train: "17:38", delta: [5, 5, 5, 5, 3, 5, 5, [8, [3, 3, 4, 3]], 3, 3]},
+                        {first_train: "20:05", delta: [4, 6, 7, [7, [6]], 5, 4, 3, 6, 6, 3, 4, 7, 4]},
+                        {first_train: "21:50", delta: [7, 5, 3, 9, 8, 9, 10, 10, 8, 5, 10, 10, 10, 10]},
+                        {first_train: "23:50", delta: [4]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:21", skip_trains: 1, until: "10:10"},
-                        {plan: "立水桥回库车", first_train: "10:34", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:30"]},
-                        {plan: "立水桥回库车", first_train: "19:02", skip_trains: 2, until: "20:05"},
-                        {plan: "立水桥回库车", trains: ["21:07", "21:25", "21:39", "21:47", "22:02", "23:50"]},
+                        {plan: "立水桥回库车", first_train: "09:21", skip_trains: 1, until: "10:02"},
+                        {plan: "立水桥回库车", first_train: "10:18", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "19:06", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:48", "20:05", "21:13"]},
+                        {plan: "立水桥回库车", first_train: "21:31", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["23:50"]},
                         {plan: "回龙观回库车", first_train: "23:04", count: 5},
                         {plan: "回龙观回库车", trains: ["23:54"]}
                     ]
@@ -880,12 +878,12 @@
                     schedule: [
                         {first_train: "05:18", delta: [10, 9, 6, 6, 7, 6, 5, 5, 5, 7, 7, 3, 4, 4]},
                         {first_train: "06:46", delta: [6, 5, 4, 4, 3, 4, 5, 3, 4, 6, 5, 4, 4, 3]},
-                        {first_train: "07:51", delta: [4, 4, 4, 5, 4, 3, 5, [2, [3, 3, 3, 2]], 3, [2, [3, 3, 3, 2]]]},
-                        {first_train: "09:10", delta: [[4, [3]], 5, 4, 4, 4, 5, 3, [4, [5, 6]], 6, 5, 6]},
-                        {first_train: "10:53", delta: [6, 5, 6, 6, 7, [34, [8]], 4, 4, 8, 8, 3, 5, 8]},
-                        {first_train: "16:43", delta: [6, 3, 6, 4, 4, 7, 3, 3, 6, 6, 3, 5, 4, 5]},
-                        {first_train: "17:52", delta: [[38, [3]], [8, [6]], [7, [5, 4]], 5, 8, 8, 10, 8, 10, 6]},
-                        {first_train: "22:40", delta: [10, 8, 10, 7, 8, 8]}
+                        {first_train: "07:51", delta: [4, 4, 4, 5, 4, 3, 5, [21, [3]], 4, 5, 3, 4, 5]},
+                        {first_train: "09:48", delta: [5, [15, [6]], [34, [8]], [3, [4, 4, 8]], 8, 7, 8, 6, 3]},
+                        {first_train: "17:19", delta: [6, 6, 3, 5, 4, 5, 4, [8, [3, 3, 4, 3]], 3, 3]},
+                        {first_train: "19:46", delta: [6, 7, 6, 4, 6, 6, 7, 6, 5, 4, 5, 4, 5, 5]},
+                        {first_train: "21:07", delta: [4, 6, 4, 5, 7, 4, 5, 8, 8, 10, 8, 10, 6, 8]},
+                        {first_train: "22:50", delta: [8, 10, 7, 8, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:18", count: 3},
@@ -893,8 +891,8 @@
                         {plan: "立水桥出库车", first_train: "05:43", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:34"]},
                         {plan: "立水桥出库车", first_train: "06:42", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "15:59", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["17:02", "17:13"]}
+                        {plan: "立水桥出库车", first_train: "15:59", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["17:12"]}
                     ]
                 },
                 "双休日": {
@@ -912,20 +910,22 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:41", delta: [8, 9, 7, 7, 6, 4, 7, 3, 6, 6, 6, [3, [5, 3, 5, 4, 4, 4]]]},
-                        {first_train: "08:10", delta: [[5, [4]], 5, 4, 2, 3, [2, [3, 3, 3, 2]], 3, 3]},
-                        {first_train: "09:15", delta: [3, 2, 4, 2, 4, 2, 4, 3, [8, [4]], 8, [3, [8, 4, 4]]]},
-                        {first_train: "11:15", delta: [8, 4, 4, [32, [8]], 6, 8, 5, 8, [9, [6]], 5, 4, [2, [5, 4, 6, 3]]]},
-                        {first_train: "17:58", delta: [4, 5, 4, [37, [3]], 4, 6, 7, [7, [6]], 3, 3, 6]},
-                        {first_train: "21:19", delta: [3, 3, 7, 4, 4, 4, 3, 8, 4, 3, 9, 8, 9, 10]},
-                        {first_train: "22:48", delta: [8, 5, 10, 10, 10, 10, 5, 5]}
+                        {first_train: "05:41", delta: [8, 9, 7, 7, 6, 4, 7, 3, 6, 7, 5, 4, 3, 5]},
+                        {first_train: "07:06", delta: [5, 6, 4, 3, 3, [4, [4, 5]], 3, 4, 5, 3, 4, 5]},
+                        {first_train: "08:31", delta: [5, [21, [3]], [6, [4]], [4, [8, 4, 4, 8]], [31, [8]], 6, 8]},
+                        {first_train: "16:06", delta: [8, 6, 4, 6, 7, 6, 3, 7, 6, 7, 6, 7, 6, 6]},
+                        {first_train: "17:35", delta: [5, 5, 5, 5, 3, 5, 5, [8, [3, 3, 3, 4]], 3, 3]},
+                        {first_train: "20:01", delta: [5, 6, 7, [7, [6]], 5, 3, 4, 6, 6, 3, 4, 7, 4]},
+                        {first_train: "21:47", delta: [7, 5, 3, 9, 8, 9, 10, 10, 8, 5, 10, 10, 10, 10]},
+                        {first_train: "23:46", delta: [5]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:18", skip_trains: 1, until: "10:07"},
-                        {plan: "立水桥回库车", first_train: "10:31", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:27"]},
-                        {plan: "立水桥回库车", first_train: "18:59", skip_trains: 2, until: "20:02"},
-                        {plan: "立水桥回库车", trains: ["21:04", "21:22", "21:36", "21:44", "21:59", "23:46"]},
+                        {plan: "立水桥回库车", first_train: "09:18", skip_trains: 1, until: "09:59"},
+                        {plan: "立水桥回库车", first_train: "10:15", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "19:03", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:45", "20:01", "21:09"]},
+                        {plan: "立水桥回库车", first_train: "21:28", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["23:46"]},
                         {plan: "回龙观回库车", first_train: "23:01", count: 5},
                         {plan: "回龙观回库车", trains: ["23:51"]}
                     ]
@@ -949,12 +949,11 @@
                     schedule: [
                         {first_train: "05:21", delta: [10, 9, [5, [6]], 5, 5, 7, 7, 3, 4, 3, 5, 6, 4]},
                         {first_train: "07:04", delta: [3, 4, 3, 5, 3, 5, 6, 4, [2, [4, 4, 4, 5]], 3]},
-                        {first_train: "08:18", delta: [4, [5, [3]], [2, [2, 3, 3, 3]], 3, 2, 3, 3, 3, 3]},
-                        {first_train: "09:18", delta: [3, [2, [4, 4, 4, 5]], [4, [5, 6]], 6, 5, 6, 5, 6]},
-                        {first_train: "11:13", delta: [6, 6, [34, [8]], 5, 3, 8, 8, 4, 4, 8, 8, 6, 3]},
-                        {first_train: "17:01", delta: [3, 5, 6, 4, 3, 6, 6, 3, 4, 5, 4, 4, 4, [36, [3]]]},
-                        {first_train: "19:49", delta: [[8, [6]], [7, [4, 5]], 4, 9, 8, 10, 8, 10, 6, 8, 10]},
-                        {first_train: "23:01", delta: [10, 7, 8, 8]}
+                        {first_train: "08:18", delta: [4, [21, [3]], 4, 5, 3, 4, 5, 4, 5, [15, [6]], [34, [8]], [3, [5, 3, 8]]]},
+                        {first_train: "16:53", delta: [8, 8, 5, 4, 4, 6, 6, 3, 4, 5, 4, 4, [8, [4, 3, 3, 3]]]},
+                        {first_train: "19:42", delta: [3, 3, 7, 6, 7, 3, 6, 7, 6, 7, 4, 5, 4, [2, [5, 5, 4, 5]]]},
+                        {first_train: "21:35", delta: [5, 4, 9, 8, 10, 8, 10, 6, 8, 10, 8, 10, 7]},
+                        {first_train: "23:26", delta: [8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:21", count: 3},
@@ -962,8 +961,8 @@
                         {plan: "立水桥出库车", first_train: "05:46", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:37"]},
                         {plan: "立水桥出库车", first_train: "06:44", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "16:02", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["17:04", "17:15"]}
+                        {plan: "立水桥出库车", first_train: "16:02", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["17:14"]}
                     ]
                 },
                 "双休日": {
@@ -981,20 +980,21 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:39", delta: [8, 8, 8, 7, 6, 4, 6, 4, 6, 6, 6, 4, 4, 5, 4, 4, 4, 4, 4, 5, 4, 4]},
-                        {first_train: "07:38", delta: [[2, [5, 3, 5, 4, 4, 4]], 5, [5, [3]], [2, [2, 3, 3, 3]]]},
-                        {first_train: "09:13", delta: [2, [6, [3]], [9, [4]], 8, [3, [8, 4, 4]], 8, 8, 4]},
-                        {first_train: "11:29", delta: [[32, [8]], 6, 8, 5, 8, [9, [6]], 5, 4, [2, [5, 4, 6, 3]]]},
-                        {first_train: "17:56", delta: [4, 5, 4, [38, [3]], 7, [8, [6]], 3, 3, 6, 6, 3]},
-                        {first_train: "21:22", delta: [7, 4, 4, 4, 4, 8, 4, 3, 9, 8, 9, 10, 10, 8]},
-                        {first_train: "22:59", delta: [10, 10, 10, 10, 5, 5]}
+                        {first_train: "05:39", delta: [8, 8, 8, 7, 6, 4, 6, 4, 6, 7, 5, 4, 3, 5]},
+                        {first_train: "07:04", delta: [5, 6, 4, 3, 3, [4, [4, 5]], 3, 4, 5, 3, 4, 5]},
+                        {first_train: "08:29", delta: [5, [21, [3]], [6, [4]], [4, [8, 4, 4, 8]], [31, [8]], 6, 8]},
+                        {first_train: "16:04", delta: [8, 6, 4, 6, 7, 6, 3, 7, 6, 7, 6, 7, 6, 6]},
+                        {first_train: "17:33", delta: [5, 5, 5, 5, 3, 5, 5, [9, [3, 3, 3, 4]], 7, [7, [6]]]},
+                        {first_train: "20:58", delta: [5, 4, 3, 6, 6, 4, 3, 7, 5, 4, 7, 5, 3, 9]},
+                        {first_train: "22:17", delta: [9, 10, 10, 8, 5, 10, 10, 10, 10, 5, 5]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:15", skip_trains: 1, until: "10:05"},
-                        {plan: "立水桥回库车", first_train: "10:29", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:25"]},
-                        {plan: "立水桥回库车", first_train: "18:57", skip_trains: 2, until: "20:00"},
-                        {plan: "立水桥回库车", trains: ["21:01", "21:19", "21:33", "21:41", "21:57", "23:44"]},
+                        {plan: "立水桥回库车", first_train: "09:16", skip_trains: 1, until: "09:57"},
+                        {plan: "立水桥回库车", first_train: "10:13", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "19:01", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:43", "19:59", "21:07"]},
+                        {plan: "立水桥回库车", first_train: "21:26", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["23:44"]},
                         {plan: "回龙观回库车", first_train: "22:59", count: 5},
                         {plan: "回龙观回库车", trains: ["23:49"]}
                     ]
@@ -1018,12 +1018,12 @@
                     schedule: [
                         {first_train: "05:23", delta: [10, 9, 6, 6, 6, 7, 5, 5, 5, 7, 7, 3, 4, 3]},
                         {first_train: "06:51", delta: [6, 5, 4, 3, 4, 3, 6, 2, 5, 6, 4, 5, 3, 4]},
-                        {first_train: "07:56", delta: [4, 4, 4, 5, 3, 4, 4, 4, [2, [2, 3, 3, 3, 3, 2, 3, 3, 3]]]},
-                        {first_train: "09:20", delta: [3, 4, 5, 3, 5, 4, 4, 4, 5, 5, 6, 5, 6, [4, [6, 5]]]},
-                        {first_train: "11:09", delta: [6, 6, 7, [34, [8]], 4, 4, 8, 8, 3, 5, 8, 8]},
-                        {first_train: "16:54", delta: [3, 6, 3, 5, 7, 3, 3, 6, 6, 3, 4, 5, 4, 4]},
-                        {first_train: "18:00", delta: [[37, [3]], [8, [6]], [7, [4, 5]], 4, 9, 8, 10, 8, 10, 6]},
-                        {first_train: "22:45", delta: [10, 8, 10, 7, 8, 8]}
+                        {first_train: "07:56", delta: [4, 4, 4, 5, 3, 4, 4, 4, [20, [3]], 4, 5, 3, 4]},
+                        {first_train: "09:49", delta: [4, 5, [11, [6]], 5, 6, 6, 7, [34, [8]], [3, [4, 4, 8]]]},
+                        {first_train: "16:56", delta: [7, 8, 6, 3, 4, 6, 6, 3, 4, 5, 4, 4, 4, [8, [3, 3, 4, 3]]]},
+                        {first_train: "19:47", delta: [3, 7, 6, 7, 4, 6, 6, 7, 6, 4, 5, 4, 5]},
+                        {first_train: "21:02", delta: [4, 6, 4, 5, 5, 4, 8, 4, 4, 9, 8, 10, 8, 10]},
+                        {first_train: "22:37", delta: [8, 10, 8, 10, 7, 8, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:23", count: 3},
@@ -1031,8 +1031,8 @@
                         {plan: "立水桥出库车", first_train: "05:48", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:39"]},
                         {plan: "立水桥出库车", first_train: "06:46", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "16:04", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["17:06", "17:18"]}
+                        {plan: "立水桥出库车", first_train: "16:04", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["17:17"]}
                     ]
                 },
                 "双休日": {
@@ -1050,20 +1050,22 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:37", delta: [8, 8, 8, 7, 6, 4, 6, 4, 6, 6, 6, 4, 4, 5, 3, 5, 4, 4, 4, 5, 3, 5]},
-                        {first_train: "07:36", delta: [[2, [4, 4, 5, 4, 4, 4]], 4, 4, [2, [3, 3, 3, 2, 3]]]},
-                        {first_train: "09:05", delta: [3, 2, [7, [3]], 4, 3, 5, [6, [4]], 8, [3, [8, 4, 4]]]},
-                        {first_train: "11:11", delta: [8, 4, 4, [32, [8]], 6, 8, 5, 8, [9, [6]], 5, 4, [2, [5, 4, 6, 3]]]},
-                        {first_train: "17:54", delta: [4, 5, 4, [38, [3]], 7, [8, [6]], 3, 3, 6, 6, 3]},
-                        {first_train: "21:20", delta: [7, 4, 4, 4, 4, 8, 3, 4, 9, 8, 9, 10, 10, 8]},
-                        {first_train: "22:57", delta: [10, 10, 10, 10, 5, 5]}
+                        {first_train: "05:37", delta: [8, 8, 8, 7, 6, 4, 6, 4, 6, 6, 5, 4, 3, 5]},
+                        {first_train: "07:01", delta: [6, 5, 4, 3, 3, [4, [5, 4]], 3, 5, 4, 3, 5, 4]},
+                        {first_train: "08:27", delta: [4, [20, [3]], 4, 3, 5, 4, 4, 4, 4, [4, [8, 4, 4, 8]]]},
+                        {first_train: "11:43", delta: [[30, [8]], 6, 8, 5, 8, 6, [2, [3, 7, 6, 7]], 6, 7]},
+                        {first_train: "17:21", delta: [6, 4, 5, 5, 5, 4, 4, 5, 4, [8, [4, 3, 3, 3]]]},
+                        {first_train: "19:51", delta: [3, 3, 4, 7, [8, [6]], 5, 4, 3, 6, 6, 4, 3, 7]},
+                        {first_train: "21:39", delta: [4, 6, 5, 4, 9, 8, 9, 10, 10, 8, 5, 10, 10, 10]},
+                        {first_train: "23:37", delta: [5, 5]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:13", skip_trains: 1, until: "10:03"},
-                        {plan: "立水桥回库车", first_train: "10:27", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:23"]},
-                        {plan: "立水桥回库车", first_train: "18:55", skip_trains: 2, until: "19:58"},
-                        {plan: "立水桥回库车", trains: ["20:59", "21:17", "21:31", "21:39", "21:54", "23:42"]},
+                        {plan: "立水桥回库车", first_train: "09:13", skip_trains: 1, until: "09:55"},
+                        {plan: "立水桥回库车", first_train: "10:11", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "18:59", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:41", "19:57", "21:05"]},
+                        {plan: "立水桥回库车", first_train: "21:24", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["23:42"]},
                         {plan: "回龙观回库车", first_train: "22:57", count: 5},
                         {plan: "回龙观回库车", trains: ["23:47"]}
                     ]
@@ -1088,12 +1090,12 @@
                     schedule: [
                         {first_train: "05:26", delta: [10, 9, 6, 6, 6, 7, 5, 5, 5, 7, 7, 3, 4, 3]},
                         {first_train: "06:54", delta: [6, 5, 4, 3, 4, 3, 6, 2, 5, 6, 4, 5, 3, 4]},
-                        {first_train: "07:59", delta: [4, 4, 4, 5, 3, 4, 4, 4, [2, [2, 3, 3, 3, 3, 2, 3, 3, 3]]]},
-                        {first_train: "09:23", delta: [3, 4, 5, 3, 5, 4, 4, 4, 5, 5, 6, 5, 6, [4, [6, 5]]]},
-                        {first_train: "11:12", delta: [6, 6, 7, [34, [8]], 4, 4, 8, 8, 3, 5, 8, 8]},
-                        {first_train: "16:57", delta: [3, 6, 3, 5, 7, 3, 3, 6, 6, 3, 4, 5, 4, 4]},
-                        {first_train: "18:03", delta: [[37, [3]], [8, [6]], [7, [4, 5]], 4, 9, 8, 10, 8, 10, 6]},
-                        {first_train: "22:48", delta: [10, 8, 10, 7, 8, 8]}
+                        {first_train: "07:59", delta: [4, 4, 4, 5, 3, 4, 4, 4, [20, [3]], 4, 5, 3, 4]},
+                        {first_train: "09:52", delta: [4, 5, [11, [6]], 5, 6, 6, 7, [34, [8]], [3, [4, 4, 8]]]},
+                        {first_train: "16:59", delta: [7, 8, 6, 3, 4, 6, 6, 3, 4, 5, 4, 4, 4, [8, [3, 3, 4, 3]]]},
+                        {first_train: "19:50", delta: [3, 7, 6, 7, 4, 6, 6, 7, 6, 4, 5, 4, 5]},
+                        {first_train: "21:05", delta: [4, 6, 4, 5, 5, 4, 8, 4, 4, 9, 8, 10, 8, 10]},
+                        {first_train: "22:40", delta: [8, 10, 8, 10, 7, 8, 8]}
                     ],
                     filters: [
                         {plan: "霍营出库车", first_train: "05:26", count: 3},
@@ -1101,8 +1103,8 @@
                         {plan: "立水桥出库车", first_train: "05:51", skip_trains: 1, count: 4},
                         {plan: "立水桥出库车", trains: ["06:42"]},
                         {plan: "立水桥出库车", first_train: "06:49", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", first_train: "16:07", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["17:09", "17:21"]}
+                        {plan: "立水桥出库车", first_train: "16:07", skip_trains: 2, count: 3},
+                        {plan: "立水桥出库车", trains: ["17:20"]}
                     ]
                 },
                 "双休日": {
@@ -1120,20 +1122,22 @@
             "西行": {
                 "工作日": {
                     schedule: [
-                        {first_train: "05:34", delta: [8, 8, 8, 6, 7, 4, 6, 4, 6, 6, 6, [4, [4, 4, 5, 3, 5, 4]]]},
-                        {first_train: "08:27", delta: [4, [2, [3, 3, 3, 2]], 3, 3, 3, 3, 2, [7, [3]]]},
-                        {first_train: "09:32", delta: [3, 5, [6, [4]], 8, [3, [8, 4, 4]], 8, 8, 4, 4, [31, [8]]]},
-                        {first_train: "15:40", delta: [6, 8, 5, 8, [9, [6]], 5, 4, [2, [5, 4, 6, 3]], 5]},
-                        {first_train: "17:55", delta: [5, 4, [38, [3]], 7, [8, [6]], 3, 3, 6, 6, 3, 3, 7]},
-                        {first_train: "21:28", delta: [4, 4, 4, 8, 3, 4, 9, 8, 9, 10, 10, 8, 5, 10]},
-                        {first_train: "23:14", delta: [10, 10, 5, 5]}
+                        {first_train: "05:34", delta: [8, 8, 8, 6, 7, 4, 6, 4, 6, 6, 5, 4, 3, 5]},
+                        {first_train: "06:58", delta: [6, 5, 4, 3, 3, [4, [5, 4]], 3, 5, 4, 3, 5, 4]},
+                        {first_train: "08:24", delta: [4, [20, [3]], 4, 3, 5, 4, 4, 4, 4, [4, [8, 4, 4, 8]]]},
+                        {first_train: "11:40", delta: [[30, [8]], 6, 8, 5, 8, 6, [2, [3, 7, 6, 7]], 6, 7]},
+                        {first_train: "17:18", delta: [6, 4, 5, 5, 5, 4, 4, 5, 4, [8, [4, 3, 3, 3]]]},
+                        {first_train: "19:48", delta: [3, 3, 4, 7, [8, [6]], 5, 4, 3, 6, 6, 4, 3, 7]},
+                        {first_train: "21:36", delta: [4, 6, 5, 4, 9, 8, 9, 10, 10, 8, 5, 10, 10, 10]},
+                        {first_train: "23:34", delta: [5, 5]}
                     ],
                     filters: [
-                        {plan: "立水桥回库车", first_train: "09:10", skip_trains: 1, until: "10:00"},
-                        {plan: "立水桥回库车", first_train: "10:24", skip_trains: 2, count: 3},
-                        {plan: "立水桥回库车", trains: ["11:20"]},
-                        {plan: "立水桥回库车", first_train: "18:52", skip_trains: 2, until: "19:55"},
-                        {plan: "立水桥回库车", trains: ["20:56", "21:14", "21:28", "21:36", "21:51", "23:39"]},
+                        {plan: "立水桥回库车", first_train: "09:10", skip_trains: 1, until: "09:52"},
+                        {plan: "立水桥回库车", first_train: "10:08", skip_trains: 3, count: 4},
+                        {plan: "立水桥回库车", first_train: "18:56", skip_trains: 2, count: 4},
+                        {plan: "立水桥回库车", trains: ["19:38", "19:54", "21:02"]},
+                        {plan: "立水桥回库车", first_train: "21:21", skip_trains: 2, count: 3},
+                        {plan: "立水桥回库车", trains: ["23:39"]},
                         {plan: "回龙观回库车", first_train: "22:54", count: 5},
                         {plan: "回龙观回库车", trains: ["23:44"]}
                     ]
