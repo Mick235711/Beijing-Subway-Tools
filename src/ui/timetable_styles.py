@@ -7,7 +7,7 @@
 from typing import override, Literal, cast
 
 from src.city.train_route import TrainRoute
-from src.common.common import to_pinyin
+from src.common.common import to_pinyin, TimeSpec
 from src.routing.train import Train
 
 BOX_HEIGHT = 20  # in px
@@ -19,6 +19,10 @@ SINGLE_TEXTS: dict[TrainRoute, str] = {}
 class StyleBase:
     """ Base class for timetable styles """
     route: TrainRoute
+
+    def apply_text(self, hour: int, minute: int, next_day: bool = False) -> str:
+        """ Change the text to be displayed """
+        return f"{minute:>02}"
 
     def apply_style(self) -> str:
         """ CSS Style for the style """
@@ -106,6 +110,23 @@ class SuperText(StyleBase):
         return f"font-size: 50%; position: absolute; top: -{BOX_HEIGHT // 4}px;"
 
 
+class FormattedText(StyleBase):
+    """ Formatted text """
+    format_str: str
+
+    def __init__(self, format_str: str) -> None:
+        """ Constructor """
+        self.format_str = format_str
+
+    @override
+    def apply_text(self, hour: int, minute: int, next_day: bool = False) -> str:
+        """ Change the text to be displayed """
+        try:
+            return self.format_str.format(hour=hour, minute=minute, next_day=next_day)
+        except ValueError:
+            return super().apply_text(hour, minute, next_day)
+
+
 def get_one_text(route: TrainRoute) -> str:
     """ Get a single text representing the route """
     global SINGLE_TEXTS
@@ -136,15 +157,27 @@ def apply_style(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute]) -
             super_text = get_one_text(route)
             super_texts += super_text
         else:
+            inner_style = style.apply_style()
+            if inner_style == "":
+                continue
             if first:
                 first = False
             else:
                 css += " "
-            css += style.apply_style()
+            css += inner_style
     if len(super_texts) > 0:
         css += SuperText().apply_style()
         return css, "".join(sorted(super_texts, key=lambda x: to_pinyin(x)[0]))
     return css, ""
+
+
+def apply_formatting(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute], arrival_time: TimeSpec) -> str:
+    """ Apply formatters to a list of routes """
+    for route in routes:
+        style = styles[route]
+        if isinstance(style, FormattedText):
+            return style.apply_text(arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
+    return StyleBase().apply_text(arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
 
 
 def assign_styles(
