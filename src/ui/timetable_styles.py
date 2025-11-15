@@ -11,6 +11,7 @@ from src.common.common import to_pinyin, TimeSpec
 from src.routing.train import Train
 
 BOX_HEIGHT = 20  # in px
+TITLE_HEIGHT = 16
 MAX_PER_CATEGORY = 4
 DEFAULT_COLORS = ["red", "darkcyan", "darkgreen", "#8B8000"]
 SINGLE_TEXTS: dict[TrainRoute, str] = {}
