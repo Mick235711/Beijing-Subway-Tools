@@ -23,8 +23,10 @@ class StyleBase:
     """ Base class for timetable styles """
     route: TrainRoute
 
-    def apply_text(self, hour: int, minute: int, next_day: bool = False) -> str:
+    def apply_text(self, hour_display: StyleMode, hour: int, minute: int, next_day: bool = False) -> str:
         """ Change the text to be displayed """
+        if hour_display == "list":
+            return f"{hour:>02}:{minute:>02}"
         return f"{minute:>02}"
 
     def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
@@ -123,12 +125,12 @@ class FormattedText(StyleBase):
         self.format_str = format_str
 
     @override
-    def apply_text(self, hour: int, minute: int, next_day: bool = False) -> str:
+    def apply_text(self, hour_display: StyleMode, hour: int, minute: int, next_day: bool = False) -> str:
         """ Change the text to be displayed """
         try:
             return self.format_str.format(hour=hour, minute=minute, next_day=next_day)
         except ValueError:
-            return super().apply_text(hour, minute, next_day)
+            return super().apply_text(hour_display, hour, minute, next_day)
 
 
 def get_one_text(route: TrainRoute) -> str:
@@ -175,7 +177,7 @@ def apply_style(hour_display: StyleMode, styles: list[tuple[TrainRoute | None, S
     return css, ""
 
 
-def apply_formatting(styles: list[StyleBase], arrival_time: TimeSpec | int) -> str:
+def apply_formatting(hour_display: StyleMode, styles: list[StyleBase], arrival_time: TimeSpec | int) -> str:
     """ Apply formatters to a list of routes """
     final_style = StyleBase()
     for style in styles:
@@ -183,8 +185,8 @@ def apply_formatting(styles: list[StyleBase], arrival_time: TimeSpec | int) -> s
             final_style = style
             break
     if isinstance(arrival_time, int):
-        return final_style.apply_text(arrival_time, 0)
-    return final_style.apply_text(arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
+        return final_style.apply_text(hour_display, arrival_time, 0)
+    return final_style.apply_text(hour_display, arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
 
 
 def assign_styles(

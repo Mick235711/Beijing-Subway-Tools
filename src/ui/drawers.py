@@ -14,6 +14,7 @@ from nicegui.elements.tabs import Tab
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
     get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
@@ -521,11 +522,10 @@ def get_train_type(train: Train | ThroughTrain) -> list[str]:
     return types
 
 
-def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[str, Train]) -> None:
-    """ Create train drawer """
-    global AVAILABLE_LINES, AVAILABLE_STATIONS
-    train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
-    _, through_dict = parse_through_train(train_dict, city.through_specs)
+def get_train_repr(
+    through_dict: dict[ThroughSpec, list[ThroughTrain]], train: Train
+) -> tuple[Train | ThroughTrain, Train, Train, list[Line]]:
+    """ Display train timings """
     result = find_through_train(through_dict, train)
     if result is None:
         full_train: Train | ThroughTrain = train
@@ -538,7 +538,6 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
         last_train = full_train.last_train()
         lines = [t.line for t in full_train.trains.values()]
 
-    ui.label(train_id).classes("text-h5 text-bold")
     with ui.element("div").classes("inline-flex flex-wrap items-center leading-tight gap-x-1"):
         get_station_badge(full_train.stations[0], first_train.line, show_badges=False, show_line_badges=False)
         ui.label(full_train.start_time_repr())
@@ -558,6 +557,23 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
         get_station_badge(last_train.last_station(), last_train.line, show_badges=False, show_line_badges=False)
         ui.label(last_train.loop_next.start_time_repr() if last_train.loop_next is not None
                  else full_train.end_time_repr())
+
+    return full_train, first_train, last_train, lines
+
+
+def get_through_dict(city: City) -> dict[ThroughSpec, list[ThroughTrain]]:
+    """ Get through dict from available lines """
+    global AVAILABLE_LINES
+    train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
+    return parse_through_train(train_dict, city.through_specs)[1]
+
+
+def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[str, Train]) -> None:
+    """ Create train drawer """
+    global AVAILABLE_STATIONS
+
+    ui.label(train_id).classes("text-h5 text-bold")
+    full_train, first_train, last_train, lines = get_train_repr(get_through_dict(city), train)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         for line in lines:
             get_line_badge(line, add_click=True)

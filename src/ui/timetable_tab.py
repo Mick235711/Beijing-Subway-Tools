@@ -15,8 +15,10 @@ from src.city.line import Line
 from src.city.train_route import TrainRoute
 from src.common.common import get_time_str, show_direction, suffix_s
 from src.routing.train import Train, parse_trains
-from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, get_train_id
-from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer
+from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, \
+    get_train_id, ROUTE_TYPES
+from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer, \
+    get_train_repr, get_through_dict, get_train_type
 from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import StyleBase, assign_styles, apply_style, apply_formatting, replace_one_text, \
     FilledSquare, FilledCircle, BorderSquare, BorderCircle, SuperText, FormattedText, Colored, \
@@ -251,6 +253,7 @@ StyleFunction = Callable[[tuple[TrainRoute | None, StyleBase]], tuple[dict[Train
 def single_hour_timetable(
     city: City, station: str, hour: int, next_day: bool, train_list: list[Train],
     styles: dict[TrainRoute | None, StyleBase], train_id_dict: dict[str, Train],
+    label_function: Callable[[Train, str, str], Label] = lambda t, i, x: ui.label(x),
     *, hour_display: StyleMode, reverse: bool = False
 ) -> dict[TrainRoute, list[tuple[Train, Label]]]:
     """ Display timetable for a single hour """
@@ -262,9 +265,14 @@ def single_hour_timetable(
         arrival_time = train.arrival_time[station]
         style, inner = apply_style(hour_display, [(route, styles[route]) for route in train.routes])
         train_id = find_train_id(train_id_dict, train)
-        with ui.label(apply_formatting([styles[route] for route in train.routes], arrival_time)).on(
+        with label_function(
+            train, train_id, apply_formatting(hour_display, [styles[route] for route in train.routes], arrival_time)
+        ).on(
             "click", lambda t=train, i=train_id: refresh_train_drawer(t, i, train_id_dict, city.station_lines)
-        ).classes(DEFAULT_LABEL_CLICK).style(style) as label:
+        ).classes(
+            "w-full " + DEFAULT_LABEL_CLICK[DEFAULT_LABEL_CLICK.index(" ") + 1:] if hour_display == "list"
+            else DEFAULT_LABEL_CLICK
+        ).style(style) as label:
             if len(inner) > 0:
                 with ui.element("span").style(SuperText.inner_style()):
                     ui.label(inner)
@@ -310,11 +318,11 @@ def change_style(
         if isinstance(train, Train):
             style, inner = apply_style(hour_display, [(route, new_styles[route]) for route in train.routes])
             element.set_text(apply_formatting(
-                [new_styles[route] for route in train.routes], train.arrival_time[station]
+                hour_display, [new_styles[route] for route in train.routes], train.arrival_time[station]
             ))
         else:
             style, inner = apply_style(hour_display, [(None, new_styles[None]), (None, default_hour_style)])
-            element.set_text(apply_formatting([new_styles[None], default_hour_style], train))
+            element.set_text(apply_formatting(hour_display, [new_styles[None], default_hour_style], train))
         element.style(replace=style)
         for child in element:
             if child.tag == "span":
@@ -328,7 +336,7 @@ def change_style(
         if isinstance(new_style, SuperText) and new_text is not None:
             change_label[0].set_text(new_text)
         else:
-            change_label[0].set_text(new_style.apply_text(0, 0))
+            change_label[0].set_text(new_style.apply_text(hour_display, 0, 0))
         if isinstance(new_style, SuperText) or isinstance(new_style, FormattedText):
             change_label[0].style(replace="")
         else:
@@ -431,7 +439,7 @@ def show_legend(
 
     if hour_display in ["prefix", "combined"]:
         with ui.row().classes("gap-x-[8px]"):
-            display = default_style.apply_text(5, 0)
+            display = default_style.apply_text(hour_display, 5, 0)
             hour_labels.append((5, ui.label(display).classes(DEFAULT_HOUR_LABEL)))
             ui.label("00").classes(DEFAULT_LABEL)
             ui.label("represents 05:00")
@@ -451,10 +459,11 @@ def show_legend(
                         if isinstance(style, SuperText):
                             display = SINGLE_TEXTS[route]
                         else:
-                            display = style.apply_text(0, 0)
-                        with ui.label(display).classes(DEFAULT_LABEL_CLICK).style(
-                            style.apply_style(hour_display)
-                        ) as label:
+                            display = style.apply_text(hour_display, 0, 0)
+                        with ui.label(display).classes(
+                            DEFAULT_LABEL_CLICK[DEFAULT_LABEL_CLICK.index(" ") + 1:] if hour_display == "list"
+                            else DEFAULT_LABEL_CLICK
+                        ).style(style.apply_style(hour_display)) as label:
                             show_legend_menu(
                                 minute_labels[route], label, styles, station, hour_display, route,
                                 change_label=True
@@ -497,7 +506,7 @@ def single_prefix_timetable(
                             if route not in minute_labels:
                                 minute_labels[route] = []
                             minute_labels[route].extend(values)
-                    with ui.label(hour_style.apply_text(hour, 0)).classes(
+                    with ui.label(hour_style.apply_text(hour_display, hour, 0)).classes(
                         DEFAULT_HOUR_LABEL
                     ) as hour_label:
                         hour_labels.append((hour, hour_label))
@@ -528,19 +537,59 @@ def single_title_timetable(
     hour_labels: list[tuple[int, Label]] = []
     minute_labels: dict[TrainRoute, list[tuple[Train, Label]]] = {}
     hour_style = FormattedText("{hour:>02}:00 - {hour:>02}:59")
+    through_dict = get_through_dict(city)
+
+    def label_function(train: Train, train_id: str, label: str) -> Label:
+        """ Labelling creation function """
+        if hour_display != "list":
+            return ui.label(label)
+        with ui.item(
+            on_click=(lambda t=train, i=train_id: refresh_train_drawer(t, i, train_id_dict, city.station_lines))
+        ):
+            with ui.item_section().props("avatar"):
+                inner = ui.label(label)
+            with ui.item_section():
+                title = ui.element("div").classes("flex items-center flex-wrap gap-1")
+                with ui.item_label().props("caption").add_slot("default"):
+                    full_train, _, _, lines = get_train_repr(through_dict, train)
+                with title:
+                    ui.item_label(train_id)
+                    route_types = get_train_type(full_train)
+                    if len(lines) > 1:
+                        route_types.append("Through")
+                    for route_type in route_types:
+                        color, icon = ROUTE_TYPES[route_type]
+                        with ui.badge(route_type, color=color):
+                            if icon != "":
+                                ui.icon(icon).classes("q-ml-xs")
+            with ui.item_section().props("side"):
+                ui.icon("navigate_next")
+        return inner
 
     with ui.scroll_area().classes(f"w-full h-[{(TITLE_HEIGHT + BOX_HEIGHT) * rows + 32}px] mt-[-16px]"):
         with ui.column().classes("gap-y-0 w-full"):
             for (hour, next_day), train_list in sorted(hour_dict.items(), key=lambda x: (1 if x[0][1] else 0, x[0][0])):
                 with ui.row().classes("gap-x-[8px] w-full no-wrap"):
-                    with ui.label(hour_style.apply_text(hour, 0)).classes(
-                        f"w-[{max_width}px] " + TITLE_HOUR_LABEL
+                    with ui.label(hour_style.apply_text(hour_display, hour, 0)).classes(
+                        ("w-full " if hour_display == "list" else f"w-[{max_width}px] ") + TITLE_HOUR_LABEL
                     ) as hour_label:
                         hour_labels.append((hour, hour_label))
 
+                if hour_display == "list":
+                    with ui.list().props("separator").classes("w-full"):
+                        for route, values in single_hour_timetable(
+                            city, station, hour, next_day, train_list, styles, train_id_dict, label_function,
+                            hour_display=hour_display
+                        ).items():
+                            if route not in minute_labels:
+                                minute_labels[route] = []
+                            minute_labels[route].extend(values)
+                    continue
+
                 with ui.row().classes("gap-x-[8px] w-full no-wrap"):
                     for route, values in single_hour_timetable(
-                        city, station, hour, next_day, train_list, styles, train_id_dict, hour_display=hour_display
+                        city, station, hour, next_day, train_list, styles, train_id_dict,
+                        hour_display=hour_display
                     ).items():
                         if route not in minute_labels:
                             minute_labels[route] = []
