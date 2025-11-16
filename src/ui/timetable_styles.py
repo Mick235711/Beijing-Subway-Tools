@@ -15,6 +15,8 @@ TITLE_HEIGHT = 16
 MAX_PER_CATEGORY = 4
 DEFAULT_COLORS = ["red", "darkcyan", "darkgreen", "#8B8000"]
 SINGLE_TEXTS: dict[TrainRoute, str] = {}
+StyleMode = Literal["prefix", "title", "list", "combined"]
+TimetableMode = Literal["colored", "filled", "border", "formatted", "super"]
 
 
 class StyleBase:
@@ -25,7 +27,7 @@ class StyleBase:
         """ Change the text to be displayed """
         return f"{minute:>02}"
 
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return ""
 
@@ -39,7 +41,7 @@ class Colored(StyleBase):
         self.color = color
 
     @override
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return f"color: {self.color};"
 
@@ -53,7 +55,7 @@ class FilledSquare(StyleBase):
         self.color = color
 
     @override
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return f"background-color: {self.color};"
 
@@ -65,9 +67,9 @@ class FilledCircle(FilledSquare):
         super().__init__(color)
 
     @override
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for the style """
-        return super().apply_style() + " border-radius: 50%;"
+        return super().apply_style(hour_display, is_hour) + " border-radius: 50%;"
 
 
 class BorderSquare(StyleBase):
@@ -81,9 +83,9 @@ class BorderSquare(StyleBase):
         self.color = color
 
     @override
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for the style """
-        height = TITLE_HEIGHT if is_hour else BOX_HEIGHT
+        height = TITLE_HEIGHT if is_hour and hour_display in ["title", "list"] else BOX_HEIGHT
         return f"border: 1px {self.border_style} {self.color}; line-height: {height - 1}px;"
 
 
@@ -94,15 +96,15 @@ class BorderCircle(BorderSquare):
         super().__init__(color, border_style)
 
     @override
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for the style """
-        return super().apply_style() + " border-radius: 50%;"
+        return super().apply_style(hour_display, is_hour) + " border-radius: 50%;"
 
 
 class SuperText(StyleBase):
     """ Text on top """
     @override
-    def apply_style(self, is_hour: bool = False) -> str:
+    def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
         """ CSS Style for superscript """
         return "position: relative; justify-content: center; display: inline-flex;"
 
@@ -148,7 +150,7 @@ def replace_one_text(route: TrainRoute, new_text: str) -> None:
     SINGLE_TEXTS[route] = new_text
 
 
-def apply_style(styles: list[tuple[TrainRoute | None, StyleBase]]) -> tuple[str, str]:
+def apply_style(hour_display: StyleMode, styles: list[tuple[TrainRoute | None, StyleBase]]) -> tuple[str, str]:
     """ Apply styles to a list of routes """
     super_texts = ""
     css = ""
@@ -159,7 +161,7 @@ def apply_style(styles: list[tuple[TrainRoute | None, StyleBase]]) -> tuple[str,
             super_text = get_one_text(route)
             super_texts += super_text
         else:
-            inner_style = style.apply_style(route is None)
+            inner_style = style.apply_style(hour_display, route is None)
             if inner_style == "":
                 continue
             if first:
@@ -168,7 +170,7 @@ def apply_style(styles: list[tuple[TrainRoute | None, StyleBase]]) -> tuple[str,
                 css += " "
             css += inner_style
     if len(super_texts) > 0:
-        css += SuperText().apply_style()
+        css += SuperText().apply_style(hour_display)
         return css, "".join(sorted(super_texts, key=lambda x: to_pinyin(x)[0]))
     return css, ""
 
@@ -206,7 +208,8 @@ def assign_styles(
         conflicts.append(routes_temp)
 
     # Try to solve the conflicts
-    styles: dict[TrainRoute, StyleBase] = {train_list[0].line.direction_base_route[train_list[0].direction]: StyleBase()}
+    directions = {t.direction for t in train_list}
+    styles: dict[TrainRoute, StyleBase] = {train_list[0].line.direction_base_route[d]: StyleBase() for d in directions}
     category_colors = {k: DEFAULT_COLORS[:] for k in [Colored, FilledSquare, FilledCircle, BorderSquare, BorderCircle]}
     for conflict in conflicts:
         if all(route in styles for route in conflict):
