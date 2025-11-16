@@ -25,7 +25,7 @@ class StyleBase:
         """ Change the text to be displayed """
         return f"{minute:>02}"
 
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return ""
 
@@ -39,7 +39,7 @@ class Colored(StyleBase):
         self.color = color
 
     @override
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return f"color: {self.color};"
 
@@ -53,7 +53,7 @@ class FilledSquare(StyleBase):
         self.color = color
 
     @override
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return f"background-color: {self.color};"
 
@@ -65,7 +65,7 @@ class FilledCircle(FilledSquare):
         super().__init__(color)
 
     @override
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return super().apply_style() + " border-radius: 50%;"
 
@@ -81,9 +81,10 @@ class BorderSquare(StyleBase):
         self.color = color
 
     @override
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for the style """
-        return f"border: 1px {self.border_style} {self.color}; line-height: {BOX_HEIGHT - 1}px;"
+        height = TITLE_HEIGHT if is_hour else BOX_HEIGHT
+        return f"border: 1px {self.border_style} {self.color}; line-height: {height - 1}px;"
 
 
 class BorderCircle(BorderSquare):
@@ -93,7 +94,7 @@ class BorderCircle(BorderSquare):
         super().__init__(color, border_style)
 
     @override
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for the style """
         return super().apply_style() + " border-radius: 50%;"
 
@@ -101,7 +102,7 @@ class BorderCircle(BorderSquare):
 class SuperText(StyleBase):
     """ Text on top """
     @override
-    def apply_style(self) -> str:
+    def apply_style(self, is_hour: bool = False) -> str:
         """ CSS Style for superscript """
         return "position: relative; justify-content: center; display: inline-flex;"
 
@@ -147,18 +148,18 @@ def replace_one_text(route: TrainRoute, new_text: str) -> None:
     SINGLE_TEXTS[route] = new_text
 
 
-def apply_style(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute]) -> tuple[str, str]:
+def apply_style(styles: list[tuple[TrainRoute | None, StyleBase]]) -> tuple[str, str]:
     """ Apply styles to a list of routes """
     super_texts = ""
     css = ""
     first = True
-    for route in routes:
-        style = styles[route]
+    for route, style in styles:
         if isinstance(style, SuperText):
+            assert route is not None, (route, style)
             super_text = get_one_text(route)
             super_texts += super_text
         else:
-            inner_style = style.apply_style()
+            inner_style = style.apply_style(route is None)
             if inner_style == "":
                 continue
             if first:
@@ -172,19 +173,22 @@ def apply_style(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute]) -
     return css, ""
 
 
-def apply_formatting(styles: dict[TrainRoute, StyleBase], routes: list[TrainRoute], arrival_time: TimeSpec) -> str:
+def apply_formatting(styles: list[StyleBase], arrival_time: TimeSpec | int) -> str:
     """ Apply formatters to a list of routes """
-    for route in routes:
-        style = styles[route]
+    final_style = StyleBase()
+    for style in styles:
         if isinstance(style, FormattedText):
-            return style.apply_text(arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
-    return StyleBase().apply_text(arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
+            final_style = style
+            break
+    if isinstance(arrival_time, int):
+        return final_style.apply_text(arrival_time, 0)
+    return final_style.apply_text(arrival_time[0].hour, arrival_time[0].minute, arrival_time[1])
 
 
 def assign_styles(
     routes: dict[TrainRoute, int], train_list: list[Train]
 ) -> dict[TrainRoute, StyleBase]:
-    """ Assign styles to each route, returns (total_css, route -> style) """
+    """ Assign styles to each route, returns {route -> style} """
     global SINGLE_TEXTS
     SINGLE_TEXTS = {}
 
