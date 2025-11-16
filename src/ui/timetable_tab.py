@@ -13,7 +13,7 @@ from nicegui.elements.label import Label
 from src.city.city import City
 from src.city.line import Line
 from src.city.train_route import TrainRoute
-from src.common.common import to_pinyin, get_time_str, show_direction, suffix_s
+from src.common.common import get_time_str, show_direction, suffix_s
 from src.routing.train import Train, parse_trains
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, get_train_id
 from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer
@@ -142,12 +142,12 @@ def timetable_expansion(
         styles[route] = style
     train_id_dict = get_train_id(train_list)
 
-    if hour_display == "prefix" or hour_display == "combined":
+    if hour_display in ["prefix", "combined"]:
         hour_labels, minute_labels, hour_style = single_prefix_timetable(
-            city, station, hour_dict, styles, train_id_dict,
+            city, line, station, hour_dict, styles, train_id_dict,
             hour_display=hour_display
         )
-    elif hour_display == "title" or hour_display == "list":
+    elif hour_display in ["title", "list"]:
         assert direction is not None, (line, direction, station)
         hour_labels, minute_labels, hour_style = single_title_timetable(
             city, station, hour_dict, styles, train_id_dict,
@@ -157,19 +157,26 @@ def timetable_expansion(
         assert False, hour_display
     styles[None] = hour_style
 
-    def append_styles(key: tuple[TrainRoute | None, StyleBase] | None = None) -> dict[TrainRoute | None, StyleBase]:
+    def append_styles(
+        key: tuple[TrainRoute | None, StyleBase] | None = None
+    ) -> tuple[dict[TrainRoute | None, StyleBase], StyleBase]:
         """ Append to styles """
         if key is not None:
             styles[key[0]] = key[1]
-        return styles
+        return styles, hour_style
 
-    show_legend(
-        line, station, hour_display, append_styles, hour_labels, minute_labels,
-        show_header=(hour_display == "prefix")
-    )
+    show_legend(line, station, hour_display, append_styles, hour_labels, minute_labels)
     for _, label in hour_labels:
         with label:
             show_legend_menu(hour_labels, label, append_styles, station, hour_display)
+
+
+def show_line_direction(line: Line, direction: str) -> None:
+    """ Show title segment for direction of a line """
+    with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
+        get_line_badge(line, add_click=True)
+        ui.label(direction)
+        get_line_direction_repr(line, line.direction_stations(direction))
 
 
 @ui.refreshable
@@ -201,17 +208,16 @@ def timetables(
                 continue
 
             with ui.row().classes("w-full items-start justify-between"):
-                for direction, direction_stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0]):
+                for direction, direction_stations in sorted(
+                    line.directions.items(), key=lambda x: (0 if x[0] == line.base_direction() else 1)
+                ):
                     with ui.expansion(value=True).classes("w-[48%]") as expansion:
                         timetable_expansion(
                             city, line, direction, station, train_dict,
                             hour_display=hour_display, show_skipped=show_skipped
                         )
                     with expansion.add_slot("header"):
-                        with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
-                            get_line_badge(line, add_click=True)
-                            ui.label(direction)
-                            get_line_direction_repr(line, direction_stations)
+                        show_line_direction(line, direction)
 
 
 def group_trains(
@@ -239,6 +245,7 @@ DEFAULT_LABEL = f"w-[{BOX_HEIGHT}px] h-[{BOX_HEIGHT}px] text-center"
 DEFAULT_LABEL_CLICK = DEFAULT_LABEL + " cursor-pointer"
 DEFAULT_HOUR_LABEL = DEFAULT_LABEL_CLICK + " " + DEFAULT_HOUR_COLOR
 TITLE_HOUR_LABEL = f"h-[{TITLE_HEIGHT}px] pl-px text-xs cursor-pointer " + DEFAULT_HOUR_COLOR
+StyleFunction = Callable[[tuple[TrainRoute | None, StyleBase]], tuple[dict[TrainRoute | None, StyleBase], StyleBase]]
 
 
 def single_hour_timetable(
@@ -290,13 +297,12 @@ def change_color(elements: list[Label], new_color: str, remove_color: str | None
 
 
 def change_style(
-    elements: Iterable[tuple[Train | int, Label]],
-    styles: Callable[[tuple[TrainRoute | None, StyleBase]], dict[TrainRoute | None, StyleBase]],
+    elements: Iterable[tuple[Train | int, Label]], styles: StyleFunction,
     station: str, route: TrainRoute | None, new_style: StyleBase, new_text: str | None = None, *,
     hour_display: StyleMode, change_label: tuple[Label, bool] | None = None
 ) -> None:
     """ Change the style of a list of elements """
-    new_styles = styles((route, new_style))
+    new_styles, default_hour_style = styles((route, new_style))
     if isinstance(new_style, SuperText) and new_text is not None:
         assert route is not None, (station, route)
         replace_one_text(route, new_text)
@@ -307,8 +313,8 @@ def change_style(
                 [new_styles[route] for route in train.routes], train.arrival_time[station]
             ))
         else:
-            style, inner = apply_style(hour_display, [(None, new_styles[None])])
-            element.set_text(apply_formatting([new_styles[None]], train))
+            style, inner = apply_style(hour_display, [(None, new_styles[None]), (None, default_hour_style)])
+            element.set_text(apply_formatting([new_styles[None], default_hour_style], train))
         element.style(replace=style)
         for child in element:
             if child.tag == "span":
@@ -331,8 +337,7 @@ def change_style(
 
 @ui.refreshable
 def show_context_menu(
-    elements: Iterable[tuple[Train | int, Label]], label: Label,
-    styles: Callable[[tuple[TrainRoute | None, StyleBase]], dict[TrainRoute | None, StyleBase]],
+    elements: Iterable[tuple[Train | int, Label]], label: Label, styles: StyleFunction,
     station: str, route: TrainRoute | None = None, *,
     hour_display: StyleMode, menu_type: TimetableMode = "colored", change_label: bool = False
 ) -> None:
@@ -392,8 +397,7 @@ def show_context_menu(
 
 
 def show_legend_menu(
-    elements: Iterable[tuple[Train | int, Label]], label: Label,
-    styles: Callable[[tuple[TrainRoute | None, StyleBase]], dict[TrainRoute | None, StyleBase]],
+    elements: Iterable[tuple[Train | int, Label]], label: Label, styles: StyleFunction,
     station: str, hour_display: StyleMode, route: TrainRoute | None = None, *, change_label: bool = False
 ) -> None:
     """ Display a menu to customize the legends """
@@ -409,49 +413,61 @@ def show_legend_menu(
             )
 
 
-
 def show_legend(
     line: Line, station: str, hour_display: StyleMode,
-    styles: Callable[[tuple[TrainRoute | None, StyleBase] | None], dict[TrainRoute | None, StyleBase]],
+    styles: Callable[[tuple[TrainRoute | None, StyleBase] | None], tuple[dict[TrainRoute | None, StyleBase], StyleBase]],
     hour_labels: list[tuple[int, Label]], minute_labels: dict[TrainRoute, list[tuple[Train, Label]]],
-    *, show_header: bool = True
 ) -> None:
     """ Display legend for timetable """
-    with ui.column():
-        if show_header:
-            with ui.row().classes("gap-x-[8px]"):
-                style = styles(None)[None]
-                display = style.apply_text(5, 0)
-                with ui.label(display).classes(DEFAULT_HOUR_LABEL) as label:
-                    show_legend_menu(
-                        hour_labels, label, styles, station, hour_display,
-                        change_label=True
-                    )
-                ui.label("00").classes(DEFAULT_LABEL)
-                ui.label("represents 05:00")
+    styles_dict, _ = styles(None)
+    default_style = styles_dict[None]
+    direction_styles: dict[str, dict[TrainRoute, StyleBase]] = {}
+    for route, style in styles_dict.items():
+        if route is None:
+            continue
+        if route.direction not in direction_styles:
+            direction_styles[route.direction] = {}
+        direction_styles[route.direction][route] = style
 
-        for route, style in styles(None).items():
-            if route is None:
-                continue
-            with ui.row().classes("gap-x-[8px] items-center"):
-                if isinstance(style, SuperText):
-                    display = SINGLE_TEXTS[route]
-                else:
-                    display = style.apply_text(0, 0)
-                with ui.label(display).classes(DEFAULT_LABEL_CLICK).style(style.apply_style(hour_display)) as label:
-                    show_legend_menu(
-                        minute_labels[route], label, styles, station, hour_display, route,
-                        change_label=True
-                    )
-                ui.label("=")
-                with ui.label(route.name + ":"):
-                    if len(route.skip_stations) > 0:
-                        ui.tooltip("Skips " + suffix_s("station", len(route.skip_stations)))
-                get_route_repr(line, route)
+    if hour_display in ["prefix", "combined"]:
+        with ui.row().classes("gap-x-[8px]"):
+            display = default_style.apply_text(5, 0)
+            hour_labels.append((5, ui.label(display).classes(DEFAULT_HOUR_LABEL)))
+            ui.label("00").classes(DEFAULT_LABEL)
+            ui.label("represents 05:00")
+
+    with ui.row():
+        for direction, style_dict in sorted(
+            direction_styles.items(), key=lambda x: (0 if x[0] == line.base_direction() else 1)
+        ):
+            with ui.column():
+                if hour_display == "combined":
+                    show_line_direction(line, direction)
+
+                for route, style in style_dict.items():
+                    if route is None:
+                        continue
+                    with ui.row().classes("gap-x-[8px] items-center"):
+                        if isinstance(style, SuperText):
+                            display = SINGLE_TEXTS[route]
+                        else:
+                            display = style.apply_text(0, 0)
+                        with ui.label(display).classes(DEFAULT_LABEL_CLICK).style(
+                            style.apply_style(hour_display)
+                        ) as label:
+                            show_legend_menu(
+                                minute_labels[route], label, styles, station, hour_display, route,
+                                change_label=True
+                            )
+                        ui.label("=")
+                        with ui.label(route.name + ":"):
+                            if len(route.skip_stations) > 0:
+                                ui.tooltip("Skips " + suffix_s("station", len(route.skip_stations)))
+                        get_route_repr(line, route)
 
 
 def single_prefix_timetable(
-    city: City, station: str,
+    city: City, line: Line, station: str,
     hour_dict: dict[tuple[int, bool], list[Train]],
     styles: dict[TrainRoute | None, StyleBase], train_id_dict: dict[str, Train],
     *, hour_display: StyleMode
@@ -461,17 +477,14 @@ def single_prefix_timetable(
     hour_labels: list[tuple[int, Label]] = []
     minute_labels: dict[TrainRoute, list[tuple[Train, Label]]] = {}
     hour_style = FormattedText("{hour:>02}")
-    main_direction: str | None = None
-    max_width: int = 0
+    main_direction = line.base_direction()
+    max_width = max(len(
+        [t for t in train_list if t.direction == main_direction]
+    ) for train_list in hour_dict.values())
 
     with ui.scroll_area().classes(f"w-full h-[{(BOX_HEIGHT + 4) * rows - 4 + 32}px] mt-[-16px]"):
         with ui.column().classes("gap-y-[4px] w-full"):
             for (hour, next_day), train_list in sorted(hour_dict.items(), key=lambda x: (1 if x[0][1] else 0, x[0][0])):
-                if main_direction is None:
-                    main_direction = train_list[0].direction
-                    max_width = max(len(
-                        [t for t in train_list if t.direction == main_direction]
-                    ) for train_list in hour_dict.values())
                 with ui.row().classes("gap-x-[8px] w-full no-wrap"):
                     if hour_display == "combined":
                         trains = [t for t in train_list if t.direction == main_direction]
