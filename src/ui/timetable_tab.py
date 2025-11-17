@@ -12,13 +12,15 @@ from nicegui.elements.label import Label
 
 from src.city.city import City
 from src.city.line import Line
+from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
 from src.common.common import get_time_str, show_direction, suffix_s
-from src.routing.train import Train, parse_trains
+from src.routing.through_train import ThroughTrain, parse_through_train
+from src.routing.train import Train, parse_trains, parse_all_trains
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, \
     get_train_id, ROUTE_TYPES
 from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer, \
-    get_train_repr, get_through_dict, get_train_type
+    get_train_repr, get_train_type
 from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import StyleBase, assign_styles, apply_style, apply_formatting, replace_one_text, \
     FilledSquare, FilledCircle, BorderSquare, BorderCircle, SuperText, FormattedText, Colored, \
@@ -32,6 +34,7 @@ class TimetableData:
     station: str
     cur_date: date
     train_dict: dict[tuple[str, str], list[Train]]
+    through_dict: dict[ThroughSpec, list[ThroughTrain]]
 
 
 def get_train_dict(city: City, data: TimetableData) -> dict[tuple[str, str], list[Train]]:
@@ -61,7 +64,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             ))
             timetables.refresh(
                 station_lines=data.info_data.station_lines, station=data.station,
-                train_dict=data.train_dict,
+                train_dict=data.train_dict, through_dict=data.through_dict,
                 hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
             )
 
@@ -115,14 +118,16 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         skipped_switch = ui.switch("Show skipping trains", on_change=on_any_change)
 
     on_station_change()
+    data.through_dict = parse_through_train(parse_all_trains(list(data.info_data.lines.values())), city.through_specs)[1]
     timetables(
         city, station_lines=data.info_data.station_lines, station=data.station,
-        train_dict=data.train_dict
+        train_dict=data.train_dict, through_dict=data.through_dict
     )
 
 
 def timetable_expansion(
-    city: City, line: Line, direction: str | None, station: str, train_dict: dict[tuple[str, str], list[Train]],
+    city: City, line: Line, direction: str | None, station: str,
+    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     *, hour_display: StyleMode, show_skipped: bool = False
 ) -> None:
     """ Expansion part of the timetable """
@@ -152,7 +157,7 @@ def timetable_expansion(
     elif hour_display in ["title", "list"]:
         assert direction is not None, (line, direction, station)
         hour_labels, minute_labels, hour_style = single_title_timetable(
-            city, station, hour_dict, styles, train_id_dict,
+            city, station, hour_dict, styles, train_id_dict, through_dict,
             hour_display=hour_display
         )
     else:
@@ -183,8 +188,8 @@ def show_line_direction(line: Line, direction: str) -> None:
 
 @ui.refreshable
 def timetables(
-    city: City, *,
-    station_lines: dict[str, set[Line]], station: str, train_dict: dict[tuple[str, str], list[Train]],
+    city: City, *, station_lines: dict[str, set[Line]], station: str,
+    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     hour_display: StyleMode = "prefix", show_skipped: bool = False
 ) -> None:
     """ Display the timetables """
@@ -200,7 +205,7 @@ def timetables(
             if hour_display == "combined":
                 with ui.expansion(value=True).classes("w-full") as expansion:
                     timetable_expansion(
-                        city, line, None, station, train_dict,
+                        city, line, None, station, train_dict, through_dict,
                         hour_display=hour_display, show_skipped=show_skipped
                     )
                 with expansion.add_slot("header"):
@@ -215,7 +220,7 @@ def timetables(
                 ):
                     with ui.expansion(value=True).classes("w-[48%]") as expansion:
                         timetable_expansion(
-                            city, line, direction, station, train_dict,
+                            city, line, direction, station, train_dict, through_dict,
                             hour_display=hour_display, show_skipped=show_skipped
                         )
                     with expansion.add_slot("header"):
@@ -399,7 +404,7 @@ def show_context_menu(
                     hour_display=hour_display, change_label=change
                 ))
                 ui.label("Supports all Python string formatters")
-                ui.label("Example: {hour} = hour, {minute:>02} = minute")
+                ui.label("Example: {hour}, {minute:>02}")
     else:
         assert False, menu_type
 
@@ -526,6 +531,7 @@ def single_title_timetable(
     city: City, station: str,
     hour_dict: dict[tuple[int, bool], list[Train]],
     styles: dict[TrainRoute | None, StyleBase], train_id_dict: dict[str, Train],
+    through_dict: dict[ThroughSpec, list[ThroughTrain]],
     *, hour_display: StyleMode
 ) -> tuple[list[tuple[int, Label]], dict[TrainRoute, list[tuple[Train, Label]]], StyleBase]:
     """ Display a single timetable with title hours """
@@ -537,7 +543,6 @@ def single_title_timetable(
     hour_labels: list[tuple[int, Label]] = []
     minute_labels: dict[TrainRoute, list[tuple[Train, Label]]] = {}
     hour_style = FormattedText("{hour:>02}:00 - {hour:>02}:59")
-    through_dict = get_through_dict(city)
 
     def label_function(train: Train, train_id: str, label: str) -> Label:
         """ Labelling creation function """

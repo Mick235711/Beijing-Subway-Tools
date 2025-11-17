@@ -561,19 +561,14 @@ def get_train_repr(
     return full_train, first_train, last_train, lines
 
 
-def get_through_dict(city: City) -> dict[ThroughSpec, list[ThroughTrain]]:
-    """ Get through dict from available lines """
-    global AVAILABLE_LINES
-    train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
-    return parse_through_train(train_dict, city.through_specs)[1]
-
-
 def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[str, Train]) -> None:
     """ Create train drawer """
-    global AVAILABLE_STATIONS
+    global AVAILABLE_LINES, AVAILABLE_STATIONS
+    train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
 
     ui.label(train_id).classes("text-h5 text-bold")
-    full_train, first_train, last_train, lines = get_train_repr(get_through_dict(city), train)
+    full_train, first_train, last_train, lines = get_train_repr(through_dict, train)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         for line in lines:
             get_line_badge(line, add_click=True)
