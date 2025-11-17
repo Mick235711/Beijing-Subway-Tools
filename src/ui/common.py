@@ -9,7 +9,7 @@ from datetime import date
 from typing import Any
 
 from nicegui import ui
-from nicegui.elements.input import Input
+from nicegui.elements.date_input import DateInput
 
 from src.city.city import City
 from src.city.line import Line, station_full_name
@@ -143,19 +143,12 @@ def count_trains(
     return result_dict
 
 
-def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str | None = "Date") -> Input:
+def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str | None = "Date") -> DateInput:
     """ Get an input box for date selection """
-    with ui.input(
+    return ui.date_input(
         label, value=date.today().isoformat(),
-        on_change=lambda: None if callback is None else callback(date.fromisoformat(date_input.value))
-    ) as date_input:  # type: Input
-        with ui.menu().props('no-parent-event') as menu:
-            with ui.date().bind_value(date_input):
-                with ui.row().classes('justify-end'):
-                    ui.button('Close', on_click=menu.close).props('flat')
-        with date_input.add_slot('append'):
-            ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
-    return date_input
+        on_change=lambda e: None if callback is None else callback(date.fromisoformat(e.value))
+    )
 
 
 def get_default_line(lines: dict[str, Line]) -> Line:
