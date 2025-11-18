@@ -6,7 +6,7 @@
 # Libraries
 from typing import Any
 
-from src.common.common import show_direction, suffix_s
+from src.common.common import direction_repr, suffix_s
 
 
 class TrainRoute:
@@ -31,7 +31,7 @@ class TrainRoute:
         if len(self.stations) == 0:
             base = f"<{self.direction_str()}"
         else:
-            base = f"<{self.direction_str()}: {show_direction(self.stations, self.loop)}"
+            base = f"<{self.direction_str()}: {direction_repr(self.stations, self.loop)}"
             if self.is_express():
                 base += " (skip " + suffix_s("station", len(self.skip_stations)) + ")"
         return base + (" (loop)>" if self.loop else ">")

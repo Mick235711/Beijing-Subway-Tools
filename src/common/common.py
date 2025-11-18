@@ -322,7 +322,7 @@ def format_duration(duration: timedelta | int | float) -> str:
     return "<1min" if result == "" else result
 
 
-def show_direction(stations: list[str], loop: bool = False):
+def direction_repr(stations: list[str], loop: bool = False):
     """ Format station direction, A -> B -> C """
     # choose three intermediate stations
     if len(stations) <= 5:

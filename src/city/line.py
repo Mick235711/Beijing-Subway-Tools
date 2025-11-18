@@ -184,6 +184,14 @@ class Line:
             route.stations, route.loop
         )
 
+    def route_sort_key(self, route: TrainRoute) -> tuple[int, float, int]:
+        """ Key for sorting routes """
+        return (
+            self.direction_stations(route.direction).index(route.stations[0]),
+            -self.route_distance(route),
+            len(route.skip_stations)
+        )
+
     def two_station_intervals(
         self, start_station: str, end_station: str, direction: str | None = None
     ) -> list[tuple[str, str]]:

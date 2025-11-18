@@ -17,6 +17,7 @@ DEFAULT_COLORS = ["red", "darkcyan", "darkgreen", "#8B8000"]
 SINGLE_TEXTS: dict[TrainRoute, str] = {}
 StyleMode = Literal["prefix", "title", "list", "combined"]
 TimetableMode = Literal["colored", "filled", "border", "formatted", "super"]
+FilterMode = Literal["route", "start", "end", "tag", "time"]
 
 
 class StyleBase:

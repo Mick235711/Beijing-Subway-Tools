@@ -8,13 +8,14 @@ from collections.abc import Callable, Iterable
 from datetime import date
 
 from nicegui import binding, ui
+from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.label import Label
 
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
-from src.common.common import get_time_str, show_direction, suffix_s
+from src.common.common import get_time_str, direction_repr, suffix_s
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_trains, parse_all_trains
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, \
@@ -24,7 +25,7 @@ from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_
 from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import StyleBase, assign_styles, apply_style, apply_formatting, replace_one_text, \
     FilledSquare, FilledCircle, BorderSquare, BorderCircle, SuperText, FormattedText, Colored, \
-    BOX_HEIGHT, TITLE_HEIGHT, SINGLE_TEXTS, StyleMode, TimetableMode
+    BOX_HEIGHT, TITLE_HEIGHT, SINGLE_TEXTS, StyleMode, TimetableMode, FilterMode
 
 
 @binding.bindable_dataclass
@@ -125,22 +126,32 @@ def timetable_tab(city: City, data: TimetableData) -> None:
     )
 
 
-def timetable_expansion(
-    city: City, line: Line, direction: str | None, station: str,
-    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
-    *, hour_display: StyleMode, show_skipped: bool = False
-) -> None:
-    """ Expansion part of the timetable """
+def get_train_list(
+    line: Line, direction: str | None, station: str, train_dict: dict[tuple[str, str], list[Train]],
+    *, show_skipped: bool = False
+) -> list[Train]:
+    """ Get train list from train dict """
     if direction is None:
-        train_list = [
+        return [
             t for direction in line.directions.keys() for t in train_dict[(line.name, direction)]
             if station in t.arrival_time and (show_skipped or station not in t.skip_stations)
         ]
     else:
-        train_list = [
+        return [
             t for t in train_dict[(line.name, direction)]
             if station in t.arrival_time and (show_skipped or station not in t.skip_stations)
         ]
+
+
+def timetable_expansion(
+    city: City, line: Line, direction: str | None, station: str,
+    *, train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
+    hour_display: StyleMode, show_skipped: bool = False
+) -> None:
+    """ Expansion part of the timetable """
+    train_list = get_train_list(line, direction, station, train_dict, show_skipped=show_skipped)
+    if len(train_list) == 0:
+        return
 
     # Assign styles to each route
     hour_dict, routes = group_trains(station, train_list)
@@ -204,14 +215,21 @@ def timetables(
 
             if hour_display == "combined":
                 with ui.expansion(value=True).classes("w-full") as expansion:
-                    timetable_expansion(
-                        city, line, None, station, train_dict, through_dict,
+                    inner = ui.refreshable(timetable_expansion)
+                    inner(
+                        city, line, None, station,
+                        train_dict=train_dict, through_dict=through_dict,
                         hour_display=hour_display, show_skipped=show_skipped
                     )
                 with expansion.add_slot("header"):
-                    with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
-                        get_line_badge(line, add_click=True)
-                        get_line_direction_repr(line)
+                    with ui.row().classes("w-full items-center justify-between"):
+                        with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
+                            get_line_badge(line, add_click=True)
+                            get_line_direction_repr(line)
+                        show_filter_menu(
+                            inner, line, None, station, train_dict, through_dict,
+                            show_skipped=show_skipped
+                        )
                 continue
 
             with ui.row().classes("w-full items-start justify-between"):
@@ -219,12 +237,19 @@ def timetables(
                     line.directions.items(), key=lambda x: (0 if x[0] == line.base_direction() else 1)
                 ):
                     with ui.expansion(value=True).classes("w-[48%]") as expansion:
-                        timetable_expansion(
-                            city, line, direction, station, train_dict, through_dict,
+                        inner = ui.refreshable(timetable_expansion)
+                        inner(
+                            city, line, direction, station,
+                            train_dict=train_dict, through_dict=through_dict,
                             hour_display=hour_display, show_skipped=show_skipped
                         )
                     with expansion.add_slot("header"):
-                        show_line_direction(line, direction)
+                        with ui.row().classes("w-full items-center justify-between"):
+                            show_line_direction(line, direction)
+                            show_filter_menu(
+                                inner, line, direction, station, train_dict, through_dict,
+                                show_skipped=show_skipped
+                            )
 
 
 def group_trains(
@@ -290,7 +315,11 @@ def single_hour_timetable(
 
 def get_route_repr(line: Line, route: TrainRoute) -> None:
     """ Display route """
-    route_repr = show_direction([s for s in route.stations if s not in route.skip_stations], route.loop)
+    with ui.label(route.name + ":"):
+        if len(route.skip_stations) > 0:
+            ui.tooltip("Skips " + suffix_s("station", len(route.skip_stations)))
+
+    route_repr = direction_repr([s for s in route.stations if s not in route.skip_stations], route.loop)
     with ui.element("div").classes(
         "inline-flex flex-wrap items-center leading-tight gap-x-1"
     ):
@@ -397,7 +426,7 @@ def show_context_menu(
                 hour_display=hour_display, change_label=change
             ))
     elif menu_type == "formatted":
-        with ui.row().classes("items-center mt-4"):
+        with ui.row().classes("items-center"):
             with ui.column().classes("items-flex-start"):
                 ui.input("Formatting string", on_change=lambda e: change_style(
                     elements, styles, station, route, FormattedText(e.value),
@@ -426,10 +455,79 @@ def show_legend_menu(
             )
 
 
+@ui.refreshable
+def show_filter_inner_menu(
+    inner: ui.refreshable, line: Line, direction: str | None, station: str,
+    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]], *,
+    menu_type: FilterMode = "route", show_skipped: bool = False
+) -> None:
+    """ Show context menu for filtering """
+    def on_filter_change(pred: Callable[[Train], bool]) -> None:
+        """ Handle filter changes """
+        new_train_dict: dict[tuple[str, str], list[Train]] = {k: v[:] for k, v in train_dict.items()}
+        if direction is None:
+            for d in line.directions.keys():
+                new_train_dict[(line.name, d)] = [t for t in train_list if t.direction == d and pred(t)]
+        else:
+            new_train_dict[(line.name, direction)] = [t for t in train_list if pred(t)]
+        inner.refresh(train_dict=new_train_dict)
+
+    train_list = get_train_list(line, direction, station, train_dict, show_skipped=show_skipped)
+    if menu_type == "route":
+        checkbox_dict: dict[tuple[str, str], Checkbox] = {}
+        def valid_route(target: Train) -> bool:
+            """ Determine if the train's route is selected """
+            for train_route in target.routes:
+                if not checkbox_dict[(target.direction, train_route.name)].value:
+                    return False
+            return True
+
+        if direction is None:
+            direction_list = sorted(line.directions.keys(), key=lambda x: (0 if x == line.base_direction() else 1))
+        else:
+            direction_list = [direction]
+        for inner_direction in direction_list:
+            routes: dict[tuple[str, str], TrainRoute] = {}
+            for train in train_list:
+                if train.direction != inner_direction:
+                    continue
+                for route in train.routes:
+                    routes[(train.direction, route.name)] = route
+
+            if direction is None:
+                show_line_direction(line, inner_direction)
+            for key, route in sorted(routes.items(), key=lambda r: line.route_sort_key(r[1])):
+                checkbox_dict[key] = ui.checkbox(
+                    value=True, on_change=lambda: on_filter_change(valid_route)
+                ).classes("w-full")
+                with checkbox_dict[key].add_slot("default"):
+                    get_route_repr(line, route)
+
+
+def show_filter_menu(
+    inner: ui.refreshable, line: Line, direction: str | None, station: str,
+    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
+    *, show_skipped: bool = False
+) -> None:
+    """ Display a menu to filter the trains """
+    with ui.button(icon="filter_alt").props("dense flat round size=md") as button:
+        with ui.menu() as menu:
+            ui.toggle(
+                ["Route", "Start", "End", "Tag", "Time"],
+                value="Route", on_change=lambda e: show_filter_inner_menu.refresh(menu_type=e.value.lower())
+            )
+            with ui.column().classes("mt-4 mb-4 ml-2"):
+                show_filter_inner_menu(
+                    inner, line, direction, station, train_dict, through_dict,
+                    show_skipped=show_skipped
+                )
+    button.on("click.stop", lambda: menu.toggle())
+
+
 def show_legend(
     line: Line, station: str, hour_display: StyleMode,
     styles: Callable[[tuple[TrainRoute | None, StyleBase] | None], tuple[dict[TrainRoute | None, StyleBase], StyleBase]],
-    hour_labels: list[tuple[int, Label]], minute_labels: dict[TrainRoute, list[tuple[Train, Label]]],
+    hour_labels: list[tuple[int, Label]], minute_labels: dict[TrainRoute, list[tuple[Train, Label]]]
 ) -> None:
     """ Display legend for timetable """
     styles_dict, _ = styles(None)
@@ -458,7 +556,7 @@ def show_legend(
                     show_line_direction(line, direction)
 
                 for route, style in style_dict.items():
-                    if route is None:
+                    if route is None or route not in minute_labels:
                         continue
                     with ui.row().classes("gap-x-[8px] items-center"):
                         if isinstance(style, SuperText):
@@ -474,9 +572,6 @@ def show_legend(
                                 change_label=True
                             )
                         ui.label("=")
-                        with ui.label(route.name + ":"):
-                            if len(route.skip_stations) > 0:
-                                ui.tooltip("Skips " + suffix_s("station", len(route.skip_stations)))
                         get_route_repr(line, route)
 
 
@@ -571,7 +666,11 @@ def single_title_timetable(
                 ui.icon("navigate_next")
         return inner
 
-    with ui.scroll_area().classes(f"w-full h-[{(TITLE_HEIGHT + BOX_HEIGHT) * rows + 32}px] mt-[-16px]"):
+    if hour_display == "list":
+        max_height = BOX_HEIGHT * 20 + 32
+    else:
+        max_height = (TITLE_HEIGHT + BOX_HEIGHT) * rows + 32
+    with ui.scroll_area().classes(f"w-full h-[{max_height}px] mt-[-16px]"):
         with ui.column().classes("gap-y-0 w-full"):
             for (hour, next_day), train_list in sorted(hour_dict.items(), key=lambda x: (1 if x[0][1] else 0, x[0][0])):
                 with ui.row().classes("gap-x-[8px] w-full no-wrap"):

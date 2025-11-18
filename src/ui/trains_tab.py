@@ -292,7 +292,7 @@ def route_timeline(
                                         continue
                                     get_line_badge(line2, show_name=False, add_click=True)
 
-        for route in sorted(routes.values(), key=lambda r: (stations.index(r.stations[0]), -line.route_distance(r))):
+        for route in sorted(routes.values(), key=lambda r: line.route_sort_key(r)):
             if route.name == line.direction_base_route[direction].name:
                 continue
             entry_before, entry_after = get_through(city, lines, line, direction, cur_date, route)[1]

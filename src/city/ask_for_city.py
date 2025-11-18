@@ -13,7 +13,7 @@ from src.city.city import City, get_all_cities
 from src.city.date_group import DateGroup
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import complete_pinyin, show_direction, ask_question, parse_time, get_time_str, TimeSpec, \
+from src.common.common import complete_pinyin, direction_repr, ask_question, parse_time, get_time_str, TimeSpec, \
     to_pinyin, parse_time_seq
 from src.graph.map import Map, get_all_maps
 from src.routing.through_train import ThroughTrain, parse_through_train
@@ -283,7 +283,7 @@ def ask_for_direction_from_list(
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}
     for name, (stations, is_loop) in directions.items():
-        meta_information[name] = show_direction(stations, is_loop)
+        meta_information[name] = direction_repr(stations, is_loop)
         if direction_aliases is not None and name in direction_aliases:
             aliases[name] = direction_aliases[name]
 
