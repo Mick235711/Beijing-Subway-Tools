@@ -30,6 +30,13 @@ AVAILABLE_LINES: dict[str, Line] = {}
 AVAILABLE_STATIONS: dict[str, set[Line]] = {}
 
 
+def get_badge(tag: str, color: str, icon: str | None = None) -> None:
+    """ Get a generic badge """
+    with ui.badge(tag, color=color):
+        if icon is not None and icon != "":
+            ui.icon(icon).classes("q-ml-xs")
+
+
 def get_line_badge(
     line: Line, *, code_str: str | None = None,
     show_name: bool = True, add_click: bool = False, add_through: bool = False,
@@ -135,10 +142,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
         ):
             line_types += ["Through"]
         for line_type in line_types:
-            color, icon = LINE_TYPES[line_type]
-            with ui.badge(line_type, color=color):
-                if icon != "":
-                    ui.icon(icon).classes("q-ml-xs")
+            get_badge(line_type, *LINE_TYPES[line_type])
 
     ui.separator()
     direction_tabs: dict[str, Tab] = {}
@@ -573,17 +577,11 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
         for line in lines:
             get_line_badge(line, add_click=True)
         if len(lines) > 1:
-            color, icon = ROUTE_TYPES["Through"]
-            with ui.badge("Through", color=color):
-                if icon != "":
-                    ui.icon(icon).classes("q-ml-xs")
+            get_badge("Through", *ROUTE_TYPES["Through"])
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         route_types = get_train_type(full_train)
         for route_type in route_types:
-            color, icon = ROUTE_TYPES[route_type]
-            with ui.badge(route_type, color=color):
-                if icon != "":
-                    ui.icon(icon).classes("q-ml-xs")
+            get_badge(route_type, *ROUTE_TYPES[route_type])
 
     ui.separator()
     with ui.tabs() as tabs:

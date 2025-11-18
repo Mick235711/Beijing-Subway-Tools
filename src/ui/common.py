@@ -13,7 +13,7 @@ from nicegui.elements.date_input import DateInput
 
 from src.city.city import City
 from src.city.line import Line, station_full_name
-from src.common.common import get_text_color, to_pinyin
+from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_all_trains_through, is_possible_to_board, get_virtual_dict
@@ -149,6 +149,35 @@ def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str 
         label, value=date.today().isoformat(),
         on_change=lambda e: None if callback is None else callback(date.fromisoformat(e.value))
     )
+
+
+def get_time_range(
+    callback: Callable[[TimeSpec, TimeSpec], Any] | None = None, *,
+    label: str | None = None, min_time: TimeSpec | None = None, max_time: TimeSpec | None = None,
+    range_classes: str | None = None
+) -> None:
+    """ Get a range slider for time range selection """
+    min_time_conv = min_time or from_minutes(0)
+    max_time_conv = max_time or from_minutes(24 * 60)
+    min_time_min = to_minutes(*min_time_conv)
+    max_time_min = to_minutes(*max_time_conv)
+    repr_min = get_time_repr(*min_time_conv)
+    repr_max = get_time_repr(*max_time_conv)
+
+    def handle_time_change(new_value: dict[str, int]) -> None:
+        """ Handle time slider changes """
+        time_range.props("left-label-value=\"" + get_time_repr(*from_minutes(new_value["min"])) + "\"")
+        time_range.props("right-label-value=\"" + get_time_repr(*from_minutes(new_value["max"])) + "\"")
+        if callback is not None:
+            callback(from_minutes(new_value["min"]), from_minutes(new_value["max"]))
+
+    with ui.row().classes("w-[90%] items-center justify-end"):
+        if label is not None:
+            ui.label(label + ": ")
+        time_range = ui.range(
+            min=min_time_min, max=max_time_min, value={"min": min_time_min, "max": max_time_min},
+            on_change=lambda e: handle_time_change(e.value)
+        ).props(f"label snap left-label-value=\"{repr_min}\" right-label-value=\"{repr_max}\"").classes(range_classes)
 
 
 def get_default_line(lines: dict[str, Line]) -> Line:

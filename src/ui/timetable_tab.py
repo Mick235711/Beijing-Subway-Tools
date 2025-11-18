@@ -15,13 +15,13 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
-from src.common.common import get_time_str, direction_repr, suffix_s
-from src.routing.through_train import ThroughTrain, parse_through_train
+from src.common.common import get_time_str, direction_repr, suffix_s, to_pinyin, TimeSpec, to_minutes
+from src.routing.through_train import ThroughTrain, parse_through_train, find_through_train
 from src.routing.train import Train, parse_trains, parse_all_trains
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, \
-    get_train_id, ROUTE_TYPES
+    get_train_id, ROUTE_TYPES, get_time_range
 from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer, \
-    get_train_repr, get_train_type
+    get_train_repr, get_train_type, get_badge
 from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import StyleBase, assign_styles, apply_style, apply_formatting, replace_one_text, \
     FilledSquare, FilledCircle, BorderSquare, BorderCircle, SuperText, FormattedText, Colored, \
@@ -502,6 +502,83 @@ def show_filter_inner_menu(
                 ).classes("w-full")
                 with checkbox_dict[key].add_slot("default"):
                     get_route_repr(line, route)
+    elif menu_type in ["start", "end"]:
+        def target_station(target: Train) -> str:
+            """ Determine if the train's start/end station is selected """
+            if menu_type == "start":
+                return target.stations[0]
+            else:
+                return target.loop_next.stations[0] if target.loop_next is not None else target.stations[-1]
+
+        checkbox_dict2: dict[str, Checkbox] = {}
+        stations: set[str] = {target_station(t) for t in train_list}
+        for station in sorted(stations, key=lambda s: to_pinyin(s)[0]):
+            checkbox_dict2[station] = ui.checkbox(
+                value=True, on_change=lambda: on_filter_change(lambda t: checkbox_dict2[target_station(t)].value)
+            ).classes("w-full")
+            with checkbox_dict2[station].add_slot("default"):
+                get_station_badge(
+                    station, line,
+                    show_badges=False, show_line_badges=False, add_line_click=False
+                )
+    elif menu_type == "tag":
+        tag_dict: dict[str, list[Train]] = {}
+        reverse_tag_dict: dict[Train, list[str]] = {}
+        for train in train_list:
+            result = find_through_train(through_dict, train)
+            route_types = get_train_type(train)
+            if result is not None:
+                route_types.append("Through")
+            if len(route_types) > 1:
+                route_types.remove("Full")
+            reverse_tag_dict[train] = route_types
+            for tag in route_types:
+                if tag not in tag_dict:
+                    tag_dict[tag] = []
+                tag_dict[tag].append(train)
+
+        checkbox_dict3: dict[str, Checkbox] = {}
+        def valid_tag(target: Train) -> bool:
+            """ Determine if the train's tag is selected """
+            for train_tag in reverse_tag_dict[target]:
+                if not checkbox_dict3[train_tag].value:
+                    return False
+            return True
+
+        for tag in sorted(tag_dict.keys(), key=lambda x: list(ROUTE_TYPES.keys()).index(x)):
+            checkbox_dict3[tag] = ui.checkbox(
+                value=True, on_change=lambda: on_filter_change(valid_tag)
+            ).classes("w-full")
+            with checkbox_dict3[tag].add_slot("default"):
+                get_badge(tag, *ROUTE_TYPES[tag])
+    elif menu_type == "time":
+        def get_time_range_filtered(label: str, pred: Callable[[Train], TimeSpec]) -> None:
+            """ Get a filtered slider based on train arriving times """
+            with ui.row().classes("w-full ml-1"):
+                get_time_range(
+                    min_time=min([pred(t) for t in train_list], key=lambda x: get_time_str(*x)),
+                    max_time=max([pred(t) for t in train_list], key=lambda x: get_time_str(*x)),
+                    label=label, range_classes="max-w-48",
+                    callback=lambda start, end: on_filter_change(
+                        lambda t: to_minutes(*start) <= to_minutes(*pred(t)) <= to_minutes(*end)
+                    )
+                )
+
+        get_time_range_filtered("Arrival Time", lambda t: t.arrival_time[station])
+        get_time_range_filtered("Start Time", lambda t: t.start_time())
+        get_time_range_filtered(
+            "End Time", lambda t: t.loop_next.start_time() if t.loop_next is not None else t.end_time()
+        )
+        with ui.row().classes("w-[90%] items-center justify-end ml-1"):
+            ui.label("Duration: ")
+            min_duration = min([t.duration() for t in train_list])
+            max_duration = max([t.duration() for t in train_list])
+            ui.range(
+                min=min_duration, max=max_duration, value={"min": min_duration, "max": max_duration},
+                on_change=lambda e: on_filter_change(lambda t: e.value["min"] <= t.duration() <= e.value["max"])
+            ).props("label snap").classes("max-w-48")
+    else:
+        assert False, menu_type
 
 
 def show_filter_menu(
@@ -512,6 +589,8 @@ def show_filter_menu(
     """ Display a menu to filter the trains """
     with ui.button(icon="filter_alt").props("dense flat round size=md") as button:
         with ui.menu() as menu:
+            # FIXME: switching to another menu while not in default cause caused toggle to not update.
+            # However calling set_value in inner menu is too slow
             ui.toggle(
                 ["Route", "Start", "End", "Tag", "Time"],
                 value="Route", on_change=lambda e: show_filter_inner_menu.refresh(menu_type=e.value.lower())
@@ -651,17 +730,14 @@ def single_title_timetable(
             with ui.item_section():
                 title = ui.element("div").classes("flex items-center flex-wrap gap-1")
                 with ui.item_label().props("caption").add_slot("default"):
-                    full_train, _, _, lines = get_train_repr(through_dict, train)
+                    *_, lines = get_train_repr(through_dict, train)
                 with title:
                     ui.item_label(train_id)
-                    route_types = get_train_type(full_train)
+                    route_types = get_train_type(train)
                     if len(lines) > 1:
                         route_types.append("Through")
                     for route_type in route_types:
-                        color, icon = ROUTE_TYPES[route_type]
-                        with ui.badge(route_type, color=color):
-                            if icon != "":
-                                ui.icon(icon).classes("q-ml-xs")
+                        get_badge(route_type, *ROUTE_TYPES[route_type])
             with ui.item_section().props("side"):
                 ui.icon("navigate_next")
         return inner
