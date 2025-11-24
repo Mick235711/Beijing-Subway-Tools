@@ -378,6 +378,7 @@ class LineTable:
                             if self.display_type == "count":
                                 ui.label(str(len(trains)))
                             elif self.display_type == "first":
+                                # TODO: add click to train drawer
                                 ui.label(min(get_time_str(*train.arrival_times()[station]) for train in trains))
                             elif self.display_type == "last":
                                 ui.label(max(get_time_str(*train.arrival_times()[station]) for train in trains))

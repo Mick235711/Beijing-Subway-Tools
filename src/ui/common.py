@@ -253,6 +253,26 @@ def get_train_id(train_list: list[Train]) -> dict[str, Train]:
     return train_dict
 
 
+def get_train_id_through(
+    train_list: list[Train | ThroughTrain], line: Line, direction: str | None = None
+) -> dict[str, Train]:
+    """ Get an ID for each train (possibly through), filtered by line and direction """
+    filtered: list[Train] = []
+    for train in train_list:
+        if isinstance(train, ThroughTrain):
+            if line.name not in train.trains:
+                continue
+            inner = train.trains[line.name]
+        else:
+            inner = train
+        if inner.line.name != line.name:
+            continue
+        if direction is not None and inner.direction != direction:
+            continue
+        filtered.append(inner)
+    return get_train_id(filtered)
+
+
 def find_train_id(train_dict: dict[str, Train], train: Train) -> str:
     """ Find train ID by train """
     ids = [k for k, t in train_dict.items() if t == train]
