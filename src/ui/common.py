@@ -13,7 +13,7 @@ from nicegui.elements.date_input import DateInput
 
 from src.city.city import City
 from src.city.line import Line, station_full_name
-from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr
+from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr, get_time_str
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_all_trains_through, is_possible_to_board, get_virtual_dict
@@ -278,3 +278,16 @@ def find_train_id(train_dict: dict[str, Train], train: Train) -> str:
     ids = [k for k, t in train_dict.items() if t == train]
     assert len(ids) == 1, (train_dict.keys(), ids, train)
     return ids[0]
+
+
+def find_first_train(train_list: list[Train | ThroughTrain], station: str, reverse: bool = False) -> tuple[Train, str]:
+    """ Find first/last train passing through a station """
+    if reverse:
+        train_full = max(train_list, key=lambda t: get_time_str(*t.arrival_times()[station]))
+    else:
+        train_full = min(train_list, key=lambda t: get_time_str(*t.arrival_times()[station]))
+    if isinstance(train_full, Train):
+        train = train_full
+    else:
+        train = train_full.station_lines()[station][2]
+    return train, get_time_str(*train.arrival_time[station])

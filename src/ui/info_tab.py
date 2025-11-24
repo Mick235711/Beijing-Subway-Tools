@@ -12,11 +12,11 @@ from nicegui import binding, ui
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, get_time_str, parse_time, \
+from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, parse_time, \
     diff_time_tuple, format_duration
 from src.routing.train import Train
 from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input, \
-    get_all_trains, get_train_id_through, find_train_id
+    get_all_trains, get_train_id_through, find_train_id, find_first_train
 from src.ui.drawers import refresh_line_drawer, get_line_badge, refresh_station_drawer, refresh_drawer, \
     refresh_train_drawer
 
@@ -112,19 +112,9 @@ def calculate_station_rows(
                 ]))
             virtual_transfers_sort = ", ".join(to_pinyin(x[0])[0] for x in virtual_transfers)
 
-        first_train_full = min(all_trains[station], key=lambda t: get_time_str(*t.arrival_times()[station]))
-        if isinstance(first_train_full, Train):
-            first_train = first_train_full
-        else:
-            first_train = first_train_full.trains[first_train_full.station_lines()[station][0].name]
-        first_time = get_time_str(*first_train.arrival_time[station])
+        first_train, first_time = find_first_train(all_trains[station], station)
         first_dict = add_line(first_train.line, first_train.direction)
-        last_train_full = max(all_trains[station], key=lambda t: get_time_str(*t.arrival_times()[station]))
-        if isinstance(last_train_full, Train):
-            last_train = last_train_full
-        else:
-            last_train = last_train_full.trains[last_train_full.station_lines()[station][0].name]
-        last_time = get_time_str(*last_train.arrival_time[station])
+        last_train, last_time = find_first_train(all_trains[station], station, reverse=True)
         last_dict = add_line(last_train.line, last_train.direction)
 
         operating_time = diff_time_tuple(parse_time(last_time), parse_time(first_time))

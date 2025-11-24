@@ -6,6 +6,7 @@
 # Libraries
 from collections.abc import Callable
 from datetime import date
+from functools import partial
 from typing import Any, Literal
 
 from nicegui import binding, ui
@@ -20,7 +21,8 @@ from src.common.common import get_text_color, distance_str, speed_str, percentag
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
-from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains, find_train_id
+from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains, find_train_id, \
+    find_first_train, get_train_id_through
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
@@ -360,7 +362,8 @@ class LineTable:
 
     @ui.refreshable_method
     def create_table(
-        self, station: str, train_list: list[Train | ThroughTrain], *, split_direction: bool = False
+        self, station: str, station_lines: dict[str, set[Line]], train_list: list[Train | ThroughTrain],
+        *, split_direction: bool = False
     ) -> None:
         """ Create a table for train counts """
         global AVAILABLE_LINES
@@ -378,10 +381,21 @@ class LineTable:
                             if self.display_type == "count":
                                 ui.label(str(len(trains)))
                             elif self.display_type == "first":
-                                # TODO: add click to train drawer
-                                ui.label(min(get_time_str(*train.arrival_times()[station]) for train in trains))
+                                first_train, first_time = find_first_train(trains, station)
+                                first_dict = get_train_id_through(train_list, first_train.line, first_train.direction)
+                                first_id = find_train_id(first_dict, first_train)
+                                ui.label(first_time).on("click", partial(
+                                    refresh_train_drawer,
+                                    first_train, first_id, first_dict, station_lines
+                                )).classes("cursor-pointer")
                             elif self.display_type == "last":
-                                ui.label(max(get_time_str(*train.arrival_times()[station]) for train in trains))
+                                last_train, last_time = find_first_train(trains, station, reverse=True)
+                                last_dict = get_train_id_through(train_list, last_train.line, last_train.direction)
+                                last_id = find_train_id(last_dict, last_train)
+                                ui.label(last_time).on("click", partial(
+                                    refresh_train_drawer,
+                                    last_train, last_id, last_dict, station_lines
+                                )).classes("cursor-pointer")
                             else:
                                 assert False, self.display_type
                         with ui.item_section().props("side"):
@@ -485,7 +499,9 @@ def station_cards(
                     ui.button(
                         icon=card_data.count_icon, on_click=lambda: card_data.count_clicked(train_count_table)
                     ).props("flat").classes("p-0").bind_icon(card_data, "count_icon")
-                train_count_table.create_table(station, train_list, split_direction=(card_data.count_icon == "compress"))
+                train_count_table.create_table(
+                    station, city.station_lines, train_list, split_direction=(card_data.count_icon == "compress")
+                )
         with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
             with ui.card_section().classes("w-full p-0"):
                 first_train_table = LineTable("first" if card_data.show_first == "First Train" else "last")
@@ -497,7 +513,9 @@ def station_cards(
                     ui.button(
                         icon=card_data.first_icon, on_click=lambda: card_data.first_clicked(first_train_table)
                     ).props("flat").classes("p-0").bind_icon(card_data, "first_icon")
-                first_train_table.create_table(station, train_list, split_direction=(card_data.first_icon == "compress"))
+                first_train_table.create_table(
+                    station, city.station_lines, train_list, split_direction=(card_data.first_icon == "compress")
+                )
 
 
 def get_train_type(train: Train | ThroughTrain) -> list[str]:
@@ -529,19 +547,19 @@ def get_train_type(train: Train | ThroughTrain) -> list[str]:
 
 def get_train_repr(
     through_dict: dict[ThroughSpec, list[ThroughTrain]], train: Train
-) -> tuple[Train | ThroughTrain, Train, Train, list[Line]]:
+) -> tuple[Train | ThroughTrain, Train, Train, list[tuple[Line, str]]]:
     """ Display train timings """
     result = find_through_train(through_dict, train)
     if result is None:
         full_train: Train | ThroughTrain = train
         first_train = train
         last_train = train
-        lines = [train.line]
+        lines = [(train.line, train.direction)]
     else:
         full_train = result[1]
         first_train = full_train.first_train()
         last_train = full_train.last_train()
-        lines = [t.line for t in full_train.trains.values()]
+        lines = [(t.line, t.direction) for t in full_train.trains.values()]
 
     with ui.element("div").classes("inline-flex flex-wrap items-center leading-tight gap-x-1"):
         get_station_badge(full_train.stations[0], first_train.line, show_badges=False, show_line_badges=False)
@@ -550,10 +568,10 @@ def get_train_repr(
         if len(lines) > 1:
             assert isinstance(full_train, ThroughTrain), full_train
             for prev_line, inner_line in zip(lines, lines[1:]):
-                inner_train = full_train.trains[inner_line.name]
+                inner_train = full_train.trains[inner_line[0].name]
                 ui.icon("arrow_right_alt")
                 get_station_badge(
-                    inner_train.stations[0], [prev_line, inner_train.line],
+                    inner_train.stations[0], [prev_line[0], inner_train.line],
                     show_badges=False, show_line_badges=False
                 )
                 ui.label(inner_train.start_time_repr())
@@ -575,8 +593,9 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
     ui.label(train_id).classes("text-h5 text-bold")
     full_train, first_train, last_train, lines = get_train_repr(through_dict, train)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
-        for line in lines:
+        for line, direction in lines:
             get_line_badge(line, add_click=True)
+            ui.label(direction)
         if len(lines) > 1:
             get_badge("Through", *ROUTE_TYPES["Through"])
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
@@ -643,7 +662,7 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
     padding-top: 8px !important;
 }
         """)
-        for line in lines:
+        for line, _ in lines:
             ui.add_css(f"""
 .drawers-train-timeline .text-line-{line.index} {{
     color: {line.color} !important;
