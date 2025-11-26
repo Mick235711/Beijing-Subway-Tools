@@ -321,7 +321,7 @@ def route_timeline(
                         if i >= start_index:
                             entry.on("click", lambda r=route.name: handle_click(r)).classes("cursor-pointer")
                         if start_index > 0 and express_icon == "sync_alt":
-                            entry.classes("mt-[-8px]")
+                            entry.classes("mt-[-16px]")
                         if station in route.skip_stations:
                             entry.classes("skipped-station-dot")
                         if show_train_count and i != len(route_stations) - 1:
