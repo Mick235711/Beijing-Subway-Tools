@@ -26,14 +26,14 @@ Image.MAX_IMAGE_PIXELS = 300000000
 
 
 def draw_routes(
-    city: City, paths: list[Route], draw_dict: DrawDict, cmap: list[tuple[float, float, float]] | Colormap,
+    city: City, paths: list[tuple[int, Route]], draw_dict: DrawDict, cmap: list[tuple[float, float, float]] | Colormap,
     *, is_ordinal: bool = True, dpi: int = 100, max_mode: bool = False
 ) -> None:
     """ Draw routes on a map """
     indexes, _ = select_routes(
-        city.lines, list(enumerate(paths)), "Please choose routes to draw:", all_checked=True
+        city.lines, paths, "Please choose routes to draw:", all_checked=True
     )
-    draw_dict = [draw_dict[i] for i in indexes]
+    draw_dict = [x for x in draw_dict if x[0] in indexes]
     map_obj = ask_for_map(city)
     img = draw_paths(
         draw_dict, map_obj, cmap,
@@ -59,7 +59,7 @@ def draw_selected(
 ) -> None:
     """ Draw selected routes on a map """
     is_index = questionary.select("Draw by...", choices=["Index", "Percentage"]).ask()
-    paths = [x[1] for x in data_list if not isinstance(x[1], list)]
+    paths = [(x[0], x[1]) for x in data_list if not isinstance(x[1], list)]
     if is_index is None:
         sys.exit(0)
     elif is_index == "Index":

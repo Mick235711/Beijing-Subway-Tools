@@ -20,7 +20,7 @@ from src.city.city import City
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple, parse_time, \
-    add_min_tuple, distance_str
+    add_min_tuple, distance_str, get_time_repr, format_duration
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
@@ -169,6 +169,52 @@ def routes_one_line(
         print(f"depart at {min_time} - {max_time}, ", end="")
         print(f"arrive at {min_arrive} - {max_arrive}, ", end="")
         print(suffix_s("departure time", len(info_dict)))
+
+
+def routes_timed(
+    city: City, data_list: list[RouteData], start_date: date, through_dict: dict[ThroughSpec, list[ThroughTrain]]
+) -> None:
+    """ Print extreme scenarios of selected routes """
+    start_time, start_day = ask_for_time(
+        allow_first=lambda: (time.max, False),
+        allow_last=lambda: (time.min, True)
+    )
+
+    if start_time == time.max and not start_day:
+        time_repr = "first train"
+    elif start_time == time.min and start_day:
+        time_repr = "last train"
+    else:
+        time_repr = get_time_repr(start_time, start_day)
+    print(f"\nStats as of {time_repr} @ {start_date.isoformat()}:")
+    processed: list[tuple[int, Route | MixedRoutes, PathInfo]] = []
+    for index, route, info_dict, *_ in data_list:
+        print(f"Path #{index + 1}: ", end="")
+        if start_time == time.max and not start_day:
+            info = min(info_dict.items(), key=lambda x: x[0])[1]
+        elif start_time == time.min and start_day:
+            info = max(info_dict.items(), key=lambda x: x[0])[1]
+        else:
+            key = get_time_str(start_time, start_day)
+            if key not in info_dict:
+                print("(No departure)")
+                continue
+            info = info_dict[key]
+        duration = diff_time_tuple(
+            (info[2].arrival_time, info[2].arrival_day), (info[2].initial_time, info[2].initial_day)
+        )
+        print(f"Duration {duration}min ({format_duration(duration)}), " +
+              get_time_repr(info[2].initial_time, info[2].initial_day) + " -> " +
+              get_time_repr(info[2].arrival_time, info[2].arrival_day))
+        processed.append((index, route, info))
+
+    print("\nDetailed statistics:")
+    for index, route, info in processed:
+        print(f"Path #{index + 1}:", route_str(city.lines, route))
+        info[2].pretty_print_path(
+            info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
+        )
+        print()
 
 
 def show_segment_best(city: City, best_dict: dict[str, set[int]], data_list: list[RouteData]) -> None:
@@ -490,16 +536,21 @@ def analyze_routes(
             path_list = [(x[0], x[1], list(x[2].values())) for x in data_list]
         elif answer == "Print detailed statistics":
             index_dict = {value[0]: value for value in path_list}
-            index_str = questionary.select("Please select a route to print statistics for:", choices=["One-line"] + (
-                ["Aggregated", "Aggregated (Best routes for each time only)"] if len(data_list) > 1 else []
-            ) + [
-                f"#{index + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route)}"
-                for index, route, *_ in data_list
-            ]).ask()
+            index_str = questionary.select(
+                "Please select a route to print statistics for:",
+                choices=["One-line", "Timed"] + (
+                    ["Aggregated", "Aggregated (Best routes for each time only)"] if len(data_list) > 1 else []
+                ) + [
+                    f"#{index + 1:>{len(str(len(data_list)))}}: {route_str(city.lines, route)}"
+                    for index, route, *_ in data_list
+                ]
+            ).ask()
             if index_str is None:
                 sys.exit(0)
             elif index_str == "One-line":
                 routes_one_line(city, data_list, start_date, time_only_mode=time_only_mode)
+            elif index_str == "Timed":
+                routes_timed(city, data_list, start_date, through_dict)
             elif index_str == "Aggregated (Best routes for each time only)":
                 path_list_inner = []
                 for start_str, index_set in best_dict.items():
