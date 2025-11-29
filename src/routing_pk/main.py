@@ -71,7 +71,7 @@ def main() -> None:
         elif answer == "Analyze selected routes":
             CURRENT_ROUTES = analyze_routes(city, args, CURRENT_ROUTES, cmap, dpi=args.dpi)
         elif answer == "Draw selected routes":
-            draw_routes(city, [
+            draw_routes(city, CURRENT_ROUTES, [
                 (i, reduce_abstract_path(city.lines, path, end), end)
                 for i, (path, end) in enumerate(CURRENT_ROUTES)
             ], cmap, dpi=args.dpi)

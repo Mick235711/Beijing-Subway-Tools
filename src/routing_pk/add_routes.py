@@ -253,6 +253,9 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route |
             continue
         if i == len(processed) - 1:
             next_station = end
+            if cur_starting == next_station:
+                print("Duplicate transfer with ending station!")
+                return None
         else:
             next_entry = processed[i + 1]
             if isinstance(next_entry, str):

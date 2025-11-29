@@ -184,7 +184,7 @@ def draw_paths(
             new_alpha_dict[(station, next_station)] = alpha
     for (station, next_station), alpha in new_alpha_dict.items():
         if is_ordinal:
-            color_alpha = get_ordinal_alpha(int(alpha), len(draw_dict))
+            color_alpha = get_ordinal_alpha(int(alpha), max(int(x[0]) for x in draw_dict) + 1)
         else:
             color_alpha = get_percent_alpha(alpha)
         if isinstance(cmap, Colormap):

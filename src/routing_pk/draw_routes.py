@@ -19,17 +19,21 @@ from src.city.city import City
 from src.common.common import parse_time, ask_for_int, average
 from src.dist_graph.adaptor import reduce_abstract_path
 from src.graph.draw_path import draw_paths, DrawDict
-from src.routing_pk.common import RouteData, route_str
+from src.routing_pk.common import RouteData, route_str, Route, select_routes
 
 # reset max pixel
 Image.MAX_IMAGE_PIXELS = 300000000
 
 
 def draw_routes(
-    city: City, draw_dict: DrawDict, cmap: list[tuple[float, float, float]] | Colormap,
+    city: City, paths: list[Route], draw_dict: DrawDict, cmap: list[tuple[float, float, float]] | Colormap,
     *, is_ordinal: bool = True, dpi: int = 100, max_mode: bool = False
 ) -> None:
     """ Draw routes on a map """
+    indexes, _ = select_routes(
+        city.lines, list(enumerate(paths)), "Please choose routes to draw:", all_checked=True
+    )
+    draw_dict = [draw_dict[i] for i in indexes]
     map_obj = ask_for_map(city)
     img = draw_paths(
         draw_dict, map_obj, cmap,
@@ -55,15 +59,16 @@ def draw_selected(
 ) -> None:
     """ Draw selected routes on a map """
     is_index = questionary.select("Draw by...", choices=["Index", "Percentage"]).ask()
+    paths = [x[1] for x in data_list if not isinstance(x[1], list)]
     if is_index is None:
         sys.exit(0)
     elif is_index == "Index":
-        draw_routes(city, [
+        draw_routes(city, paths, [
             (x[0], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1])
             for x in data_list if not isinstance(x[1], list)
         ], cmap, dpi=dpi, max_mode=time_only_mode)
     elif is_index == "Percentage":
-        draw_routes(city, [
+        draw_routes(city, paths, [
             (x[3], reduce_abstract_path(city.lines, x[1][0], x[1][1]), x[1][1])
             for x in data_list if not isinstance(x[1], list)
         ], cmap, is_ordinal=False, dpi=dpi, max_mode=time_only_mode)
