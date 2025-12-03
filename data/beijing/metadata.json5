@@ -491,6 +491,11 @@
         "巴沟": [
             {from: "10号线", to: "西郊线", minutes: 2.5}
         ],
+        // 参考：https://www.bilibili.com/video/BV1Go4y1S7Cq/
+        "荣昌东街": [
+            {from: "亦庄线", to: "亦庄T1线", to_direction: "西南行", minutes: 3},
+            {from: "亦庄线", to: "亦庄T1线", to_direction: "东北行", minutes: 3.5}
+        ],
         // 参考：https://www.bilibili.com/video/BV1qj411r7Lo/
         "北新桥": [
             {from: "5号线", to: "首都机场线", minutes: 2.5}
