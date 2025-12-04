@@ -81,6 +81,11 @@ def draw_line_chart(city: City, start_date: date, data_list: list[RouteData]) ->
     old_fonts = plt.rcParams["font.sans-serif"]
     plt.rcParams["font.sans-serif"] = ["STHeiti", "SimHei"]
 
+    indexes, _ = select_routes(
+        city.lines, [(x[0], x[1]) for x in data_list], "Please choose routes to draw:", all_checked=True
+    )
+    data_list = [x for x in data_list if x[0] in indexes]
+
     # Ask for moving average
     moving = ask_for_int("Please specify a moving average minute (empty for original data):", with_default=1)
     show_full = questionary.confirm("Show full path in legend?").ask()
