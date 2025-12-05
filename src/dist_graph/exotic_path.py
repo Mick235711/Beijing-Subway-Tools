@@ -208,11 +208,12 @@ def main() -> None:
     def append_arg(parser: argparse.ArgumentParser) -> None:
         """ Append more arguments """
         supported = ["time", "station", "distance", "fare"]
-        parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
+        parser.add_argument("--exclude-virtual", nargs="?", const="all", default="none",
+                            choices=["none", "all", "base", "compare"], help="Exclude virtual transfers")
         parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
         parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
-        parser.add_argument("--include-express", action="store_true",
-                            help="Include non-essential use of express lines")
+        parser.add_argument("--include-express", nargs="?", const="all", default="none",
+                            choices=["none", "all", "base", "compare"], help="Include non-essential use of express lines")
         parser.add_argument("-p", "--pair-source", choices=["all", "line"],
                             default="all", help="Station pair source")
         parser.add_argument("-d", "--data-source", choices=supported,
@@ -223,20 +224,20 @@ def main() -> None:
 
     _, args, city, _ = parse_args(append_arg, include_passing_limit=False, include_train_ctrl=False)
     delta_metric = parse_comma_list(args.delta_metric)
-    if args.data_source == args.compare_against:
+    if args.data_source == args.compare_against and args.exclude_virtual in ["none", "all"]:
         print("Error: data source and compare criteria cannot be the same!")
         return
     if ("fare" in [args.data_source, args.compare_against] or "fare" in delta_metric) and city.fare_rules is None:
         print("Error: no fare rules defined for this city!")
         return
-    if (args.exclude_edge or args.include_express) and "time" not in [args.data_source, args.compare_against]:
+    if (args.exclude_edge or args.include_express != "none") and "time" not in [args.data_source, args.compare_against]:
         print("Warning: --exclude-edge/--include-express ignored in non-time mode.")
     start_date = ask_for_date()
     start_time, start_day = ask_for_time()
 
     graph = get_dist_graph(
         city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-        include_virtual=(not args.exclude_virtual and args.data_source != "single_station"),
+        include_virtual=(args.exclude_virtual in ["none", "compare"]),
         include_circle=(not args.exclude_single)
     )
     train_dict = parse_all_trains(
@@ -246,13 +247,18 @@ def main() -> None:
     stations = set(graph.keys())
     paths_basis = all_path(
         city, stations, graph, train_dict, through_dict, start_date, start_time, start_day,
-        data_source=args.data_source, exclude_virtual=args.exclude_virtual,
-        exclude_edge=args.exclude_edge, include_express=args.include_express
+        data_source=args.data_source, exclude_virtual=(args.exclude_virtual in ["all", "base"]),
+        exclude_edge=args.exclude_edge, include_express=(args.include_express in ["all", "base"])
     )
+    if args.exclude_virtual in ["base", "compare"]:
+        graph = get_dist_graph(
+            city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+            include_virtual=(args.exclude_virtual == "base"), include_circle=(not args.exclude_single)
+        )
     paths_compare = all_path(
         city, stations, graph, train_dict, through_dict, start_date, start_time, start_day,
-        data_source=args.compare_against, exclude_virtual=args.exclude_virtual,
-        exclude_edge=args.exclude_edge, include_express=args.include_express
+        data_source=args.compare_against, exclude_virtual=(args.exclude_virtual in ["all", "compare"]),
+        exclude_edge=args.exclude_edge, include_express=(args.include_express in ["all", "compare"])
     )
     exclude_stations: set[str] = set()
     if args.compare_against == "fare":

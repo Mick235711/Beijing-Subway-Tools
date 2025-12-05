@@ -1135,26 +1135,28 @@ Waiting time: 2.5 minutes
 
 ### [`exotic_path.py`](/src/dist_graph/exotic_path.py): Find the weirdest path in a network
 ```
-usage: exotic_path.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [--exclude-edge] [--include-express] [-p {all,line}] [-d {time,station,distance,fare}]
-                      [-c {time,station,distance,fare}] [--delta-metric DELTA_METRIC]
+usage: exotic_path.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual [{none,all,base,compare}]] [--exclude-single] [--exclude-edge] [--include-express [{none,all,base,compare}]]
+                      [-p {all,line}] [-d {time,station,distance,fare}] [-c {time,station,distance,fare}] [--delta-metric DELTA_METRIC]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
-  --exclude-virtual     Exclude virtual transfers
+  --exclude-virtual [{none,all,base,compare}]
+                        Exclude virtual transfers
   --exclude-single      Exclude single-direction lines
   --exclude-edge        Exclude edge case in transfer
-  --include-express     Include non-essential use of express lines
-  -p {all,line}, --pair-source {all,line}
+  --include-express [{none,all,base,compare}]
+                        Include non-essential use of express lines
+  -p, --pair-source {all,line}
                         Station pair source
-  -d {time,station,distance,fare}, --data-source {time,station,distance,fare}
+  -d, --data-source {time,station,distance,fare}
                         Path criteria
-  -c {time,station,distance,fare}, --compare-against {time,station,distance,fare}
+  -c, --compare-against {time,station,distance,fare}
                         Criteria to be compare against
   --delta-metric DELTA_METRIC
                         Delta metric
