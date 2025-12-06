@@ -38,14 +38,14 @@ class TimetableData:
     through_dict: dict[ThroughSpec, list[ThroughTrain]]
 
 
-def get_train_dict(city: City, data: TimetableData) -> dict[tuple[str, str], list[Train]]:
+def get_train_dict(lines: Iterable[Line], cur_date: date) -> dict[tuple[str, str], list[Train]]:
     """ Get a dictionary of (line, direction) -> trains """
     train_dict: dict[tuple[str, str], list[Train]] = {}
-    for line in city.station_lines[data.station]:
+    for line in lines:
         single_dict = parse_trains(line)
         for direction, direction_dict in single_dict.items():
             for date_group, train_list in direction_dict.items():
-                if not line.date_groups[date_group].covers(data.cur_date):
+                if not line.date_groups[date_group].covers(cur_date):
                     continue
                 train_dict[(line.name, direction)] = train_list
                 break
@@ -57,7 +57,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
     with ui.row().classes("items-center justify-between timetable-tab-selection"):
         def on_any_change() -> None:
             """ Update the train dict based on current data """
-            data.train_dict = get_train_dict(city, data)
+            data.train_dict = get_train_dict(city.station_lines[data.station], data.cur_date)
 
             skipped_switch.set_visibility(any(
                 data.station in t.arrival_time and data.station in t.skip_stations

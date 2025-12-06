@@ -15,6 +15,7 @@ from src.common.common import suffix_s
 from src.ui.common import get_default_line, get_default_direction, get_default_station
 from src.ui.drawers import right_drawer, assign_globals
 from src.ui.info_tab import info_tab, InfoData
+from src.ui.stats_tab import stats_tab, StatsData
 from src.ui.timetable_tab import timetable_tab, TimetableData
 from src.ui.trains_tab import trains_tab, TrainsData
 
@@ -59,6 +60,7 @@ async def main_page(city_name: str) -> None:
         default_line = get_default_line(city.lines)
         trains_data = TrainsData(info_data, default_line.name, get_default_direction(default_line), date.today(), [])
         timetable_data = TimetableData(info_data, get_default_station(set(city.station_lines.keys())), date.today(), {}, {})
+        stats_data = StatsData(info_data, date.today(), {})
         assign_globals(city.lines, city.station_lines)
 
         with ui.tab_panel(info_tab_):
@@ -71,7 +73,7 @@ async def main_page(city_name: str) -> None:
             timetable_tab(city, timetable_data)
 
         with ui.tab_panel(stats_tab_):
-            ui.label("Statistics will be displayed here.")
+            stats_tab(city, stats_data)
 
         with ui.tab_panel(route_tab_):
             ui.label("Route planning features will be implemented here.")
