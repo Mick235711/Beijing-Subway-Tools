@@ -40,6 +40,20 @@ class Train:
             return self.loop_next.stations[0]
         return self.stations[-1]
 
+    def last_time(self) -> TimeSpec:
+        """ Train last time """
+        if self.loop_next is not None:
+            return self.loop_next.arrival_time[self.loop_next.stations[0]]
+        return self.arrival_time[self.stations[-1]]
+
+    def last_time_str(self) -> str:
+        """ Train last time string """
+        return get_time_str(*self.last_time())
+
+    def last_time_repr(self) -> str:
+        """ Train last time representation """
+        return get_time_repr(*self.end_time())
+
     def __repr__(self) -> str:
         """ Get string representation """
         if self.loop_next is not None:
