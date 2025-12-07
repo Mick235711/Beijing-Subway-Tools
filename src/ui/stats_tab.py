@@ -113,6 +113,10 @@ def stats_tab(city: City, data: StatsData) -> None:
                     on_change=lambda e: final_train_radar.refresh(use_first=(e.value == "First Train"), save_image=False)
                 )
                 ui.switch(
+                    "Show all directions",
+                    on_change=lambda e: final_train_radar.refresh(show_all_dir=e.value, save_image=False)
+                )
+                ui.switch(
                     "Show ending trains",
                     on_change=lambda e: final_train_radar.refresh(show_ending=e.value, save_image=False)
                 )
@@ -191,7 +195,7 @@ def draw_text(
 def final_train_radar(
     city: City, *, base_line: Line | None = None, base_station: str | None = None,
     train_dict: dict[tuple[str, str], list[Train]],
-    use_first: bool = True, show_ending: bool = False,
+    use_first: bool = True, show_all_dir: bool = False, show_ending: bool = False,
     show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False
 ) -> None:
     """ Display a radar graph for final trains """
@@ -208,10 +212,7 @@ def final_train_radar(
     last_dict: dict[str, list[Train]] = {}
     train_id_dicts: dict[tuple[str, str], dict[str, Train]] = {}
     defs: list[str] = []
-    for (line_name, direction), train_list in train_dict.items():
-        if line_name == base_line.name:
-            continue
-        line = city.lines[line_name]
+    for line in city.lines.values():
         color = line.color or "#333"
         defs.append(f"""
     <filter x="-10%" y="-10%" width="120%" height="120%" id="line-{line.index}">
@@ -231,38 +232,46 @@ def final_train_radar(
       </feMerge>
     </filter>
         """)
+    for (line_name, direction), train_list in train_dict.items():
+        if line_name == base_line.name:
+            continue
+        line = city.lines[line_name]
         stations = line.direction_stations(direction)
         intersections = [s for s in line.stations if base_line in city.station_lines[s]]
         if len(intersections) == 0:
             continue
         elif len(intersections) == 1 and not line.loop:
-            if use_first and intersections[0] == stations[0]:
+            if use_first and intersections[0] == stations[0] and not show_all_dir:
                 continue
-            if not use_first and intersections[0] == stations[-1]:
+            if not use_first and intersections[0] == stations[-1] and not show_all_dir:
                 continue
 
-        last_station = (min if use_first else max)(intersections, key=lambda s: stations.index(s))
-        train_list = get_train_list(line, direction, last_station, train_dict)
-        train_id_dicts[(line_name, direction)] = get_train_id(train_list)
-        filtered_list = [
-            t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations and
-            is_possible_to_board(t, last_station, show_ending=show_ending, reverse=use_first)
-        ]
-        if len(filtered_list) == 0:
-            continue
-        if last_station not in last_dict:
-            last_dict[last_station] = []
-        last_train = (min if use_first else max)(
-            filtered_list, key=lambda t: get_time_str(*t.arrival_time[last_station])
-        )
-        last_dict[last_station].append(last_train)
-        last_full = (min if use_first else max)(
-            [t for t in filtered_list if t.is_full()],
-            key=lambda t: get_time_str(*t.arrival_time[last_station])
-        )
-        diff = diff_time_tuple(last_full.arrival_time[last_station], last_train.arrival_time[last_station])
-        if last_full != last_train and ((use_first and diff > 0) or (not use_first and diff < 0)):
-            last_dict[last_station].append(last_full)
+        if show_all_dir:
+            candidates = intersections[:]
+        else:
+            candidates = [(min if use_first else max)(intersections, key=lambda s: stations.index(s))]
+        for last_station in candidates:
+            train_list = get_train_list(line, direction, last_station, train_dict)
+            train_id_dicts[(line_name, direction)] = get_train_id(train_list)
+            filtered_list = [
+                t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations and
+                is_possible_to_board(t, last_station, show_ending=show_ending, reverse=use_first)
+            ]
+            if len(filtered_list) == 0:
+                continue
+            if last_station not in last_dict:
+                last_dict[last_station] = []
+            last_train = (min if use_first else max)(
+                filtered_list, key=lambda t: get_time_str(*t.arrival_time[last_station])
+            )
+            last_dict[last_station].append(last_train)
+            last_full = (min if use_first else max)(
+                [t for t in filtered_list if t.is_full()],
+                key=lambda t: get_time_str(*t.arrival_time[last_station])
+            )
+            diff = diff_time_tuple(last_full.arrival_time[last_station], last_train.arrival_time[last_station])
+            if last_full != last_train and ((use_first and diff > 0) or (not use_first and diff < 0)):
+                last_dict[last_station].append(last_full)
 
     # Total hour duration: 3h, every 10min one circle => 19 circles, 0.05-0.95 every 0.05 is exactly 19
     total_width = 1000
