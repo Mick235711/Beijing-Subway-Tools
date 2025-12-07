@@ -72,19 +72,26 @@ def get_virtual_dict(city: City, lines: dict[str, Line]) -> dict[str, dict[str, 
     return dict(sorted(virtual_dict.items(), key=lambda x: to_pinyin(x[0])[0]))
 
 
-def is_possible_to_board(train: Train | ThroughTrain, station: str, *, show_ending: bool = False) -> bool:
+def is_possible_to_board(
+    train: Train | ThroughTrain, station: str,
+    *, show_ending: bool = False, reverse: bool = False
+) -> bool:
     """ Determine if it is possible to board the train at the given station """
     if isinstance(train, ThroughTrain):
-        last_train = train.last_train()
+        last_train = train.first_train() if reverse else train.last_train()
     else:
         last_train = train
-    if not show_ending and last_train.loop_next is None and station == train.stations[-1]:
+    if reverse and not show_ending and last_train.loop_prev is None and station == train.stations[0]:
+        return False
+    if not reverse and not show_ending and last_train.loop_next is None and station == train.stations[-1]:
         return False
     if station in train.skip_stations:
         return False
     if isinstance(train, Train) and train.line.end_circle_start is not None:
         if train.direction in train.line.end_circle_spec:
-            if train.stations.index(station) > train.stations.index(train.line.end_circle_start):
+            if reverse and train.stations.index(station) < train.stations.index(train.line.end_circle_start):
+                return False
+            if not reverse and train.stations.index(station) > train.stations.index(train.line.end_circle_start):
                 return False
     return True
 

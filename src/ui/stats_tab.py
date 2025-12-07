@@ -12,9 +12,11 @@ from nicegui import binding, ui
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
-    TimeSpec, get_text_color, chin_len
+    TimeSpec, get_text_color, chin_len, shift_max
 from src.routing.train import Train
-from src.ui.common import get_date_input, get_default_line, get_line_selector_options, get_train_id, find_train_id
+from src.stats.common import is_possible_to_board
+from src.ui.common import get_date_input, get_default_line, get_line_selector_options, get_train_id, find_train_id, \
+    get_station_selector_options, get_default_station
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -30,7 +32,7 @@ class StatsData:
 
 def stats_tab(city: City, data: StatsData) -> None:
     """ Statistics tab for the main page """
-    with ui.row().classes("items-center justify-between stats-tab-selection"):
+    with ui.row().classes("items-center justify-between"):
         def on_any_change() -> None:
             """ Update the train list based on current data """
             data.train_dict = get_train_dict(data.info_data.lines.values(), data.cur_date)
@@ -51,7 +53,7 @@ def stats_tab(city: City, data: StatsData) -> None:
         line_tab = ui.tab("Line")
         station_tab = ui.tab("Station")
         radar_tab = ui.tab("Train Radar")
-    with ui.tab_panels(tabs, value=line_tab).classes("w-full"):
+    with ui.tab_panels(tabs, value=line_tab).classes("w-full stats-tab-selection"):
         def on_line_change(line: str | None = None) -> None:
             """ Update the data based on selection states """
             if len(data.info_data.lines) == 0:
@@ -68,7 +70,26 @@ def stats_tab(city: City, data: StatsData) -> None:
             with radar_base_line.add_slot("selected"):
                 get_line_badge(city.lines[line_temp])
             radar_base_line.update()
-            final_train_radar.refresh(base_line=city.lines[line_temp], save_image=False)
+
+            if city.lines[line_temp].loop:
+                station_lines = {s: city.station_lines[s] for s in city.lines[line_temp].stations}
+                select_station.set_options(get_station_selector_options(station_lines))
+                station = get_default_station(set(station_lines.keys()))
+                select_station.set_value(station)
+                select_station.update()
+            else:
+                select_station.set_options([])
+                station = None
+                select_station.set_value(station)
+                select_station.clear()
+
+            final_train_radar.refresh(base_line=city.lines[line_temp], base_station=station, save_image=False)
+
+        ui.add_css("""
+.stats-tab-selection .q-select .q-field__input--padding {
+    max-width: 50px;
+}
+        """)
 
         with ui.tab_panel(line_tab):
             ui.label("Line Tab")
@@ -78,14 +99,30 @@ def stats_tab(city: City, data: StatsData) -> None:
             with ui.row().classes("w-full items-center justify-center"):
                 ui.label("Base line: ")
                 radar_base_line = ui.select([]).props("use-chips options-html").on_value_change(on_line_change)
-                ui.toggle(["First Train", "Last Train"], value="First Train").on_value_change(
-                    lambda e: final_train_radar.refresh(use_first=(e.value == "First Train"), save_image=False)
+                ui.label("Base station: ").bind_visibility_from(
+                    radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
                 )
-                ui.switch("Show inner text", value=True).on_value_change(
-                    lambda e: final_train_radar.refresh(show_inner_text=e.value, save_image=False)
+                select_station = ui.select(
+                    [], with_input=True,
+                    on_change=lambda e: final_train_radar.refresh(base_station=e.value, save_image=False)
+                ).props(add="options-html", remove="fill-input hide-selected").bind_visibility_from(
+                    radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
                 )
-                ui.switch("Show station orbs", value=True).on_value_change(
-                    lambda e: final_train_radar.refresh(show_station_orbs=e.value, save_image=False)
+                ui.toggle(
+                    ["First Train", "Last Train"], value="First Train",
+                    on_change=lambda e: final_train_radar.refresh(use_first=(e.value == "First Train"), save_image=False)
+                )
+                ui.switch(
+                    "Show ending trains",
+                    on_change=lambda e: final_train_radar.refresh(show_ending=e.value, save_image=False)
+                )
+                ui.switch(
+                    "Show inner text", value=True,
+                    on_change=lambda e: final_train_radar.refresh(show_inner_text=e.value, save_image=False)
+                )
+                ui.switch(
+                    "Show station orbs", value=True,
+                    on_change=lambda e: final_train_radar.refresh(show_station_orbs=e.value, save_image=False)
                 )
                 ui.button("Save image", icon="save", on_click=lambda: final_train_radar.refresh(save_image=True))
             final_train_radar(city, train_dict=data.train_dict)
@@ -152,11 +189,13 @@ def draw_text(
 
 @ui.refreshable
 def final_train_radar(
-    city: City, *, base_line: Line | None = None, train_dict: dict[tuple[str, str], list[Train]],
-    use_first: bool = True, show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False
+    city: City, *, base_line: Line | None = None, base_station: str | None = None,
+    train_dict: dict[tuple[str, str], list[Train]],
+    use_first: bool = True, show_ending: bool = False,
+    show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False
 ) -> None:
     """ Display a radar graph for final trains """
-    if base_line is None or len(train_dict) == 0:
+    if base_line is None or len(train_dict) == 0 or (base_station is not None and base_station not in base_line.stations):
         return
 
     # First, gather the desired last train for each line+direction
@@ -203,17 +242,22 @@ def final_train_radar(
                 continue
 
         last_station = (min if use_first else max)(intersections, key=lambda s: stations.index(s))
-        if last_station not in last_dict:
-            last_dict[last_station] = []
         train_list = get_train_list(line, direction, last_station, train_dict)
         train_id_dicts[(line_name, direction)] = get_train_id(train_list)
+        filtered_list = [
+            t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations and
+            is_possible_to_board(t, last_station, show_ending=show_ending, reverse=use_first)
+        ]
+        if len(filtered_list) == 0:
+            continue
+        if last_station not in last_dict:
+            last_dict[last_station] = []
         last_train = (min if use_first else max)(
-            [t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations],
-            key=lambda t: get_time_str(*t.arrival_time[last_station])
+            filtered_list, key=lambda t: get_time_str(*t.arrival_time[last_station])
         )
         last_dict[last_station].append(last_train)
         last_full = (min if use_first else max)(
-            [t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations and t.is_full()],
+            [t for t in filtered_list if t.is_full()],
             key=lambda t: get_time_str(*t.arrival_time[last_station])
         )
         diff = diff_time_tuple(last_full.arrival_time[last_station], last_train.arrival_time[last_station])
@@ -298,7 +342,10 @@ def final_train_radar(
     base_color = base_line.color or "#333"
     station_coords: list[tuple[float, float, str]] = []
     trains = []
-    for last_station, train_list in sorted(last_dict.items(), key=lambda x: base_line.stations.index(x[0])):
+    base_index = 0 if base_station is None else base_line.stations.index(base_station)
+    for last_station, train_list in sorted(
+        last_dict.items(), key=lambda x: shift_max(base_line.stations.index(x[0]), base_index, len(base_line.stations))
+    ):
         for train in train_list:
             start_time, end_time = train.start_time(), train.last_time()
             start_station, end_station = train.stations[0], train.last_station()

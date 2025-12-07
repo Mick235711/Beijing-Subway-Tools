@@ -528,6 +528,14 @@ def arg_minmax(data: Mapping[T, int | float]) -> tuple[T, T]:
     return min(data.keys(), key=lambda x: data[x]), max(data.keys(), key=lambda x: data[x])
 
 
+def shift_max(orig: int, clamp: int, n: int) -> int:
+    """ Turn 0...N into clamp...N + 0...clamp - 1 """
+    assert 0 <= orig < n and 0 <= clamp < n, (orig, clamp, n)
+    if orig < clamp:
+        return n + orig
+    return orig
+
+
 def sequence_data(sequence: Sequence[T], *,
                   key: Callable[[T], int | float]) -> tuple[int, float, float, int | float, int | float]:
     """ Return common data for a sequence (len/sum/min/max) """
