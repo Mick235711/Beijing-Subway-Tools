@@ -2,6 +2,8 @@
 
 本文档定义了北京地铁工具集 (Beijing Subway Tools) 提供的 MCP (Model Context Protocol) 服务能力、工具接口规范及数据交互格式。
 
+时刻表这类直接打印的话可能不太便于client解析，使用了json返回。其他比较麻烦的部分直接复用现有的cli交互逻辑来返回了。
+
 ## 部署方式
 
 ### 1. 本地 Stdio 模式 (推荐)
@@ -110,7 +112,7 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 | `count` | integer | 否 | 5 | 限制返回的列车数量 |
 
 **输出参数:**
-返回包含车站信息及按线路、方向分组的时刻表对象。
+返回包含车站信息及按线路、方向分组的时刻表对象；找不到车站时返回 `{ "error": "..." }`。
 
 ```json
 {
@@ -122,10 +124,13 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
       "directions": [
         {
           "direction": "东行",
+          "date_group": "工作日",
           "trains": [
             {
               "train_code": "1001",
-              "departure_time": "08:05"
+              "departure_time": "08:05",
+              "is_last_train": false,
+              "routes": ["全程车"]
             }
           ]
         }
@@ -152,29 +157,16 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 - 必须提供 `train_code` 或者 (`station_name` + `approx_time`) 来唯一定位一趟列车。
 
 **输出参数:**
+- `string`: 纯文本格式的列车运行明细（调用现有 pretty_print，含区间耗时/里程/速度）。未找到列车时返回如 `"Error: Train not found"`。
 
-```json
-{
-  "train_code": "1001",
-  "line": "13号线",
-  "direction": "东行",
-  "schedule": [
-    {
-      "station": "西直门",
-      "arrival_time": "08:00",
-      "departure_time": "08:00",
-      "distance_km": 0.0,
-      "speed_kmh": 0.0
-    },
-    {
-      "station": "大钟寺",
-      "arrival_time": "08:03",
-      "departure_time": "08:03",
-      "distance_km": 2.5,
-      "speed_kmh": 50.0
-    }
-  ]
-}
+```
+13号线 东行 全程车 [6B] 西直门 08:00 -> 东直门 08:25 (25min, 27.1km, 65.1km/h)
+
+西直门 08:00
+(3min, 2.50km, 50.00km/h)
+大钟寺 08:03 (+3min, +2.50km)
+...
+东直门 08:25 (+25min, +27.10km)
 ```
 
 ---

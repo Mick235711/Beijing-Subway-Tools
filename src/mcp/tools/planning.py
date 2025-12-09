@@ -21,6 +21,8 @@ def get_transfer_metrics(
     :param to_line: 目标线路
     """
     city = get_city()
+    resolved_station = fuzzy_match(station_name, city.station_lines.keys())
+    station_name = resolved_station[0] if resolved_station else station_name
     results = []
     
     # Check explicit transfers
@@ -128,35 +130,35 @@ def plan_journey(
         if strategy == 'min_transfer':
             graph = get_dist_graph(city, ignore_dists=True)
             path_dict = shortest_path(graph, start_station, ignore_dists=True)
-            
+
             if end_station not in path_dict:
                 return "Unreachable"
-                
+
             _, station_path = path_dict[end_station]
-            
-            # Convert to trains
+
+            # Convert to trains via existing utility
             bfs_result, path = to_trains(
                 city.lines, train_dict, city.transfers, city.virtual_transfers,
                 station_path, end_station, query_date, query_time, False
             )
             results = [(bfs_result, path)]
 
-        else: # min_time
+        else:  # min_time
             results = k_shortest_path(
                 city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers,
                 start_station, end_station,
                 query_date, query_time, False,
                 k=1
             )
-            
+
         if not results:
             return "Unreachable"
 
         for i, (bfs_result, path) in enumerate(results):
             print(f"Shortest Path #{i + 1}:")
             bfs_result.pretty_print_path(
-                path, city.lines, city.transfers, 
-                through_dict=through_dict, 
+                path, city.lines, city.transfers,
+                through_dict=through_dict,
                 fare_rules=city.fare_rules
             )
             print("-" * 20)

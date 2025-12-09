@@ -2,12 +2,31 @@ from typing import List, Optional
 from src.mcp.context import get_city
 from src.mcp.utils import fuzzy_match
 
+
+def _resolve_line(city, line_name: str) -> Optional[str]:
+    if line_name in city.lines:
+        return line_name
+    for name, line in city.lines.items():
+        if line_name in line.aliases:
+            return name
+    candidates = fuzzy_match(line_name, city.lines.keys())
+    return candidates[0] if candidates else None
+
+
+def _resolve_station(city, station_name: str) -> Optional[str]:
+    if station_name in city.station_lines:
+        return station_name
+    candidates = fuzzy_match(station_name, city.station_lines.keys())
+    return candidates[0] if candidates else None
+
+
 def get_lines() -> List[str]:
     """
     获取所有线路名称列表。
     """
     city = get_city()
     return list(city.lines.keys())
+
 
 def get_stations(line_name: Optional[str] = None) -> List[str]:
     """
@@ -17,11 +36,12 @@ def get_stations(line_name: Optional[str] = None) -> List[str]:
     """
     city = get_city()
     if line_name:
-        candidates = fuzzy_match(line_name, city.lines.keys())
-        if candidates:
-            return city.lines[candidates[0]].stations
+        resolved = _resolve_line(city, line_name)
+        if resolved:
+            return city.lines[resolved].stations
         return []
     return sorted(list(city.station_lines.keys()))
+
 
 def get_directions(
     line_name: Optional[str] = None,
@@ -36,41 +56,35 @@ def get_directions(
     :param end_station: 终点车站名称。
     """
     city = get_city()
-    
+
     target_lines = []
     if line_name:
-        candidates = fuzzy_match(line_name, city.lines.keys())
-        if candidates:
-            target_lines = [city.lines[candidates[0]]]
+        resolved = _resolve_line(city, line_name)
+        if resolved:
+            target_lines = [city.lines[resolved]]
     elif start_station and end_station:
-        target_lines = list(city.lines.values())
+        s = _resolve_station(city, start_station)
+        e = _resolve_station(city, end_station)
+        if s and e:
+            # Only consider lines that contain both stations
+            target_lines = [line for line in city.lines.values() if s in line.stations and e in line.stations]
     else:
         return []
 
-    real_start = start_station
-    real_end = end_station
-    
-    # 尝试模糊匹配车站名
-    if start_station:
-        c = fuzzy_match(start_station, city.station_lines.keys())
-        if c: real_start = c[0]
-    if end_station:
-        c = fuzzy_match(end_station, city.station_lines.keys())
-        if c: real_end = c[0]
+    real_start = _resolve_station(city, start_station) if start_station else None
+    real_end = _resolve_station(city, end_station) if end_station else None
 
     results = []
     for line in target_lines:
-        # 如果只指定了线路，没指定起终点，返回该线路所有方向
-        if not real_start and not real_end:
+        if not real_start or not real_end:
             results.extend(list(line.directions.keys()))
             continue
-            
-        # 如果指定了起终点
-        if real_start and real_end:
+
+        try:
+            results.append(line.determine_direction(real_start, real_end))
+        except Exception:
             for d, stations in line.directions.items():
-                if real_start in stations and real_end in stations:
-                    if stations.index(real_start) < stations.index(real_end):
-                        results.append(d)
-    
-    # 去重并保持顺序
+                if real_start in stations and real_end in stations and stations.index(real_start) < stations.index(real_end):
+                    results.append(d)
+
     return list(dict.fromkeys(results))
