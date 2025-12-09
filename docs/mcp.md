@@ -210,8 +210,9 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 | `start_station` | string | 是 | - | 起点站 |
 | `end_station` | string | 是 | - | 终点站 |
 | `date` | string | 是 | - | 出发日期 'YYYY-MM-DD' |
-| `departure_time` | string | 否 | null | 出发时间 'HH:MM' |
-| `strategy` | string | 否 | 'min_time' | 规划策略 |
+| `departure_time` | string | 否 | null | 出发时间 'HH:MM'，未提供时默认使用当前本地时间 |
+| `strategy` | string | 否 | 'min_time' | 规划策略，仅支持 'min_time' / 'min_transfer' |
+| `num_paths` | integer | 否 | 1 | 仅在 strategy='min_time' 生效，返回前 num_paths 条最短路线，num_paths>=1；strategy='min_transfer' 始终返回 1 条 |
 
 **输出参数:**
 - `string`: 格式化的文本路线描述，包含换乘指引和预计耗时。

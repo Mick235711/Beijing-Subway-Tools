@@ -83,7 +83,8 @@ def plan_journey(
     end_station: str,
     date: str,
     departure_time: Optional[str] = None,
-    strategy: str = 'min_time'
+    strategy: str = 'min_time',
+    num_paths: int = 1
 ) -> str:
     """
     计算两个站点之间的最佳路线。返回文本格式的路线详情。
@@ -92,8 +93,15 @@ def plan_journey(
     :param end_station: 终点站
     :param date: 出发日期，格式 'YYYY-MM-DD'
     :param departure_time: 出发时间 'HH:MM'
-    :param strategy: 规划策略，默认为 'min_time'
+    :param strategy: 规划策略，仅支持 'min_time' / 'min_transfer'
+    :param num_paths: 返回最短路径数量，当前仅在 strategy='min_time' 生效；min_transfer 始终返回 1 条
     """
+    # Validate strategy early to avoid falling through silently
+    if strategy not in {"min_time", "min_transfer"}:
+        return "Error: Unsupported strategy. Use min_time or min_transfer."
+    if num_paths < 1:
+        return "Error: num_paths must be >= 1."
+
     city = get_city()
     train_dict = get_train_dict()
     through_dict = get_through_dict()
@@ -121,7 +129,9 @@ def plan_journey(
         except ValueError:
             return "Error: Invalid time format. Use HH:MM."
     else:
-        query_time = time(0, 0)
+        # Default to current local time for a more realistic query baseline
+        now = datetime.now()
+        query_time = time(now.hour, now.minute)
 
     results = []
     output = io.StringIO()
@@ -148,7 +158,7 @@ def plan_journey(
                 city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers,
                 start_station, end_station,
                 query_date, query_time, False,
-                k=1
+                k=num_paths
             )
 
         if not results:

@@ -8,7 +8,7 @@ sys.path.append(os.getcwd())
 # Import tools
 from src.mcp.tools.metadata import get_lines, get_stations, get_directions
 from src.mcp.tools.timetable import get_station_timetable, get_train_detailed_info
-from src.mcp.tools.planning import get_transfer_metrics, plan_journey
+from src.mcp.tools.journey import get_transfer_metrics, plan_journey
 
 # Initialize the MCP server
 mcp = FastMCP("Beijing Subway Tools")
