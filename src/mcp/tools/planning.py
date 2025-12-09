@@ -15,6 +15,10 @@ def get_transfer_metrics(
 ) -> List[Dict[str, Any]]:
     """
     查询特定车站内的换乘耗时数据。
+    
+    :param station_name: 换乘车站名称
+    :param from_line: 来源线路
+    :param to_line: 目标线路
     """
     city = get_city()
     results = []
@@ -82,7 +86,11 @@ def plan_journey(
     """
     计算两个站点之间的最佳路线。返回文本格式的路线详情。
     
+    :param start_station: 起点站
+    :param end_station: 终点站
     :param date: 出发日期，格式 'YYYY-MM-DD'
+    :param departure_time: 出发时间 'HH:MM'
+    :param strategy: 规划策略，默认为 'min_time'
     """
     city = get_city()
     train_dict = get_train_dict()

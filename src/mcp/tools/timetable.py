@@ -20,7 +20,13 @@ def get_station_timetable(
     """
     查询指定车站的列车到发时刻信息。
     
+    :param station_name: 车站名称，如 '西直门'
     :param date: 查询日期，格式 'YYYY-MM-DD'
+    :param line_name: 线路名称，支持模糊匹配。若不提供则返回该站所有线路信息。
+    :param direction: 线路方向标识，如 '东行', '内环'。
+    :param destination: 终点站名称，如 '东直门'。可作为 direction 的替代，系统将自动匹配对应的方向。
+    :param query_time: 查询起始时间，格式 'HH:MM'。若不提供则返回全天时刻表。
+    :param count: 仅在指定 query_time 时生效，用于限制返回数量。默认 5。
     """
     city = get_city()
     train_dict = get_train_dict()
@@ -162,7 +168,13 @@ def get_train_detailed_info(
     """
     获取特定车次的完整运行计划。
     
+    :param line_name: 线路名称
     :param date: 查询日期，格式 'YYYY-MM-DD'
+    :param train_code: 列车车次号/标识
+    :param station_name: 辅助定位列车的车站名
+    :param approx_time: 辅助定位列车的大致时间 (HH:MM)
+    
+    说明: 必须提供 train_code 或者 (station_name + approx_time) 来唯一定位一趟列车。
     """
     city = get_city()
     train_dict = get_train_dict()
