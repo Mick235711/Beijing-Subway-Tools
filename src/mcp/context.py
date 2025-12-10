@@ -1,15 +1,22 @@
-from typing import Optional, List, Dict
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" MCP context functions """
+
+# Libraries
 from src.city.city import get_all_cities, City
 from src.routing.train import parse_all_trains, Train
 from src.city.through_spec import ThroughSpec
 from src.routing.through_train import parse_through_train, ThroughTrain
 
 # Global state
-_city: Optional[City] = None
-_train_dict: Optional[Dict[str, Dict[str, Dict[str, List[Train]]]]] = None
-_through_dict: Optional[Dict[ThroughSpec, List[ThroughTrain]]] = None
+_city: City | None = None
+_train_dict: dict[str, dict[str, dict[str, list[Train]]]] | None = None
+_through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+
 
 def get_city() -> City:
+    """ Get current city """
     global _city
     if _city is None:
         cities = get_all_cities()
@@ -22,14 +29,18 @@ def get_city() -> City:
             _city = list(cities.values())[0]
     return _city
 
-def get_train_dict() -> Dict[str, Dict[str, Dict[str, List[Train]]]]:
+
+def get_train_dict() -> dict[str, dict[str, dict[str, list[Train]]]]:
+    """ Get dict of all trains """
     global _train_dict
     if _train_dict is None:
         city = get_city()
         _train_dict = parse_all_trains(list(city.lines.values()))
     return _train_dict
 
-def get_through_dict() -> Dict[ThroughSpec, List[ThroughTrain]]:
+
+def get_through_dict() -> dict[ThroughSpec, list[ThroughTrain]]:
+    """ Get through dict of trains """
     global _through_dict
     if _through_dict is None:
         city = get_city()

@@ -9,18 +9,22 @@
 ### 1. 本地 Stdio 模式 (推荐)
 适用于 Claude Desktop, Cursor 等本地客户端。无需手动启动服务，客户端会自动管理。
 
-**客户端配置示例:**
+**VS Code客户端配置示例:**
 
 ```json
 {
-  "mcpServers": {
-    "beijing-subway": {
-      "command": "python3",
-      "args": [
-        "/data11/Beijing-Subway-Tools/src/mcp/server.py"
-      ]
+    "servers": {
+        "beijing-subway": {
+            "type": "stdio",
+            "command": "python3",
+            "args": [
+                "path/to/Beijing-Subway-Tools/src/mcp/server.py"
+            ],
+            "env": {
+                "PYTHONPATH": "path/to/Beijing-Subway-Tools"
+            }
+        }
     }
-  }
 }
 ```
 
@@ -32,7 +36,8 @@
 ```bash
 # 启动服务监听 8101 端口
 fastmcp run src/mcp/server.py --transport http --host 0.0.0.0 --port 8101 --path /mcp
-
+# OR
+python3 src/mcp/server.py --http [--host HOST] [--port PORT] [--path PATH]
 
 # 使用 PM2 常驻后台:
 pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0.0.0 --port 8101 --path /mcp" --name "bjsubway-mcp"
@@ -60,37 +65,37 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 **输入参数:** 无
 
 **输出参数:**
-- `List[str]`: 线路名称列表，如 `['1号线', '2号线', ...]`
+- `list[str]`: 线路名称列表，如 `['1号线', '2号线', ...]`
 
 #### 1.2 获取车站列表 (`get_stations`)
 获取车站列表，支持按线路筛选。
 
 **输入参数:**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `line_name` | string | 否 | 指定线路名称。若提供，则返回该线路的所有车站；否则返回所有车站。 |
+| 参数名         | 类型     | 必填 | 说明                               |
+|:------------|:-------|:---|:---------------------------------|
+| `line_name` | string | 否  | 指定线路名称。若提供，则返回该线路的所有车站；否则返回所有车站。 |
 
 **输出参数:**
-- `List[str]`: 车站名称列表。
+- `list[str]`: 车站名称列表。
 
 #### 1.3 获取线路方向 (`get_directions`)
 获取线路的运行方向列表。
 
 **输入参数:**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `line_name` | string | 否 | 线路名称。 |
-| `start_station` | string | 否 | 起点车站名称。 |
-| `end_station` | string | 否 | 终点车站名称。 |
+| 参数名             | 类型     | 必填 | 说明      |
+|:----------------|:-------|:---|:--------|
+| `line_name`     | string | 否  | 线路名称。   |
+| `start_station` | string | 否  | 起点车站名称。 |
+| `end_station`   | string | 否  | 终点车站名称。 |
 
 **说明:**
 - 若仅指定 `line_name`，返回该线路所有定义的方向。
 - 若指定 `start_station` 和 `end_station`，系统将尝试推断从起点到终点的方向。
 
 **输出参数:**
-- `List[str]`: 方向名称列表，如 `['上行', '下行']` 或 `['内环', '外环']`。
+- `list[str]`: 方向名称列表，如 `['上行', '下行']` 或 `['内环', '外环']`。
 
 ---
 
@@ -101,15 +106,15 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 
 **输入参数:**
 
-| 参数名 | 类型 | 必填 | 默认值 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `station_name` | string | 是 | - | 车站名称，如 '西直门' |
-| `date` | string | 是 | - | 查询日期，格式 'YYYY-MM-DD' |
-| `line_name` | string | 否 | null | 线路名称，支持模糊匹配 |
-| `direction` | string | 否 | null | 线路方向标识 |
-| `destination` | string | 否 | null | 终点站名称，可用于自动匹配方向 |
-| `query_time` | string | 否 | null | 查询起始时间，格式 'HH:MM' |
-| `count` | integer | 否 | 5 | 限制返回的列车数量 |
+| 参数名            | 类型      | 必填 | 默认值  | 说明                   |
+|:---------------|:--------|:---|:-----|:---------------------|
+| `station_name` | string  | 是  | -    | 车站名称，如 '西直门'         |
+| `date`         | string  | 是  | -    | 查询日期，格式 'YYYY-MM-DD' |
+| `line_name`    | string  | 否  | null | 线路名称，支持模糊匹配          |
+| `direction`    | string  | 否  | null | 线路方向标识               |
+| `destination`  | string  | 否  | null | 终点站名称，可用于自动匹配方向      |
+| `query_time`   | string  | 否  | null | 查询起始时间，格式 'HH:MM'    |
+| `count`        | integer | 否  | 5    | 限制返回的列车数量            |
 
 **输出参数:**
 返回包含车站信息及按线路、方向分组的时刻表对象；找不到车站时返回 `{ "error": "..." }`。
@@ -145,13 +150,13 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 
 **输入参数:**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `line_name` | string | 是 | 线路名称 |
-| `date` | string | 是 | 查询日期，格式 'YYYY-MM-DD' |
-| `train_code` | string | 否 | 列车车次号/标识 |
-| `station_name` | string | 否 | 辅助定位列车的车站名 |
-| `approx_time` | string | 否 | 辅助定位列车的大致时间 (HH:MM) |
+| 参数名            | 类型     | 必填 | 说明                   |
+|:---------------|:-------|:---|:---------------------|
+| `line_name`    | string | 是  | 线路名称                 |
+| `date`         | string | 是  | 查询日期，格式 'YYYY-MM-DD' |
+| `train_code`   | string | 否  | 列车车次号/标识             |
+| `station_name` | string | 否  | 辅助定位列车的车站名           |
+| `approx_time`  | string | 否  | 辅助定位列车的大致时间 (HH:MM)  |
 
 **说明:**
 - 必须提供 `train_code` 或者 (`station_name` + `approx_time`) 来唯一定位一趟列车。
@@ -178,14 +183,14 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 
 **输入参数:**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `station_name` | string | 是 | 换乘车站名称 |
-| `from_line` | string | 否 | 来源线路 |
-| `to_line` | string | 否 | 目标线路 |
+| 参数名            | 类型     | 必填 | 说明     |
+|:---------------|:-------|:---|:-------|
+| `station_name` | string | 是  | 换乘车站名称 |
+| `from_line`    | string | 否  | 来源线路   |
+| `to_line`      | string | 否  | 目标线路   |
 
 **输出参数:**
-- `List[Dict]`: 换乘信息列表。
+- `list[Dict]`: 换乘信息列表。
 
 ```json
 [
@@ -205,14 +210,14 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 
 **输入参数:**
 
-| 参数名 | 类型 | 必填 | 默认值 | 说明 |
-| :--- | :--- | :--- | :--- | :--- |
-| `start_station` | string | 是 | - | 起点站 |
-| `end_station` | string | 是 | - | 终点站 |
-| `date` | string | 是 | - | 出发日期 'YYYY-MM-DD' |
-| `departure_time` | string | 否 | null | 出发时间 'HH:MM'，未提供时默认使用当前本地时间 |
-| `strategy` | string | 否 | 'min_time' | 规划策略，仅支持 'min_time' / 'min_transfer' |
-| `num_paths` | integer | 否 | 1 | 仅在 strategy='min_time' 生效，返回前 num_paths 条最短路线，num_paths>=1；strategy='min_transfer' 始终返回 1 条 |
+| 参数名              | 类型      | 必填 | 默认值        | 说明                                                                                          |
+|:-----------------|:--------|:---|:-----------|:--------------------------------------------------------------------------------------------|
+| `start_station`  | string  | 是  | -          | 起点站                                                                                         |
+| `end_station`    | string  | 是  | -          | 终点站                                                                                         |
+| `date`           | string  | 是  | -          | 出发日期 'YYYY-MM-DD'                                                                           |
+| `departure_time` | string  | 否  | null       | 出发时间 'HH:MM'，未提供时默认使用当前本地时间                                                                 |
+| `strategy`       | string  | 否  | 'min_time' | 规划策略，仅支持 'min_time' / 'min_transfer'                                                        |
+| `num_paths`      | integer | 否  | 1          | 仅在 strategy='min_time' 生效，返回前 num_paths 条最短路线，num_paths>=1；strategy='min_transfer' 始终返回 1 条 |
 
 **输出参数:**
 - `string`: 格式化的文本路线描述，包含换乘指引和预计耗时。

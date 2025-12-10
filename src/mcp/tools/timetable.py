@@ -1,45 +1,50 @@
-from typing import Optional, List, Dict, Any
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" MCP timetable-related tools """
+
+# Libraries
+from contextlib import redirect_stdout
 from datetime import datetime
 import io
-from contextlib import redirect_stdout
+from typing import Any
 
 from src.mcp.context import get_city, get_train_dict
 from src.mcp.utils import fuzzy_match
-from src.common.common import get_time_str, diff_time_tuple
+from src.common.common import get_time_str
 from src.timetable.print_timetable import in_route
-from src.city.train_route import stations_dist
 
-def _resolve_station(city, station_name: str) -> Optional[str]:
+
+def _resolve_station(city, station_name: str) -> str | None:
     candidates = fuzzy_match(station_name, city.station_lines.keys())
     return candidates[0] if candidates else None
 
 
-def _resolve_line(city, line_name: str) -> Optional[str]:
+def _resolve_line(city, line_name: str) -> str | None:
     candidates = fuzzy_match(line_name, city.lines.keys())
     return candidates[0] if candidates else None
 
 
 def get_station_timetable(
-    station_name: str,
-    date: str,
-    line_name: Optional[str] = None,
-    direction: Optional[str] = None,
-    destination: Optional[str] = None,
-    query_time: Optional[str] = None,
+    station_name: str, date: str,
+    line_name: str | None = None, direction: str | None = None,
+    destination: str | None = None, query_time: str | None = None,
     count: int = 5,
-    include_routes: Optional[List[str]] = None,
-    exclude_routes: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    include_routes: list[str] | None = None,
+    exclude_routes: list[str] | None = None
+) -> dict[str, Any]:
     """
-    查询指定车站的列车到发时刻信息。
+    Query for train timetable information for a station
     
-    :param station_name: 车站名称，如 '西直门'
-    :param date: 查询日期，格式 'YYYY-MM-DD'
-    :param line_name: 线路名称，支持模糊匹配。若不提供则返回该站所有线路信息。
-    :param direction: 线路方向标识，如 '东行', '内环'。
-    :param destination: 终点站名称，如 '东直门'。可作为 direction 的替代，系统将自动匹配对应的方向。
-    :param query_time: 查询起始时间，格式 'HH:MM'。若不提供则返回全天时刻表。
-    :param count: 仅在指定 query_time 时生效，用于限制返回数量。默认 5。
+    :param station_name: Station name
+    :param date: Departure date. Format: "YYYY-MM-DD"
+    :param line_name: Line name to restrict trains
+    :param direction: Direction of a line
+    :param destination: Destination station (can be used in lieu of direction)
+    :param query_time: Departure time. Format: "HH:MM" (returns full-day timetable if not provided)
+    :param count: Restrict number of items to return. (Only applicable if query_time is specified)
+    :param include_routes: Include routes
+    :param exclude_routes: Exclude routes
     """
     city = get_city()
     train_dict = get_train_dict()
@@ -53,7 +58,7 @@ def get_station_timetable(
     if not station_key:
         return {"error": f"Station '{station_name}' not found"}
 
-    result = {
+    result: dict[str, Any] = {
         "station": station_key,
         "date": date,
         "lines": []
@@ -70,7 +75,7 @@ def get_station_timetable(
         if l_name not in city.lines:
             continue
         line_obj = city.lines[l_name]
-        line_data = {
+        line_data: dict[str, Any] = {
             "line": l_name,
             "directions": []
         }
@@ -117,7 +122,7 @@ def get_station_timetable(
             trains_at_station.sort(key=lambda t: get_time_str(*t.arrival_time[station_key]))
             last_train_obj = trains_at_station[-1] if trains_at_station else None
 
-            valid_trains = []
+            valid_trains: list[dict[str, Any]] = []
             for train in trains:
                 if station_key not in train.arrival_time:
                     continue
@@ -155,29 +160,28 @@ def get_station_timetable(
 
     return result
 
-def get_train_detailed_info(
-    line_name: str,
-    date: str,
-    train_code: Optional[str] = None,
-    station_name: Optional[str] = None,
-    approx_time: Optional[str] = None
-) -> str:
-    """
-    获取特定车次的完整运行计划。
-    
-    :param line_name: 线路名称
-    :param date: 查询日期，格式 'YYYY-MM-DD'
-    :param train_code: 列车车次号/标识
-    :param station_name: 辅助定位列车的车站名
-    :param approx_time: 辅助定位列车的大致时间 (HH:MM)
-    
-    说明: 必须提供 train_code 或者 (station_name + approx_time) 来唯一定位一趟列车。
 
-    文本输出格式提示（便于客户端解析距离/速度含义）：
-    - 首行含线路、方向、路线组合、起止站及总时长/距离/均速。
-    - 括号行形如 "(3min, 2.50km, 50.00km/h)"，表示相邻两站区间的耗时/距离/区段速度（相对上一站）。
-    - 带 "+" 的行（如 "大钟寺 08:03 (+3min, +2.50km)"）表示自起点累计的时间/距离增量。
-    - 如需机器解析，可按括号行提取区间数据，按带 "+" 行提取累计数据；到站时间可用正则匹配 "站名 HH:MM"。
+def get_train_detailed_info(
+    line_name: str, date: str,
+    train_code: str | None = None, station_name: str | None = None, approx_time: str | None = None
+) -> str | dict[str, str]:
+    """
+    Get the whole run plan of a given train
+    
+    :param line_name: Line name
+    :param date: Departure date. Format: "YYYY-MM-DD"
+    :param train_code: Code to identify the train
+    :param station_name: Station name to identify the train
+    :param approx_time: Approximate time for train to arrive in the station. Format: "HH:MM"
+    
+    Either train_code or station_name + approx_time must be provided to locate the exact train.
+
+    Output text format:
+    - First line contains the line, direction, start/end station, and general info such as duration, distance and speed
+    - The line with parenthesis like "(3min, 2.50km, 50.00km/h)" represents the duration/distance/speed between two adjacent stations
+    - The line with "+" such as "Station_A 08:03 (+3min, +2.50km)" represents the tallied duration/speed since the starting station
+    - If machine-readable output is desired, you can fetch interval data from parenthesis lines, and fetch tallied data from "+" lines.
+      You can also use regex to match "Station1 HH:MM" format.
     """
     city = get_city()
     train_dict = get_train_dict()

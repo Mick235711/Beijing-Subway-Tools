@@ -2941,3 +2941,17 @@ options:
   --light               Light mode
   --dark                Dark mode
 ```
+
+# [`mcp/`](/src/mcp): MCP Capabilities for the Tool
+This is an MCP server based on FastMCP. You can then use natural language to talk to this tool with MCP clients such as VS Code.
+Please see [its specific docs](/docs/mcp.md) to see instructions for deployment.
+```
+usage: server.py [-h] [--http] [--path PATH] [--address ADDRESS] [--port PORT]
+
+options:
+  -h, --help         show this help message and exit
+  --http             Enable HTTP transport mode
+  --path PATH        Server path
+  --address ADDRESS  Server address
+  --port PORT        Server port
+```

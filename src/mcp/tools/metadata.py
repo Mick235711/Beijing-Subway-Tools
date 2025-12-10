@@ -1,9 +1,14 @@
-from typing import List, Optional
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" MCP metadata-related tools """
+
+# Libraries
 from src.mcp.context import get_city
 from src.mcp.utils import fuzzy_match
 
 
-def _resolve_line(city, line_name: str) -> Optional[str]:
+def _resolve_line(city, line_name: str) -> str | None:
     if line_name in city.lines:
         return line_name
     for name, line in city.lines.items():
@@ -13,26 +18,24 @@ def _resolve_line(city, line_name: str) -> Optional[str]:
     return candidates[0] if candidates else None
 
 
-def _resolve_station(city, station_name: str) -> Optional[str]:
+def _resolve_station(city, station_name: str) -> str | None:
     if station_name in city.station_lines:
         return station_name
     candidates = fuzzy_match(station_name, city.station_lines.keys())
     return candidates[0] if candidates else None
 
 
-def get_lines() -> List[str]:
-    """
-    获取所有线路名称列表。
-    """
+def get_lines() -> list[str]:
+    """ Get list of all line names """
     city = get_city()
     return list(city.lines.keys())
 
 
-def get_stations(line_name: Optional[str] = None) -> List[str]:
+def get_stations(line_name: str | None = None) -> list[str]:
     """
-    获取车站列表。
+    Get list of station names
     
-    :param line_name: 可选指定线路名称以获取该线路的车站列表。如果不指定，则返回所有车站。
+    :param line_name: Specify line name that station must be on.
     """
     city = get_city()
     if line_name:
@@ -40,20 +43,20 @@ def get_stations(line_name: Optional[str] = None) -> List[str]:
         if resolved:
             return city.lines[resolved].stations
         return []
-    return sorted(list(city.station_lines.keys()))
+    return sorted(city.station_lines.keys())
 
 
 def get_directions(
-    line_name: Optional[str] = None,
-    start_station: Optional[str] = None,
-    end_station: Optional[str] = None
-) -> List[str]:
+    line_name: str | None = None,
+    start_station: str | None = None,
+    end_station: str | None = None
+) -> list[str]:
     """
-    获取线路的方向列表。
+    Get directions of a line。
     
-    :param line_name: 线路名称。如果指定，则只返回该线路的方向。
-    :param start_station: 起点车站名称。如果指定了起点和终点，将返回从起点到终点的方向。
-    :param end_station: 终点车站名称。
+    :param line_name: Line name
+    :param start_station: Starting station name (for determine direction between two station)
+    :param end_station: Ending station name (for determine direction between two station)
     """
     city = get_city()
 

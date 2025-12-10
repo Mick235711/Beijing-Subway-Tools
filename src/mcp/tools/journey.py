@@ -1,24 +1,32 @@
-from typing import Optional, List, Dict, Any
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+""" MCP journey-related tools """
+
+# Libraries
+from contextlib import redirect_stdout
 from datetime import datetime, time
 import io
-from contextlib import redirect_stdout
+from typing import Any, Literal
+
 from src.mcp.context import get_city, get_train_dict, get_through_dict
 from src.mcp.utils import fuzzy_match
 from src.dist_graph.adaptor import get_dist_graph, to_trains
 from src.dist_graph.shortest_path import shortest_path
 from src.bfs.k_shortest_path import k_shortest_path
 
+
 def get_transfer_metrics(
     station_name: str,
-    from_line: Optional[str] = None,
-    to_line: Optional[str] = None
-) -> List[Dict[str, Any]]:
+    from_line: str | None = None,
+    to_line: str | None = None
+) -> list[dict[str, Any]]:
     """
-    查询特定车站内的换乘耗时数据。
+    Query transfer time in a station
     
-    :param station_name: 换乘车站名称
-    :param from_line: 来源线路
-    :param to_line: 目标线路
+    :param station_name: Transfer station to query
+    :param from_line: Incoming line name
+    :param to_line: Outgoing line name
     """
     city = get_city()
     resolved_station = fuzzy_match(station_name, city.station_lines.keys())
@@ -78,23 +86,22 @@ def get_transfer_metrics(
             
     return list(unique_results.values())
 
+
 def plan_journey(
-    start_station: str,
-    end_station: str,
-    date: str,
-    departure_time: Optional[str] = None,
-    strategy: str = 'min_time',
-    num_paths: int = 1
+    start_station: str, end_station: str, date: str,
+    departure_time: str | None = None,
+    strategy: Literal["min_time", "min_transfer"] = "min_time",
+    num_paths: int = 5
 ) -> str:
     """
-    计算两个站点之间的最佳路线。返回文本格式的路线详情。
+    Calculate the best route between two stations. Returns text-based description of routing.
     
-    :param start_station: 起点站
-    :param end_station: 终点站
-    :param date: 出发日期，格式 'YYYY-MM-DD'
-    :param departure_time: 出发时间 'HH:MM'
-    :param strategy: 规划策略，仅支持 'min_time' / 'min_transfer'
-    :param num_paths: 返回最短路径数量，当前仅在 strategy='min_time' 生效；min_transfer 始终返回 1 条
+    :param start_station: Starting station
+    :param end_station: Ending station
+    :param date: Departure date. Format: "YYYY-MM-DD"
+    :param departure_time: Departure time. Format: "HH:MM"
+    :param strategy: Routing strategy. Supports only "min_time" / "min_transfer"
+    :param num_paths: Number of shortest path to return. Only applicable if strategy is "min_time"
     """
     # Validate strategy early to avoid falling through silently
     if strategy not in {"min_time", "min_transfer"}:
@@ -133,9 +140,7 @@ def plan_journey(
         now = datetime.now()
         query_time = time(now.hour, now.minute)
 
-    results = []
     output = io.StringIO()
-
     with redirect_stdout(output):
         if strategy == 'min_transfer':
             graph = get_dist_graph(city, ignore_dists=True)
@@ -149,7 +154,7 @@ def plan_journey(
             # Convert to trains via existing utility
             bfs_result, path = to_trains(
                 city.lines, train_dict, city.transfers, city.virtual_transfers,
-                station_path, end_station, query_date, query_time, False
+                station_path, end_station, query_date, query_time
             )
             results = [(bfs_result, path)]
 
@@ -157,7 +162,7 @@ def plan_journey(
             results = k_shortest_path(
                 city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers,
                 start_station, end_station,
-                query_date, query_time, False,
+                query_date, query_time,
                 k=num_paths
             )
 
