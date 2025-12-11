@@ -175,7 +175,7 @@ def get_time_range(
         if label is not None:
             ui.label(label + ": ")
         time_range = ui.range(
-            min=min_time_min, max=max_time_min, value={"min": min_time_min, "max": max_time_min},
+            min=min_time_min, max=max_time_min,
             on_change=lambda e: handle_time_change(e.value)
         ).props(f"label snap left-label-value=\"{repr_min}\" right-label-value=\"{repr_max}\"").classes(range_classes)
 

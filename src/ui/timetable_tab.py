@@ -574,7 +574,7 @@ def show_filter_inner_menu(
             min_duration = min([t.duration() for t in train_list])
             max_duration = max([t.duration() for t in train_list])
             ui.range(
-                min=min_duration, max=max_duration, value={"min": min_duration, "max": max_duration},
+                min=min_duration, max=max_duration,
                 on_change=lambda e: on_filter_change(lambda t: e.value["min"] <= t.duration() <= e.value["max"])
             ).props("label snap").classes("max-w-48")
     else:
