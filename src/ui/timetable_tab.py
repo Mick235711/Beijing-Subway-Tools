@@ -719,7 +719,7 @@ def single_title_timetable(
     hour_style = FormattedText("{hour:>02}:00 - {hour:>02}:59")
 
     def label_function(train: Train, train_id: str, label: str) -> Label:
-        """ Labelling creation function """
+        """ Labeling creation function """
         if hour_display != "list":
             return ui.label(label)
         with ui.item(

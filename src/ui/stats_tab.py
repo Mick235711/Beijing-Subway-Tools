@@ -5,18 +5,18 @@
 
 # Libraries
 from datetime import date
-from math import sin, cos, radians
+from typing import Literal
 
 from nicegui import binding, ui
 
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
-    TimeSpec, get_text_color, chin_len, shift_max
+    TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar
 from src.routing.train import Train
 from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_default_line, get_line_selector_options, get_train_id, find_train_id, \
-    get_station_selector_options, get_default_station
+    get_station_selector_options, get_default_station, draw_arc, draw_text
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -30,6 +30,16 @@ class StatsData:
     train_dict: dict[tuple[str, str], list[Train]]
 
 
+def collect_directions(train_dict: dict[tuple[str, str], list[Train]]) -> dict[str, list[Train]]:
+    """ Collect two directions of a line """
+    result_dict: dict[str, list[Train]] = {}
+    for (line, direction), train_list in train_dict.items():
+        if line not in result_dict:
+            result_dict[line] = []
+        result_dict[line].extend(train_list)
+    return result_dict
+
+
 def stats_tab(city: City, data: StatsData) -> None:
     """ Statistics tab for the main page """
     with ui.row().classes("items-center justify-between"):
@@ -37,6 +47,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             """ Update the train list based on current data """
             data.train_dict = get_train_dict(data.info_data.lines.values(), data.cur_date)
             final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
+            display_train_chart.refresh(data=data)
 
         def on_date_change(new_date: date) -> None:
             """ Update the current date and refresh the train list """
@@ -50,10 +61,16 @@ def stats_tab(city: City, data: StatsData) -> None:
         on_any_change()
 
     with ui.tabs().classes("w-full") as tabs:
-        line_tab = ui.tab("Line")
+        train_tab = ui.tab("Train")
         station_tab = ui.tab("Station")
         radar_tab = ui.tab("Train Radar")
-    with ui.tab_panels(tabs, value=line_tab).classes("w-full stats-tab-selection"):
+    with ui.tab_panels(tabs, value=train_tab).classes("w-full stats-tab-selection"):
+        with ui.tab_panel(train_tab):
+            display_train_chart(city, data=data)
+
+        with ui.tab_panel(station_tab):
+            ui.label("Station Tab")
+
         def on_line_change(line: str | None = None) -> None:
             """ Update the data based on selection states """
             if len(data.info_data.lines) == 0:
@@ -91,10 +108,6 @@ def stats_tab(city: City, data: StatsData) -> None:
 }
         """)
 
-        with ui.tab_panel(line_tab):
-            ui.label("Line Tab")
-        with ui.tab_panel(station_tab):
-            ui.label("Station Tab")
         with ui.tab_panel(radar_tab).classes("pt-0"):
             with ui.row().classes("w-full items-center justify-center"):
                 ui.label("Base line: ")
@@ -133,62 +146,120 @@ def stats_tab(city: City, data: StatsData) -> None:
             on_line_change()
 
 
-def to_polar(x: float, y: float, r: float, deg: float) -> tuple[float, float]:
-    """ Convert from polar (r, deg) to cartesian (x, y), top is 0 degree """
-    rad = radians(deg)
-    return x + r * sin(rad), y - r * cos(rad)
+def train_chart_data(
+    city: City, train_dict: dict[str, list[Train]], *,
+    view_metric: Literal["count", "capacity"] = "count", full_only: bool = False, moving_average: int = 1
+) -> tuple[list[str], dict[str, dict[str, float]]]:
+    """ Return the chart dataset for train-related statistics. Returns line -> (time -> value) """
+    minutes: set[str] = set()
+    result_dict: dict[str, dict[str, float]] = {}
+    for line_name, train_list in train_dict.items():
+        if line_name not in result_dict:
+            result_dict[line_name] = {}
+        for train in train_list:
+            if full_only and not train.is_full():
+                continue
+            start = to_minutes(*train.start_time())
+            end = to_minutes(*train.last_time())
+            for minute in range(start, end):
+                time_spec = from_minutes(minute)
+                key = get_time_str(*time_spec)
+                minutes.add(key)
+                if key not in result_dict[line_name]:
+                    result_dict[line_name][key] = 0
+                result_dict[line_name][key] += 1 if view_metric == "count" else train.train_capacity()
+
+    assert moving_average > 0, moving_average
+    if moving_average > 1:
+        for line_name, inner_dict in result_dict.items():
+            new_dict: dict[str, float] = {}
+            inner_list = sorted(inner_dict.items(), key=lambda x: x[0])
+            for i in range(moving_average // 2, len(inner_list) - moving_average + moving_average // 2):
+                new_dict[inner_list[i][0]] = sum(
+                    inner_list[j][1] for j in range(i - moving_average // 2, i + moving_average - moving_average // 2)
+                ) / moving_average
+            result_dict[line_name] = new_dict
+
+    return sorted(minutes), result_dict
 
 
-def draw_arc(x: float, y: float, inner_r: float, outer_r: float, start_deg: float, end_deg: float) -> str:
-    """ Draw an arc in SVG """
-    assert x > 0 and y > 0, (x, y)
-    assert 0 <= inner_r < outer_r, (inner_r, outer_r)
-    assert 0 <= start_deg < end_deg <= 360, (start_deg, end_deg)
-    start_outer = to_polar(x, y, outer_r, start_deg)
-    end_outer = to_polar(x, y, outer_r, end_deg)
-    start_inner = to_polar(x, y, inner_r, start_deg)
-    end_inner = to_polar(x, y, inner_r, end_deg)
-    large_arc_flag = "1" if end_deg - start_deg > 180 else "0"
-    return "\n".join([
-        f"M {start_outer[0]} {start_outer[1]}",                                          # Move to Outer Start
-        f"A {outer_r} {outer_r} 0 {large_arc_flag} 1 {end_outer[0]} {end_outer[1]}",     # Outer Arc (Sweep 1 = Clockwise)
-        f"L {end_inner[0]} {end_inner[1]}",                                              # Line to Inner End
-        f"A {inner_r} {inner_r} 0 {large_arc_flag} 0 {start_inner[0]} {start_inner[1]}", # Inner Arc (Sweep 0 = Counter-Clockwise)
-        "Z"                                                                              # Close Path
-    ])
+@ui.refreshable
+def display_train_chart(city: City, *, data: StatsData) -> None:
+    """ Display chart for train data """
+    def on_data_change() -> None:
+        """ Handle data switch changes """
+        try:
+            moving_average = int(moving_avg_input.value)
+            if moving_average <= 0:
+                return
+        except ValueError:
+            return
+        dimensions, dataset = train_chart_data(
+            city, collect_directions(data.train_dict),
+            view_metric=("capacity" if capacity_switch.value else "count"),
+            full_only=full_switch.value,
+            moving_average=moving_average
+        )
+        train_chart.options["legend"]["data"] = sorted(dataset.keys(), key=lambda x: city.lines[x].index)
+        train_chart.options["xAxis"]["data"] = dimensions
+        if tooltip_select.value == "Auto":
+            train_chart.options["xAxis"]["axisLabel"]["interval"] = "auto"
+        elif tooltip_select.value == "All":
+            train_chart.options["xAxis"]["axisLabel"]["interval"] = 0
+        train_chart.options["yAxis"]["name"] = ("Train Capacity" if capacity_switch.value else "Train Count")
+        train_chart.options["series"] = [
+            {
+                "name": line_name,
+                "type": "line",
+                "data": [data_dict.get(t) for t in dimensions],
+                "smooth": True,
+                "showSymbol": tooltip_select.value != "None",
+                "itemStyle": {"color": city.lines[line_name].color or "#333"},
+                "markPoint": {
+                    "data": [{"type": "max", "name": "Max (" + max(dimensions, key=lambda t: data_dict.get(t, -1)) + ")"}],
+                } if max_switch.value else {}
+            }
+            for line_name, data_dict in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
+        ]
 
+    def on_select_change(selection: bool | dict[str, bool]) -> None:
+        """ Handle select button changes """
+        if isinstance(selection, bool):
+            train_chart.options["legend"]["selected"] = dict.fromkeys(train_chart.options["legend"]["data"], selection)
+        else:
+            train_chart.options["legend"]["selected"] = selection
 
-def draw_text(
-    x: float, y: float, radial: float, text: str, additional_styles: str,
-    *, is_inner: bool = False, force_upright: bool = False
-) -> str:
-    """ Draw a text, handling things like orientation """
-    assert 0 <= radial <= 360, radial
-    if force_upright and abs(90 - radial) >= 360 / 8 and abs(270 - radial) >= 360 / 8:
-        if 90 < radial < 270:
-            radial += 180
-        return f"""
-<text transform="translate({x}, {y}) rotate({radial})" dominant-baseline="middle" text-anchor="middle" {additional_styles}>{text}</text>
-        """
-    if radial <= 360 / 8 or 360 - radial < 360 / 8:
-        text_anchor = "start" if is_inner else "end"
-        return f"""
-<text transform="translate({x}, {y}) rotate({radial})" style="writing-mode: tb;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
-        """
-    if abs(180 - radial) <= 360 / 8:
-        text_anchor = "end" if is_inner else "start"
-        return f"""
-<text transform="translate({x}, {y}) rotate({radial + 180})" style="writing-mode: tb;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
-        """
-    if abs(90 - radial) < 360 / 8:
-        text_anchor = "end" if is_inner else "start"
-        radial -= 90
-    else:
-        text_anchor = "start" if is_inner else "end"
-        radial += 90
-    return f"""
-<text transform="translate({x}, {y}) rotate({radial})" dominant-baseline="middle" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
-    """
+    with ui.row().classes("w-full items-center justify-center"):
+        data_select = ui.select([
+            "Online Train Count"
+        ], value="Online Train Count", label="Viewing data", on_change=on_data_change)
+        full_switch = ui.switch("Full-Distance only", on_change=on_data_change)
+        capacity_switch = ui.switch("Capacity view", on_change=on_data_change)
+        max_switch = ui.switch("Add max marker", on_change=on_data_change)
+        ui.label("Symbol:")
+        tooltip_select = ui.select(["None", "Auto", "All"], value="Auto", on_change=on_data_change)
+        ui.label("Moving average:")
+        moving_avg_input = ui.input(
+            value="1", label="minutes", validation=valid_positive, on_change=on_data_change
+        )
+        ui.button(icon="deselect", on_click=lambda: on_select_change(False)).props("flat rounded")
+        ui.button(icon="select_all", on_click=lambda: on_select_change(True)).props("flat rounded")
+
+    train_chart = ui.echart({
+        "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
+        "yAxis": {"type": "value", "name": "Train Count"},
+        "series": [],
+        "legend": {},
+        "tooltip": {"trigger": "item"},
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "10%",
+            "containLabel": True
+        }
+    }).classes("h-200")
+    train_chart.on("chart:legendselectchanged", lambda e: on_select_change(e.args["selected"]))
+    on_data_change()
 
 
 @ui.refreshable

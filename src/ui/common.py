@@ -13,7 +13,8 @@ from nicegui.elements.date_input import DateInput
 
 from src.city.city import City
 from src.city.line import Line, station_full_name
-from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr, get_time_str
+from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr, \
+    get_time_str, to_polar
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_all_trains_through, is_possible_to_board, get_virtual_dict
@@ -291,3 +292,55 @@ def find_first_train(train_list: list[Train | ThroughTrain], station: str, rever
     else:
         train = train_full.station_lines()[station][2]
     return train, get_time_str(*train.arrival_time[station])
+
+
+def draw_arc(x: float, y: float, inner_r: float, outer_r: float, start_deg: float, end_deg: float) -> str:
+    """ Draw an arc in SVG """
+    assert x > 0 and y > 0, (x, y)
+    assert 0 <= inner_r < outer_r, (inner_r, outer_r)
+    assert 0 <= start_deg < end_deg <= 360, (start_deg, end_deg)
+    start_outer = to_polar(x, y, outer_r, start_deg)
+    end_outer = to_polar(x, y, outer_r, end_deg)
+    start_inner = to_polar(x, y, inner_r, start_deg)
+    end_inner = to_polar(x, y, inner_r, end_deg)
+    large_arc_flag = "1" if end_deg - start_deg > 180 else "0"
+    return "\n".join([
+        f"M {start_outer[0]} {start_outer[1]}",                                          # Move to Outer Start
+        f"A {outer_r} {outer_r} 0 {large_arc_flag} 1 {end_outer[0]} {end_outer[1]}",     # Outer Arc (Sweep 1 = Clockwise)
+        f"L {end_inner[0]} {end_inner[1]}",                                              # Line to Inner End
+        f"A {inner_r} {inner_r} 0 {large_arc_flag} 0 {start_inner[0]} {start_inner[1]}", # Inner Arc (Sweep 0 = Counter-Clockwise)
+        "Z"                                                                              # Close Path
+    ])
+
+
+def draw_text(
+    x: float, y: float, radial: float, text: str, additional_styles: str,
+    *, is_inner: bool = False, force_upright: bool = False
+) -> str:
+    """ Draw a text, handling things like orientation """
+    assert 0 <= radial <= 360, radial
+    if force_upright and abs(90 - radial) >= 360 / 8 and abs(270 - radial) >= 360 / 8:
+        if 90 < radial < 270:
+            radial += 180
+        return f"""
+<text transform="translate({x}, {y}) rotate({radial})" dominant-baseline="middle" text-anchor="middle" {additional_styles}>{text}</text>
+        """
+    if radial <= 360 / 8 or 360 - radial < 360 / 8:
+        text_anchor = "start" if is_inner else "end"
+        return f"""
+<text transform="translate({x}, {y}) rotate({radial})" style="writing-mode: tb;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
+        """
+    if abs(180 - radial) <= 360 / 8:
+        text_anchor = "end" if is_inner else "start"
+        return f"""
+<text transform="translate({x}, {y}) rotate({radial + 180})" style="writing-mode: tb;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
+        """
+    if abs(90 - radial) < 360 / 8:
+        text_anchor = "end" if is_inner else "start"
+        radial -= 90
+    else:
+        text_anchor = "start" if is_inner else "end"
+        radial += 90
+    return f"""
+<text transform="translate({x}, {y}) rotate({radial})" dominant-baseline="middle" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
+    """

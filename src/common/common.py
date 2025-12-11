@@ -12,7 +12,7 @@ import re
 from _ctypes import PyObj_FromPtr  # type: ignore
 from collections.abc import Iterable, Callable, Sequence, Mapping, Iterator
 from datetime import datetime, date, time, timedelta
-from math import sqrt
+from math import sqrt, sin, cos, radians
 from typing import TypeVar, Any
 
 import questionary
@@ -534,6 +534,20 @@ def shift_max(orig: int, clamp: int, n: int) -> int:
     if orig < clamp:
         return n + orig
     return orig
+
+
+def to_polar(x: float, y: float, r: float, deg: float) -> tuple[float, float]:
+    """ Convert from polar (r, deg) to cartesian (x, y), top is 0 degree """
+    rad = radians(deg)
+    return x + r * sin(rad), y - r * cos(rad)
+
+
+def valid_positive(input_str: str) -> str | None:
+    """ Validation function for positive integer """
+    try:
+        return None if int(input_str) > 0 else "Must be a positive integer"
+    except ValueError:
+        return "Must be a valid integer"
 
 
 def sequence_data(sequence: Sequence[T], *,
