@@ -25,6 +25,7 @@ TimeSpec = tuple[time, bool]
 T = TypeVar("T")
 U = TypeVar("U")
 possible_braces = ["()", "[]", "{}", "<>"]
+EPS = 1e-7
 
 # dict for some better-to-translated characters
 PINYIN_DICT = {
@@ -521,6 +522,15 @@ def moving_average_dict(data: Mapping[T, int | float], moving_min: int,
                         include_edge: bool = False) -> tuple[float, float, tuple[T, T, float], tuple[T, T, float]]:
     """ Calculate moving average on a dictionary, return avg & min/max interval """
     return moving_average(list(data.keys()), lambda x: data[x], moving_min, include_edge)
+
+
+def zero_div(a: float, b: float) -> float:
+    """ Zero-safe devision """
+    if abs(a) < EPS and abs(b) < EPS:
+        return 1.0
+    elif abs(a) < EPS or abs(b) < EPS:
+        return 0.0
+    return a / b
 
 
 def arg_minmax(data: Mapping[T, int | float]) -> tuple[T, T]:

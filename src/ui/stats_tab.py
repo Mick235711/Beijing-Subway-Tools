@@ -12,7 +12,7 @@ from nicegui import binding, ui
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
-    TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar
+    TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar, zero_div
 from src.routing.train import Train
 from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_default_line, get_line_selector_options, get_train_id, find_train_id, \
@@ -190,31 +190,51 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
     """ Display chart for train data """
     def on_data_change() -> None:
         """ Handle data switch changes """
+        if data_select.value == "Comparison With Date":
+            other_date: date | None = date.fromisoformat(date_input.value)
+        else:
+            other_date = None
         try:
             moving_average = int(moving_avg_input.value)
             if moving_average <= 0:
                 return
         except ValueError:
             return
-        view_metric: Literal["capacity", "count"] = (
-            "capacity" if capacity_switch.value and data_select.value != "Full-Distance Portion" else "count"
-        )
+        is_capacity = capacity_switch.value and data_select.value == "Online Train Count"
+        is_full = data_select.value == "Full-Distance Portion"
+        view_metric: Literal["capacity", "count"] = "capacity" if is_capacity else "count"
         dimensions, dataset = train_chart_data(
             collect_directions(data.train_dict),
             view_metric=view_metric,
-            full_only=(False if data_select.value == "Full-Distance Portion" else full_switch.value),
+            full_only=(False if is_full else full_switch.value),
             moving_average=moving_average
         )
-        if data_select.value == "Full-Distance Portion":
+        if is_full:
             _, dataset2 = train_chart_data(
                 collect_directions(data.train_dict),
                 view_metric=view_metric,
                 full_only=True, moving_average=moving_average
             )
-            total_data = [sum(data_dict.get(t, 0) for data_dict in dataset2.values()) /
-                          sum(data_dict.get(t, 0) for data_dict in dataset.values()) for t in dimensions]
+            total_data = [zero_div(
+                sum(data_dict.get(t, 0) for data_dict in dataset2.values()),
+                sum(data_dict.get(t, 0) for data_dict in dataset.values())
+            ) for t in dimensions]
             dataset = {line_name: {
-                k: dataset2[line_name].get(k, 0) / v for k, v in inner.items()
+                k: zero_div(dataset2[line_name].get(k, 0), v) for k, v in inner.items()
+            } for line_name, inner in dataset.items()}
+        elif other_date is not None:
+            other_train_dict = get_train_dict(data.info_data.lines.values(), other_date)
+            _, dataset2 = train_chart_data(
+                collect_directions(other_train_dict),
+                view_metric=view_metric,
+                full_only=full_switch.value, moving_average=moving_average
+            )
+            total_data = [zero_div(
+                sum(data_dict.get(t, 0) for data_dict in dataset.values()),
+                sum(data_dict.get(t, 0) for data_dict in dataset2.values())
+            ) for t in dimensions]
+            dataset = {line_name: {
+                k: zero_div(v, dataset2[line_name].get(k, 0)) for k, v in inner.items()
             } for line_name, inner in dataset.items()}
         else:
             total_data = [sum(data_dict.get(t, 0) for data_dict in dataset.values()) for t in dimensions]
@@ -224,13 +244,13 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
             train_chart.options["xAxis"]["axisLabel"]["interval"] = "auto"
         elif tooltip_select.value == "All":
             train_chart.options["xAxis"]["axisLabel"]["interval"] = 0
-        train_chart.options["yAxis"]["name"] = ("Train Capacity" if capacity_switch.value else "Train Count")
-        per_km = per_km_switch.value and data_select.value != "Full-Distance Portion"
+        train_chart.options["yAxis"]["name"] = "Train Capacity" if is_capacity else "Train Count"
+        per_km = per_km_switch.value and not is_full and other_date is None
         total_distance = (sum(city.lines[ln].total_distance() for ln in dataset.keys()) / 1000) if per_km else 1
         mark_point_label = {
             "show": True,
             ":formatter": "(params) => params.value.toFixed(2)"
-        } if per_km or moving_average > 1 else {}
+        } if per_km or is_full or other_date is not None or moving_average > 1 else {}
         train_chart.options["series"] = [
             {
                 "name": line_name,
@@ -271,16 +291,19 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
 
     with ui.row().classes("w-full items-center justify-center"):
         data_select = ui.select([
-            "Online Train Count", "Full-Distance Portion"
+            "Online Train Count", "Full-Distance Portion", "Comparison With Date"
         ], value="Online Train Count", label="Viewing data", on_change=on_data_change)
+        date_input = get_date_input(lambda d: on_data_change(), label="Target date").bind_visibility_from(
+            data_select, "value", backward=lambda v: v == "Comparison With Date"
+        )
         full_switch = ui.switch("Full-Distance only", on_change=on_data_change).bind_visibility_from(
             data_select, "value", backward=lambda v: v != "Full-Distance Portion"
         )
         capacity_switch = ui.switch("Capacity view", on_change=on_data_change).bind_visibility_from(
-            data_select, "value", backward=lambda v: v != "Full-Distance Portion"
+            data_select, "value", backward=lambda v: v == "Online Train Count"
         )
         per_km_switch = ui.switch("Per-km", on_change=on_data_change).bind_visibility_from(
-            data_select, "value", backward=lambda v: v != "Full-Distance Portion"
+            data_select, "value", backward=lambda v: v == "Online Train Count"
         )
         max_switch = ui.switch("Add max marker", on_change=on_data_change)
         ui.label("Symbol:")
