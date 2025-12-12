@@ -156,7 +156,7 @@
         ],
         "国贸": [
             {from: "1号线", to: "10号线", to_direction: "内环", minutes: 4},
-            {from: "1号线", to: "10号线", to_direction: "外环", minutes: 4.5},
+            {from: "1号线", to: "10号线", to_direction: "外环", minutes: 4.5}
         ],
         // 参考：https://www.bilibili.com/video/BV1Wj6JYNED8/
         "团结湖": [
@@ -177,7 +177,7 @@
             {from: "5号线", to: "亦庄线", minutes: 1},
             {from: "亦庄线", to: "5号线", minutes: 2},
             {from: "亦庄线", to: "10号线", to_direction: "外环", minutes: 2},
-            {from: "亦庄线", to: "10号线", to_direction: "内环", minutes: 2.5},
+            {from: "亦庄线", to: "10号线", to_direction: "内环", minutes: 2.5}
         ],
         "慈寿寺": [
             {from: "6号线", to: "10号线", minutes: 1.5},
@@ -214,7 +214,7 @@
         "金安桥": [
             {from: "6号线", to: "11号线", minutes: 3},
             {from: "6号线", to: "S1线", minutes: 2},
-            {from: "11号线", to: "S1线", minutes: 4},
+            {from: "11号线", to: "S1线", minutes: 4}
         ],
         "东坝北": [
             {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "东行", minutes: 0},

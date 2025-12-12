@@ -181,7 +181,7 @@
             // POV：https://www.youtube.com/watch?v=FV8D4MvxJRc
             from_station: "新埔", to_station: "新埔民生",
             times: [
-                {from: "板南線", to: "環狀線", minutes: 6},
+                {from: "板南線", to: "環狀線", minutes: 6}
             ]
         }
     ],

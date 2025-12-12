@@ -16,7 +16,7 @@
                 {fare: 7, start: 32100, end: 52099},
                 {fare: 8, start: 52100, end: 72099},
                 {fare: 9, start: 72100, end: 92099},
-                {fare: 10, start: 92100},
+                {fare: 10, start: 92100}
             ]
         },
         {
@@ -39,7 +39,7 @@
                 // 100m为赠送里程，不多收费
                 // 目前全网最高票价为4
                 {fare: 3, end: 6099},
-                {fare: 4, start: 6100},
+                {fare: 4, start: 6100}
             ]
         },
         {
