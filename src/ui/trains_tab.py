@@ -12,10 +12,10 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpecEntry
 from src.city.train_route import TrainRoute, route_dist
-from src.common.common import distance_str, suffix_s, to_pinyin, get_text_color, format_duration, speed_str
+from src.common.common import distance_str, suffix_s, to_pinyin, format_duration, speed_str
 from src.routing.train import parse_trains, Train
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
-    get_default_direction, ROUTE_TYPES, get_train_id
+    get_default_direction, ROUTE_TYPES, get_train_id, get_station_row, get_station_html
 from src.ui.drawers import get_line_badge, get_station_badge, refresh_line_drawer, refresh_station_drawer, \
     refresh_train_drawer
 from src.ui.info_tab import InfoData
@@ -379,19 +379,9 @@ def calculate_route_rows(
                 )[0] else []
             ),
             "num_trains": len([t for t in train_list if route_name in {r.name for r in t.routes}]),
-            "start_station": [route.stations[0]] + (
-                [] if line.code is None else [[
-                    (line.index, line.station_code(route.stations[0]), line.color or "primary",
-                     get_text_color(line.color), line.badge_icon or "")
-                ]]
-            ),
+            "start_station": get_station_row(route.stations[0], line),
             "start_station_sort": to_pinyin(route.stations[0])[0],
-            "end_station": [end_station] + (
-                [] if line.code is None else [[
-                    (line.index, line.station_code(end_station), line.color or "primary",
-                     get_text_color(line.color), line.badge_icon or "")
-                ]]
-            ),
+            "end_station": get_station_row(end_station, line),
             "end_station_sort": to_pinyin(end_station)[0],
             "distance": distance_str(route_dist(stations, dists, route.stations, route.loop)),
             "distance_raw": route_dist(stations, dists, route.stations, route.loop),
@@ -472,24 +462,8 @@ def route_table(
         routes_table.selected = [row for row in table_rows if row["name"] in selected_routes]
     routes_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], lines))
     routes_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
-    routes_table.add_slot("body-cell-start", """
-<q-td key="start" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
-    {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
-        {{ name }}
-        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
-    </q-badge>
-</q-td>
-    """)
-    routes_table.add_slot("body-cell-end", """
-<q-td key="end" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
-    {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
-        {{ name }}
-        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
-    </q-badge>
-</q-td>
-    """)
+    routes_table.add_slot("body-cell-start", get_station_html("start"))
+    routes_table.add_slot("body-cell-end", get_station_html("end"))
     routes_table.add_slot("body-cell-routeType", """
 <q-td key="routeType" :props="props">
     <q-badge v-for="[type, color, icon] in props.value" :color="color">
@@ -586,17 +560,17 @@ def train_table(
     ))
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
     trains_table.add_slot("body-cell-id", """
-<q-td key="name" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="id" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value }}
 </q-td>
     """)
     trains_table.add_slot("body-cell-start", """
-<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="start" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value }}
 </q-td>
     """)
     trains_table.add_slot("body-cell-end", """
-<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="end" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value }}
 </q-td>
     """)

@@ -5,6 +5,7 @@
 
 # Libraries
 from datetime import date
+from math import sqrt
 from typing import Literal
 
 from nicegui import binding, ui
@@ -12,11 +13,13 @@ from nicegui import binding, ui
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
-    TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar, zero_div
+    TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar, zero_div, average, suffix_s, to_pinyin, \
+    speed_str, format_duration, distance_str
 from src.routing.train import Train
 from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_default_line, get_line_selector_options, get_train_id, find_train_id, \
-    get_station_selector_options, get_default_station, draw_arc, draw_text
+    get_station_selector_options, get_default_station, draw_arc, draw_text, get_line_row, get_line_html, \
+    get_station_html, get_station_row
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -48,6 +51,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             data.train_dict = get_train_dict(data.info_data.lines.values(), data.cur_date)
             final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
             display_train_chart.refresh(data=data)
+            display_speed_graph.refresh(data=data)
 
         def on_date_change(new_date: date) -> None:
             """ Update the current date and refresh the train list """
@@ -62,14 +66,14 @@ def stats_tab(city: City, data: StatsData) -> None:
 
     with ui.tabs().classes("w-full") as tabs:
         train_tab = ui.tab("Train")
-        station_tab = ui.tab("Station")
-        radar_tab = ui.tab("Train Radar")
+        speed_tab = ui.tab("Speed")
+        radar_tab = ui.tab("Radar")
     with ui.tab_panels(tabs, value=train_tab).classes("w-full stats-tab-selection"):
         with ui.tab_panel(train_tab):
             display_train_chart(city, data=data)
 
-        with ui.tab_panel(station_tab):
-            ui.label("Station Tab")
+        with ui.tab_panel(speed_tab):
+            display_speed_graph(city, data=data)
 
         def on_line_change(line: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -265,8 +269,7 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
                     "data": [{"type": "max", "name": "Max (" + max(dimensions, key=lambda t: data_dict.get(t, -1)) + ")"}],
                     "label": mark_point_label
                 } if max_switch.value else {}
-            }
-            for line_name, data_dict in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
+            } for line_name, data_dict in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
         ] + [{
             "name": "Total",
             "type": "line",
@@ -330,6 +333,244 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
     }).classes("h-200")
     train_chart.on("chart:legendselectchanged", lambda e: on_select_change(e.args["selected"]))
     on_data_change()
+
+
+def speed_graph_data(
+    city: City, train_dict: dict[str, list[Train]], *,
+    view_metric: Literal["avg_dist", "dist"] = "avg_dist", full_only: bool = False
+) -> dict[str, tuple[int, float, float]]:
+    """ Return the graph dataset for speed-related statistics. Returns line -> (cnt, metric, avg speed) """
+    result_dict: dict[str, tuple[int, float, float]] = {}
+    for line_name, train_list in train_dict.items():
+        line = city.lines[line_name]
+        if view_metric == "avg_dist":
+            metric = line.total_distance() / 1000 / (len(line.stations) - (0 if line.loop else 1))
+        else:
+            metric = line.total_distance() / 1000
+        result_dict[line_name] = (len(train_list), metric, average(
+            t.speed() for t in train_list if not full_only or t.is_full()
+        ))
+    return result_dict
+
+
+@ui.refreshable
+def display_speed_graph(city: City, *, data: StatsData) -> None:
+    """ Display graph for speed data """
+    def on_data_change() -> None:
+        """ Handle data switch changes """
+        if x_select.value == "Average Distance":
+            view_metric: Literal["avg_dist", "dist"] = "avg_dist"
+        elif x_select.value == "Total Distance":
+            view_metric = "dist"
+        else:
+            assert False, x_select.value
+        dataset = speed_graph_data(
+            city, collect_directions(data.train_dict),
+            view_metric=view_metric, full_only=full_switch.value,
+        )
+        total_cnt = sum(x[0] for x in dataset.values())
+        speed_graph.options["legend"]["data"] = [
+            k + " (" + suffix_s("train", dataset[k][0]) + ")"
+            for k in sorted(dataset.keys(), key=lambda x: city.lines[x].index)
+        ] + ["Total (" + suffix_s("train", total_cnt) + ")"]
+        speed_graph.options["xAxis"]["name"] = x_select.value + " (km)"
+        if view_metric == "avg_dist":
+            total_metric = sum(x[1] * x[0] for x in dataset.values()) / total_cnt
+        else:
+            total_metric = average(x[1] for x in dataset.values())
+        total_value = sum(x[2] * x[0] for x in dataset.values()) / total_cnt
+        speed_graph.options["series"] = [
+            {
+                "name": line_name + " (" + suffix_s("train", cnt) + ")",
+                "type": "scatter",
+                "data": [(metric, value)],
+                "itemStyle": {"color": city.lines[line_name].color or "#333"},
+                **({"symbolSize": sqrt(cnt)} if size_switch.value else {})
+            } for line_name, (cnt, metric, value) in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
+        ] + [{
+            "name": "Total (" + suffix_s("train", total_cnt) + ")",
+            "type": "scatter",
+            "data": [(total_metric, total_value)],
+            "itemStyle": {"color": "black"},
+            **({"symbolSize": sqrt(total_cnt)} if size_switch.value else {})
+        }]
+        display_speed_table.refresh(full_only=full_switch.value)
+
+    def on_select_change(selection: bool | dict[str, bool]) -> None:
+        """ Handle select button changes """
+        if isinstance(selection, bool):
+            speed_graph.options["legend"]["selected"] = dict.fromkeys(speed_graph.options["legend"]["data"], selection)
+        else:
+            speed_graph.options["legend"]["selected"] = selection
+
+    with ui.row().classes("w-full items-center justify-center"):
+        x_select = ui.select([
+            "Average Distance", "Total Distance"
+        ], value="Average Distance", label="X-Axis Label", on_change=on_data_change)
+        full_switch = ui.switch("Full-Distance only", on_change=on_data_change)
+        size_switch = ui.switch("Train count as size", on_change=on_data_change)
+        ui.button(icon="deselect", on_click=lambda: on_select_change(False)).props("flat rounded")
+        ui.button(icon="select_all", on_click=lambda: on_select_change(True)).props("flat rounded")
+
+    speed_graph = ui.echart({
+        "xAxis": {"type": "value"},
+        "yAxis": {"type": "value", "name": "Average Speed (km/h)"},
+        "series": [],
+        "legend": {},
+        "tooltip": {"trigger": "item"},
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "10%",
+            "containLabel": True
+        }
+    }).classes("h-200")
+    speed_graph.on("chart:legendselectchanged", lambda e: on_select_change(e.args["selected"]))
+    on_data_change()
+
+    ui.separator()
+    display_speed_table(data.info_data.lines, data.info_data.station_lines, train_dict=data.train_dict)
+
+
+def calculate_train_rows(
+    train_dict: dict[tuple[str, str], list[Train]], full_only: bool = False
+) -> tuple[dict[tuple[str, str], dict[str, Train]], list[dict]]:
+    """ Calculate rows for the train table """
+    # Remove tied trains
+    train_set_processed: dict[tuple[str, str, int, int], list[Train]] = {}
+    train_id_dict: dict[tuple[str, str], dict[str, Train]] = {}
+    for (line_name, direction), train_list in train_dict.items():
+        train_id_dict[(line_name, direction)] = get_train_id(train_list)
+        for train in train_list:
+            if full_only and not train.is_full():
+                continue
+            key = (line_name, direction, train.distance(), train.duration())
+            if key not in train_set_processed:
+                train_set_processed[key] = []
+            train_set_processed[key].append(train)
+
+    rows = []
+    for train_list in sorted(train_set_processed.values(), key=lambda x: x[0].speed(), reverse=True):
+        start_train = min(train_list, key=lambda t: t.start_time_str())
+        start_id = find_train_id(train_id_dict[(start_train.line.name, start_train.direction)], start_train)
+        end_train = max(train_list, key=lambda t: t.last_time_str())
+        end_id = find_train_id(train_id_dict[(end_train.line.name, end_train.direction)], end_train)
+        row = {
+            "tie": len(train_list),
+            "speed": speed_str(start_train.speed()),
+            "line": [get_line_row(start_train.line)],
+            "line_sort": start_train.line.index,
+            "direction": start_train.direction,
+            "direction_sort": to_pinyin(start_train.direction)[0],
+            "duration": format_duration(start_train.duration()),
+            "duration_sort": start_train.duration(),
+            "distance": distance_str(start_train.distance()),
+            "start_id": (start_id, start_train.line.name, start_train.direction),
+            "start_id_sort": to_pinyin(start_id)[0],
+            "end_id": (end_id, end_train.line.name, end_train.direction),
+            "end_id_sort": to_pinyin(end_id)[0],
+            "start_station": get_station_row(start_train.stations[0], start_train.line),
+            "start_station_sort": to_pinyin(start_train.stations[0])[0],
+            "end_station": get_station_row(start_train.last_station(), start_train.line),
+            "end_station_sort": to_pinyin(start_train.last_station())[0],
+        }
+        rows.append(row)
+    return train_id_dict, rows
+
+
+@ui.refreshable
+def display_speed_table(
+    lines: dict[str, Line], station_lines: dict[str, set[Line]], *,
+    train_dict: dict[tuple[str, str], list[Train]] | None = None, full_only: bool = False
+) -> None:
+    """ Display table on trains """
+    if train_dict is None:
+        return
+    with ui.row().classes("w-full items-center justify-between"):
+        ui.label("Fastest/Slowest Trains").classes("text-xl font-semibold mt-6 mb-2")
+        trains_search = ui.input("Search trains...")
+
+    train_id_dict, train_rows = calculate_train_rows(train_dict, full_only=full_only)
+    trains_table = ui.table(
+        columns=[
+            {"name": "tie", "label": "Tied", "field": "tie"},
+            {"name": "speed", "label": "Speed", "field": "speed",
+             ":sort": """(a, b, rowA, rowB) => {
+                            return parseFloat(a) - parseFloat(b);
+                         }"""},
+            {"name": "line", "label": "Line", "field": "line", "align": "center",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["line_sort"] - rowB["line_sort"];
+                     }"""},
+            {"name": "lineSort", "label": "Line Sort", "field": "line_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "direction", "label": "Direction", "field": "direction", "align": "center",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["direction_sort"].localeCompare(rowB["direction_sort"]);
+                     }"""},
+            {"name": "directionSort", "label": "Direction Sort", "field": "direction_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "duration", "label": "Duration", "field": "duration",
+             ":sort": """(a, b, rowA, rowB) => {
+                            return parseFloat(rowA["duration_sort"]) - parseFloat(rowB["duration_sort"]);
+                         }"""},
+            {"name": "durationSort", "label": "Duration Sort", "field": "duration_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "distance", "label": "Distance", "field": "distance",
+             ":sort": """(a, b, rowA, rowB) => {
+                            const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
+                            return parse(a) - parse(b);
+                         }"""},
+            {"name": "first", "label": "First Train", "field": "start_id",
+             ":sort": """(a, b, rowA, rowB) => {
+                            return rowA["start_id_sort"].localeCompare(rowB["start_id_sort"]);
+                         }"""},
+            {"name": "firstSort", "label": "First Train Sort", "field": "start_id_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "last", "label": "Last Train", "field": "end_id",
+             ":sort": """(a, b, rowA, rowB) => {
+                            return rowA["end_id_sort"].localeCompare(rowB["end_id_sort"]);
+                         }"""},
+            {"name": "lastSort", "label": "Last Train Sort", "field": "end_id_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "start", "label": "Start", "field": "start_station",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
+                     }"""},
+            {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"},
+            {"name": "end", "label": "End", "field": "end_station",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
+                     }"""},
+            {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "sortable": False,
+             "classes": "hidden", "headerClasses": "hidden"}
+        ],
+        column_defaults={"align": "right", "required": True, "sortable": True},
+        rows=train_rows,
+        pagination=10
+    )
+    line_indexes = {line.index: line for line in lines.values()}
+    trains_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], lines))
+    trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(
+        train_id_dict[(n.args[1], n.args[2])][n.args[0]], n.args[0],
+        train_id_dict[(n.args[1], n.args[2])], station_lines
+    ))
+    trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
+    trains_table.add_slot("body-cell-line", get_line_html("line"))
+    trains_table.add_slot("body-cell-first", """
+<q-td key="first" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+    {{ props.value[0] }}
+</q-td>
+    """)
+    trains_table.add_slot("body-cell-last", """
+<q-td key="last" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+    {{ props.value[0] }}
+</q-td>
+    """)
+    trains_table.add_slot("body-cell-start", get_station_html("start"))
+    trains_table.add_slot("body-cell-end", get_station_html("end"))
+    trains_search.bind_value(trains_table, "filter")
 
 
 @ui.refreshable

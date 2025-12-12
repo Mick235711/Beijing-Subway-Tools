@@ -16,7 +16,7 @@ from src.common.common import distance_str, speed_str, suffix_s, get_text_color,
     diff_time_tuple, format_duration
 from src.routing.train import Train
 from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input, \
-    get_all_trains, get_train_id_through, find_train_id, find_first_train
+    get_all_trains, get_train_id_through, find_train_id, find_first_train, get_line_row, get_line_html, get_station_html
 from src.ui.drawers import refresh_line_drawer, get_line_badge, refresh_station_drawer, refresh_drawer, \
     refresh_train_drawer
 
@@ -40,10 +40,7 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
             num_intervals -= 1
         row = {
             "index": line.index,
-            "name": [
-                (line.index, line.name, line.color or "primary", get_text_color(line.color), line.badge_icon or ""),
-                (line.index, line.get_badge(), line.color or "primary", get_text_color(line.color), line.badge_icon or "")
-            ],
+            "name": [get_line_row(line), get_line_row(line, force_badge=True)],
             "name_sort": to_pinyin(line.name)[0],
             "line_type": [(x, LINE_TYPES[x][0], LINE_TYPES[x][1]) for x in line.line_type()] + (
                 [("Through", LINE_TYPES["Through"][0], LINE_TYPES["Through"][1])] if any(
@@ -348,32 +345,9 @@ def info_tab(city: City, data: InfoData) -> None:
             )
             lines_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             lines_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, data.station_lines))
-            lines_table.add_slot("body-cell-name", """
-<q-td key="name" :props="props">
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
-        {{ name }}
-        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
-    </q-badge>
-</q-td>
-            """)
-            lines_table.add_slot("body-cell-start", """
-<q-td key="start" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
-    {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
-        {{ name }}
-        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
-    </q-badge>
-</q-td>
-            """)
-            lines_table.add_slot("body-cell-end", """
-<q-td key="end" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
-    {{ props.value[0] }}
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
-        {{ name }}
-        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
-    </q-badge>
-</q-td>
-            """)
+            lines_table.add_slot("body-cell-name", get_line_html("name"))
+            lines_table.add_slot("body-cell-start", get_station_html("start"))
+            lines_table.add_slot("body-cell-end", get_station_html("end"))
             lines_table.add_slot("body-cell-lineType", """
 <q-td key="lineType" :props="props">
     <q-badge v-for="[type, color, icon] in props.value" :color="color">

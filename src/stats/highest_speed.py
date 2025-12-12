@@ -126,7 +126,7 @@ def highest_speed_segment(
 
     index = list(DATA_STRINGS.keys()).index(data_source)
     display_first(
-        sorted(train_set_processed.values(),key=lambda x: average(d[index] for d in x[-1]), reverse=True),
+        sorted(train_set_processed.values(), key=lambda x: average(d[index] for d in x[-1]), reverse=True),
         lambda data: f"{DATA_STRINGS[data_source][2](average(d[index] for d in data[-1]))}: " +
                      data[0].full_name() + " " +
                      data[2] + (" -> " if split_mode == "direction" else " - ") + data[3] + " " +

@@ -38,6 +38,47 @@ ROUTE_TYPES = {
 }
 
 
+def get_line_row(line: Line, *, force_badge: bool = False) -> tuple:
+    """ Get row for a line """
+    return line.index, line.get_badge() if force_badge else line.name, line.color or "primary",\
+        get_text_color(line.color), line.badge_icon or ""
+
+
+def get_line_html(key: str) -> str:
+    """ Get the HTML for the line badge """
+    return f"""
+<q-td key="{key}" :props="props">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{{ background: color }}" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+        {{{{ name }}}}
+        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
+    </q-badge>
+</q-td>
+    """
+
+
+def get_station_row(station: str, line: Line) -> list:
+    """ Get row for a station in a line """
+    return [station] + (
+        [] if line.code is None else [[
+            (line.index, line.station_code(station), line.color or "primary",
+             get_text_color(line.color), line.badge_icon or "")
+        ]]
+    )
+
+
+def get_station_html(key: str) -> str:
+    """ Get the HTML for a station """
+    return f"""
+<q-td key="{key}" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
+    {{{{ props.value[0] }}}}
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value[1]" :style="{{ background: color }}" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+        {{{{ name }}}}
+        <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
+    </q-badge>
+</q-td>
+    """
+
+
 def get_badge_html(line: Line, station_code: str) -> str:
     """ Get the HTML for the station badge """
     return """
