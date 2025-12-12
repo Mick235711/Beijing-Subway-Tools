@@ -7,6 +7,7 @@
 import os
 import re
 from datetime import date
+from functools import lru_cache
 
 import pyjson5
 
@@ -164,6 +165,7 @@ class Line:
             f", {len(self.stations)} stations, " + distance_str(self.total_distance()) + \
             (", loop" if self.loop else "")
 
+    @lru_cache
     def total_distance(self, direction: str | None = None) -> float:
         """ Total distance of this line """
         data = {
