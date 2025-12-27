@@ -293,7 +293,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             path_len = new_len
             
         lines = {k: v for k, v in lines.items() if k in train_dict.keys()}
-        if args.line_requirements == "each_once":
+        if args.line_requirements in ["each_once", "most_once"]:
             station_lines = parse_station_lines(lines)
             virtual_dict = {} if args.exclude_virtual else get_virtual_dict(city, lines)
             bad_list: list[GraphSet] = []
@@ -306,7 +306,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             percentage = new_len / path_len * 100
             print(f"After filtering, path length is {new_len} ({percentage:.2f}%)")
             path_len = new_len
-        if args.line_requirements != "none":
+        if args.line_requirements not in ["none", "most_once"]:
             for line_name, line in sorted(lines.items(), key=lambda x: x[1].index):
                 line_graph = GraphSet(to_line_graph(line))
                 new_paths = paths.supergraphs(line_graph)
@@ -395,8 +395,8 @@ def longest_args(parser: argparse.ArgumentParser) -> None:
     group.add_argument("-a", "--all", action="store_true", help="Calculate all pairs of ending stations")
     group.add_argument("-c", "--circuit", action="store_true", help="Calculate euler circuit")
     parser.add_argument("--ignore-dists", action="store_true", help="Ignore distances (calculate only stations)")
-    parser.add_argument("--line-requirements", choices=["none", "each", "each_once"], default="none",
-                        help="Line requirements for path")
+    parser.add_argument("--line-requirements", choices=["none", "each", "each_once", "most_once"],
+                        default="none", help="Line requirements for path")
     parser.add_argument("--path-mode", choices=["min", "max"], default="max", help="Path selection mode")
     parser.add_argument("--exclude-next-day", action="store_true",
                         help="Exclude path that spans into next day")

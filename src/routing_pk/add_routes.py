@@ -538,7 +538,7 @@ def add_by_longest(city: City, args: argparse.Namespace) -> list[Route]:
     if non_repeating:
         line_requirements = questionary.select(
             "Please select requirements for lines in the resulting path:",
-            choices=["None", "Each at least once", "Each exactly once"]
+            choices=["None", "Each at least once", "Each exactly once", "Each at most once"]
         ).ask()
         if line_requirements is None:
             sys.exit(0)
@@ -548,6 +548,8 @@ def add_by_longest(city: City, args: argparse.Namespace) -> list[Route]:
             local_args.line_requirements = "each"
         elif line_requirements == "Each exactly once":
             local_args.line_requirements = "each_once"
+        elif line_requirements == "Each at most once":
+            local_args.line_requirements = "most_once"
         else:
             assert False, line_requirements
 

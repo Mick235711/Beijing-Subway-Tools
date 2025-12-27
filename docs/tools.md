@@ -963,7 +963,7 @@ Minimum time path:
 # [`dist_graph/`](/src/dist_graph): Algorithms on the pure-distance graphs
 ### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
 ```
-usage: longest_path.py [-h] [-n] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c] [--ignore-dists] [--line-requirements {none,each,each_once}] [--path-mode {min,max}]
+usage: longest_path.py [-h] [-n] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c] [--ignore-dists] [--line-requirements {none,each,each_once,most_once}] [--path-mode {min,max}]
                        [--exclude-next-day]
 
 options:
@@ -978,7 +978,7 @@ options:
   -a, --all             Calculate all pairs of ending stations
   -c, --circuit         Calculate euler circuit
   --ignore-dists        Ignore distances (calculate only stations)
-  --line-requirements {none,each,each_once}
+  --line-requirements {none,each,each_once,most_once}
                         Line requirements for path
   --path-mode {min,max}
                         Path selection mode
@@ -995,7 +995,7 @@ Notice that duplicate nodes are allowed.
   - You can use the environmental variable `OMP_NUM_THREADS` to control the number of CPU cores to be utilized when calculating paths.
     - Large RAM consumption may appear when using more threads.
   - **NOTE: This may require several minutes to compute. Using `-n` with `-a` together is untested and may need several hours to finish computing. **
-- `--line-requirements` can be used to specify requirements to lines in the resulting path. `each` mean that each eligible line must be tranversed at least once, and `each_once` means exactly once.
+- `--line-requirements` can be used to specify requirements to lines in the resulting path. `each` mean that each eligible line must be tranversed at least once, `each_once` means exactly once, and `most_one` means at most once.
   - **NOTE: `each_lines` may require several hours to compute for complex networks.**
 - `--path-mode` can specify whether you want the longest or shortest line. (Default is longest)
 - Both of the last two arguments is only useful when `-n` is specified; they are ignored otherwise.
