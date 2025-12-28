@@ -473,8 +473,10 @@ def bfs(
     # Set starting point at all possible lines and directions
     queue = [
         (start_station, line.name, direction) for line, direction in station_dict[start_station]
-        if exclude_edges is None or start_station not in exclude_edges or
-           (line, direction) not in exclude_edges[start_station]
+        if line.name in train_dict and direction in train_dict[line.name] and (
+            exclude_edges is None or start_station not in exclude_edges or
+            (line, direction) not in exclude_edges[start_station]
+        )
     ]
     results: dict[tuple[str, str, str], BFSResult] = {}
     if start_station in virtual_station_dict:
@@ -482,6 +484,8 @@ def bfs(
             for line, direction in station_dict[new_station]:
                 if exclude_edges is not None and start_station in exclude_edges and\
                         (line, direction) in exclude_edges[start_station]:
+                    continue
+                if line.name not in train_dict or direction not in train_dict[line.name]:
                     continue
                 fr_line, fr_dir, to_line, to_dir, transfer_time, special = virtual_dict[
                     (start_station, new_station)
@@ -586,6 +590,8 @@ def bfs(
                 continue
             if (new_line, new_direction) in exclude_tuple:
                 continue
+            if new_line.name not in train_dict or new_direction not in train_dict[new_line.name]:
+                continue
             update_list.append((station, new_line, new_direction))
 
         # Update all the virtual transfer-able points
@@ -593,6 +599,8 @@ def bfs(
             for new_station in virtual_station_dict[station]:
                 for new_line, new_direction in station_dict[new_station]:
                     if (new_line, new_direction) in exclude_tuple:
+                        continue
+                    if new_line.name not in train_dict or new_direction not in train_dict[new_line.name]:
                         continue
                     update_list.append((new_station, new_line, new_direction))
 
