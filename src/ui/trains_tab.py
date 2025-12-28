@@ -203,26 +203,23 @@ def route_timeline(
     train_list: list[Train], show_train_count: bool = True, highlight_routes: set[str] | None = None
 ) -> None:
     """ Create timelines for train routes """
-    ui.add_css(f"""
-.train-tab-timeline-parent .q-timeline__subtitle {{
+    ui.add_css("""
+.train-tab-timeline-parent .q-timeline__subtitle {
     margin-bottom: 0;
     padding-right: 16px !important;
-}}
-.train-tab-timeline-parent .q-timeline__content {{
+}
+.train-tab-timeline-parent .q-timeline__content {
     padding-left: 0 !important;
     gap: 0 !important;
     align-items: flex-end !important;
-}}
-.train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__content {{
+}
+.train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__content {
     padding-top: 8px !important;
-}}
-.text-line-{line.index} {{
-    color: {line.color} !important;
-}}
-.text-invisible {{
+}
+.text-invisible {
     visibility: hidden;
-}}
-.skipped-station-dot .q-timeline__dot:before {{
+}
+.skipped-station-dot .q-timeline__dot:before {
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
     border-width: 0 3px 3px 0;
@@ -237,8 +234,14 @@ def route_timeline(
              currentColor calc(50% + 1.5px),
              rgba(0,0,0,0) calc(50% + 1.51px),
              rgba(0,0,0,0) 100%);
-}}
+}
     """)
+    for each_line in city.lines.values():
+        ui.add_css(f"""
+.train-tab-timeline-parent .text-line-{each_line.index} {{
+    color: {each_line.color} !important;
+}}
+        """)
 
     current_selection: set[str] = set() if highlight_routes is None else highlight_routes
     def handle_click(clicked_route: str) -> None:

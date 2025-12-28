@@ -236,22 +236,25 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                         ui.label(percentage_str((num_transfer + num_virtual / 2) / len(line.stations))).classes(card_text)
 
 
-        ui.add_css(f"""
-.drawers-line-timeline .q-timeline__subtitle {{
+        ui.add_css("""
+.drawers-line-timeline .q-timeline__subtitle {
     margin-bottom: 0;
     padding-right: 16px !important;
-}}
-.drawers-line-timeline .q-timeline__content {{
+}
+.drawers-line-timeline .q-timeline__content {
     padding-left: 0 !important;
     gap: 0 !important;
-}}
-.drawers-line-timeline .text-line-{line.index} {{
-    color: {line.color} !important;
-}}
-.drawers-line-timeline .q-timeline__entry--icon .q-timeline__content {{
+}
+.drawers-line-timeline .q-timeline__entry--icon .q-timeline__content {
     padding-top: 8px !important;
-}}
+}
         """)
+        for each_line in city.lines.values():
+            ui.add_css(f"""
+.train-tab-timeline-parent .text-line-{each_line.index} {{
+    color: {each_line.color} !important;
+}}
+            """)
         for direction, tab in direction_tabs.items():
             with ui.tab_panel(tab).classes("p-0 flex flex-col h-full drawers-line-timeline"):
                 with ui.column().classes("gap-y-0"):
@@ -662,10 +665,10 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
     padding-top: 8px !important;
 }
         """)
-        for line, _ in lines:
+        for each_line, _ in lines:
             ui.add_css(f"""
-.drawers-train-timeline .text-line-{line.index} {{
-    color: {line.color} !important;
+.drawers-train-timeline .text-line-{each_line.index} {{
+    color: {each_line.color} !important;
 }}
             """)
         with ui.tab_panel(timetable_tab).classes("p-0 flex flex-col h-full drawers-train-timeline"):
