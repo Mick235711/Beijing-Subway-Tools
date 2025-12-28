@@ -496,7 +496,7 @@ def show_filter_inner_menu(
 
             if direction is None:
                 show_line_direction(line, inner_direction)
-            for key, route in sorted(routes.items(), key=lambda r: line.route_sort_key(r[1])):
+            for key, route in sorted(routes.items(), key=lambda r: line.route_sort_key(r[1].direction, [r[1]])):
                 checkbox_dict[key] = ui.checkbox(
                     value=True, on_change=lambda: on_filter_change(valid_route)
                 ).classes("w-full")

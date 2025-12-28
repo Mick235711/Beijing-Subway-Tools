@@ -58,7 +58,7 @@ async def main_page(city_name: str) -> None:
     with ui.tab_panels(tabs, value=info_tab_).classes("w-full") as panels:
         info_data = InfoData(city.lines, city.station_lines, [], [])
         default_line = get_default_line(city.lines)
-        trains_data = TrainsData(info_data, default_line.name, get_default_direction(default_line), date.today(), [])
+        trains_data = TrainsData(info_data, default_line.name, get_default_direction(default_line), date.today(), "single", [])
         timetable_data = TimetableData(info_data, get_default_station(set(city.station_lines.keys())), date.today(), {}, {})
         stats_data = StatsData(info_data, date.today(), {})
         assign_globals(city.lines, city.station_lines)

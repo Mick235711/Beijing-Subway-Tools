@@ -15,7 +15,7 @@ from src.city.carriage import Carriage
 from src.city.date_group import DateGroup, parse_date_group
 from src.city.train_route import TrainRoute, parse_train_route, route_dist, stations_dist
 from src.common.common import distance_str, average, circular_dist
-from src.timetable.timetable import Timetable, parse_timetable
+from src.timetable.timetable import Timetable, parse_timetable, route_stations, route_skip_stations
 
 
 class Line:
@@ -178,20 +178,17 @@ class Line:
             return data[direction]
         return average(data.values())
 
-    def route_distance(self, route: TrainRoute) -> float:
-        """ Total distance of a route """
-        return route_dist(
-            self.direction_stations(route.direction),
-            self.direction_dists(route.direction),
-            route.stations, route.loop
-        )
-
-    def route_sort_key(self, route: TrainRoute) -> tuple[int, float, int]:
+    def route_sort_key(self, direction: str, route: list[TrainRoute]) -> tuple[int, float, int]:
         """ Key for sorting routes """
+        stations = route_stations(route)[0]
         return (
-            self.direction_stations(route.direction).index(route.stations[0]),
-            -self.route_distance(route),
-            len(route.skip_stations)
+            self.direction_stations(direction).index(stations[0]),
+            -route_dist(
+                self.direction_stations(direction),
+                self.direction_dists(direction),
+                stations, all(r.loop for r in route)
+            ),
+            len(route_skip_stations(route))
         )
 
     def two_station_intervals(

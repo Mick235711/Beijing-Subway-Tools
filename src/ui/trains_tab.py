@@ -5,6 +5,7 @@
 
 # Libraries
 from datetime import date
+from typing import Literal
 
 from nicegui import binding, ui
 
@@ -12,8 +13,9 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpecEntry
 from src.city.train_route import TrainRoute, route_dist
-from src.common.common import distance_str, suffix_s, to_pinyin, format_duration, speed_str
+from src.common.common import distance_str, suffix_s, to_pinyin, format_duration, speed_str, average
 from src.routing.train import parse_trains, Train
+from src.timetable.timetable import route_stations, route_skip_stations
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
     get_default_direction, ROUTE_TYPES, get_train_id, get_station_row, get_station_html
 from src.ui.drawers import get_line_badge, get_station_badge, refresh_line_drawer, refresh_station_drawer, \
@@ -28,6 +30,7 @@ class TrainsData:
     line: str
     direction: str
     cur_date: date
+    cur_mode: Literal["single", "combination"]
     train_list: list[Train]
 
 
@@ -53,12 +56,12 @@ def trains_tab(city: City, data: TrainsData) -> None:
             route_timeline.refresh(
                 station_lines=data.info_data.station_lines,
                 line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
-                train_list=data.train_list
+                train_list=data.train_list, route_mode=data.cur_mode
             )
             route_table.refresh(
                 station_lines=data.info_data.station_lines,
                 line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
-                train_list=data.train_list
+                train_list=data.train_list, route_mode=data.cur_mode
             )
             train_table.refresh(
                 station_lines=data.info_data.station_lines, full_list=data.train_list, train_list=data.train_list
@@ -106,6 +109,11 @@ def trains_tab(city: City, data: TrainsData) -> None:
             data.cur_date = new_date
             on_any_change()
 
+        def on_mode_change() -> None:
+            """ Update the current mode and refresh the train list """
+            data.cur_mode = select_mode.value.lower()
+            on_any_change()
+
         data.info_data.on_line_change.append(lambda: on_line_change(data.line, data.direction))
 
         ui.label("Viewing trains for line ")
@@ -114,6 +122,8 @@ def trains_tab(city: City, data: TrainsData) -> None:
         select_direction = ui.select([]).props("options-html").on_value_change(on_direction_change)
         ui.label(" on date ")
         get_date_input(on_date_change, label=None)
+        ui.label(" with route mode ")
+        select_mode = ui.toggle(["Single", "Combination"], value="Single").on_value_change(on_mode_change)
         on_line_change()
 
     with ui.row():
@@ -152,6 +162,14 @@ def trains_tab(city: City, data: TrainsData) -> None:
                     backward=lambda tl: str(len(tl))
                 ).classes(card_text)
 
+        with ui.card():
+            with ui.card_section():
+                ui.label("Average Speed").classes(card_caption)
+                ui.label().bind_text_from(
+                    data, "train_list",
+                    backward=lambda tl: speed_str(average(t.speed() for t in tl))
+                ).classes(card_text)
+
         ui.separator()
         with ui.row().classes("w-full justify-between"):
             train_list = get_train_list(city, data)
@@ -165,21 +183,21 @@ def trains_tab(city: City, data: TrainsData) -> None:
                 route_timeline(
                     city, station_lines=data.info_data.station_lines,
                     line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
-                    train_list=train_list
+                    train_list=train_list, route_mode=data.cur_mode
                 )
 
             with ui.column():
                 route_table(
                     city, station_lines=data.info_data.station_lines,
                     line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
-                    train_list=train_list
+                    train_list=train_list, route_mode=data.cur_mode
                 )
                 train_table(station_lines=data.info_data.station_lines, full_list=train_list, train_list=train_list)
 
 
 def get_through(
     city: City, lines: dict[str, Line],
-    line: Line, direction: str, cur_date: date, route: TrainRoute
+    line: Line, direction: str, cur_date: date, route: list[TrainRoute]
 ) -> tuple[bool, tuple[ThroughSpecEntry | None, ThroughSpecEntry | None]]:
     """ Get through route corresponding to a single route """
     matched_list: list[tuple[ThroughSpecEntry | None, ThroughSpecEntry | None]] = []
@@ -188,7 +206,7 @@ def get_through(
             continue
         for i, (spec_line, spec_direction, spec_dg, spec_route) in enumerate(spec.spec):
             if line.name == spec_line.name and direction == spec_direction and spec_dg.covers(cur_date) and\
-                    route.name == spec_route.name:
+                    spec_route.name in {r.name for r in route}:
                 matched_list.append((None if i == 0 else spec.spec[i - 1],
                                      None if i == len(spec.spec) - 1 else spec.spec[i + 1]))
     if len(matched_list) == 0:
@@ -197,10 +215,39 @@ def get_through(
     return True, matched_list[0]
 
 
+def get_route_table(
+    train_list: list[Train], *, route_mode: Literal["single", "combination"] = "single"
+) -> dict[str, list[TrainRoute]]:
+    """ Get train route """
+    routes: dict[str, list[TrainRoute]] = {}
+    for train in train_list:
+        if route_mode == "single":
+            for route in train.routes:
+                routes[route.name] = [route]
+        elif route_mode == "combination":
+            routes[train.routes_str()] = train.routes[:]
+        else:
+            assert False, route_mode
+    return routes
+
+
+def route_matches(
+    route_name: str, train: Train, *, route_mode: Literal["single", "combination"] = "single"
+) -> bool:
+    """ Determine if the routes descriptor matches the train """
+    if route_mode == "single":
+        return route_name in {r.name for r in train.routes}
+    elif route_mode == "combination":
+        return route_name == train.routes_str()
+    else:
+        assert False, route_mode
+
+
 @ui.refreshable
 def route_timeline(
     city: City, *, station_lines: dict[str, set[Line]], line: Line, direction: str, cur_date: date,
-    train_list: list[Train], show_train_count: bool = True, highlight_routes: set[str] | None = None
+    train_list: list[Train], show_train_count: bool = True, highlight_routes: set[str] | None = None,
+    route_mode: Literal["single", "combination"] = "single"
 ) -> None:
     """ Create timelines for train routes """
     ui.add_css("""
@@ -251,21 +298,19 @@ def route_timeline(
         else:
             current_selection.add(clicked_route)
         route_table.refresh(selected_routes=(None if len(current_selection) == 0 else current_selection))
-        on_route_selection_change(train_list, current_selection)
+        on_route_selection_change(train_list, current_selection, route_mode=route_mode)
 
     lines = {l.name: l for ls in station_lines.values() for l in ls}
     stations = line.direction_stations(direction)
-    routes: dict[str, TrainRoute] = {}
-    for train in train_list:
-        for route in train.routes:
-            routes[route.name] = route
+    routes = get_route_table(train_list, route_mode=route_mode)
+
     with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
         train_tally = 0
         dim = highlight_routes is not None and all(
             r != line.direction_base_route[direction].name for r in highlight_routes
         )
         entry_before, entry_after = get_through(
-            city, lines, line, direction, cur_date, line.direction_base_route[direction]
+            city, lines, line, direction, cur_date, [line.direction_base_route[direction]]
         )[1]
         timeline_color = "gray-50/10" if dim else f"line-{line.index}"
         with ui.timeline(color=timeline_color).classes("w-auto cursor-pointer").on(
@@ -295,26 +340,29 @@ def route_timeline(
                                         continue
                                     get_line_badge(line2, show_name=False, add_click=True)
 
-        for route in sorted(routes.values(), key=lambda r: line.route_sort_key(r)):
-            if route.name == line.direction_base_route[direction].name:
+        for route_name, route in sorted(routes.items(), key=lambda r: line.route_sort_key(direction, r[1])):
+            if route_name == line.direction_base_route[direction].name:
                 continue
             entry_before, entry_after = get_through(city, lines, line, direction, cur_date, route)[1]
-            dim = highlight_routes is not None and route.name not in highlight_routes
+            dim = highlight_routes is not None and route_name not in highlight_routes
             timeline_color = "gray-50/10" if dim else f"line-{line.index}"
-            route_stations = route.stations[:]
-            start_index = stations.index(route_stations[0])
+            is_loop = all(r.loop for r in route)
+            orig_stations = route_stations(route)[0]
+            inner_stations = orig_stations[:]
+            skip_stations = route_skip_stations(route)
+            start_index = stations.index(inner_stations[0])
             if start_index != 0:
-                route_stations = stations[:start_index] + route_stations
+                inner_stations = stations[:start_index] + inner_stations
             with ui.timeline(color=timeline_color).classes("w-auto"):
-                for i, station in enumerate(route_stations):
+                for i, station in enumerate(inner_stations):
                     express_icon = line.station_badges[line.stations.index(station)]
                     if line.loop and (
-                        (i == 0 and route.starts_with is None) or
-                        (i == len(route_stations) - 1 and (route.ends_with is None and route.loop))
+                        (i == 0 and orig_stations[0] == stations[0]) or
+                        (i == len(inner_stations) - 1 and (orig_stations[-1] == stations[-1] and is_loop))
                     ):
                         express_icon = "replay"
                     elif (i == start_index and entry_before is not None) or (
-                        i == len(route_stations) - 1 and entry_after is not None
+                        i == len(inner_stations) - 1 and entry_after is not None
                     ):
                         express_icon = "sync_alt"
                     with ui.timeline_entry(
@@ -322,12 +370,12 @@ def route_timeline(
                         color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
                         if i >= start_index:
-                            entry.on("click", lambda r=route.name: handle_click(r)).classes("cursor-pointer")
+                            entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
                         if start_index > 0 and express_icon == "sync_alt":
                             entry.classes("mt-[-16px]")
-                        if station in route.skip_stations:
+                        if station in skip_stations:
                             entry.classes("skipped-station-dot")
-                        if show_train_count and i != len(route_stations) - 1:
+                        if show_train_count and i != len(inner_stations) - 1:
                             ui.label("train").classes("invisible text-nowrap w-0")
                     with entry.add_slot("title"):
                         with ui.column().classes("gap-y-1 items-end invisible text-nowrap w-0"):
@@ -345,34 +393,39 @@ def route_timeline(
                                         break
 
 
-def get_route_type(stations: list[str], route: TrainRoute) -> list[str]:
+def get_route_type(stations: list[str], route: list[TrainRoute]) -> list[str]:
     """ Get route types """
+    inner_stations, _ = route_stations(route)
     types: list[str] = []
-    if route.loop:
+    if all(r.loop for r in route):
         types.append("Loop")
-    elif route.stations[-1] != stations[-1]:
+    elif inner_stations[-1] != stations[-1]:
         types.append("Short-Turn")
     else:
         types.append("Full")
-    if route.stations[0] != stations[0]:
+    if inner_stations[0] != stations[0]:
         if types[0] == "Full":
             types = types[1:]
         types = ["Middle-Start"] + types
-    if route.is_express():
+    if len(route_skip_stations(route)) > 0:
         types.append("Express")
     return types
 
 
 def calculate_route_rows(
     city: City, lines: dict[str, Line],
-    line: Line, direction: str, cur_date: date, routes: dict[str, TrainRoute], train_list: list[Train]
+    line: Line, direction: str, cur_date: date, routes: dict[str, list[TrainRoute]], train_list: list[Train],
+    *, route_mode: Literal["single", "combination"] = "single"
 ) -> list[dict]:
     """ Calculate rows for the route table """
     stations = line.direction_stations(direction)
     dists = line.direction_dists(direction)
     rows = []
     for route_name, route in routes.items():
-        end_station = stations[0] if route.loop else route.stations[-1]
+        is_loop = all(r.loop for r in route)
+        inner_stations, _ = route_stations(route)
+        end_station = stations[0] if is_loop else inner_stations[-1]
+        trains = [t for t in train_list if route_matches(route_name, t, route_mode=route_mode)]
         row = {
             "name": route_name,
             "name_sort": to_pinyin(route_name)[0],
@@ -381,28 +434,36 @@ def calculate_route_rows(
                     city, lines, line, direction, cur_date, route
                 )[0] else []
             ),
-            "num_trains": len([t for t in train_list if route_name in {r.name for r in t.routes}]),
-            "start_station": get_station_row(route.stations[0], line),
-            "start_station_sort": to_pinyin(route.stations[0])[0],
+            "num_trains": len(trains),
+            "start_station": get_station_row(inner_stations[0], line),
+            "start_station_sort": to_pinyin(inner_stations[0])[0],
             "end_station": get_station_row(end_station, line),
             "end_station_sort": to_pinyin(end_station)[0],
-            "distance": distance_str(route_dist(stations, dists, route.stations, route.loop)),
-            "distance_raw": route_dist(stations, dists, route.stations, route.loop),
-            "num_stations": len(route.stations),
-            "train_type": line.carriage_type.train_formal_name(route.carriage_num)
+            "distance": distance_str(route_dist(stations, dists, inner_stations, is_loop)),
+            "distance_raw": route_dist(stations, dists, inner_stations, is_loop),
+            "num_stations": len(inner_stations),
+            "train_type": line.carriage_type.train_formal_name(min(r.carriage_num for r in route)),
+            "avg_speed": speed_str(average(t.speed() for t in trains))
         }
         rows.append(row)
     return sorted(rows, key=lambda r: (stations.index(r["start_station"][0]), -r["distance_raw"], -r["num_trains"]))
 
 
-def on_route_selection_change(train_list: list[Train], selected_routes: set[str]) -> None:
+def on_route_selection_change(
+    train_list: list[Train], selected_routes: set[str],
+    *, route_mode: Literal["single", "combination"] = "single"
+) -> None:
     """ Handle table selection changes """
     highlight_routes = None if len(selected_routes) == 0 else selected_routes
     route_timeline.refresh(highlight_routes=highlight_routes)
     if highlight_routes is None:
         new_train_list = train_list[:]
-    else:
+    elif route_mode == "single":
         new_train_list = [t for t in train_list if any(r.name in highlight_routes for r in t.routes)]
+    elif route_mode == "combination":
+        new_train_list = [t for t in train_list if t.routes_str() in highlight_routes]
+    else:
+        assert False, route_mode
     train_table.refresh(train_list=new_train_list)
 
 
@@ -410,21 +471,18 @@ def on_route_selection_change(train_list: list[Train], selected_routes: set[str]
 def route_table(
     city: City, *,
     station_lines: dict[str, set[Line]], line: Line, direction: str, cur_date: date, train_list: list[Train],
-    selected_routes: set[str] | None = None
+    selected_routes: set[str] | None = None, route_mode: Literal["single", "combination"] = "single"
 ) -> None:
     """ Create a table for train routes """
     lines = {l.name: l for ls in station_lines.values() for l in ls}
     line_indexes = {line.index: line for line in city.lines.values()}
-    routes: dict[str, TrainRoute] = {}
-    for train in train_list:
-        for route in train.routes:
-            routes[route.name] = route
+    routes = get_route_table(train_list, route_mode=route_mode)
 
     with ui.row().classes("w-full items-center justify-between"):
         ui.label("Train Routes").classes("text-xl font-semibold mt-6 mb-2")
         routes_search = ui.input("Search routes...")
 
-    table_rows = calculate_route_rows(city, lines, line, direction, cur_date, routes, train_list)
+    table_rows = calculate_route_rows(city, lines, line, direction, cur_date, routes, train_list, route_mode=route_mode)
     routes_table = ui.table(
         columns=[
             {"name": "name", "label": "Name", "field": "name",
@@ -453,13 +511,19 @@ def route_table(
                         return parse(a) - parse(b);
                      }"""},
             {"name": "stationNum", "label": "Stations", "field": "num_stations"},
-            {"name": "trainType", "label": "Train Type", "field": "train_type", "sortable": False, "align": "center"}
+            {"name": "trainType", "label": "Train Type", "field": "train_type", "sortable": False, "align": "center"},
+            {"name": "speed", "label": "Avg Speed", "field": "avg_speed",
+             ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(a) - parseFloat(b);
+                     }"""},
         ],
         column_defaults={"align": "right", "required": True, "sortable": True},
         rows=table_rows,
         row_key="name",
         selection="multiple",
-        on_select=lambda rows: on_route_selection_change(train_list, {r["name"] for r in rows.selection})
+        on_select=lambda rows: on_route_selection_change(
+            train_list, {r["name"] for r in rows.selection}, route_mode=route_mode
+        )
     )
     if selected_routes is not None:
         routes_table.selected = [row for row in table_rows if row["name"] in selected_routes]
