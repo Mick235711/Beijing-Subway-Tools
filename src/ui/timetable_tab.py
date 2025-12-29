@@ -204,6 +204,8 @@ def timetables(
     hour_display: StyleMode = "prefix", show_skipped: bool = False
 ) -> None:
     """ Display the timetables """
+    if station not in station_lines:
+        return
     lines = sorted(station_lines[station], key=lambda l: l.index)
     first = True
     with ui.column().classes("gap-y-4 w-full"):

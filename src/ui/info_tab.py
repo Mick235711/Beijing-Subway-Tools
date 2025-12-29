@@ -239,16 +239,34 @@ def info_tab(city: City, data: InfoData) -> None:
         with ui.card():
             ui.tooltip().bind_text_from(
                 data, "lines",
-                backward=lambda l:
-                "Average " + (
-                    "N/A" if len(l) == 0 else distance_str(sum([line.total_distance() for line in l.values()]) / len(l))
-                ) + " per line"
+                backward=lambda l: (str(int(sum(line.total_distance() for line in l.values()))) + "m")
             )
             with ui.card_section():
                 ui.label("Total Distance").classes(card_caption)
                 ui.label().bind_text_from(
                     data, "lines",
-                    backward=lambda l: distance_str(sum([line.total_distance() for line in l.values()]))
+                    backward=lambda l: distance_str(sum(line.total_distance() for line in l.values()))
+                ).classes(card_text)
+
+        with ui.card():
+            ui.tooltip().bind_text_from(
+                data, "lines",
+                backward=lambda l:
+                "Average " + (
+                    "N/A" if len(l) == 0 else distance_str(
+                        sum(line.total_distance() for line in l.values()) /
+                        sum(len(line.stations) - (0 if line.loop else 1) for line in l.values())
+                    )
+                ) + " per segment"
+            )
+            with ui.card_section():
+                ui.label("Average Distance Per Line").classes(card_caption)
+                ui.label().bind_text_from(
+                    data, "lines",
+                    backward=lambda l: (
+                        "N/A" if len(l) == 0 else
+                        distance_str(sum(line.total_distance() for line in l.values()) / len(l))
+                    )
                 ).classes(card_text)
 
         def set_transfer_detail(value: bool) -> None:

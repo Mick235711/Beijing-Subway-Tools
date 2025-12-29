@@ -38,7 +38,7 @@ def furthest_stations(
         return distance_str(data)
     display_first(
         sorted([
-            (k, sum([x[0] for x in v.values()]), stddev([x[0] for x in v.values()])) for k, v in path_dict.items()
+            (k, sum(x[0] for x in v.values()), stddev([x[0] for x in v.values()])) for k, v in path_dict.items()
         ], key=lambda x: ({
             "sum": x[1], "stddev": x[2], "shortest": shortest_dict[x[0]][1], "longest": longest_dict[x[0]][1]
         }[sort_by], x[1]), reverse=reverse),

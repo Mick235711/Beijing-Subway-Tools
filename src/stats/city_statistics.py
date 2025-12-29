@@ -47,13 +47,13 @@ def display_line_info(lines: dict[str, Line]) -> None:
     print(f"Total # of lines: {len(lines)} ({len(loop_line)} loop, {len(circle_line)} end-circle)")
     print(f"Total # of lines with different fare: {len(include_line)}")
     print(f"Total # of regular lines: {len(regular_line)}")
-    total_dist = sum([line.total_distance() for line in lines.values()])
+    total_dist = sum(line.total_distance() for line in lines.values())
     print("Total distance: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / len(lines)) + " per line)")
-    total_dist = sum([line.total_distance() for line in regular_line.values()])
+    total_dist = sum(line.total_distance() for line in regular_line.values())
     print("Total distance for regular lines: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / len(regular_line)) + " per line)")
-    total_dist = sum([line.total_distance() for line in lines.values() if line.name not in include_line.keys()])
+    total_dist = sum(line.total_distance() for line in lines.values() if line.name not in include_line.keys())
     print("Total distance for normal fare lines: " + distance_str(total_dist) +
           " (avg " + distance_str(total_dist / (len(lines) - len(include_line))) + " per line)")
 

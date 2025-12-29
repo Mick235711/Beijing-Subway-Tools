@@ -68,7 +68,7 @@ def load_metric_func(_: tuple[str, str, str | None], data: tuple[float, set[Time
     if load_metric == "passenger":
         return data[0]
     if load_metric == "congestion":
-        total_cap = sum([t.train_capacity() for t in data[2] if isinstance(t, Train)])
+        total_cap = sum(t.train_capacity() for t in data[2] if isinstance(t, Train))
         if total_cap == 0:
             return 0
         return data[0] / total_cap * 100

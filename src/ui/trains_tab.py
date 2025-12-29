@@ -147,6 +147,10 @@ def trains_tab(city: City, data: TrainsData) -> None:
                 ).classes(card_text)
 
         with ui.card():
+            ui.tooltip().bind_text_from(
+                data, "train_list",
+                backward=lambda tl: ("Route combinations: " + str(len({t.routes_str() for t in tl})))
+            )
             with ui.card_section():
                 ui.label("# Routes").classes(card_caption)
                 ui.label().bind_text_from(

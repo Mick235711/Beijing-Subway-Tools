@@ -36,7 +36,7 @@ def main() -> None:
     )
     path_dict = all_shortest(city, graph, data_source=args.data_source)
     result_dict = {
-        station: sum([x[0] for x in v.values()]) / len(list(path_dict.keys())) for station, v in path_dict.items()
+        station: sum(x[0] for x in v.values()) / len(list(path_dict.keys())) for station, v in path_dict.items()
     }
     if args.data_source == "distance":
         for station, dist in result_dict.items():
