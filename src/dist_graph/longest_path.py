@@ -204,11 +204,12 @@ def filter_line_once(
                 line.two_station_intervals(stations[start + 1], stations[start - 1])
             ]))
             bad_paths = bad_paths - additional
-        bad_list.append(bad_paths)
         bad_len = bad_paths.len()
         percentage = bad_len / path_len * 100
         print(f"Line {line.full_name()} [{line.station_full_name(start_station)} - {line.station_full_name(end_station)}]" +
               f": Bad length = {bad_len} ({percentage:.2f}%)")
+        if bad_len != 0:
+            bad_list.append(bad_paths)
     return bad_list
 
 
