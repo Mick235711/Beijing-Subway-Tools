@@ -964,7 +964,7 @@ Minimum time path:
 ### [`longest_path.py`](/src/dist_graph/longest_path.py): Find the longest path in a network
 ```
 usage: longest_path.py [-h] [-n] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [-a | -c] [--ignore-dists] [--line-requirements {none,each,each_once,most_once}] [--path-mode {min,max}]
-                       [--exclude-next-day]
+                       [--exclude-next-day] [--exclude-stations EXCLUDE_STATIONS] [--exclude-transfers EXCLUDE_TRANSFERS]
 
 options:
   -h, --help            show this help message and exit
@@ -983,6 +983,10 @@ options:
   --path-mode {min,max}
                         Path selection mode
   --exclude-next-day    Exclude path that spans into next day
+  --exclude-stations EXCLUDE_STATIONS
+                        Don't allow path with these stations
+  --exclude-transfers EXCLUDE_TRANSFERS
+                        Don't allow transfer in these stations
 ```
 
 Show the longest possible path in the network (i.e., the longest path that does not have duplicate edges).
@@ -998,6 +1002,7 @@ Notice that duplicate nodes are allowed.
 - `--line-requirements` can be used to specify requirements to lines in the resulting path. `each` mean that each eligible line must be tranversed at least once, `each_once` means exactly once, and `most_one` means at most once.
   - **NOTE: `each_lines` may require several hours to compute for complex networks.**
 - `--path-mode` can specify whether you want the longest or shortest line. (Default is longest)
+- `--exclude-stations` can specify a comma-separated list of stations to not pass through; `--exclude-transfers` have the same format but only forbid transfer at these stations, not passing through.
 - Both of the last two arguments is only useful when `-n` is specified; they are ignored otherwise.
 
 Example Usage:
@@ -2905,7 +2910,8 @@ Drawing done! Saving to ../test.png...
 This is a special interactive system for comparing different routes.
 Please execute [`main.py`](/src/routing_pk/main.py) to enter the system (with the following command-line arguments), and follow the instructions on the screen.
 ```
-usage: main.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
+usage: main.py [-h] [-s LIMIT_START] [-e LIMIT_END] [-c COLOR_MAP] [--dpi DPI] [--exclude-stations EXCLUDE_STATIONS] [--exclude-transfers EXCLUDE_TRANSFERS] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
+               [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single]
 
 options:
   -h, --help            show this help message and exit
@@ -2916,6 +2922,10 @@ options:
   -c, --color-map COLOR_MAP
                         Override default colormap
   --dpi DPI             DPI of output image
+  --exclude-stations EXCLUDE_STATIONS
+                        Don't allow path with these stations
+  --exclude-transfers EXCLUDE_TRANSFERS
+                        Don't allow transfer in these stations
   -i, --include-lines INCLUDE_LINES
                         Include lines
   -x, --exclude-lines EXCLUDE_LINES
@@ -2925,6 +2935,7 @@ options:
   --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
 ```
+Most command-line arguments are used for `longest_path.py` or map drawing capabilities. Please refer to these documents instead.
 
 # [`ui/`](/src/ui): Frontend to the Tool
 This is a GUI for the tool based on NiceGUI.

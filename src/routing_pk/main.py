@@ -40,6 +40,8 @@ def main() -> None:
     parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
     parser.add_argument("-c", "--color-map", help="Override default colormap")
     parser.add_argument("--dpi", type=int, help="DPI of output image", default=100)
+    parser.add_argument("--exclude-stations", required=False, help="Don't allow path with these stations")
+    parser.add_argument("--exclude-transfers", required=False, help="Don't allow transfer in these stations")
     shortest_path_args(parser, have_single=True)
     args = parser.parse_args()
     cmap = get_path_colormap(args.color_map)

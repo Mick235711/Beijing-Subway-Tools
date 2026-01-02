@@ -421,6 +421,17 @@ def to_line_graph(line: Line) -> list[list[tuple[str, str]]]:
     return [[(s1, s2)] for s1, s2 in zip(line.stations[:-1], line.stations[1:])]
 
 
+def to_transfer_graph(station: str, lines: list[Line]) -> list[list[tuple[str, str]]]:
+    """ Convert station into a Graphillion list of transfer edges """
+    graphs: list[list[tuple[str, str]]] = []
+    for i, line1 in enumerate(lines[:-1]):
+        for line2 in lines[i + 1:]:
+            for station1 in line1.surrounding_stations(station):
+                for station2 in line2.surrounding_stations(station):
+                    graphs.append([(station1, station), (station2, station)])
+    return graphs
+
+
 def path_from_pairs(
     graph: Graph, lines: dict[str, Line], pairs: list[tuple[str, str]], start_from: str,
     *, is_circular: bool = False

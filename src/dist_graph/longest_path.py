@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import tqdm
 
 """ Find the longest path (that does not have duplicate edges) on dist graph """
 
@@ -9,6 +10,7 @@ import sys
 from collections.abc import Generator
 from datetime import time
 
+from graphillion import GraphSet  # type: ignore
 import networkx as nx  # type: ignore
 from tqdm import tqdm
 
@@ -19,16 +21,11 @@ from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.common.common import suffix_s
 from src.dist_graph.adaptor import copy_graph, remove_double_edge, get_dist_graph, to_trains, all_time_path, \
-    to_universe, path_from_pairs, to_line_graph
+    to_universe, path_from_pairs, to_line_graph, to_transfer_graph
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.stats.common import get_virtual_dict
-
-try:
-    from graphillion import GraphSet  # type: ignore
-except ImportError:
-    GraphSet = None
 
 
 def simplify_graph(graph: Graph, start_station: str | None, end_station: str | None) -> Graph:
@@ -206,11 +203,27 @@ def filter_line_once(
             bad_paths = bad_paths - additional
         bad_len = bad_paths.len()
         percentage = bad_len / path_len * 100
-        print(f"Line {line.full_name()} [{line.station_full_name(start_station)} - {line.station_full_name(end_station)}]" +
-              f": Bad length = {bad_len} ({percentage:.2f}%)")
+        tqdm.write(f"Line {line.full_name()} [{line.station_full_name(start_station)} - {line.station_full_name(end_station)}]" +
+                   f": Bad length = {bad_len} ({percentage:.2f}%)")
         if bad_len != 0:
             bad_list.append(bad_paths)
     return bad_list
+
+
+def exclude_subgraphs(
+    path_len: int, paths: GraphSet, subgraphs: list[tuple[str, str | GraphSet]]
+) -> tuple[int, GraphSet]:
+    """ Filter a list of subgraphs """
+    for name, subgraph in subgraphs:
+        if isinstance(subgraph, str):
+            paths = paths.excluding(subgraph)
+        else:
+            paths = paths.non_supergraphs(subgraph)
+        new_len = paths.len()
+        percentage = new_len / path_len * 100
+        print(f"Filtering {name}... New length = {new_len} ({percentage:.2f}%)")
+        path_len = new_len
+    return path_len, paths
 
 
 def find_longest(args: argparse.Namespace, *, existing_city: City | None = None) -> tuple[City, Path, str]:
@@ -273,18 +286,27 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             paths = GraphSet.paths(start[0], end[0])
         print(" Done!")
 
-        # Filter exclude_lines & virtual transfer
+        # Filter exclude_lines/stations/transfers & virtual transfer
         path_len = paths.len()
         print("Original path length:", path_len)
         if args.exclude_lines is not None:
             exclude_lines = {x.strip() for x in args.exclude_lines.split(",")}
-            for line_name in exclude_lines:
-                line_graph = GraphSet(to_line_graph(lines[line_name]))
-                paths = paths.non_supergraphs(line_graph)
-                new_len = paths.len()
-                percentage = new_len / path_len * 100
-                print(f"Filtering {lines[line_name].full_name()}... New length = {new_len} ({percentage:.2f}%)")
-                path_len = new_len
+            path_len, paths = exclude_subgraphs(path_len, paths, [
+                (lines[line_name].full_name(), GraphSet(to_line_graph(lines[line_name])))
+                for line_name in exclude_lines
+            ])
+        if args.exclude_stations is not None:
+            exclude_stations = {x.strip() for x in args.exclude_stations.split(",")}
+            path_len, paths = exclude_subgraphs(path_len, paths, [
+                (city.station_full_name(station), station) for station in exclude_stations
+            ])
+        if args.exclude_transfers is not None:
+            exclude_stations = {x.strip() for x in args.exclude_transfers.split(",")}
+            path_len, paths = exclude_subgraphs(path_len, paths, [
+                (city.station_full_name(station) + " transfers",
+                 GraphSet(to_transfer_graph(station, list(city.station_lines[station]))))
+                for station in exclude_stations
+            ])
         if args.exclude_virtual:
             virtual_graph = GraphSet([[(s1, s2)] for s1, s2 in city.virtual_transfers.keys()])
             paths = paths.non_supergraphs(virtual_graph)
@@ -298,7 +320,8 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             station_lines = parse_station_lines(lines)
             virtual_dict = {} if args.exclude_virtual else get_virtual_dict(city, lines)
             bad_list: list[GraphSet] = []
-            for line_name in sorted(lines.keys(), key=lambda x: lines[x].index):
+            print("Creating line-based filters...")
+            for line_name in tqdm(sorted(lines.keys(), key=lambda x: lines[x].index)):
                 bad_list += filter_line_once(paths, path_len, station_lines, virtual_dict, lines[line_name])
             print(f"Applying {len(bad_list)} filters...")
             for bad_paths in tqdm(bad_list):
@@ -336,6 +359,12 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             graph, lines, best_path, start_from=start_from, is_circular=args.circuit
         )
     else:
+        if args.line_requirements != "none":
+            print("Warning: --line-requirements is not supported in repeating mode")
+        if args.exclude_stations is not None:
+            print("Warning: --exclude-stations is not supported in repeating mode")
+        if args.exclude_transfers is not None:
+            print("Warning: --exclude-transfers is not supported in repeating mode")
         graph = get_dist_graph(
             city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
             include_virtual=(not args.exclude_virtual), include_circle=False, ignore_dists=args.ignore_dists
@@ -401,6 +430,8 @@ def longest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--path-mode", choices=["min", "max"], default="max", help="Path selection mode")
     parser.add_argument("--exclude-next-day", action="store_true",
                         help="Exclude path that spans into next day")
+    parser.add_argument("--exclude-stations", required=False, help="Don't allow path with these stations")
+    parser.add_argument("--exclude-transfers", required=False, help="Don't allow transfer in these stations")
 
 
 def main() -> None:

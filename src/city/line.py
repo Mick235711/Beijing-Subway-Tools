@@ -212,6 +212,22 @@ class Line:
             start_station, end_station
         )
 
+    def surrounding_stations(self, station: str) -> list[str]:
+        """ Return 1-2 surrounding stations to the given station """
+        result: list[str] = []
+        index = self.stations.index(station)
+        if index == 0:
+            if self.loop:
+                result.append(self.stations[-1])
+        else:
+            result.append(self.stations[index - 1])
+        if index == len(self.stations) - 1:
+            if self.loop:
+                result.append(self.stations[0])
+        else:
+            result.append(self.stations[index + 1])
+        return result
+
     def in_end_circle(self, station: str, direction: str | None = None) -> bool:
         """ Determine if the station is inside the end circle """
         if self.end_circle_start is None:
