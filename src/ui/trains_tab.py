@@ -329,6 +329,8 @@ def route_timeline(
                         i == len(inner_stations) - 1 and entry_after is not None
                     ):
                         express_icon = "sync_alt"
+                    if station in skip_stations and express_icon is not None:
+                        express_icon = ""
                     with ui.timeline_entry(
                         icon=express_icon,
                         color=("invisible" if i < start_index else None)
