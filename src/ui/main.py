@@ -43,6 +43,84 @@ async def main_page(city_name: str) -> None:
     """ Main page """
     city = get_all_cities()[city_name]
 
+    # Global CSS
+    ui.add_css("""
+.drawers-line-timeline .q-timeline__subtitle {
+    margin-bottom: 0;
+    padding-right: 16px !important;
+}
+.drawers-line-timeline .q-timeline__content {
+    padding-left: 0 !important;
+    gap: 0 !important;
+}
+.drawers-line-timeline .q-timeline__entry--icon .q-timeline__content {
+    padding-top: 8px !important;
+}
+.drawers-train-timeline .q-timeline__subtitle {
+    margin-bottom: 0;
+    padding-right: 16px !important;
+}
+.drawers-train-timeline .q-timeline__content {
+    padding-left: 0 !important;
+    gap: 0 !important;
+}
+.drawers-train-timeline .q-timeline__entry--icon .q-timeline__content {
+    padding-top: 8px !important;
+}
+.info-tab-selection .q-select .q-field__input--padding {
+    max-width: 50px;
+}
+.train-tab-timeline-parent .q-timeline__subtitle {
+    margin-bottom: 0;
+    padding-right: 16px !important;
+}
+.train-tab-timeline-parent .q-timeline__content {
+    padding-left: 0 !important;
+    gap: 0 !important;
+    align-items: flex-end !important;
+}
+.train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__content {
+    padding-top: 8px !important;
+}
+.text-invisible {
+    visibility: hidden;
+}
+.skipped-station-dot .q-timeline__dot:before {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    border-width: 0 3px 3px 0;
+    border-radius: 0;
+    border-bottom: 3px solid;
+    border-right: 3px solid;
+    background: linear-gradient(to top right,
+             rgba(0,0,0,0) 0%,
+             rgba(0,0,0,0) calc(50% - 1.51px),
+             currentColor calc(50% - 1.5px),
+             currentColor 50%,
+             currentColor calc(50% + 1.5px),
+             rgba(0,0,0,0) calc(50% + 1.51px),
+             rgba(0,0,0,0) 100%);
+}
+.timetable-tab-selection .q-select .q-field__input--padding {
+    max-width: 50px;
+}
+.stats-tab-selection .q-select .q-field__input--padding {
+    max-width: 50px;
+}
+        """)
+    for each_line in city.lines.values():
+        ui.add_css(f"""
+.drawers-line-timeline .text-line-{each_line.index} {{
+    color: {each_line.color} !important;
+}}
+.drawers-train-timeline .text-line-{each_line.index} {{
+    color: {each_line.color} !important;
+}}
+.train-tab-timeline-parent .text-line-{each_line.index} {{
+    color: {each_line.color} !important;
+}}
+        """)
+
     with ui.header().classes(replace="row items-center"):
         with ui.row().classes("w-full justify-between items-center p-2"):
             with ui.tabs() as tabs:

@@ -194,11 +194,6 @@ def info_tab(city: City, data: InfoData) -> None:
                 exclude_button.set_icon("remove")
             on_switch_change()
 
-        ui.add_css("""
-.info-tab-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-        """)
         exclude_button = ui.button(icon="remove", on_click=on_exclude_button_change).props("round flat")
         exclude_lines_chips = ui.select(
             get_line_selector_options(city.lines),

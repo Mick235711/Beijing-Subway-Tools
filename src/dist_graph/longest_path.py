@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import tqdm
 
 """ Find the longest path (that does not have duplicate edges) on dist graph """
 

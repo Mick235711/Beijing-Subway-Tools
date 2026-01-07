@@ -106,12 +106,6 @@ def stats_tab(city: City, data: StatsData) -> None:
 
             final_train_radar.refresh(base_line=city.lines[line_temp], base_station=station, save_image=False)
 
-        ui.add_css("""
-.stats-tab-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-        """)
-
         with ui.tab_panel(radar_tab).classes("pt-0"):
             with ui.row().classes("w-full items-center justify-center"):
                 ui.label("Base line: ")
