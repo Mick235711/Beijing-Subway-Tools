@@ -380,18 +380,18 @@
         ],
         // 参考：https://www.bilibili.com/video/BV1PVcBekEd1/
         "工人体育场": [
-            {from: "3号线", to: "17号线北段", minutes: 1},
-            {from: "17号线北段", to: "3号线", minutes: 0.5}
+            {from: "3号线", to: "17号线", minutes: 1},
+            {from: "17号线", to: "3号线", minutes: 0.5}
             // 节点17->3
         ],
         // 参考：https://www.bilibili.com/video/BV1LK41147SW/
         "太阳宫": [
-            {from: "10号线", to: "17号线北段", minutes: 3}
+            {from: "10号线", to: "17号线", minutes: 3}
         ],
         // 参考：https://www.bilibili.com/video/BV1wmqfYiEHY
         "西坝河": [
-            {from: "12号线", to: "17号线北段", minutes: 2.5},
-            {from: "17号线北段", to: "12号线", minutes: 1.5}
+            {from: "12号线", to: "17号线", minutes: 2.5},
+            {from: "17号线", to: "12号线", minutes: 1.5}
             // 节点17->12
         ],
         // 参考：https://www.bilibili.com/video/BV18Y411a7Mc/
@@ -421,9 +421,10 @@
             // 节点12->19
         ],
         // 参考：https://www.bilibili.com/video/BV13Y411f7Tb/
+        // 19-14新通道：https://www.bilibili.com/video/BV1b8BaBiE1d
         "景风门": [
             {from: "14号线", to: "19号线", minutes: 2.5},
-            {from: "19号线", to: "14号线", minutes: 3}
+            {from: "19号线", to: "14号线", minutes: 3.5}
         ],
         "次渠": [
             {from: "17号线", to: "亦庄线", minutes: 1.5}
