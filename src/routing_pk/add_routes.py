@@ -283,7 +283,7 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route |
 def add_by_shorthand(city: City) -> list[Route]:
     """ Add routes by shorthand syntax """
     # Get start and end stations
-    (start, start_lines), (end, end_lines) = ask_for_station_pair(city)
+    (start, start_lines), (end, end_lines) = ask_for_station_pair(city, allow_duplicate=True)
 
     # First, display info for adding by shorthand
     print("\n=====> Add by shorthand syntax <=====")

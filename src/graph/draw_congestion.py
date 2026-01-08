@@ -5,6 +5,7 @@
 
 # Libraries
 import argparse
+from collections import Counter
 import csv
 import os
 from typing import Literal
@@ -397,12 +398,11 @@ def draw_congestion(
             reader = csv.reader(fp)
             for f, t, p in reader:
                 baseline_dict[(f, t)] = float(p)
-        # FIXME: this does not respect load factor
-        orig_sta = len(set([x[0] for x in load_dict.keys()] + [x[1] for x in load_dict.keys()]))
-        base_sta = len(set([x[0] for x in baseline_dict.keys()] + [x[1] for x in baseline_dict.keys()]))
-        if orig_sta != base_sta:
-            coefficient = orig_sta / base_sta
-            print(f"Baseline coefficient: {coefficient:.2f} (# stations {orig_sta} -> {base_sta})")
+
+        # Find the most common load ratio difference
+        load_diffs = [val[0] / baseline_dict[(s, t)] for (s, t, _), val in load_dict.items() if (s, t) in baseline_dict]
+        coefficient = float(Counter(f"{x:.2f}" for x in load_diffs).most_common(1)[0][0])
+        print(f"Baseline coefficient: {coefficient:.2f}")
 
     # Draw paths
     min_people = min([x[0] for x in load_dict.values()])

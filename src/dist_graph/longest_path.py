@@ -358,11 +358,11 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             graph, lines, best_path, start_from=start_from, is_circular=args.circuit
         )
     else:
-        if args.line_requirements != "none":
+        if vars(args).get("line_requirements", "none") != "none":
             print("Warning: --line-requirements is not supported in repeating mode")
-        if args.exclude_stations is not None:
+        if vars(args).get("exclude_stations") is not None:
             print("Warning: --exclude-stations is not supported in repeating mode")
-        if args.exclude_transfers is not None:
+        if vars(args).get("exclude_transfers") is not None:
             print("Warning: --exclude-transfers is not supported in repeating mode")
         graph = get_dist_graph(
             city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
@@ -392,7 +392,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         assert small_tuple is not None
         dist, route, end_station = small_tuple
 
-    prefix = "Longest" if args.path_mode == "max" else "Shortest"
+    prefix = "Longest" if vars(args).get("path_mode", "max") == "max" else "Shortest"
     print(f"{prefix} route is from {city.station_full_name(route[0][0])} " +
           f"to {city.station_full_name(end_station)}, totalling " + (
               suffix_s("station", dist) if args.ignore_dists else f"{dist}m"

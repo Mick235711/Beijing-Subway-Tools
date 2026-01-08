@@ -114,11 +114,13 @@ def ask_for_station(
     return station, city.station_lines[station] if station != "" else set()
 
 
-def ask_for_station_pair(city: City) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
+def ask_for_station_pair(
+    city: City, *, allow_duplicate: bool = False
+) -> tuple[tuple[str, set[Line]], tuple[str, set[Line]]]:
     """ Ask for two stations in the city """
     result1 = ask_for_station(city, message="Please select a starting station:")
     result2 = ask_for_station(
-        city, message="Please select an ending station:", exclude={result1[0]})
+        city, message="Please select an ending station:", exclude=(None if allow_duplicate else {result1[0]}))
     return result1, result2
 
 
