@@ -30,14 +30,8 @@ def average_speed(
     return total_cnt, total_duration / total_cnt, total_speed / total_cnt
 
 
-def main() -> None:
-    """ Main function """
-    # Ask for an express train
-    train_list = ask_for_train_list(only_express=True)
-    train_list_express = [train for train in train_list if train.is_express()]
-    train = cast(Train, ask_for_train(train_list_express, with_speed=True))
-
-    # Find all the overtaken trains
+def find_overtaken(train: Train, train_list: list[Train]) -> list[tuple[str, str, Train]]:
+    """ Find all the overtaken trains. Returns (overtaken start, overtaken end, overtaken train) """
     overtaken: list[tuple[str, str, Train]] = []
     for candidate in train_list:
         candidate_stations = [station for station in candidate.arrival_time.keys() if station in train.arrival_time]
@@ -49,6 +43,16 @@ def main() -> None:
                 train.arrival_time[station2], candidate.arrival_time[station2]
             ):
                 overtaken.append((station1, station2, candidate))
+    return overtaken
+
+
+def main() -> None:
+    """ Main function """
+    # Ask for an express train
+    train_list = ask_for_train_list(only_express=True)
+    train_list_express = [train for train in train_list if train.is_express()]
+    train = cast(Train, ask_for_train(train_list_express, with_speed=True))
+    overtaken = find_overtaken(train, train_list)
 
     # Print
     print("Train basic info:")

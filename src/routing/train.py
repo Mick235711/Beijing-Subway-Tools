@@ -20,13 +20,14 @@ from src.timetable.timetable import Timetable, route_stations, route_skip_statio
 class Train:
     """ Represents a train """
 
-    def __init__(self, line: Line, routes: list[TrainRoute],
+    def __init__(self, line: Line, routes: list[TrainRoute], date_group: str,
                  arrival_time: dict[str, TimeSpec]) -> None:
         """ Constructor """
         self.line = line
         self.carriage_num = min(x.carriage_num for x in routes)
         self.routes = routes
         self.direction = self.routes[0].direction
+        self.date_group = date_group
         self.stations, end_route = route_stations(self.routes)
         self.real_end = end_route.real_end
         self.skip_stations = route_skip_stations(self.routes)
@@ -450,7 +451,7 @@ def filter_route(
 
 
 def parse_trains_stations(
-    line: Line, direction: str, train_dict: dict[str, Timetable], stations: list[str]
+    line: Line, direction: str, date_group: str, train_dict: dict[str, Timetable], stations: list[str]
 ) -> list[Train]:
     """ Parse the trains from several stations' timetables """
     # organize into station -> route -> list of trains
@@ -471,7 +472,7 @@ def parse_trains_stations(
             if route_id not in trains:
                 # Calculate initial trains
                 trains[route_id] = [Train(
-                    line, routes_dict[route_id],
+                    line, routes_dict[route_id], date_group,
                     {station: (timetable_train.leaving_time, timetable_train.next_day)}
                 ) for timetable_train in timetable_trains]
             else:
@@ -519,7 +520,7 @@ def parse_trains(
             result_dict[direction] = {}
         for date_group, station_dict2 in direction_dict2.items():
             result_dict[direction][date_group] = parse_trains_stations(
-                line, direction, station_dict2, line.direction_base_route[direction].stations
+                line, direction, date_group, station_dict2, line.direction_base_route[direction].stations
             )
     return result_dict
 

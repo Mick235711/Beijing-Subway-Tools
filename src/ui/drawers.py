@@ -18,6 +18,7 @@ from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
     get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec
+from src.routing.show_express_trains import find_overtaken
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
@@ -657,7 +658,7 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 
             with ui.scroll_area().classes("flex-grow"):
-                train_timeline(full_train, show_tally=True, show_skips=True)
+                train_timeline(train_dict, train_id_dict, full_train, show_tally=True, show_skips=True)
 
             if last_train.loop_next is not None:
                 next_id = find_train_id(train_id_dict, last_train.loop_next)
@@ -671,6 +672,7 @@ def train_drawer(city: City, train: Train, train_id: str, train_id_dict: dict[st
 
 @ui.refreshable
 def train_timeline(
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], train_id_dict: dict[str, Train],
     train: Train | ThroughTrain, *,
     interval_metric: Literal["none", "duration", "distance", "speed"] = "none", show_tally: bool, show_skips: bool
 ) -> None:
@@ -680,11 +682,26 @@ def train_timeline(
         stations = [(s, train.line, train) for s in train.stations]
         first_train = train
         last_train = train
+        overtaken: list[tuple[str, str, Train]] = []
+        if train.is_express():
+            overtaken = find_overtaken(train, train_dict[train.line.name][train.direction][train.date_group])
     else:
         station_lines_temp = train.station_lines(prev_on_transfer=False)
         stations = [(s, station_lines_temp[s][0], station_lines_temp[s][2]) for s in train.stations]
         first_train = train.first_train()
         last_train = train.last_train()
+        overtaken = []
+        for inner_line, inner_train in train.trains.items():
+            if inner_train.is_express():
+                overtaken += find_overtaken(
+                    inner_train, train_dict[inner_line][inner_train.direction][inner_train.date_group]
+                )
+    overtaken_dict: dict[str, list[tuple[str, Train]]] = {}
+    for station1, station2, overtaken_train in overtaken:
+        if station1 not in overtaken_dict:
+            overtaken_dict[station1] = []
+        overtaken_dict[station1].append((station2, overtaken_train))
+
     station_lines = parse_station_lines(AVAILABLE_LINES)
     if last_train.loop_next is not None:
         stations.append((last_train.loop_next.stations[0], last_train.loop_next.line, last_train.loop_next))
@@ -694,6 +711,7 @@ def train_timeline(
     interval_duration: int | None = 0
     tally_dist = 0
     interval_dist: int | None = 0
+    next_station = ""
     with ui.timeline(side="right", layout="comfortable"):
         for i, (station, line, single_train) in enumerate(stations):
             if i == len(stations) - 1 and last_train.loop_next is not None:
@@ -758,6 +776,34 @@ def train_timeline(
                 icon=(express_icon if (i != 0 or first_train.loop_prev is None) and
                                       (i != len(stations) - 1 or last_train.loop_next is None) else "replay")
             ) as entry:
+                if station not in train.arrival_times() or next_station not in train.arrival_times():
+                    between_stations: list[str] = []
+                else:
+                    between_stations = train.two_station_interval(station, next_station)
+                if i != len(stations) - 1 and any(s in overtaken_dict for s in between_stations):
+                    with ui.card().props("flat").classes("q-pa-sm mb-2 bg-secondary"):
+                        with ui.card_section().classes("p-0"):
+                            with ui.row().classes("items-center gap-x-1"):
+                                ui.icon("double_arrow")
+                                ui.label("Overtaken:").classes("text-subtitle-1")
+                            for overtaken_train in sorted(
+                                [t[1] for s in between_stations if s in overtaken_dict for t in overtaken_dict[s]],
+                                key=lambda x: get_time_str(*x.arrival_time[station]), reverse=True
+                            ):
+                                with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
+                                    overtaken_id = find_train_id(train_id_dict, overtaken_train)
+                                    with ui.label(overtaken_id).classes("cursor-pointer").on(
+                                        "click", lambda t=overtaken_train, d=overtaken_id: refresh_train_drawer(
+                                            t, d, train_id_dict, station_lines
+                                        )
+                                    ):
+                                        with ui.tooltip().add_slot("default"):
+                                            with ui.element("div").classes("inline-flex flex-wrap items-center leading-tight gap-x-1"):
+                                                ui.label(station)
+                                                ui.label(get_time_repr(*overtaken_train.arrival_time[station]))
+                                                ui.icon("arrow_right_alt")
+                                                ui.label(next_station)
+                                                ui.label(get_time_repr(*overtaken_train.arrival_time[next_station]))
                 if i != len(stations) - 1 and interval_str is not None:
                     ui.label(interval_str)
 

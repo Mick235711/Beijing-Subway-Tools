@@ -81,6 +81,22 @@ class ThroughTrain:
                 start = True
         assert False, (self, start_station, end_station)
 
+    def two_station_interval(self, start_station: str, end_station: str, *, expand_all: bool = False) -> list[str]:
+        """ Get all intermediate stations between two stations (left-closed, right-open) """
+        tally: list[str] = []
+        start = False
+        for i, (line, train) in enumerate(self.trains.items()):
+            if start:
+                if end_station in train.stations or i == len(self.trains) - 1:
+                    return tally + train.two_station_interval(train.stations[0], end_station, expand_all=expand_all)
+                tally += train.stations
+            if start_station in train.stations and end_station in train.stations:
+                return train.two_station_interval(start_station, end_station, expand_all=expand_all)
+            elif start_station in train.stations:
+                tally += train.two_station_interval(start_station, train.stations[-1], expand_all=expand_all)
+                start = True
+        assert False, (self, start_station, end_station)
+
 
     def station_lines(self, *, prev_on_transfer: bool = True) -> dict[str, tuple[Line, str, Train]]:
         """ Return the station -> (line, direction, train) mapping """
