@@ -281,6 +281,15 @@ def diff_time_tuple(time1: TimeSpec, time2: TimeSpec) -> int:
     return diff_time(time1[0], time2[0], time1[1], time2[1])
 
 
+def within_time(cur_time: TimeSpec, limit_start: str | None = None, limit_end: str | None = None) -> bool:
+    """ Determine if cur_time is within limits """
+    if limit_start is not None and diff_time_tuple(cur_time, parse_time(limit_start)) < 0:
+        return False
+    if limit_end is not None and diff_time_tuple(cur_time, parse_time(limit_end)) > 0:
+        return False
+    return True
+
+
 def get_time_str(time_obj: time, next_day: bool = False) -> str:
     """ Get str from (time, next_day) """
     return f"{time_obj.hour + (24 if next_day else 0):>02}:{time_obj.minute:>02}"

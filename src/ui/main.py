@@ -184,7 +184,7 @@ def main() -> None:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--browser", action="store_true", help="Browser mode")
     group.add_argument("-s", "--window-size", help="Window size in pixels (widthxheight); maximize if not provided",
-                       type=str, required=False)
+                       type=str)
     group2 = parser.add_mutually_exclusive_group()
     group2.add_argument("--light", action="store_true", help="Light mode")
     group2.add_argument("--dark", action="store_true", help="Dark mode")

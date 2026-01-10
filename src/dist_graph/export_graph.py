@@ -57,7 +57,7 @@ def main() -> None:
         "auto", "adjlist", "multiline_adjlist", "dot", "edgelist", "gexf", "gml", "graphml",
         "json", "json_node_link", "json_adj", "json_cytoscape", "graph6", "pajek", "net", "network_text"
     ], default="auto", help="Output format")
-    parser.add_argument("--json-indent", type=int, required=False, help="JSON Output indentation")
+    parser.add_argument("--json-indent", type=int, help="JSON Output indentation")
     shortest_path_args(parser, have_single=True, have_express=False, have_edge=False)
     args = parser.parse_args()
     city = ask_for_city()

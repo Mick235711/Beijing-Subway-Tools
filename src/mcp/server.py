@@ -17,9 +17,9 @@ def main():
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("--http", action="store_true", help="Enable HTTP transport mode")
-    parser.add_argument("--path", required=False, default="/mcp", help="Server path")
-    parser.add_argument("--address", required=False, default="0.0.0.0", help="Server address")
-    parser.add_argument("--port", required=False, type=int, default=8101, help="Server port")
+    parser.add_argument("--path", default="/mcp", help="Server path")
+    parser.add_argument("--address", default="0.0.0.0", help="Server address")
+    parser.add_argument("--port", type=int, default=8101, help="Server port")
     args = parser.parse_args()
 
     # Initialize the MCP server

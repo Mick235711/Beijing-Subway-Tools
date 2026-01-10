@@ -5,13 +5,15 @@
 
 # Libraries
 import argparse
-import json
 from datetime import date
+import json
+import sys
 
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date
+from src.city.city import City
 from src.city.line import Line
-from src.common.common import get_time_str, NoIndent, InnerArrayEncoder
-from src.routing.train import parse_all_trains
+from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time
+from src.routing.train import parse_all_trains, parse_trains, get_train_id
 
 
 def generate_train_key(line_index: int, direction_index: int, date_group_index: int, train_index: int) -> str:
@@ -32,31 +34,12 @@ def filter_date_group(test_dict: dict[str, dict], line: Line, cur_date: date) ->
     return filtered[0]
 
 
-def main() -> None:
-    """ Main function """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--indent", type=int, help="Indentation level before each line")
-    parser.add_argument("-o", "--output", help="Output path")
-    parser.add_argument("--all-lines", action="store_true", help="Export all lines")
-    parser.add_argument("--all-directions", action="store_true", help="Export all directions of a line")
-    parser.add_argument("--all-date-groups", action="store_true", help="Export all date groups")
-    args = parser.parse_args()
-
-    city = ask_for_city()
-    asked_line: Line | None = None
-    asked_direction: str | None = None
-    if not args.all_lines:
-        asked_line = ask_for_line(city)
-        lines = [asked_line]
-        if not args.all_directions:
-            asked_direction = ask_for_direction(asked_line)
-    else:
-        lines = list(city.lines.values())
+def format_schedule_json(
+    city: City, lines: list[Line], asked_line: Line | None, asked_direction: str | None, cur_date: date | None, *,
+    unique_trains: bool = True, limit_start: str | None = None, limit_end: str | None = None
+) -> dict[str, dict]:
+    """ Format train information in schedule JSON format """
     train_dict = parse_all_trains(lines)  # line -> direction -> date_group -> list[Train]
-
-    cur_date: date | None = None
-    if not args.all_date_groups:
-        cur_date = ask_for_date()
 
     # line -> direction -> date_group -> train_key -> list of (station, arrival_time)
     result: dict[str, dict[str, dict[str, dict[str, list[NoIndent]]]]] = {}
@@ -75,7 +58,9 @@ def main() -> None:
                 if date_group not in result[line.name][direction]:
                     result[line.name][direction][date_group] = {}
                 for train_index, train in enumerate(sorted(train_list, key=lambda t: t.start_time_str())):
-                    if not args.all_lines and not args.all_directions and not args.all_date_groups:
+                    if not within_time(train.start_time(), limit_start, limit_end):
+                        continue
+                    if unique_trains:
                         train_key = str(train_index)
                     else:
                         train_key = generate_train_key(line.index, direction_index, date_group_index, train_index)
@@ -104,7 +89,112 @@ def main() -> None:
         for line_name, line_dict in final_dict.items():
             for direction, inner_dict in line_dict.items():
                 final_dict[line_name][direction] = filter_date_group(inner_dict, city.lines[line_name], cur_date)
+    return final_dict
 
+
+def format_etrc(line: Line, cur_date: date, *, limit_start: str | None = None, limit_end: str | None = None) -> str:
+    """ Format trains in ETRC format """
+    train_dict = parse_trains(line)  # direction -> date_group -> list[Train]
+    train_list = [t for inner_dict in train_dict.values()
+                  for dg, tl in inner_dict.items() if line.date_groups[dg].covers(cur_date)
+                  for t in tl if within_time(t.start_time(), limit_start, limit_end)]
+    train_id_dict = get_train_id(train_list)
+
+    # Create circuit (line) information
+    base_direction = line.base_direction()
+    result = f"***Circuit***\n{line.name}\n{line.total_distance(base_direction)}\n"
+    cur_dist = 0
+    for station, dist in zip(line.stations + ([line.stations[0] + "2"] if line.loop else []), [0] + line.station_dists):
+        cur_dist += dist
+        result += f"{station},{cur_dist // 100},0,false\n"
+
+    # Populate each train
+    for train_id, train in train_id_dict.items():
+        result += f"===Train===\ntrf2,{train_id},"
+        if train.direction == base_direction:
+            result += f"{train_id},\n"
+        else:
+            result += f",{train_id}\n"
+        result += f"{train.stations[0]}\n"
+        if train.loop_next is not None:
+            result += f"{train.loop_next.stations[0]}2\n"
+        else:
+            result += f"{train.stations[-1]}\n"
+        for station, arriving_time in train.arrival_time.items():
+            time_str = get_time_str(*arriving_time)
+            result += f"{station},{time_str},{time_str}," + ("false" if station in train.skip_stations else "true") + "\n"
+        if train.loop_next is not None:
+            next_station = train.loop_next.stations[0]
+            time_str = get_time_str(*train.loop_next.arrival_time[next_station])
+            result += f"{next_station}2,{time_str},{time_str},true\n"
+
+    # Add colors
+    result += "---Color---\n"
+    r, g, b = parse_color_string(line.color or "#000000")
+    for train_id in train_id_dict.keys():
+        result += f"{train_id},{r},{g},{b}\n"
+
+    # Add Setup
+    min_hour = min(train_list, key=lambda t: t.start_time_str()).start_time()[0].hour
+    result += f"...Setup...\n10,4,2,{min_hour},10,10\n"
+
+    return result
+
+
+def main() -> None:
+    """ Main function """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=[
+        "schedule_json", "etrc"
+    ], default="schedule_json", help="Output format")
+    parser.add_argument("--indent", type=int, help="Indentation level before each line")
+    parser.add_argument("-o", "--output", help="Output path")
+    parser.add_argument("-s", "--limit-start", help="Lower limit of the start time of the train")
+    parser.add_argument("-e", "--limit-end", help="Upper limit of the start time of the train")
+    parser.add_argument("--all-lines", action="store_true", help="Export all lines")
+    parser.add_argument("--all-directions", action="store_true", help="Export all directions of a line")
+    parser.add_argument("--all-date-groups", action="store_true", help="Export all date groups")
+    args = parser.parse_args()
+    city = ask_for_city()
+
+    if args.format != "schedule_json":
+        if args.all_lines or args.all_directions or args.all_date_groups:
+            print("Error: --all-* is only valid in schedule JSON mode!")
+            sys.exit(1)
+
+        line = ask_for_line(city)
+        cur_date = ask_for_date()
+        if args.format == "etrc":
+            if args.indent is not None:
+                print("Error: --indent is not valid in ETRC mode!")
+                sys.exit(1)
+            output = format_etrc(line, cur_date, limit_start=args.limit_start, limit_end=args.limit_end)
+            if args.output is None:
+                print(output)
+            else:
+                print(f"Writing to {args.output}...")
+                with open(args.output, "w") as fp:
+                    fp.write(output)
+        return
+
+    asked_line: Line | None = None
+    asked_direction: str | None = None
+    if not args.all_lines:
+        asked_line = ask_for_line(city)
+        lines = [asked_line]
+        if not args.all_directions:
+            asked_direction = ask_for_direction(asked_line)
+    else:
+        lines = list(city.lines.values())
+    asked_date: date | None = None
+    if not args.all_date_groups:
+        asked_date = ask_for_date()
+
+    final_dict = format_schedule_json(
+        city, lines, asked_line, asked_direction, asked_date,
+        unique_trains=(not args.all_lines and not args.all_directions and not args.all_date_groups),
+        limit_start=args.limit_start, limit_end=args.limit_end
+    )
     if args.output is not None:
         print(f"Writing to {args.output}...")
         with open(args.output, "w", encoding="utf-8") as fp:

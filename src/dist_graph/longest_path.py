@@ -429,8 +429,8 @@ def longest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--path-mode", choices=["min", "max"], default="max", help="Path selection mode")
     parser.add_argument("--exclude-next-day", action="store_true",
                         help="Exclude path that spans into next day")
-    parser.add_argument("--exclude-stations", required=False, help="Don't allow path with these stations")
-    parser.add_argument("--exclude-transfers", required=False, help="Don't allow transfer in these stations")
+    parser.add_argument("--exclude-stations", help="Don't allow path with these stations")
+    parser.add_argument("--exclude-transfers", help="Don't allow transfer in these stations")
 
 
 def main() -> None:

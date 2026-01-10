@@ -424,7 +424,7 @@ def main() -> None:
                         default="short", help="Display Format")
     parser.add_argument("--exclude-edge", action="store_true", help="Exclude edge case in transfer")
     parser.add_argument("--exclude-virtual", action="store_true", help="Exclude virtual transfers")
-    parser.add_argument("--full-mode", choices=["direction", "true_full"], required=False,
+    parser.add_argument("--full-mode", choices=["direction", "true_full"],
                         help="Only include train that runs the full journey")
     parser.add_argument("--this-full-only", action="store_true",
                         help="Only include train in this line that runs the full journey")

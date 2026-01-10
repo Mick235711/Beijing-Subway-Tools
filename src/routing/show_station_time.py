@@ -175,7 +175,7 @@ def main() -> None:
     group.add_argument("-x", "--exclude-routes", help="Exclude routes")
     parser.add_argument("--staircase", choices=[
         "time", "accurate_time", "station", "distance", "fare", "max", "min"
-    ], required=False, help="Staircase mode")
+    ], help="Staircase mode")
     args = parser.parse_args()
     include_routes = parse_comma(args.include_routes)
     exclude_routes = parse_comma(args.exclude_routes)

@@ -221,7 +221,7 @@ def main() -> None:
                             help="Show first k path (kth) / Split into k paths (longest)")
         parser.add_argument("-d", "--data-source", choices=["time", "station", "distance", "fare"],
                             default="time", help="Shortest path criteria")
-        parser.add_argument("--longest-args", required=False, help="Arguments to pass to longest_path.py")
+        parser.add_argument("--longest-args", help="Arguments to pass to longest_path.py")
         parser.add_argument("--exclude-next-day", action="store_true",
                             help="Exclude path that spans into next day")
 

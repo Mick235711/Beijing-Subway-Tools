@@ -493,8 +493,8 @@ def main() -> None:
                             default="passenger", help="Load sort criteria")
         parser.add_argument("--transfer-source", choices=["station", "line", "direction"],
                             default="station", help="Specify transfer stats source")
-        parser.add_argument("--data-output", help="Data output path", required=False)
-        parser.add_argument("--baseline", help="Comparison baseline", required=False)
+        parser.add_argument("--data-output", help="Data output path")
+        parser.add_argument("--baseline", help="Comparison baseline")
         parser.add_argument("--baseline-threshold", help="Baseline threshold", type=float, default=0.01)
 
     args = map_args(append_arg, contour_args=False, multi_source=False, include_limits=False, have_single=True)

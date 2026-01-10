@@ -18,7 +18,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute, route_dist, route_dist_list
-from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser, stddev, to_pinyin
+from src.common.common import parse_time, diff_time_tuple, try_numerical, Reverser, stddev, to_pinyin, within_time
 from src.routing.through_train import ThroughTrain, reorganize_and_parse_train
 from src.routing.train import parse_all_trains, Train
 
@@ -278,14 +278,8 @@ def parse_args(
 
     # Parse start/end limit time
     if include_passing_limit:
-        if args.limit_start is not None:
-            ls_tuple = parse_time(args.limit_start)
-            all_trains = {k: [e for e in v if diff_time_tuple(e[1].arrival_time[k], ls_tuple) >= 0]
-                          for k, v in all_trains.items()}
-        if args.limit_end is not None:
-            le_tuple = parse_time(args.limit_end)
-            all_trains = {k: [e for e in v if diff_time_tuple(e[1].arrival_time[k], le_tuple) <= 0]
-                          for k, v in all_trains.items()}
+        all_trains = {k: [e for e in v if within_time(e[1].arrival_time[k], args.limit_start, args.limit_end)]
+                      for k, v in all_trains.items()}
     return all_trains, args, city, lines
 
 
