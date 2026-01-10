@@ -14,9 +14,10 @@ from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import distance_str, speed_str, suffix_s, get_text_color, to_pinyin, parse_time, \
     diff_time_tuple, format_duration
+from src.routing.through_train import get_train_id_through
 from src.routing.train import Train
 from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input, \
-    get_all_trains, get_train_id_through, find_train_id, find_first_train, get_line_row, get_line_html, get_station_html
+    get_all_trains, find_train_id, find_first_train, get_line_row, get_line_html, get_station_html
 from src.ui.drawers import refresh_line_drawer, get_line_badge, refresh_station_drawer, refresh_drawer, \
     refresh_train_drawer
 

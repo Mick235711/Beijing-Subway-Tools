@@ -544,3 +544,21 @@ def parse_all_trains(
         result[line.name] = parse_trains(line)
         index_dict[line.name] = line.index
     return dict(sorted(result.items(), key=lambda x: index_dict[x[0]]))
+
+
+def get_train_id(train_list: list[Train]) -> dict[str, Train]:
+    """ Get an ID for each train """
+    train_dict: dict[str, Train] = {}
+    route_dict: dict[str, int] = {}
+    for train in sorted(
+        train_list, key=lambda t: sorted(
+            [r.name for r in t.routes], key=lambda n: to_pinyin(n)[0]
+        ) + [t.start_time_str()]
+    ):
+        route_id = train.routes_str()
+        if route_id not in route_dict:
+            route_dict[route_id] = 0
+        route_dict[route_id] += 1
+        train_id = f"{route_id}#{route_dict[route_id]}"
+        train_dict[train_id] = train
+    return train_dict

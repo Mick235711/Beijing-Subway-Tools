@@ -17,9 +17,9 @@ from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
 from src.common.common import get_time_str, direction_repr, suffix_s, to_pinyin, TimeSpec, to_minutes
 from src.routing.through_train import ThroughTrain, parse_through_train, find_through_train
-from src.routing.train import Train, parse_trains, parse_all_trains
+from src.routing.train import Train, parse_trains, parse_all_trains, get_train_id
 from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, \
-    get_train_id, ROUTE_TYPES, get_time_range
+    ROUTE_TYPES, get_time_range
 from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer, \
     get_train_repr, get_train_type, get_badge
 from src.ui.info_tab import InfoData

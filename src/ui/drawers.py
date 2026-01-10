@@ -19,11 +19,11 @@ from src.city.through_spec import ThroughSpec
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
     get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec
 from src.routing.show_express_trains import find_overtaken
-from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train
+from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train, get_train_id_through
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
 from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains, find_train_id, \
-    find_first_train, get_train_id_through
+    find_first_train
 
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None

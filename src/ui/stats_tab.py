@@ -15,9 +15,9 @@ from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
     TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar, zero_div, average, suffix_s, to_pinyin, \
     speed_str, format_duration, distance_str
-from src.routing.train import Train
+from src.routing.train import Train, get_train_id
 from src.stats.common import is_possible_to_board
-from src.ui.common import get_date_input, get_default_line, get_line_selector_options, get_train_id, find_train_id, \
+from src.ui.common import get_date_input, get_default_line, get_line_selector_options, find_train_id, \
     get_station_selector_options, get_default_station, draw_arc, draw_text, get_line_row, get_line_html, \
     get_station_html, get_station_row
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer

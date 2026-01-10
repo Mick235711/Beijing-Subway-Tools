@@ -14,10 +14,10 @@ from src.city.line import Line
 from src.city.through_spec import ThroughSpecEntry
 from src.city.train_route import TrainRoute, route_dist
 from src.common.common import distance_str, suffix_s, to_pinyin, format_duration, speed_str, average
-from src.routing.train import parse_trains, Train
+from src.routing.train import parse_trains, Train, get_train_id
 from src.timetable.timetable import route_stations, route_skip_stations
 from src.ui.common import get_line_selector_options, get_direction_selector_options, get_date_input, get_default_line, \
-    get_default_direction, ROUTE_TYPES, get_train_id, get_station_row, get_station_html
+    get_default_direction, ROUTE_TYPES, get_station_row, get_station_html
 from src.ui.drawers import get_line_badge, get_station_badge, refresh_line_drawer, refresh_station_drawer, \
     refresh_train_drawer
 from src.ui.info_tab import InfoData
