@@ -323,25 +323,37 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`export_trains.py`](/src/routing/export_trains.py): Export all trains calculated in a line to a JSON file
 ```
-usage: export_trains.py [-h] [--indent INDENT] [-o OUTPUT] [--all-lines] [--all-directions] [--all-date-groups]
+usage: export_trains.py [-h] [--format {schedule_json,etrc,pyetrc}]
+                        [--indent INDENT] [-o OUTPUT] [-s LIMIT_START]
+                        [-e LIMIT_END] [--all-lines] [--all-directions]
+                        [--all-date-groups] [--real-loop]
 
 options:
   -h, --help            show this help message and exit
+  --format {schedule_json,etrc,pyetrc}
+                        Output format
   --indent INDENT       Indentation level before each line
-  -o OUTPUT, --output OUTPUT
-                        Output path
+  -o, --output OUTPUT   Output path
+  -s, --limit-start LIMIT_START
+                        Lower limit of the start time of the train
+  -e, --limit-end LIMIT_END
+                        Upper limit of the start time of the train
   --all-lines           Export all lines
   --all-directions      Export all directions of a line
   --all-date-groups     Export all date groups
+  --real-loop           Export loop as is
 ```
-Export all trains recorded into a JSON file.
-The format is similar to those mandated in the
+Export all trains recorded into several formats. Supported formats (specified via `--format`):
+- A JSON file similar to those mandated in the
 [beijing_subway_schedule](https://github.com/BoyInTheSun/beijing-subway-schedule) README.
+- A [ETRC](https://github.com/lifanxi/train-graph)-compatible `.trc` file. For compatability reason all distances are multiplied by 10.
+- A [pyETRC](https://github.com/CDK6182CHR/train_graph)/[qETRC](https://github.com/CDK6182CHR/qETRC)-compatible `.pyetgr` file. It is assumed that each train stops at stations for 20 seconds.
+
+Command line arguments available:
 - `--indent` will append `N` spaces before each line and also indent the JSON output (not passing this will cause all output be in one line).
 - `-o` specifies the output file. (Not passing this result in the output being directly printed.)
-- `--all-*` will output date for all lines, directions or date groups.
-
-Notice that `--all-directions` will be the default if `--all-lines` is passed.
+- `--all-*` will output date for all lines, directions or date groups. Only valid for schedule JSON format.
+  - Notice that `--all-directions` will be the default if `--all-lines` is passed.
 
 Example Usage:
 <pre>

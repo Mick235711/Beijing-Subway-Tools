@@ -12,7 +12,7 @@ import sys
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time
+from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time, add_min_tuple
 from src.routing.train import parse_all_trains, parse_trains, get_train_id
 
 
@@ -92,19 +92,25 @@ def format_schedule_json(
     return final_dict
 
 
-def format_etrc(line: Line, cur_date: date, *, limit_start: str | None = None, limit_end: str | None = None) -> str:
+def format_etrc(
+    line: Line, cur_date: date, *,
+    limit_start: str | None = None, limit_end: str | None = None, real_loop: bool = False
+) -> str:
     """ Format trains in ETRC format """
     train_dict = parse_trains(line)  # direction -> date_group -> list[Train]
     train_list = [t for inner_dict in train_dict.values()
                   for dg, tl in inner_dict.items() if line.date_groups[dg].covers(cur_date)
                   for t in tl if within_time(t.start_time(), limit_start, limit_end)]
     train_id_dict = get_train_id(train_list)
+    loop_suffix = "" if real_loop else "2"
 
     # Create circuit (line) information
     base_direction = line.base_direction()
     result = f"***Circuit***\n{line.name}\n{line.total_distance(base_direction)}\n"
     cur_dist = 0
-    for station, dist in zip(line.stations + ([line.stations[0] + "2"] if line.loop else []), [0] + line.station_dists):
+    for station, dist in zip(line.stations + (
+        [line.stations[0] + loop_suffix] if line.loop else []
+    ), [0] + line.station_dists):
         cur_dist += dist
         result += f"{station},{cur_dist // 100},0,false\n"
 
@@ -117,7 +123,7 @@ def format_etrc(line: Line, cur_date: date, *, limit_start: str | None = None, l
             result += f",{train_id}\n"
         result += f"{train.stations[0]}\n"
         if train.loop_next is not None:
-            result += f"{train.loop_next.stations[0]}2\n"
+            result += f"{train.loop_next.stations[0]}{loop_suffix}\n"
         else:
             result += f"{train.stations[-1]}\n"
         for station, arriving_time in train.arrival_time.items():
@@ -126,7 +132,7 @@ def format_etrc(line: Line, cur_date: date, *, limit_start: str | None = None, l
         if train.loop_next is not None:
             next_station = train.loop_next.stations[0]
             time_str = get_time_str(*train.loop_next.arrival_time[next_station])
-            result += f"{next_station}2,{time_str},{time_str},true\n"
+            result += f"{next_station}{loop_suffix},{time_str},{time_str},true\n"
 
     # Add colors
     result += "---Color---\n"
@@ -141,11 +147,84 @@ def format_etrc(line: Line, cur_date: date, *, limit_start: str | None = None, l
     return result
 
 
+def format_pyetrc(
+    line: Line, cur_date: date, *,
+    limit_start: str | None = None, limit_end: str | None = None, real_loop: bool = False
+) -> dict[str, dict | list]:
+    """ Format trains in pyETRC format """
+    train_dict = parse_trains(line)  # direction -> date_group -> list[Train]
+    train_list = [t for inner_dict in train_dict.values()
+                  for dg, tl in inner_dict.items() if line.date_groups[dg].covers(cur_date)
+                  for t in tl if within_time(t.start_time(), limit_start, limit_end)]
+    train_id_dict = get_train_id(train_list)
+    loop_suffix = "" if real_loop else "2"
+
+    # Create circuit (line) information
+    cur_dist = 0
+    station_list: list = []
+    for station, dist in zip(line.stations + (
+        [line.stations[0] + loop_suffix] if line.loop else []
+    ), [0] + line.station_dists):
+        cur_dist += dist
+        station_list.append({
+            "zhanming": station, "licheng": cur_dist / 1000, "dengji": 0,
+            "passenger": True, "show": True
+        })
+    result: dict[str, dict | list] = {
+        "line": {"name": line.name, "start_milestone": 0, "stations": station_list},
+        "options": {
+            "max_passed_stations": len(line.stations),
+            "period_hours": 24
+        }
+    }
+
+    # Reset some configs
+    trains_list: list = []
+
+    # Populate each train
+    base_direction = line.base_direction()
+    for train_id, train in train_id_dict.items():
+        trains_list.append({
+            "UI": {"Color": (line.color or "#000000").lower()},
+            "checi": [train_id, train_id, ""] if train.direction == base_direction else [train_id, "", train_id],
+            "sfz": train.stations[0],
+            "zdz": train.last_station(),
+            "shown": True,
+            "tags": [r.name for r in train.routes],
+        })
+        timetable_list: list = []
+        for station, arriving_time in train.arrival_time.items():
+            # Give 10s before and after for stopping
+            time_str = get_time_str(*arriving_time)
+            before_time_str = get_time_str(*add_min_tuple(arriving_time, -1))
+            timetable_list.append({
+                "business": station not in train.skip_stations,
+                "ddsj": f"{time_str}:00" if station in train.skip_stations else f"{before_time_str}:50",
+                "cfsj": f"{time_str}:00" if station in train.skip_stations else f"{time_str}:10",
+                "zhanming": station
+            })
+        if train.loop_next is not None:
+            next_station = train.loop_next.stations[0]
+            time_str = get_time_str(*train.loop_next.arrival_time[next_station])
+            before_time_str = get_time_str(*add_min_tuple(train.loop_next.arrival_time[next_station], -1))
+            timetable_list.append({
+                "business": True,
+                "ddsj": f"{before_time_str}:50",
+                "cfsj": f"{time_str}:10",
+                "zhanming": next_station
+            })
+        trains_list[-1]["timetable"] = timetable_list
+    result["trains"] = trains_list
+
+    return result
+
+
 def main() -> None:
     """ Main function """
+    # TODO: Support GTFS
     parser = argparse.ArgumentParser()
     parser.add_argument("--format", choices=[
-        "schedule_json", "etrc"
+        "schedule_json", "etrc", "pyetrc"
     ], default="schedule_json", help="Output format")
     parser.add_argument("--indent", type=int, help="Indentation level before each line")
     parser.add_argument("-o", "--output", help="Output path")
@@ -154,6 +233,7 @@ def main() -> None:
     parser.add_argument("--all-lines", action="store_true", help="Export all lines")
     parser.add_argument("--all-directions", action="store_true", help="Export all directions of a line")
     parser.add_argument("--all-date-groups", action="store_true", help="Export all date groups")
+    parser.add_argument("--real-loop", action="store_true", help="Export loop as is")
     args = parser.parse_args()
     city = ask_for_city()
 
@@ -168,14 +248,31 @@ def main() -> None:
             if args.indent is not None:
                 print("Error: --indent is not valid in ETRC mode!")
                 sys.exit(1)
-            output = format_etrc(line, cur_date, limit_start=args.limit_start, limit_end=args.limit_end)
+            output = format_etrc(
+                line, cur_date, limit_start=args.limit_start, limit_end=args.limit_end, real_loop=args.real_loop
+            )
             if args.output is None:
                 print(output)
             else:
                 print(f"Writing to {args.output}...")
                 with open(args.output, "w") as fp:
                     fp.write(output)
+        elif args.format == "pyetrc":
+            output_dict = format_pyetrc(
+                line, cur_date, limit_start=args.limit_start, limit_end=args.limit_end, real_loop=args.real_loop
+            )
+            if args.output is None:
+                print(json.dumps(output_dict, indent=args.indent, ensure_ascii=False))
+            else:
+                print(f"Writing to {args.output}...")
+                with open(args.output, "w") as fp:
+                    json.dump(output_dict, fp, indent=args.indent, ensure_ascii=False)
+        else:
+            assert False, args.format
         return
+    if args.real_loop:
+        print("Error: --real-loop is only valid in ETRC mode!")
+        sys.exit(1)
 
     asked_line: Line | None = None
     asked_direction: str | None = None
@@ -195,12 +292,12 @@ def main() -> None:
         unique_trains=(not args.all_lines and not args.all_directions and not args.all_date_groups),
         limit_start=args.limit_start, limit_end=args.limit_end
     )
-    if args.output is not None:
+    if args.output is None:
+        print(json.dumps(final_dict, indent=args.indent, ensure_ascii=False, cls=InnerArrayEncoder))
+    else:
         print(f"Writing to {args.output}...")
         with open(args.output, "w", encoding="utf-8") as fp:
             json.dump(final_dict, fp, indent=args.indent, ensure_ascii=False, cls=InnerArrayEncoder)
-    else:
-        print(json.dumps(final_dict, indent=args.indent, ensure_ascii=False, cls=InnerArrayEncoder))
 
 
 # Call main
