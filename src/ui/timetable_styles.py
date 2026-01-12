@@ -244,9 +244,9 @@ def assign_styles(
                         styles[route] = SuperText()
                         break
                     temp_colors = category_colors[temp][:]
-                    while len(temp_colors) > 0 and (
+                    while len(temp_colors) > 0 and ((
                         temp == FilledSquare and temp_colors[0] in exclude_colors_filled
-                    ) or (temp != FilledSquare and temp_colors[0] in exclude_colors):
+                    ) or (temp != FilledSquare and temp_colors[0] in exclude_colors)):
                         temp_colors = temp_colors[1:]
                     if len(temp_colors) == 0:
                         continue
