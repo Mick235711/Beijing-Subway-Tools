@@ -8,13 +8,15 @@ from collections.abc import Callable
 from datetime import date
 
 from nicegui import ui
+from nicegui.elements.button import Button
+from nicegui.elements.select import Select
 
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import to_pinyin, get_text_color
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
 from src.routing_pk.common import Route, route_str
-from src.ui.common import get_station_html, get_station_selector_options
+from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge
 
 
@@ -189,9 +191,159 @@ def route_tab(city: City) -> None:
         shorthand_tab = ui.tab("Shorthand")
     with ui.tab_panels(add_route_tabs, value=guided_tab).classes('w-full'):
         with ui.tab_panel(guided_tab):
-            ui.label("Guided placeholder")
+            add_route_guided(city, on_route_change)
         with ui.tab_panel(shorthand_tab):
             add_route_shorthand(city, on_route_change)
+
+
+def parse_line_direction(ld_str: str) -> tuple[str | None, str | None]:
+    """ Parse line[direction] specs """
+    if ld_str == "(virtual)":
+        return None, None
+    if not ld_str.endswith("]"):
+        return ld_str, None
+    last_index = ld_str.rfind("[")
+    assert last_index != -1, ld_str
+    return ld_str[:last_index], ld_str[last_index + 1:-1]
+
+
+def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> None:
+    """ Guided panel to add new routes """
+    station_selects: list[Select] = []
+    line_selects: list[Select] = []
+    add_button: Button | None = None
+    confirm_button: Button | None = None
+    clear_button: Button | None = None
+    container = ui.row().classes("items-center route-tab-guided-selection")
+
+    def on_station_select_change(select_index: int) -> None:
+        """ Handle station selection changes """
+        nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
+        assert 0 <= select_index < len(station_selects), (station_selects, select_index)
+        for index in range(select_index, len(station_selects)):
+            if index > select_index:
+                container.remove(station_selects[index])
+            if index < len(line_selects):
+                container.remove(line_selects[index])
+        station_selects = station_selects[:select_index + 1]
+        line_selects = line_selects[:select_index]
+        if add_button is not None:
+            container.remove(add_button)
+            add_button = None
+        if confirm_button is not None:
+            container.remove(confirm_button)
+            confirm_button = None
+        if clear_button is not None:
+            container.remove(clear_button)
+            clear_button = None
+        with container:
+            add_button = ui.button(icon="add", on_click=on_add_button_click).props("round")
+            if len(station_selects) > 1:
+                confirm_button = ui.button(icon="check", on_click=on_confirm_button_click).props("round")
+            clear_button = ui.button(icon="clear", on_click=on_clear_button_click).props("round")
+
+    def on_line_select_change(select_index: int) -> None:
+        """ Handle line selection changes """
+        nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
+        assert 0 <= select_index < len(line_selects), (line_selects, select_index)
+        last_line, last_dir = parse_line_direction(line_selects[-1].value)
+        with line_selects[-1].add_slot("selected"):
+            if last_line is None:
+                ui.label("Virtual transfer")
+            else:
+                get_line_badge(city.lines[last_line], force_icon_dir=last_dir)
+        for index in range(select_index + 1, len(station_selects)):
+            container.remove(station_selects[index])
+            if index < len(line_selects):
+                container.remove(line_selects[index])
+        station_selects = station_selects[:select_index + 1]
+        line_selects = line_selects[:select_index + 1]
+        if add_button is not None:
+            container.remove(add_button)
+            add_button = None
+        if confirm_button is not None:
+            container.remove(confirm_button)
+            confirm_button = None
+        if clear_button is not None:
+            container.remove(clear_button)
+            clear_button = None
+        last_station = station_selects[-1].value
+        with container:
+            station_select2 = ui.select(
+                get_station_selector_options(
+                    {s: ls for s, ls in city.station_lines.items()
+                     if ((last_station, s) in city.virtual_transfers and last_line is None) or
+                        (last_line in [l.name for l in ls] and s != last_station and last_line is not None)}
+                ), with_input=True
+            ).props(add="options-html", remove="fill-input hide-selected")
+            station_select2.on_value_change(lambda l=len(station_selects): on_station_select_change(l))
+            station_selects.append(station_select2)
+            clear_button = ui.button(icon="clear", on_click=on_clear_button_click).props("round")
+
+    def on_add_button_click() -> None:
+        """ Handle add button clicks """
+        nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
+        if add_button is not None:
+            container.remove(add_button)
+            add_button = None
+        if confirm_button is not None:
+            container.remove(confirm_button)
+            confirm_button = None
+        if clear_button is not None:
+            container.remove(clear_button)
+            clear_button = None
+        last_station = station_selects[-1].value
+        last_line = None if len(line_selects) == 0 else parse_line_direction(line_selects[-1].value)[0]
+        with container:
+            line_select = ui.select(
+                get_line_selector_options(
+                    {l.name: l for l in city.station_lines[last_station] if last_line is None or l.name != last_line},
+                    force_direction={l.name for l in city.station_lines[last_station] if l.loop},
+                    add_virtual=(
+                        (len(line_selects) == 0 or last_line is not None) and
+                        any(s1 == last_station or s2 == last_station for s1, s2 in city.virtual_transfers.keys())
+                    )
+                )
+            ).props("use-chips options-html").on_value_change(lambda l=len(line_selects): on_line_select_change(l))
+            line_selects.append(line_select)
+            clear_button = ui.button(icon="clear", on_click=on_clear_button_click).props("round")
+
+    def on_confirm_button_click() -> None:
+        """ Handle confirm button clicks """
+        nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
+        assert len(line_selects) == len(station_selects) - 1, (station_selects, line_selects)
+        route: Route = ([], station_selects[-1].value)
+        for index in range(len(line_selects)):
+            station = station_selects[index].value
+            parse_result = parse_line_direction(line_selects[index].value)
+            if parse_result[0] is None:
+                route[0].append((station, None))
+                continue
+            line = city.lines[parse_result[0]]
+            next_station = station_selects[-1].value if index == len(line_selects) - 1 else station_selects[index + 1].value
+            route[0].append((station, (
+                parse_result[0], parse_result[1] or line.determine_direction(station, next_station)
+            )))
+        on_route_change(route)
+
+    def on_clear_button_click() -> None:
+        """ Handle confirm button clicks """
+        nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
+        container.clear()
+        station_selects = []
+        line_selects = []
+        add_button = None
+        confirm_button = None
+        clear_button = None
+        with container:
+            ui.label("Route:")
+            station_select2 = ui.select(
+                get_station_selector_options(city.station_lines), with_input=True
+            ).props(add="options-html", remove="fill-input hide-selected")
+            station_select2.on_value_change(lambda: on_station_select_change(0))
+            station_selects.append(station_select2)
+
+    on_clear_button_click()
 
 
 def add_route_shorthand(city: City, on_route_change: Callable[[Route], None]) -> None:

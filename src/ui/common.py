@@ -97,10 +97,38 @@ def get_badge_html(line: Line, station_code: str) -> str:
     )
 
 
-def get_line_selector_options(lines: dict[str, Line]) -> dict[str, str]:
+def get_line_selector_options(
+    lines: dict[str, Line],
+    *, force_direction: set[str] | None = None, add_virtual: bool = False
+) -> dict[str, str]:
     """ Get options for the line selector """
-    return {
-        line_name: """
+    result_dict: dict[str, str] = {}
+    for line_name, line in sorted(lines.items(), key=lambda x: x[1].index):
+        if line.loop:
+            line_icon = """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
+        else:
+            line_icon = "&mdash;"
+        if force_direction is not None and line_name in force_direction:
+            for direction in sorted(line.directions.keys(), key=lambda x: to_pinyin(x)[0]):
+                stations = line.direction_stations(direction)
+                result_dict[line_name + "[" + direction + "]"] = """
+<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="{}">
+    {}{}
+    <div class="text-right">{} {} {}</div>
+</div>
+                """.format(
+                    ",".join(to_pinyin(line.full_name())) + " " + ",".join(to_pinyin(line.stations[0])) + (
+                        "" if line.loop else (" " + ",".join(to_pinyin(line.stations[-1])))
+                    ),
+                    get_badge_html(line, line_name), direction,
+                    stations[0],
+                    """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">{}</i>""".format(
+                        line.direction_icons[direction]
+                    ) if direction in line.direction_icons else line_icon,
+                    stations[0] if line.loop else stations[-1]
+                )
+            continue
+        result_dict[line_name] = """
 <div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="{}">
     {}
     <div class="text-right">{} {} {}</div>
@@ -110,12 +138,15 @@ def get_line_selector_options(lines: dict[str, Line]) -> dict[str, str]:
                 "" if line.loop else (" " + ",".join(to_pinyin(line.stations[-1])))
             ),
             get_badge_html(line, line_name),
-            line.stations[0],
-            """<i class="q-icon notranslate material-icons" aria-hidden="true" role="presentation">autorenew</i>"""
-            if line.loop else "&mdash;",
-            line.stations[0] if line.loop else line.stations[-1]
-        ) for line_name, line in sorted(lines.items(), key=lambda x: x[1].index)
-    }
+            line.stations[0], line_icon, line.stations[0] if line.loop else line.stations[-1]
+        )
+    if add_virtual:
+        result_dict["(virtual)"] = """
+<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="(virtual)">
+    Virtual transfer
+</div>
+        """
+    return result_dict
 
 def get_direction_selector_options(line: Line) -> dict[str, str]:
     """ Get options for the direction selector """
