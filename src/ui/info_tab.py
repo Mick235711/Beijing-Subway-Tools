@@ -17,7 +17,7 @@ from src.common.common import distance_str, speed_str, suffix_s, get_text_color,
 from src.routing.through_train import get_train_id_through
 from src.routing.train import Train
 from src.ui.common import get_line_selector_options, MAX_TRANSFER_LINE_COUNT, LINE_TYPES, get_date_input, \
-    get_all_trains, find_train_id, find_first_train, get_line_row, get_line_html, get_station_html
+    get_all_trains, find_train_id, find_first_train, get_line_row, get_line_html, get_station_html, get_station_row
 from src.ui.drawers import refresh_line_drawer, get_line_badge, refresh_station_drawer, refresh_drawer, \
     refresh_train_drawer
 
@@ -49,19 +49,9 @@ def calculate_line_rows(lines: dict[str, Line], through_specs: list[ThroughSpec]
                     all(l.name in lines.keys() for l, _, _, _ in spec.spec) for spec in through_specs
                 ) else []
             ),
-            "start_station": [line.stations[0]] + (
-                [] if line.code is None else [[
-                    (line.index, line.station_code(line.stations[0]), line.color or "primary",
-                     get_text_color(line.color), line.badge_icon or "")
-                ]]
-            ),
+            "start_station": get_station_row(line.stations[0], line),
             "start_station_sort": to_pinyin(line.stations[0])[0],
-            "end_station": [end_station] + (
-                [] if line.code is None else [[
-                    (line.index, line.station_code(end_station), line.color or "primary",
-                     get_text_color(line.color), line.badge_icon or "")
-                ]]
-            ),
+            "end_station": get_station_row(end_station, line),
             "end_station_sort": to_pinyin(end_station)[0],
             "distance": distance_str(line.total_distance()),
             "num_stations": len(line.stations),

@@ -56,24 +56,18 @@ def get_line_html(key: str) -> str:
     """
 
 
-def get_station_row(station: str, line: Line) -> list:
+def get_station_row(station: str, line: Line | None = None) -> list:
     """ Get row for a station in a line """
     return [station] + (
-        [] if line.code is None else [[
+        [] if line is None or line.code is None else [[
             (line.index, line.station_code(station), line.color or "primary",
              get_text_color(line.color), line.badge_icon or "")
         ]]
     )
 
 
-def get_station_html(key: str, *, include_lines: bool = True) -> str:
+def get_station_html(key: str) -> str:
     """ Get the HTML for a station """
-    if not include_lines:
-        return f"""
-<q-td key="{key}" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
-    {{{{ props.value }}}}
-</q-td>
-        """
     return f"""
 <q-td key="{key}" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{{{ props.value[0] }}}}

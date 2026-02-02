@@ -8,23 +8,26 @@ from collections.abc import Callable
 from datetime import date
 from functools import partial
 from multiprocessing import Manager
-from typing import Any
+from typing import Any, Literal
 
 from nicegui import run, ui
 from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 
+from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import to_pinyin, get_text_color, suffix_s
+from src.common.common import to_pinyin, get_text_color, suffix_s, distance_str, format_duration, average, get_time_str, \
+    percentage_str
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
 from src.routing_pk.analyze_routes import PathData, calculate_data
 from src.routing_pk.common import Route, route_str, RouteData
-from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input
+from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
+    get_station_row
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge
 
 
@@ -82,12 +85,12 @@ def calculate_route_rows(city: City, routes: list[Route]) -> list[dict]:
     for route in routes:
         transfer_str = ",".join(s for s, _ in route[0][1:])
         rows.append({
-            "start_station": route[0][0][0],
+            "start_station": get_station_row(route[0][0][0]),
             "start_station_sort": to_pinyin(route[0][0][0])[0],
             "route": get_route_row(city.lines, route),
             "route_sort": "[" + ",".join("0" if ld is None else str(city.lines[ld[0]].index) for _, ld in route[0]) + "]",
             "route_str": route_str(city.lines, route),
-            "end_station": route[1],
+            "end_station": get_station_row(route[1]),
             "end_station_sort": to_pinyin(route[1])[0],
             "transfer": transfer_str,
             "transfer_sort": to_pinyin(transfer_str)[0]
@@ -138,7 +141,7 @@ def route_tab(city: City) -> None:
                  ":sort": """(a, b, rowA, rowB) => {
                             return rowA["transfer_sort"].localeCompare(rowB["transfer_sort"]);
                          }"""},
-                {"name": "transferSort", "label": "Start Sort", "field": "transfer_sort", "sortable": False,
+                {"name": "transferSort", "label": "Transfer Sort", "field": "transfer_sort", "sortable": False,
                  "classes": "hidden", "headerClasses": "hidden"},
             ],
             column_defaults={"align": "right", "required": True, "sortable": True},
@@ -151,9 +154,9 @@ def route_tab(city: City) -> None:
     line_indexes = {line.index: line for line in city.lines.values()}
     route_table.on("lineBadgeClick", lambda n: None if n.args is None else refresh_line_drawer(line_indexes[n.args], city.lines))
     route_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, city.station_lines))
-    route_table.add_slot("body-cell-start", get_station_html("start", include_lines=False))
+    route_table.add_slot("body-cell-start", get_station_html("start"))
     route_table.add_slot("body-cell-route", get_route_html("route"))
-    route_table.add_slot("body-cell-end", get_station_html("end", include_lines=False))
+    route_table.add_slot("body-cell-end", get_station_html("end"))
     route_search.bind_value(route_table, "filter")
 
     current_routes: list[Route] = []
@@ -496,12 +499,198 @@ async def analyze_routes(
     return best_dict, data_list
 
 
+def get_signal_html(key: str, signal: str) -> str:
+    """ Get the HTML for the field that can emit a signal """
+    return f"""
+<q-td key="{key}" :props="props" class="cursor-pointer" @click="$parent.$emit('{signal}', props.value[1])">
+    {{{{ props.value[0] }}}}
+</q-td>
+    """
+
+
+def get_time_pair_html(key: str, signal: str, *, have_aux: bool = False) -> str:
+    """ Get the HTML for the time pair field """
+    index1 = 2 if have_aux else 0
+    index2 = 3 if have_aux else 1
+    return f"""
+<q-td key="{key}" :props="props">
+    <span class="cursor-pointer" @click="$parent.$emit('{signal}', props.value[{index1}])">{{{{ props.value[0] }}}}</span>
+    &mdash;
+    <span class="cursor-pointer" @click="$parent.$emit('{signal}', props.value[{index2}])">{{{{ props.value[1] }}}}</span>
+</q-td>
+    """
+
+
+def calculate_data_rows(
+    city: City, data_list: list[RouteData],
+    *, exclude_next_day: bool = True, percentage_field: Literal["best", "tie", "other"] = "best"
+) -> list[dict]:
+    """ Calculate rows for the data table """
+    rows = []
+    for index, route, info_dict, percentage, percentage_tie, avg_min, min_info, max_info in data_list:
+        assert isinstance(route, tuple), route
+        if exclude_next_day:
+            info_dict = {time_str: data for time_str, data in info_dict.items() if not data[-1].force_next_day}
+            avg_min = average(x[0] for x in info_dict.values())
+        if percentage_field == "best":
+            per_str = percentage_str(percentage - percentage_tie)
+            per_raw = percentage - percentage_tie
+        elif percentage_field == "tie":
+            per_str = percentage_str(percentage_tie)
+            per_raw = percentage_tie
+        elif percentage_field == "other":
+            per_str = percentage_str(1 - percentage)
+            per_raw = 1 - percentage
+        else:
+            assert False, percentage_field
+        min_key, min_info = min(list(info_dict.items()), key=lambda x: x[1][0])
+        max_key, max_info = max(list(info_dict.items()), key=lambda x: x[1][0])
+        min_time = min(info_dict.keys())
+        max_time = max(info_dict.keys())
+        min_arrive = min(info_dict.items(), key=lambda x: get_time_str(x[1][2].arrival_time, x[1][2].arrival_day))
+        max_arrive = max(info_dict.items(), key=lambda x: get_time_str(x[1][2].arrival_time, x[1][2].arrival_day))
+        path, end_station = min_info[1], route[1]
+        distance = path_distance(path, end_station)
+        rows.append({
+            "index": index + 1,
+            "percentage": per_str,
+            "percentage_sort": per_raw,
+            "start_station": get_station_row(route[0][0][0]),
+            "start_station_sort": to_pinyin(route[0][0][0])[0],
+            "route": get_route_row(city.lines, route),
+            "route_sort": "[" + ",".join("0" if ld is None else str(city.lines[ld[0]].index) for _, ld in route[0]) + "]",
+            "end_station": get_station_row(route[1]),
+            "end_station_sort": to_pinyin(route[1])[0],
+            "distance": distance_str(distance),
+            "num_stations": len(expand_path(path, end_station)),
+            "transfer": total_transfer(path),
+            "avg_time": format_duration(avg_min),
+            "avg_time_sort": avg_min,
+            "min_time": (format_duration(min_info[0]), min_key),
+            "min_time_sort": min_info[0],
+            "max_time": (format_duration(max_info[0]), max_key),
+            "max_time_sort": max_info[0],
+            "dep_time": (min_time, max_time),
+            "arr_time": (
+                get_time_str(min_arrive[1][2].arrival_time, min_arrive[1][2].arrival_day),
+                get_time_str(max_arrive[1][2].arrival_time, max_arrive[1][2].arrival_day),
+                min_arrive[0], max_arrive[0]
+            )
+        })
+    return rows
+
+
 @ui.refreshable
 def display_data(
     city: City, *,
-    best_dict: dict[str, set[int]] | None = None, data_list: list[PathData] | None = None
+    best_dict: dict[str, set[int]] | None = None, data_list: list[RouteData] | None = None
 ) -> None:
     """ Display analysis data """
     if best_dict is None or data_list is None:
         return
-    ui.label(f"{len(data_list)} data")
+
+    def on_select_change(selection: list[dict]) -> None:
+        """ Handle selection changes """
+
+    def on_switch_change() -> None:
+        """ Handle switch changes """
+        [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = percentage_select.value
+        data_table.rows = calculate_data_rows(
+            city, data_list, exclude_next_day=next_day_switch.value,
+            percentage_field=percentage_select.value.lower()
+        )
+        data_table.selected = data_table.rows[:]
+
+    data_rows = calculate_data_rows(city, data_list)
+    with ui.column():
+        with ui.row().classes("w-full items-center"):
+            next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
+            ui.label("Percentage:")
+            percentage_select = ui.select(["Best", "Tie", "Other"], value="Best", on_change=on_switch_change)
+        with ui.row().classes("w-full items-center justify-between"):
+            ui.label("Route Basic Data").classes("text-xl font-semibold mt-6 mb-2")
+            data_search = ui.input("Search data...")
+        data_table = ui.table(
+            columns=[
+                {"name": "index", "label": "Index", "field": "index"},
+                {"name": "percentage", "label": "Best", "field": "percentage", "align": "center",
+                 ":sort": """(a, b, rowA, rowB) => {
+                                return rowA["percentage_sort"] - rowB["percentage_sort"];
+                             }"""},
+                {"name": "percentageSort", "label": "Percentage Sort", "field": "percentage_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "start", "label": "Start", "field": "start_station",
+                 ":sort": """(a, b, rowA, rowB) => {
+                                return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
+                             }"""},
+                {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "route", "label": "Via", "field": "route", "align": "center",
+                 ":sort": """(a, b, rowA, rowB) => {
+                                const route_a = JSON.parse(rowA["route_sort"]);
+                                const route_b = JSON.parse(rowB["route_sort"]);
+                                const len = Math.min(route_a.length, route_b.length);
+                                for (let i = 0; i < len; i++) {
+                                    if (route_a[i] < route_b[i]) return -1;
+                                    if (route_a[i] > route_b[i]) return 1;
+                                }
+                                if (route_a.length < route_b.length) return -1;
+                                if (route_a.length > route_b.length) return 1;
+                                return 0;
+                             }"""},
+                {"name": "routeSort", "label": "Route Sort", "field": "route_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "end", "label": "End", "field": "end_station",
+                 ":sort": """(a, b, rowA, rowB) => {
+                                return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
+                             }"""},
+                {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "align": "left", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "distance", "label": "Distance", "field": "distance",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
+                        return parse(a) - parse(b);
+                             }"""},
+                {"name": "stationNum", "label": "Stations", "field": "num_stations"},
+                {"name": "transfer", "label": "Transfers", "field": "transfer"},
+                {"name": "avgTime", "label": "Avg Time", "field": "avg_time",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["avg_time_sort"]) - parseFloat(rowB["avg_time_sort"]);
+                     }"""},
+                {"name": "avgTimeSort", "label": "Avg Time Sort", "field": "avg_time_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "minTime", "label": "Min Time", "field": "min_time",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["min_time_sort"]) - parseFloat(rowB["min_time_sort"]);
+                     }"""},
+                {"name": "minTimeSort", "label": "Min Time Sort", "field": "min_time_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "maxTime", "label": "Max Time", "field": "max_time",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["max_time_sort"]) - parseFloat(rowB["max_time_sort"]);
+                     }"""},
+                {"name": "maxTimeSort", "label": "Max Time Sort", "field": "max_time_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "depTime", "label": "Departure", "field": "dep_time", "align": "center"},
+                {"name": "arrTime", "label": "Arrival", "field": "arr_time", "align": "center"}
+            ],
+            column_defaults={"align": "right", "required": True, "sortable": True},
+            rows=data_rows,
+            row_key="index",
+            pagination=10,
+            selection="multiple",
+            on_select=lambda e: on_select_change(e.selection)
+        )
+    data_table.selected = data_rows[:]
+    line_indexes = {line.index: line for line in city.lines.values()}
+    data_table.on("lineBadgeClick", lambda n: None if n.args is None else refresh_line_drawer(line_indexes[n.args], city.lines))
+    data_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, city.station_lines))
+    data_table.on("depTimeClick", lambda n: print("Departure:", n))
+    data_table.add_slot("body-cell-start", get_station_html("start"))
+    data_table.add_slot("body-cell-route", get_route_html("route"))
+    data_table.add_slot("body-cell-end", get_station_html("end"))
+    data_table.add_slot("body-cell-minTime", get_signal_html("minTime", "depTimeClick"))
+    data_table.add_slot("body-cell-maxTime", get_signal_html("maxTime", "depTimeClick"))
+    data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))
+    data_table.add_slot("body-cell-arrTime", get_time_pair_html("arrTime", "depTimeClick", have_aux=True))
+    data_search.bind_value(data_table, "filter")
