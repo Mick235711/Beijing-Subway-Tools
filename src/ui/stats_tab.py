@@ -19,7 +19,7 @@ from src.routing.train import Train, get_train_id
 from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_default_line, get_line_selector_options, find_train_id, \
     get_station_selector_options, get_default_station, draw_arc, draw_text, get_line_row, get_line_html, \
-    get_station_html, get_station_row
+    get_station_html, get_station_row, calculate_moving_average
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -175,19 +175,8 @@ def train_chart_data(
                 else:
                     result_dict[line_name][key] += train.line.total_distance(train.direction)
 
-    assert moving_average > 0, moving_average
     if moving_average > 1:
-        minutes = set()
-        for line_name, inner_dict in result_dict.items():
-            new_dict: dict[str, float] = {}
-            inner_list = sorted(inner_dict.items(), key=lambda x: x[0])
-            for i in range(moving_average // 2, len(inner_list) - moving_average + moving_average // 2):
-                minutes.add(inner_list[i][0])
-                new_dict[inner_list[i][0]] = sum(
-                    inner_list[j][1] for j in range(i - moving_average // 2, i + moving_average - moving_average // 2)
-                ) / moving_average
-            result_dict[line_name] = new_dict
-
+        minutes, result_dict = calculate_moving_average(result_dict, moving_average)
     return sorted(minutes), result_dict
 
 

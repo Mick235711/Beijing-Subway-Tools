@@ -15,19 +15,20 @@ from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 
+from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import to_pinyin, get_text_color, suffix_s, distance_str, format_duration, average, get_time_str, \
-    percentage_str
+    percentage_str, valid_positive, diff_time_tuple
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
-from src.routing_pk.analyze_routes import PathData, calculate_data
+from src.routing_pk.analyze_routes import PathData, calculate_data, get_first_cutoff
 from src.routing_pk.common import Route, route_str, RouteData
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
-    get_station_row
+    get_station_row, calculate_moving_average
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge
 
 
@@ -201,9 +202,9 @@ def route_tab(city: City) -> None:
     async def on_start_click() -> None:
         """ Handle start analyze button clicks """
         analyze_button.set_enabled(False)
-        best_dict, data_list = await analyze_routes(city, current_routes, date.fromisoformat(date_input.value), progress)
+        _, data_list = await analyze_routes(city, current_routes, date.fromisoformat(date_input.value), progress)
         analyze_button.set_enabled(True)
-        await display_data.refresh(best_dict=best_dict, data_list=data_list)
+        await display_data.refresh(data_list=data_list)
 
     with ui.tabs().classes("w-full") as add_route_tabs:
         ui.tab("Add routes via").props("disable")
@@ -487,7 +488,7 @@ async def analyze_routes(
             discarded += 1
             continue
         path_list.append((i, routes[i], paths))
-    _, best_dict, data_list = calculate_data(path_list, city.transfers, through_dict)
+    _, best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=True)
     if discarded > 0:
         ui.notify(
             "Warning: " + suffix_s("path", discarded, "es") +
@@ -521,17 +522,38 @@ def get_time_pair_html(key: str, signal: str, *, have_aux: bool = False) -> str:
     """
 
 
+def index_name(index: int) -> str:
+    """ String representation for each index """
+    return f"Path #{index + 1}"
+
+
+def parse_index(index_str: str) -> int:
+    """ Parse Path #n back into index """
+    return int(index_str[index_str.rfind("#") + 1:]) - 1
+
+
+def strip_first_from_dict(info_dict: dict[str, PathInfo]) -> dict[str, PathInfo]:
+    """ Strip trains up until the real first train """
+    min_cutoff = get_first_cutoff(list(info_dict.values()))
+    return {
+        key: info for key, info in info_dict.items()
+        if diff_time_tuple((info[2].initial_time, info[2].initial_day), min_cutoff) >= 0
+    }
+
+
 def calculate_data_rows(
     city: City, data_list: list[RouteData],
-    *, exclude_next_day: bool = True, percentage_field: Literal["best", "tie", "other"] = "best"
+    *, exclude_next_day: bool = True, strip_first: bool = True,
+    percentage_field: Literal["best", "tie", "other"] = "best"
 ) -> list[dict]:
     """ Calculate rows for the data table """
     rows = []
-    for index, route, info_dict, percentage, percentage_tie, avg_min, min_info, max_info in data_list:
+    for index, route, info_dict, percentage, percentage_tie, *_ in data_list:
         assert isinstance(route, tuple), route
         if exclude_next_day:
             info_dict = {time_str: data for time_str, data in info_dict.items() if not data[-1].force_next_day}
-            avg_min = average(x[0] for x in info_dict.values())
+        if strip_first:
+            info_dict = strip_first_from_dict(info_dict)
         if percentage_field == "best":
             per_str = percentage_str(percentage - percentage_tie)
             per_raw = percentage - percentage_tie
@@ -543,6 +565,8 @@ def calculate_data_rows(
             per_raw = 1 - percentage
         else:
             assert False, percentage_field
+
+        avg_min = average(x[0] for x in info_dict.values())
         min_key, min_info = min(list(info_dict.items()), key=lambda x: x[1][0])
         max_key, max_info = max(list(info_dict.items()), key=lambda x: x[1][0])
         min_time = min(info_dict.keys())
@@ -581,30 +605,30 @@ def calculate_data_rows(
 
 
 @ui.refreshable
-def display_data(
-    city: City, *,
-    best_dict: dict[str, set[int]] | None = None, data_list: list[RouteData] | None = None
-) -> None:
+def display_data(city: City, *, data_list: list[RouteData] | None = None) -> None:
     """ Display analysis data """
-    if best_dict is None or data_list is None:
+    if data_list is None:
         return
 
     def on_select_change(selection: list[dict]) -> None:
         """ Handle selection changes """
+        on_chart_select_change({index_name(row["index"] - 1): True for row in selection}, callback=False)
 
     def on_switch_change() -> None:
         """ Handle switch changes """
         [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = percentage_select.value
         data_table.rows = calculate_data_rows(
-            city, data_list, exclude_next_day=next_day_switch.value,
+            city, data_list, exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value,
             percentage_field=percentage_select.value.lower()
         )
         data_table.selected = data_table.rows[:]
+        on_chart_data_change(exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value)
 
     data_rows = calculate_data_rows(city, data_list)
     with ui.column():
         with ui.row().classes("w-full items-center"):
             next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
+            strip_first_switch = ui.switch("Strip first", value=True, on_change=on_switch_change)
             ui.label("Percentage:")
             percentage_select = ui.select(["Best", "Tie", "Other"], value="Best", on_change=on_switch_change)
         with ui.row().classes("w-full items-center justify-between"):
@@ -694,3 +718,108 @@ def display_data(
     data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))
     data_table.add_slot("body-cell-arrTime", get_time_pair_html("arrTime", "depTimeClick", have_aux=True))
     data_search.bind_value(data_table, "filter")
+
+    def on_chart_data_change(exclude_next_day: bool = True, strip_first: bool = True) -> None:
+        """ Handle data switch changes """
+        try:
+            moving_average = int(moving_avg_input.value)
+            if moving_average <= 0:
+                return
+        except ValueError:
+            return
+
+        dataset: dict[str, dict[str, float]] = {}
+        dimensions_set: set[str] = set()
+        for index, _, info_dict, *_ in data_list:
+            if exclude_next_day:
+                info_dict = {time_str: data for time_str, data in info_dict.items() if not data[-1].force_next_day}
+            if strip_first:
+                info_dict = strip_first_from_dict(info_dict)
+            dataset[index_name(index)] = {time_str: data[0] for time_str, data in info_dict.items()}
+            dimensions_set.update(info_dict.keys())
+        if moving_average > 1:
+            dimensions_set, dataset = calculate_moving_average(dataset, moving_average)
+        dimensions = sorted(dimensions_set)
+
+        time_chart.options["legend"]["data"] = sorted(dataset.keys(), key=lambda x: parse_index(x))
+        time_chart.options["xAxis"]["data"] = dimensions
+        if tooltip_select.value == "Auto":
+            time_chart.options["xAxis"]["axisLabel"]["interval"] = "auto"
+        elif tooltip_select.value == "All":
+            time_chart.options["xAxis"]["axisLabel"]["interval"] = 0
+        if data_select.value == "Total Duration":
+            time_chart.options["yAxis"]["name"] = "Total Duration (min)"
+        else:
+            assert False, data_select.value
+
+        mark_point_label = {
+            "show": True,
+            ":formatter": "(params) => params.value.toFixed(2)"
+        } if moving_average > 1 else {}
+        def get_mark_point(data_dict: dict[str, float]) -> list[dict]:
+            """ Get specification for mark point array """
+            mark_point_array: list[dict] = []
+            if max_switch.value:
+                mark_point_array.append({
+                    "type": "max", "name": "Max (" + max(dimensions, key=lambda t: data_dict.get(t, -1)) + ")"
+                })
+            if min_switch.value:
+                mark_point_array.append({
+                    "type": "min", "name": "Min (" + min(dimensions, key=lambda t: data_dict.get(t, -1)) + ")"
+                })
+            return mark_point_array
+        time_chart.options["series"] = [
+            {
+                "name": series_name,
+                "type": "line",
+                "data": [None if t not in data_dict else data_dict[t] for t in dimensions],
+                "smooth": True,
+                "showSymbol": tooltip_select.value != "None",
+                "markPoint": {
+                    "data": get_mark_point(data_dict),
+                    "label": mark_point_label
+                } if max_switch.value or min_switch.value else {}
+            } for series_name, data_dict in sorted(dataset.items(), key=lambda x: parse_index(x[0]))
+        ]
+
+    def on_chart_select_change(selection: bool | dict[str, bool], *, callback: bool = True) -> None:
+        """ Handle select button changes """
+        if isinstance(selection, bool):
+            time_chart.options["legend"]["selected"] = dict.fromkeys(time_chart.options["legend"]["data"], selection)
+            keys = {parse_index(x) for x in time_chart.options["legend"]["data"]} if selection else {}
+        else:
+            time_chart.options["legend"]["selected"] = {
+                x: selection.get(x, False) for x in time_chart.options["legend"]["data"]
+            }
+            keys = {parse_index(x) for x, t in selection.items() if t}
+        if callback:
+            data_table.selected = [row for row in data_table.rows if row["index"] - 1 in keys]
+
+    with ui.row().classes("w-full items-center justify-center"):
+        data_select = ui.select([
+            "Total Duration"
+        ], value="Total Duration", label="Viewing data", on_change=on_chart_data_change)
+        max_switch = ui.switch("Add max marker", on_change=on_chart_data_change)
+        min_switch = ui.switch("Add min marker", on_change=on_chart_data_change)
+        ui.label("Symbol:")
+        tooltip_select = ui.select(["None", "Auto", "All"], value="Auto", on_change=on_chart_data_change)
+        ui.label("Moving average:")
+        moving_avg_input = ui.input(
+            value="1", label="minutes", validation=valid_positive, on_change=on_chart_data_change
+        )
+
+    time_chart = ui.echart({
+        "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
+        "yAxis": {"type": "value", "name": "Total Duration (min)", "scale": True},
+        "series": [],
+        "legend": {},
+        "tooltip": {"trigger": "item"},
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "bottom": "10%",
+            "containLabel": True
+        }
+    }).classes("h-200")
+    time_chart.on("chart:legendselectchanged", lambda e: on_chart_select_change(e.args["selected"]))
+    on_chart_data_change()

@@ -20,7 +20,7 @@ from src.city.city import City
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import suffix_s, percentage_str, get_time_str, average, diff_time_tuple, parse_time, \
-    add_min_tuple, distance_str, get_time_repr, format_duration
+    add_min_tuple, distance_str, get_time_repr, format_duration, TimeSpec
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
@@ -379,6 +379,18 @@ def show_extreme(
     print_routes_with_data(city, data_list, time_only_mode=time_only_mode, aux_data=aux_data)
 
 
+def get_first_cutoff(info_list: list[PathInfo]) -> TimeSpec:
+    """ Get the minimum cutoff time to filter real first trains """
+    # Real first train: the last departure time that achieves the same arrival time as the first
+    first_info = min(info_list, key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
+    first_arrival = (first_info[2].arrival_time, first_info[2].arrival_day)
+    last_info = max([
+        info for info in info_list
+        if info[2].arrival_time == first_arrival[0] and info[2].arrival_day == first_arrival[1]
+    ], key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
+    return last_info[2].initial_time, last_info[2].initial_day
+
+
 def strip_routes(path_list: list[PathData]) -> list[PathData]:
     """ Strip the path list with a given time constraint """
     start_time, start_day = ask_for_time(
@@ -392,16 +404,9 @@ def strip_routes(path_list: list[PathData]) -> list[PathData]:
     )
     new_path: list[PathData] = []
     for index, route, info_list in path_list:
-        min_cutoff: tuple[time, bool] | None = None
+        min_cutoff: TimeSpec | None = None
         if start_time == time.max and not start_day:
-            # Real first train: the last departure time that achieves the same arrival time as the first
-            first_info = min(info_list, key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
-            first_arrival = (first_info[2].arrival_time, first_info[2].arrival_day)
-            last_info = max([
-                info for info in info_list
-                if info[2].arrival_time == first_arrival[0] and info[2].arrival_day == first_arrival[1]
-            ], key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
-            min_cutoff = (last_info[2].initial_time, last_info[2].initial_day)
+            min_cutoff = get_first_cutoff(info_list)
         elif start_time != time.max:
             min_cutoff = (start_time, start_day)
         if min_cutoff is not None:
@@ -410,7 +415,6 @@ def strip_routes(path_list: list[PathData]) -> list[PathData]:
                 info for info in info_list
                 if diff_time_tuple((info[2].initial_time, info[2].initial_day), min_cutoff) >= 0
             ]
-
         if end_time != time.max or not end_day:
             # Filter with the given maximum time
             info_list = [

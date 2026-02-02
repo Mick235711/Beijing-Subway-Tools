@@ -6,7 +6,7 @@
 # Libraries
 from collections.abc import Callable
 from datetime import date
-from typing import Any
+from typing import Any, TypeVar
 
 from nicegui import ui
 from nicegui.elements.date_input import DateInput
@@ -326,6 +326,24 @@ def find_first_train(train_list: list[Train | ThroughTrain], station: str, rever
     else:
         train = train_full.station_lines()[station][2]
     return train, get_time_str(*train.arrival_time[station])
+
+
+def calculate_moving_average(
+    result_dict: dict[str, dict[str, float]], moving_average: int
+) -> tuple[set[str], dict[str, dict[str, float]]]:
+    """ Calculate moving average of data """
+    assert moving_average > 0, moving_average
+    minutes: set[str] = set()
+    for line_name, inner_dict in result_dict.items():
+        new_dict: dict[str, float] = {}
+        inner_list = sorted(inner_dict.items(), key=lambda x: x[0])
+        for i in range(moving_average // 2, len(inner_list) - moving_average + moving_average // 2):
+            minutes.add(inner_list[i][0])
+            new_dict[inner_list[i][0]] = sum(
+                inner_list[j][1] for j in range(i - moving_average // 2, i + moving_average - moving_average // 2)
+            ) / moving_average
+        result_dict[line_name] = new_dict
+    return minutes, result_dict
 
 
 def draw_arc(x: float, y: float, inner_r: float, outer_r: float, start_deg: float, end_deg: float) -> str:
