@@ -331,7 +331,8 @@ def all_time_paths(
     city: City, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     paths: dict[int, tuple[Path, str]], start_date: date,
     *, exclude_next_day: bool = False, exclude_edge: bool = False,
-    prefix: Callable[[int, Path, str], str] | None = None
+    prefix: Callable[[int, Path, str], str] | None = None,
+    progress_callback: Callable[[int, int], None] | None = None
 ) -> dict[int, list[PathInfo]]:
     """ Get the resolved list of paths in all possible timings """
     # Loop through first train to last train
@@ -354,10 +355,13 @@ def all_time_paths(
                 prefix_str = "" if prefix is None else prefix(index, paths[index][0], paths[index][1])
                 bar.set_description(prefix_str + "Calculating " + city.station_full_name(paths[index][0][0][0]) +
                                     " at " + get_time_repr(start_time, start_day))
-                bar.update()
+                if bar.update() and progress_callback is not None:
+                    progress_callback(bar.n, len(all_list))
                 if exclude_next_day and bfs_result.force_next_day:
                     continue
                 results[index].append((bfs_result.total_duration(), bfs_path, bfs_result))
+    if progress_callback is not None:
+        progress_callback(len(all_list), len(all_list))
     return {index: reconstruct_paths(inner_dict) for index, inner_dict in results.items()}
 
 
