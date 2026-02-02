@@ -66,8 +66,14 @@ def get_station_row(station: str, line: Line) -> list:
     )
 
 
-def get_station_html(key: str) -> str:
+def get_station_html(key: str, *, include_lines: bool = True) -> str:
     """ Get the HTML for a station """
+    if not include_lines:
+        return f"""
+<q-td key="{key}" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
+    {{{{ props.value }}}}
+</q-td>
+        """
     return f"""
 <q-td key="{key}" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{{{ props.value[0] }}}}

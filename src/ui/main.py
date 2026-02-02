@@ -15,6 +15,7 @@ from src.common.common import suffix_s
 from src.ui.common import get_default_line, get_default_direction, get_default_station
 from src.ui.drawers import right_drawer, assign_globals
 from src.ui.info_tab import info_tab, InfoData
+from src.ui.route_tab import route_tab
 from src.ui.stats_tab import stats_tab, StatsData
 from src.ui.timetable_tab import timetable_tab, TimetableData
 from src.ui.trains_tab import trains_tab, TrainsData
@@ -104,6 +105,9 @@ async def main_page(city_name: str) -> None:
 .timetable-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;
 }
+.route-tab-shorthand-selection .q-select .q-field__input--padding {
+    max-width: 50px;
+}
 .stats-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;
 }
@@ -154,7 +158,7 @@ async def main_page(city_name: str) -> None:
             stats_tab(city, stats_data)
 
         with ui.tab_panel(route_tab_):
-            ui.label("Route planning features will be implemented here.")
+            route_tab(city)
 
     def switch_to_trains(line: Line, direction: str) -> None:
         """ Switch to the train tab """

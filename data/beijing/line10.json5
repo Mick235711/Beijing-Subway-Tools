@@ -58,6 +58,7 @@
     ],
     train_routes: {
         "内环": {
+            icon: "rotate_right",
             aliases: ["Clockwise"],
             "环行": {},
             "宋家庄出库车": {starts_with: "宋家庄"},
@@ -66,6 +67,7 @@
             "成寿寺回库车": {loop: false}
         },
         "外环": {
+            icon: "rotate_left",
             aliases: ["Counterclockwise"],
             reversed: true,
             "环行": {},

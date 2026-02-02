@@ -150,7 +150,8 @@ def calculate_next(
     cur_entry: tuple[Line, str | None] | None,
     next_entry: tuple[Line, str | None] | None,
     next_hint: tuple[Line, str | None] | str | None,
-) -> str | None:
+    *, interactive: bool = True
+) -> tuple[bool, str]:
     """ Calculate next entry """
     assert cur_entry is not None or next_entry is not None, (cur_station, cur_entry, next_entry)
     if cur_entry is None:
@@ -168,18 +169,18 @@ def calculate_next(
                     break
 
         if len(candidates) == 1:
-            return candidates[0]
+            return True, candidates[0]
         prev_str = back_to_string(prev_hint)
         ps = " " * chin_len(prev_str)
         next_str = back_to_string(next_entry)
-        print(f"Ambiguity: [ ... - {prev_str} - (virtual) - {next_str} - ... ]")
-        print( "                   " + ps + "   ^^^^^^^^^^^^" + ("^" * chin_len(next_str)))
+        if interactive:
+            print(f"Ambiguity: [ ... - {prev_str} - (virtual) - {next_str} - ... ]")
+            print( "                   " + ps + "   ^^^^^^^^^^^^" + ("^" * chin_len(next_str)))
         if len(candidates) == 0:
-            print(f"No virtual transfer found from {city.station_full_name(cur_station)}!")
-            return None
+            return False, f"No virtual transfer found from {cur_station}!"
 
         # Ask the user which one it is
-        return select_stations(city, candidates)
+        return True, select_stations(city, candidates)
 
     if next_entry is None:
         candidates = []
@@ -194,22 +195,21 @@ def calculate_next(
                     break
 
         if len(candidates) == 1:
-            return candidates[0]
+            return True, candidates[0]
         cur_str = back_to_string(cur_entry)
         c = "^" * chin_len(cur_str)
-        print(f"Ambiguity: [ ... - {cur_str} - (virtual) - {back_to_string(next_hint)} - ... ]")
-        print( "                   " + c + "^^^^^^^^^^^^")
+        if interactive:
+            print(f"Ambiguity: [ ... - {cur_str} - (virtual) - {back_to_string(next_hint)} - ... ]")
+            print( "                   " + c + "^^^^^^^^^^^^")
         if len(candidates) == 0:
-            print(f"No virtual transfer found to {back_to_string(next_hint)}!")
-            return None
+            return False, f"No virtual transfer found to {back_to_string(next_hint)}!"
 
         # Ask the user which one it is
-        return select_stations(city, candidates)
+        return True, select_stations(city, candidates)
 
     # cur_entry and next_entry are both not None; we find the intersections
     if cur_entry[0].index == next_entry[0].index:
-        print(f"Adjacent duplicate lines {cur_entry[0].full_name()} is not allowed!")
-        return None
+        return False, f"Adjacent duplicate lines {cur_entry[0].full_name()} is not allowed!"
     if cur_entry[1] is None:
         candidates = cur_entry[0].stations
     else:
@@ -221,25 +221,25 @@ def calculate_next(
     candidates = [c for c in candidates if c in next_entry[0].stations and c != cur_station]
 
     if len(candidates) == 1:
-        return candidates[0]
+        return True, candidates[0]
     if len(candidates) > 1:
         # Select closest automatically
         result = closest_to(cur_entry, cur_station, candidates)
         if result is not None:
-            return result
+            return True, result
     cur_str = back_to_string(cur_entry)
     next_str = back_to_string(next_entry)
-    print(f"Ambiguity: [ ... - {cur_str} - {next_str} - ... ]")
-    print( "                   " + ("^" * (chin_len(cur_str) + chin_len(next_str) + 3)))
+    if interactive:
+        print(f"Ambiguity: [ ... - {cur_str} - {next_str} - ... ]")
+        print( "                   " + ("^" * (chin_len(cur_str) + chin_len(next_str) + 3)))
     if len(candidates) == 0:
-        print(f"No transfer station found between {cur_entry[0].full_name()} and {next_entry[0].full_name()}!")
-        return None
+        return False, f"No transfer station found between {cur_entry[0]} and {next_entry[0]}!"
 
     # Ask the user which one it is
-    return select_stations(city, candidates)
+    return True, select_stations(city, candidates)
 
 
-def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route | None:
+def parse_shorthand(shorthand: str, city: City, start: str, end: str, *, interactive: bool = True) -> Route | str:
     """ Parse a given path shorthand """
     path: AbstractPath = []
     splits = [x.strip() for x in shorthand.split("-")]
@@ -254,8 +254,11 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route |
         if i == len(processed) - 1:
             next_station = end
             if cur_starting == next_station:
-                print("Duplicate transfer with ending station!")
-                return None
+                return "Duplicate transfer with ending station!"
+            if entry is None:
+                # Verifying that we can actually virtual transfer to end
+                if (cur_starting, next_station) not in city.virtual_transfers:
+                    return f"No virtual transfer found between {cur_starting} and {next_station}!"
         else:
             next_entry = processed[i + 1]
             if isinstance(next_entry, str):
@@ -263,9 +266,9 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str) -> Route |
             else:
                 prev_hint = None if i == 0 else processed[i - 1]
                 next_hint = None if i == len(processed) - 2 or len(processed) < 2 else processed[i + 2]
-                next_station_aux = calculate_next(city, cur_starting, prev_hint, entry, next_entry, next_hint)
-                if next_station_aux is None:
-                    return None
+                ok, next_station_aux = calculate_next(city, cur_starting, prev_hint, entry, next_entry, next_hint, interactive=interactive)
+                if not ok:
+                    return next_station_aux
                 next_station = next_station_aux
 
         if entry is None:
@@ -325,7 +328,8 @@ def add_by_shorthand(city: City) -> list[Route]:
         if shorthand.strip() == "":
             break
         route = parse_shorthand(shorthand, city, start, end)
-        if route is None:
+        if isinstance(route, str):
+            print("Error:", route)
             continue
         print("Route to be added:", route_str(city.lines, route))
         answer = questionary.confirm("Do you want to add this route?").ask()

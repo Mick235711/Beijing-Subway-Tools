@@ -41,7 +41,7 @@ def get_badge(tag: str, color: str, icon: str | None = None) -> None:
 
 
 def get_line_badge(
-    line: Line, *, code_str: str | None = None,
+    line: Line, *, code_str: str | None = None, force_icon_dir: str | None = None,
     show_name: bool = True, add_click: bool = False, add_through: bool = False,
     classes: str | None = None, add_icon: tuple[str, Callable[[Line], Any]] | None = None
 ) -> None:
@@ -59,6 +59,8 @@ def get_line_badge(
             badge.on("click", lambda l=line: refresh_line_drawer(l, AVAILABLE_LINES))
         if line.badge_icon is not None:
             ui.icon(line.badge_icon).classes("q-ml-xs")
+        if line.loop and force_icon_dir is not None and force_icon_dir in line.direction_icons:
+            ui.icon(line.direction_icons[force_icon_dir]).classes("q-ml-xs")
         if add_through:
             ui.icon(LINE_TYPES["Through"][1]).classes("q-ml-xs")
         if add_icon is not None:

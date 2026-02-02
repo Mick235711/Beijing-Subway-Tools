@@ -45,6 +45,7 @@ class Line:
         self.directions: dict[str, list[str]] = {}
         self.direction_aliases: dict[str, list[str]] = {}
         self.direction_base_route: dict[str, TrainRoute] = {}
+        self.direction_icons: dict[str, str] = {}
         self.train_routes: dict[str, dict[str, TrainRoute]] = {}
         self.date_groups: dict[str, DateGroup] = {}
         self.timetable_dict: dict[str, dict[str, dict[str, dict]]] = {}
@@ -402,12 +403,14 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
 
         if "aliases" in value:
             line.direction_aliases[direction] = value["aliases"]
+        if "icon" in value:
+            line.direction_icons[direction] = value["icon"]
 
         # parse route
         if direction not in line.train_routes:
             line.train_routes[direction] = {}
         for route_name, route_value in value.items():
-            if route_name in ["reversed", "aliases"] or route_name.startswith("end_circle"):
+            if route_name in ["reversed", "aliases", "icon"] or route_name.startswith("end_circle"):
                 continue
             route = parse_train_route(
                 direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop)
