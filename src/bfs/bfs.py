@@ -37,6 +37,14 @@ class BFSResult:
         self.prev_station, self.prev_train = prev_station, prev_train
         self.force_next_day = force_next_day
 
+    def initial_time_str(self) -> str:
+        """ Get string representation of initial time """
+        return get_time_str(self.initial_time, self.initial_day)
+
+    def arrival_time_str(self) -> str:
+        """ Get string representation of arrival time """
+        return get_time_str(self.arrival_time, self.arrival_day)
+
     def prev_key(self) -> tuple[str, str, str]:
         """ Generate key for result_dict """
         assert self.prev_station is not None and self.prev_train is not None, (self.station, self.prev_station)

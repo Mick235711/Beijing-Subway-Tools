@@ -52,7 +52,7 @@ def get_minute_list(
 
 def reconstruct_paths(paths: list[PathInfo]) -> list[PathInfo]:
     """ Reconstruct the path on time between trains """
-    paths = sorted(paths, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+    paths = sorted(paths, key=lambda x: x[2].initial_time_str())
     new_paths = paths[:]
     for i, (duration, path, result) in enumerate(paths):
         if i == 0:
@@ -70,7 +70,7 @@ def reconstruct_paths(paths: list[PathInfo]) -> list[PathInfo]:
                 force_next_day=result.force_next_day
             )
             new_paths.append((duration + last_minute - minute, path, new_result))
-    return sorted(new_paths, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+    return sorted(new_paths, key=lambda x: x[2].initial_time_str())
 
 
 def all_time_bfs(

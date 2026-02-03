@@ -40,7 +40,7 @@ def calculate_data(
     for index, route, info_list in path_list:
         path_dict: dict[str, PathInfo] = {}
         for path_info in info_list:
-            path_dict[get_time_str(path_info[2].initial_time, path_info[2].initial_day)] = path_info
+            path_dict[path_info[2].initial_time_str()] = path_info
         temp_list.append((index, route, path_dict))
     temp_dict = {x[0]: x for x in temp_list}
 
@@ -142,8 +142,8 @@ def routes_one_line(
     for index, route, info_dict, percentage, percentage_tie, avg_min, min_info, max_info in data_list:
         min_time = min(info_dict.keys())
         max_time = max(info_dict.keys())
-        min_arrive = min(get_time_str(x[2].arrival_time, x[2].arrival_day) for x in info_dict.values())
-        max_arrive = max(get_time_str(x[2].arrival_time, x[2].arrival_day) for x in info_dict.values())
+        min_arrive = min(x[2].arrival_time_str() for x in info_dict.values())
+        max_arrive = max(x[2].arrival_time_str() for x in info_dict.values())
         path = min_info[1]
         print(f"Path #{index + 1}:", end="")
         if time_only_mode:
@@ -307,19 +307,19 @@ def sort_routes(
         return sorted(data_list, key=lambda x: x[7][0])
     elif criteria == "First Departure":
         return sorted(data_list, key=lambda x: min(
-            [get_time_str(y[2].initial_time, y[2].initial_day) for y in x[2].values()]
+            [y[2].initial_time_str() for y in x[2].values()]
         ))
     elif criteria == "Last Departure":
         return sorted(data_list, key=lambda x: max(
-            [get_time_str(y[2].initial_time, y[2].initial_day) for y in x[2].values()]
+            [y[2].initial_time_str() for y in x[2].values()]
         ))
     elif criteria == "Earliest Arrival":
         return sorted(data_list, key=lambda x: min(
-            [get_time_str(y[2].arrival_time, y[2].arrival_day) for y in x[2].values()]
+            [y[2].arrival_time_str() for y in x[2].values()]
         ))
     elif criteria == "Latest Arrival":
         return sorted(data_list, key=lambda x: max(
-            [get_time_str(y[2].arrival_time, y[2].arrival_day) for y in x[2].values()]
+            [y[2].arrival_time_str() for y in x[2].values()]
         ))
     elif criteria == "Transfer":
         return sorted(data_list, key=lambda x: total_transfer(x[6][1]))
@@ -365,13 +365,13 @@ def show_extreme(
                 continue
             info = info_dict[candidate_index[0]]
         elif mode == "First Departure":
-            info = min(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+            info = min(info_dict.values(), key=lambda x: x[2].initial_time_str())
         elif mode == "Last Departure":
-            info = max(info_dict.values(), key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+            info = max(info_dict.values(), key=lambda x: x[2].initial_time_str())
         elif mode == "Earliest Arrival":
-            info = min(info_dict.values(), key=lambda x: get_time_str(x[2].arrival_time, x[2].arrival_day))
+            info = min(info_dict.values(), key=lambda x: x[2].arrival_time_str())
         elif mode == "Latest Arrival":
-            info = max(info_dict.values(), key=lambda x: get_time_str(x[2].arrival_time, x[2].arrival_day))
+            info = max(info_dict.values(), key=lambda x: x[2].arrival_time_str())
         else:
             assert False, mode
         aux_data[index] = info[2].time_str()
@@ -382,12 +382,12 @@ def show_extreme(
 def get_first_cutoff(info_list: list[PathInfo]) -> TimeSpec:
     """ Get the minimum cutoff time to filter real first trains """
     # Real first train: the last departure time that achieves the same arrival time as the first
-    first_info = min(info_list, key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
+    first_info = min(info_list, key=lambda info: info[2].initial_time_str())
     first_arrival = (first_info[2].arrival_time, first_info[2].arrival_day)
     last_info = max([
         info for info in info_list
         if info[2].arrival_time == first_arrival[0] and info[2].arrival_day == first_arrival[1]
-    ], key=lambda info: get_time_str(info[2].initial_time, info[2].initial_day))
+    ], key=lambda info: info[2].initial_time_str())
     return last_info[2].initial_time, last_info[2].initial_day
 
 
@@ -561,7 +561,7 @@ def analyze_routes(
                     for index in index_set:
                         candidate = []
                         for p in index_dict[index][2]:
-                            if get_time_str(p[2].initial_time, p[2].initial_day) == start_str:
+                            if p[2].initial_time_str() == start_str:
                                 candidate.append(p)
                         assert len(candidate) == 1, (candidate, start_str, index)
                         path_list_inner.append(candidate[0])

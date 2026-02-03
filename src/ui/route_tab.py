@@ -5,10 +5,11 @@
 
 # Libraries
 from collections.abc import Callable
-from datetime import date
+from datetime import datetime, date, time
 from functools import partial
 from multiprocessing import Manager
-from typing import Any, Literal
+from queue import Queue
+from typing import Literal
 
 from nicegui import run, ui
 from nicegui.elements.button import Button
@@ -20,7 +21,7 @@ from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import to_pinyin, get_text_color, suffix_s, distance_str, format_duration, average, get_time_str, \
-    percentage_str, valid_positive, diff_time_tuple
+    percentage_str, valid_positive, diff_time_tuple, parse_time
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
@@ -28,22 +29,51 @@ from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
 from src.routing_pk.analyze_routes import PathData, calculate_data, get_first_cutoff
 from src.routing_pk.common import Route, route_str, RouteData
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
-    get_station_row, calculate_moving_average
+    get_station_row, calculate_moving_average, get_time_input
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge
 
 
-def get_route_row(lines: dict[str, Line], route: Route) -> list[tuple]:
+def is_necessary(city: City, route: Route, index: int) -> bool:
+    """ Determine if the transfer is necessary to print """
+    if index == 0:
+        return False
+    prev_ld = route[0][index - 1][1]
+    line_direction = route[0][index][1]
+    assert prev_ld is not None or line_direction is not None, (prev_ld, line_direction)
+    if prev_ld is None:
+        if index == 1:
+            return len([1 for s1, _ in city.virtual_transfers.keys() if s1 == route[0][0][0]]) > 1
+        prev2_ld = route[0][index - 2][1]
+        assert prev2_ld is not None and line_direction is not None, (route, prev2_ld, prev_ld, line_direction)
+        return city.virtual_transfer_times[(prev2_ld[0], line_direction[0])] > 1
+    if line_direction is None:
+        if index == len(route[0]) - 1:
+            return len([1 for _, s2 in city.virtual_transfers.keys() if s2 == route[0][-1][0]]) > 1
+        next_ld = route[0][index + 1][1]
+        assert prev_ld is not None and next_ld is not None, (route, prev_ld, line_direction, next_ld)
+        return city.virtual_transfer_times[(prev_ld[0], next_ld[0])] > 1
+    return city.transfer_times[(prev_ld[0], line_direction[0])] > 1
+
+
+def get_route_row(
+    city: City, route: Route,
+    *, insert_transfer: Literal["none", "necessary", "all"] = "none"
+) -> list[tuple]:
     """ Get row for a route """
     row: list[tuple] = []
-    for station, line_direction in route[0]:
+    for index, (station, line_direction) in enumerate(route[0]):
+        if (insert_transfer == "all" and index > 0) or (
+            insert_transfer == "necessary" and is_necessary(city, route, index)
+        ):
+            row.append((None, None, None, None, None, None, station))
         if line_direction is None:
-            row.append((None, "", "black", "white", "", "multiple_stop"))
+            row.append((None, "", "black", "white", "", "multiple_stop", ""))
         else:
-            line, direction = lines[line_direction[0]], line_direction[1]
+            line, direction = city.lines[line_direction[0]], line_direction[1]
             row.append((
                 line.index, line.get_badge(), line.color or "primary",
                 get_text_color(line.color), line.badge_icon or "",
-                line.direction_icons[direction] if line.loop and direction in line.direction_icons else ""
+                line.direction_icons[direction] if line.loop and direction in line.direction_icons else "", ""
             ))
     return row
 
@@ -52,17 +82,22 @@ def get_route_html(key: str) -> str:
     """ Get the HTML for the route via field """
     return f"""
 <q-td key="{key}" :props="props">
-    <q-badge v-for="[index, name, color, textColor, icon, dir_icon] in props.value" :style="{{ background: color }}" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
-        <span v-if="name !== ''">
-            {{{{ name }}}}
-            <q-icon v-if="icon !== ''" :name="icon" />
-            <q-icon v-if="dir_icon !== ''" :name="dir_icon" />
+    <span v-for="[index, name, color, textColor, icon, dir_icon, text] in props.value">
+        <span v-if="text !== ''" @click="$parent.$emit('stationBadgeClick', text)" class="cursor-pointer pl-[2px] pr-[2px]">
+            {{{{ text }}}}
         </span>
-        <span v-if="name === ''">
-            <q-icon v-if="icon !== ''" :name="icon" />
-            <q-icon v-if="dir_icon !== ''" :name="dir_icon" />
-        </span>
-    </q-badge>
+        <q-badge v-if="text === ''" :style="{{ background: color }}" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+            <span v-if="name !== ''">
+                {{{{ name }}}}
+                <q-icon v-if="icon !== ''" :name="icon" />
+                <q-icon v-if="dir_icon !== ''" :name="dir_icon" />
+            </span>
+            <span v-if="name === ''">
+                <q-icon v-if="icon !== ''" :name="icon" />
+                <q-icon v-if="dir_icon !== ''" :name="dir_icon" />
+            </span>
+        </q-badge>
+    </span>
 </q-td>
     """
 
@@ -88,7 +123,7 @@ def calculate_route_rows(city: City, routes: list[Route]) -> list[dict]:
         rows.append({
             "start_station": get_station_row(route[0][0][0]),
             "start_station_sort": to_pinyin(route[0][0][0])[0],
-            "route": get_route_row(city.lines, route),
+            "route": get_route_row(city, route),
             "route_sort": "[" + ",".join("0" if ld is None else str(city.lines[ld[0]].index) for _, ld in route[0]) + "]",
             "route_str": route_str(city.lines, route),
             "end_station": get_station_row(route[1]),
@@ -444,7 +479,7 @@ def add_route_shorthand(city: City, on_route_change: Callable[[Route], None]) ->
     on_input_change()
 
 
-def progress_callback(queue: Any, index: int, total: int) -> None:
+def progress_callback(queue: Queue[tuple[int, int]], index: int, total: int) -> None:
     """ Handle progress bar updates """
     queue.put_nowait((index, total))
 
@@ -453,7 +488,8 @@ async def analyze_routes(
     city: City, routes: list[Route], start_date: date, progress_bar: LinearProgress
 ) -> tuple[dict[str, set[int]], list[RouteData]]:
     """ Start the analysis process """
-    progress_queue = Manager().Queue()
+    manager = Manager()
+    progress_queue: Queue[tuple[int, int]] = manager.Queue()
     progress_callback(progress_queue, 0, 0)
     progress_bar.clear()
     with progress_bar:
@@ -468,7 +504,7 @@ async def analyze_routes(
         value = 0.0 if total == 0 else index / total
         progress_bar.set_value(value)
         progress_label.set_text(f"{index} / {total} ({value * 100:.2f}%)")
-    ui.timer(0.1, callback=lambda: update_progress())
+    progress_timer = ui.timer(0.1, callback=lambda: update_progress())
 
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
@@ -480,6 +516,8 @@ async def analyze_routes(
         }, start_date,
         progress_callback=partial(progress_callback, progress_queue)
     )
+    progress_timer.cancel()
+    manager.shutdown()
 
     path_list: list[PathData] = []
     discarded = 0
@@ -543,17 +581,25 @@ def strip_first_from_dict(info_dict: dict[str, PathInfo]) -> dict[str, PathInfo]
 
 def calculate_data_rows(
     city: City, data_list: list[RouteData],
-    *, exclude_next_day: bool = True, strip_first: bool = True,
-    percentage_field: Literal["best", "tie", "other"] = "best"
+    *, cur_time: time, exclude_next_day: bool = True, strip_first: bool = True,
+    percentage_field: Literal["best", "tie", "other"] = "best",
+    insert_transfer: Literal["none", "necessary", "all"] = "necessary",
+    baseline: int | None = None
 ) -> list[dict]:
     """ Calculate rows for the data table """
-    rows = []
-    for index, route, info_dict, percentage, percentage_tie, *_ in data_list:
-        assert isinstance(route, tuple), route
+    cur_time_str = get_time_str(cur_time)
+    stripped_data: dict[int, RouteData] = {}
+    for data_elem in data_list:
+        info_dict = data_elem[2]
         if exclude_next_day:
             info_dict = {time_str: data for time_str, data in info_dict.items() if not data[-1].force_next_day}
         if strip_first:
             info_dict = strip_first_from_dict(info_dict)
+        stripped_data[data_elem[0]] = (data_elem[0], data_elem[1], info_dict) + data_elem[3:]  # type: ignore
+
+    rows = []
+    for index, (_, route, info_dict, percentage, percentage_tie, *_) in stripped_data.items():
+        assert isinstance(route, tuple), route
         if percentage_field == "best":
             per_str = percentage_str(percentage - percentage_tie)
             per_raw = percentage - percentage_tie
@@ -567,28 +613,42 @@ def calculate_data_rows(
             assert False, percentage_field
 
         avg_min = average(x[0] for x in info_dict.values())
+        if baseline is None:
+            avg_min_str = format_duration(avg_min)
+        elif index == baseline:
+            avg_min_str = "Baseline"
+        else:
+            avg_min_str = format_duration(avg_min - average(x[0] for x in stripped_data[baseline][2].values()))
+
         min_key, min_info = min(list(info_dict.items()), key=lambda x: x[1][0])
         max_key, max_info = max(list(info_dict.items()), key=lambda x: x[1][0])
         min_time = min(info_dict.keys())
         max_time = max(info_dict.keys())
-        min_arrive = min(info_dict.items(), key=lambda x: get_time_str(x[1][2].arrival_time, x[1][2].arrival_day))
-        max_arrive = max(info_dict.items(), key=lambda x: get_time_str(x[1][2].arrival_time, x[1][2].arrival_day))
+        min_arrive = min(info_dict.items(), key=lambda x: x[1][2].arrival_time_str())
+        max_arrive = max(info_dict.items(), key=lambda x: x[1][2].arrival_time_str())
         path, end_station = min_info[1], route[1]
         distance = path_distance(path, end_station)
+
+        if cur_time_str in info_dict:
+            arrival_str = info_dict[cur_time_str][2].arrival_time_str()
+        elif get_time_str(cur_time, True) in info_dict:
+            arrival_str = info_dict[get_time_str(cur_time, True)][2].arrival_time_str()
+        else:
+            arrival_str = None
         rows.append({
             "index": index + 1,
             "percentage": per_str,
             "percentage_sort": per_raw,
             "start_station": get_station_row(route[0][0][0]),
             "start_station_sort": to_pinyin(route[0][0][0])[0],
-            "route": get_route_row(city.lines, route),
+            "route": get_route_row(city, route, insert_transfer=insert_transfer),
             "route_sort": "[" + ",".join("0" if ld is None else str(city.lines[ld[0]].index) for _, ld in route[0]) + "]",
             "end_station": get_station_row(route[1]),
             "end_station_sort": to_pinyin(route[1])[0],
             "distance": distance_str(distance),
             "num_stations": len(expand_path(path, end_station)),
             "transfer": total_transfer(path),
-            "avg_time": format_duration(avg_min),
+            "avg_time": avg_min_str,
             "avg_time_sort": avg_min,
             "min_time": (format_duration(min_info[0]), min_key),
             "min_time_sort": min_info[0],
@@ -596,10 +656,10 @@ def calculate_data_rows(
             "max_time_sort": max_info[0],
             "dep_time": (min_time, max_time),
             "arr_time": (
-                get_time_str(min_arrive[1][2].arrival_time, min_arrive[1][2].arrival_day),
-                get_time_str(max_arrive[1][2].arrival_time, max_arrive[1][2].arrival_day),
+                min_arrive[1][2].arrival_time_str(), max_arrive[1][2].arrival_time_str(),
                 min_arrive[0], max_arrive[0]
-            )
+            ),
+            "target_arrival": arrival_str
         })
     return rows
 
@@ -616,21 +676,33 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
 
     def on_switch_change() -> None:
         """ Handle switch changes """
+        cur_time = parse_time(time_input.value)[0]
         [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = percentage_select.value
         data_table.rows = calculate_data_rows(
-            city, data_list, exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value,
-            percentage_field=percentage_select.value.lower()
+            city, data_list, cur_time=cur_time,
+            exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value,
+            percentage_field=percentage_select.value.lower(), insert_transfer=transfer_select.value.lower(),
+            baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value))
         )
         data_table.selected = data_table.rows[:]
         on_chart_data_change(exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value)
 
-    data_rows = calculate_data_rows(city, data_list)
+    data_rows = calculate_data_rows(city, data_list, cur_time=datetime.now().time())
     with ui.column():
         with ui.row().classes("w-full items-center"):
             next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
             strip_first_switch = ui.switch("Strip first", value=True, on_change=on_switch_change)
-            ui.label("Percentage:")
-            percentage_select = ui.select(["Best", "Tie", "Other"], value="Best", on_change=on_switch_change)
+            percentage_select = ui.select(
+                ["Best", "Tie", "Other"], label="Percentage", value="Best", on_change=on_switch_change
+            ).classes("min-w-25")
+            transfer_select = ui.select(
+                ["None", "Necessary", "All"], label="Transfer", value="Necessary", on_change=on_switch_change
+            ).classes("min-w-25")
+            baseline_select = ui.select(
+                ["None"] + [index_name(index) for index, *_ in data_list], label="Baseline", value="None",
+                on_change=on_switch_change
+            ).classes("min-w-25")
+            time_input = get_time_input(lambda _: on_switch_change(), label="Departure").classes("w-30")
         with ui.row().classes("w-full items-center justify-between"):
             ui.label("Route Basic Data").classes("text-xl font-semibold mt-6 mb-2")
             data_search = ui.input("Search data...")
@@ -695,8 +767,9 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
                      }"""},
                 {"name": "maxTimeSort", "label": "Max Time Sort", "field": "max_time_sort", "sortable": False,
                  "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "depTime", "label": "Departure", "field": "dep_time", "align": "center"},
-                {"name": "arrTime", "label": "Arrival", "field": "arr_time", "align": "center"}
+                {"name": "depTime", "label": "Departure Range", "field": "dep_time", "align": "center"},
+                {"name": "arrTime", "label": "Arrival Range", "field": "arr_time", "align": "center"},
+                {"name": "targetArrival", "label": "Arrival", "field": "target_arrival", "align": "center"}
             ],
             column_defaults={"align": "right", "required": True, "sortable": True},
             rows=data_rows,

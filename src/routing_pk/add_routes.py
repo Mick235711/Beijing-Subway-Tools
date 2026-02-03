@@ -180,11 +180,13 @@ def calculate_next(
             return False, f"No virtual transfer found from {cur_station}!"
 
         # Ask the user which one it is
-        return True, select_stations(city, candidates)
+        return True, select_stations(city, candidates) if interactive else candidates[0]
 
     if next_entry is None:
         candidates = []
         for (station1, station2), transfer in city.virtual_transfers.items():
+            if station1 == cur_station:
+                continue
             if isinstance(next_hint, str) and station2 != next_hint:
                 continue
             for (from_l, from_d, to_l, to_d) in transfer.transfer_time:
@@ -205,7 +207,7 @@ def calculate_next(
             return False, f"No virtual transfer found to {back_to_string(next_hint)}!"
 
         # Ask the user which one it is
-        return True, select_stations(city, candidates)
+        return True, select_stations(city, candidates) if interactive else candidates[0]
 
     # cur_entry and next_entry are both not None; we find the intersections
     if cur_entry[0].index == next_entry[0].index:
@@ -236,7 +238,7 @@ def calculate_next(
         return False, f"No transfer station found between {cur_entry[0]} and {next_entry[0]}!"
 
     # Ask the user which one it is
-    return True, select_stations(city, candidates)
+    return True, select_stations(city, candidates) if interactive else candidates[0]
 
 
 def parse_shorthand(shorthand: str, city: City, start: str, end: str, *, interactive: bool = True) -> Route | str:
@@ -266,7 +268,9 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str, *, interac
             else:
                 prev_hint = None if i == 0 else processed[i - 1]
                 next_hint = None if i == len(processed) - 2 or len(processed) < 2 else processed[i + 2]
-                ok, next_station_aux = calculate_next(city, cur_starting, prev_hint, entry, next_entry, next_hint, interactive=interactive)
+                ok, next_station_aux = calculate_next(
+                    city, cur_starting, prev_hint, entry, next_entry, next_hint, interactive=interactive
+                )
                 if not ok:
                     return next_station_aux
                 next_station = next_station_aux

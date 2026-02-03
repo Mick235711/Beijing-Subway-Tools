@@ -5,16 +5,17 @@
 
 # Libraries
 from collections.abc import Callable
-from datetime import date
-from typing import Any, TypeVar
+from datetime import datetime, date, time
+from typing import Any
 
 from nicegui import ui
 from nicegui.elements.date_input import DateInput
+from nicegui.elements.time_input import TimeInput
 
 from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr, \
-    get_time_str, to_polar
+    get_time_str, to_polar, parse_time
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_all_trains_through, is_possible_to_board, get_virtual_dict
@@ -221,6 +222,14 @@ def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str 
     return ui.date_input(
         label, value=date.today().isoformat(),
         on_change=lambda e: None if callback is None else callback(date.fromisoformat(e.value))
+    )
+
+
+def get_time_input(callback: Callable[[TimeSpec], Any] | None = None, *, label: str | None = "Time") -> TimeInput:
+    """ Get an input box for time selection """
+    return ui.time_input(
+        label, value=get_time_str(datetime.now().time()),
+        on_change=lambda e: None if callback is None else callback(parse_time(e.value))
     )
 
 

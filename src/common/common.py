@@ -318,6 +318,8 @@ def get_time_seq_repr(time_set: set[TimeSpec]) -> str:
 def format_duration(duration: timedelta | int | float) -> str:
     """ Get string representation of duration """
     if not isinstance(duration, timedelta):
+        if duration < 0:
+            return "-" + format_duration(-duration)
         return format_duration(timedelta(minutes=duration))
 
     # we don't care about seconds or lower, just day-hour-minute

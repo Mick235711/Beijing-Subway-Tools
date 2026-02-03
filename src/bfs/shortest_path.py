@@ -36,7 +36,7 @@ def find_last_train(
         exclude_edge=exclude_edge, include_express=include_express
     )
     max_result = max(results[end_station], key=lambda x: (
-        get_time_str(x[2].arrival_time, x[2].arrival_day), get_time_str(x[2].initial_time, x[2].initial_day)
+        x[2].arrival_time_str(), x[2].initial_time_str()
     ))
     return max_result[2].initial_time, max_result[2].initial_day
 
@@ -101,9 +101,9 @@ def display_info_min(
         return []
     min_info = min(infos, key=lambda x: x[0])
     max_info = max(infos, key=lambda x: x[0])
-    min_time = min(infos, key=lambda x: (get_time_str(x[2].initial_time, x[2].initial_day), x[0]))
-    max_time = max(infos, key=lambda x: (get_time_str(x[2].initial_time, x[2].initial_day), x[0]))
-    times = {get_time_str(x[2].initial_time, x[2].initial_day) for x in infos}
+    min_time = min(infos, key=lambda x: (x[2].initial_time_str(), x[0]))
+    max_time = max(infos, key=lambda x: (x[2].initial_time_str(), x[0]))
+    times = {x[2].initial_time_str() for x in infos}
     print("Average over all " + suffix_s("path", len(infos)) + " with " +
           suffix_s("distinct starting time", len(times)) +
           f" ({get_time_repr(min_time[2].initial_time, min_time[2].initial_day)} - " +
@@ -119,8 +119,8 @@ def display_info_min(
         min_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules
     )
     if show_first_last:
-        first_info = min(infos, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
-        last_info = max(infos, key=lambda x: get_time_str(x[2].initial_time, x[2].initial_day))
+        first_info = min(infos, key=lambda x: x[2].initial_time_str())
+        last_info = max(infos, key=lambda x: x[2].initial_time_str())
         print("\nEarliest time path:")
         first_info[2].pretty_print_path(
             first_info[1], city.lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules

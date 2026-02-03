@@ -36,7 +36,9 @@ class City:
         self.station_lines: dict[str, set[Line]] = {}
         self.force_set: set[Line] = set()
         self.transfers: dict[str, Transfer] = {}
+        self.transfer_times: dict[tuple[str, str], int] = {}
         self.virtual_transfers: dict[tuple[str, str], Transfer] = {}
+        self.virtual_transfer_times: dict[tuple[str, str], int] = {}
         self.through_specs: list[ThroughSpec] = []
         self.carriages: dict[str, Carriage] | None = None
         self.fare_rules: Fare | None = None
@@ -68,6 +70,32 @@ def parse_station_lines(lines: dict[str, Line]) -> dict[str, set[Line]]:
                 station_lines[station] = set()
             station_lines[station].add(line_obj)
     return station_lines
+
+
+def get_transfer_times(city: City) -> dict[tuple[str, str], int]:
+    """ Get transfer times between lines """
+    transfer_times: dict[tuple[str, str], int] = {
+        (l1, l2): 0 for l1 in city.lines.keys() for l2 in city.lines.keys()
+    }
+    for station in city.transfers.keys():
+        for line1 in city.station_lines[station]:
+            for line2 in city.station_lines[station]:
+                if line1.name != line2.name:
+                    transfer_times[(line1.name, line2.name)] += 1
+    return transfer_times
+
+
+def get_virtual_transfer_times(city: City) -> dict[tuple[str, str], int]:
+    """ Get virtual transfer times between lines """
+    transfer_times: dict[tuple[str, str], int] = {
+        (l1, l2): 0 for l1 in city.lines.keys() for l2 in city.lines.keys()
+    }
+    for station1, station2 in city.virtual_transfers.keys():
+        for line1 in city.station_lines[station1]:
+            for line2 in city.station_lines[station2]:
+                if line1.name != line2.name:
+                    transfer_times[(line1.name, line2.name)] += 1
+    return transfer_times
 
 
 def parse_city(city_root: str) -> City:
@@ -114,6 +142,8 @@ def parse_city(city_root: str) -> City:
         line_obj.must_include = {x for x in line_obj.stations if all(
             l in city.force_set or x in l.must_include for l in city.station_lines[x]
         )}
+    city.transfer_times = get_transfer_times(city)
+    city.virtual_transfer_times = get_virtual_transfer_times(city)
     return city
 
 
