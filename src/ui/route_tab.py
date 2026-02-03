@@ -21,7 +21,7 @@ from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import to_pinyin, get_text_color, suffix_s, distance_str, format_duration, average, get_time_str, \
-    percentage_str, valid_positive, diff_time_tuple, parse_time
+    percentage_str, valid_positive, diff_time_tuple, parse_time, to_minutes
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
@@ -579,6 +579,22 @@ def strip_first_from_dict(info_dict: dict[str, PathInfo]) -> dict[str, PathInfo]
     }
 
 
+def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[str | None, int]:
+    """ Get target arrival time from the information dict """
+    cur_time_str = get_time_str(cur_time)
+    if cur_time_str in info_dict:
+        return info_dict[cur_time_str][2].arrival_time_str(), to_minutes(
+            info_dict[cur_time_str][2].arrival_time, info_dict[cur_time_str][2].arrival_day
+        )
+    elif get_time_str(cur_time, True) in info_dict:
+        return info_dict[get_time_str(cur_time, True)][2].arrival_time_str(), to_minutes(
+            info_dict[get_time_str(cur_time, True)][2].arrival_time,
+            info_dict[get_time_str(cur_time, True)][2].arrival_day
+        )
+    else:
+        return None, 24 * 60 * 2
+
+
 def calculate_data_rows(
     city: City, data_list: list[RouteData],
     *, cur_time: time, exclude_next_day: bool = True, strip_first: bool = True,
@@ -587,7 +603,6 @@ def calculate_data_rows(
     baseline: int | None = None
 ) -> list[dict]:
     """ Calculate rows for the data table """
-    cur_time_str = get_time_str(cur_time)
     stripped_data: dict[int, RouteData] = {}
     for data_elem in data_list:
         info_dict = data_elem[2]
@@ -613,13 +628,6 @@ def calculate_data_rows(
             assert False, percentage_field
 
         avg_min = average(x[0] for x in info_dict.values())
-        if baseline is None:
-            avg_min_str = format_duration(avg_min)
-        elif index == baseline:
-            avg_min_str = "Baseline"
-        else:
-            avg_min_str = format_duration(avg_min - average(x[0] for x in stripped_data[baseline][2].values()))
-
         min_key, min_info = min(list(info_dict.items()), key=lambda x: x[1][0])
         max_key, max_info = max(list(info_dict.items()), key=lambda x: x[1][0])
         min_time = min(info_dict.keys())
@@ -627,14 +635,67 @@ def calculate_data_rows(
         min_arrive = min(info_dict.items(), key=lambda x: x[1][2].arrival_time_str())
         max_arrive = max(info_dict.items(), key=lambda x: x[1][2].arrival_time_str())
         path, end_station = min_info[1], route[1]
+        num_station = len(expand_path(path, end_station))
+        transfer = total_transfer(path)
         distance = path_distance(path, end_station)
-
-        if cur_time_str in info_dict:
-            arrival_str = info_dict[cur_time_str][2].arrival_time_str()
-        elif get_time_str(cur_time, True) in info_dict:
-            arrival_str = info_dict[get_time_str(cur_time, True)][2].arrival_time_str()
+        arrival_str, arrival_sort = get_target_arrival(info_dict, cur_time)
+        if baseline is None:
+            avg_min_str = format_duration(avg_min)
+            min_str = format_duration(min_info[0])
+            max_str = format_duration(max_info[0])
+            station_str = str(num_station)
+            transfer_str = str(transfer)
+            dist_str = distance_str(distance)
+            dist_display = str(distance) + "m"
+        elif index == baseline:
+            avg_min_str = "[" + format_duration(avg_min) + "]"
+            min_str = "[" + format_duration(min_info[0]) + "]"
+            max_str = "[" + format_duration(max_info[0]) + "]"
+            station_str = "[" + str(num_station) + "]"
+            transfer_str = "[" + str(transfer) + "]"
+            dist_str = "[" + distance_str(distance) + "]"
+            dist_display = str(distance) + "m"
+            if arrival_str is not None:
+                arrival_str = "[" + arrival_str + "]"
         else:
-            arrival_str = None
+            diff_avg_min = avg_min - average(x[0] for x in stripped_data[baseline][2].values())
+            diff_min = min_info[0] - min(list(stripped_data[baseline][2].values()), key=lambda x: x[0])[0]
+            diff_max = max_info[0] - max(list(stripped_data[baseline][2].values()), key=lambda x: x[0])[0]
+            other_path = stripped_data[baseline][-1][1]
+            other_route = stripped_data[baseline][1]
+            assert isinstance(other_route, tuple), other_route
+            other_end = other_route[1]
+            diff_station = num_station - len(expand_path(other_path, other_end))
+            diff_transfer = transfer - total_transfer(other_path)
+            diff_dist = distance - path_distance(other_path, other_end)
+            other_arr, other_sort = get_target_arrival(stripped_data[baseline][2], cur_time)
+            if arrival_str is not None and other_arr is not None:
+                diff_arr = arrival_sort - other_sort
+                arrival_str = format_duration(diff_arr)
+                if diff_arr > 0:
+                    arrival_str = "+" + arrival_str
+
+            avg_min_str = format_duration(diff_avg_min)
+            min_str = format_duration(diff_min)
+            max_str = format_duration(diff_max)
+            station_str = str(diff_station)
+            transfer_str = str(diff_transfer)
+            dist_str = distance_str(diff_dist)
+            dist_display = str(diff_dist) + "m"
+            if diff_avg_min > 0:
+                avg_min_str = "+" + avg_min_str
+            if diff_min > 0:
+                min_str = "+" + min_str
+            if diff_max > 0:
+                max_str = "+" + max_str
+            if diff_station > 0:
+                station_str = "+" + station_str
+            if diff_transfer > 0:
+                transfer_str = "+" + transfer_str
+            if diff_dist > 0:
+                dist_str = "+" + dist_str
+                dist_display = "+" + dist_display
+
         rows.append({
             "index": index + 1,
             "percentage": per_str,
@@ -645,21 +706,25 @@ def calculate_data_rows(
             "route_sort": "[" + ",".join("0" if ld is None else str(city.lines[ld[0]].index) for _, ld in route[0]) + "]",
             "end_station": get_station_row(route[1]),
             "end_station_sort": to_pinyin(route[1])[0],
-            "distance": distance_str(distance),
-            "num_stations": len(expand_path(path, end_station)),
-            "transfer": total_transfer(path),
+            "distance": (dist_str, dist_display),
+            "distance_sort": distance,
+            "num_stations": station_str,
+            "num_stations_sort": num_station,
+            "transfer": transfer_str,
+            "transfer_sort": transfer,
             "avg_time": avg_min_str,
             "avg_time_sort": avg_min,
-            "min_time": (format_duration(min_info[0]), min_key),
+            "min_time": (min_str, min_key),
             "min_time_sort": min_info[0],
-            "max_time": (format_duration(max_info[0]), max_key),
+            "max_time": (max_str, max_key),
             "max_time_sort": max_info[0],
             "dep_time": (min_time, max_time),
             "arr_time": (
                 min_arrive[1][2].arrival_time_str(), max_arrive[1][2].arrival_time_str(),
                 min_arrive[0], max_arrive[0]
             ),
-            "target_arrival": arrival_str
+            "target_arrival": arrival_str,
+            "target_arrival_sort": arrival_sort,
         })
     return rows
 
@@ -744,32 +809,48 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
                  "classes": "hidden", "headerClasses": "hidden"},
                 {"name": "distance", "label": "Distance", "field": "distance",
                  ":sort": """(a, b, rowA, rowB) => {
-                        const parse = s => s.endsWith("km") ? parseFloat(s) * 1000 : parseFloat(s);
-                        return parse(a) - parse(b);
+                        return parseFloat(rowA["distance_sort"]) - parseFloat(rowB["distance_sort"]);
                              }"""},
-                {"name": "stationNum", "label": "Stations", "field": "num_stations"},
-                {"name": "transfer", "label": "Transfers", "field": "transfer"},
+                {"name": "distanceSort", "label": "Distance Sort", "field": "distance_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "stationNum", "label": "Stations", "field": "num_stations",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["num_stations_sort"]) - parseFloat(rowB["num_stations_sort"]);
+                             }"""},
+                {"name": "stationNumSort", "label": "Stations Sort", "field": "num_stations_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
+                {"name": "transfer", "label": "Transfers", "field": "transfer",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["transfer_sort"]) - parseFloat(rowB["transfer_sort"]);
+                             }"""},
+                {"name": "transferSort", "label": "Transfers Sort", "field": "transfer_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
                 {"name": "avgTime", "label": "Avg Time", "field": "avg_time",
                  ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["avg_time_sort"]) - parseFloat(rowB["avg_time_sort"]);
-                     }"""},
+                             }"""},
                 {"name": "avgTimeSort", "label": "Avg Time Sort", "field": "avg_time_sort", "sortable": False,
                  "classes": "hidden", "headerClasses": "hidden"},
                 {"name": "minTime", "label": "Min Time", "field": "min_time",
                  ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["min_time_sort"]) - parseFloat(rowB["min_time_sort"]);
-                     }"""},
+                             }"""},
                 {"name": "minTimeSort", "label": "Min Time Sort", "field": "min_time_sort", "sortable": False,
                  "classes": "hidden", "headerClasses": "hidden"},
                 {"name": "maxTime", "label": "Max Time", "field": "max_time",
                  ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["max_time_sort"]) - parseFloat(rowB["max_time_sort"]);
-                     }"""},
+                             }"""},
                 {"name": "maxTimeSort", "label": "Max Time Sort", "field": "max_time_sort", "sortable": False,
                  "classes": "hidden", "headerClasses": "hidden"},
                 {"name": "depTime", "label": "Departure Range", "field": "dep_time", "align": "center"},
                 {"name": "arrTime", "label": "Arrival Range", "field": "arr_time", "align": "center"},
-                {"name": "targetArrival", "label": "Arrival", "field": "target_arrival", "align": "center"}
+                {"name": "targetArrival", "label": "Arrival", "field": "target_arrival", "align": "center",
+                 ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["target_arrival_sort"] - rowB["target_arrival_sort"];
+                             }"""},
+                {"name": "targetArrivalSort", "label": "Arrival Sort", "field": "target_arrival_sort", "sortable": False,
+                 "classes": "hidden", "headerClasses": "hidden"},
             ],
             column_defaults={"align": "right", "required": True, "sortable": True},
             rows=data_rows,
@@ -786,6 +867,10 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
     data_table.add_slot("body-cell-start", get_station_html("start"))
     data_table.add_slot("body-cell-route", get_route_html("route"))
     data_table.add_slot("body-cell-end", get_station_html("end"))
+    with data_table.add_slot("body-cell-distance"):
+        with data_table.cell("distance"):
+            ui.label().props(":innerHTML=\"props.value[0]\"")
+            ui.tooltip().props(":innerHTML=\"props.value[1]\"")
     data_table.add_slot("body-cell-minTime", get_signal_html("minTime", "depTimeClick"))
     data_table.add_slot("body-cell-maxTime", get_signal_html("maxTime", "depTimeClick"))
     data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))

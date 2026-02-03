@@ -182,6 +182,8 @@ def ask_for_int(msg: str, *, with_default: int | None = None) -> int:
 
 def distance_str(distance: int | float) -> str:
     """ Get proper distance string from a meter distance """
+    if distance < 0:
+        return "-" + distance_str(-distance)
     if distance < 1000:
         return f"{distance}m" if isinstance(distance, int) else f"{distance:.2f}m"
     return f"{distance / 1000:.2f}km"
