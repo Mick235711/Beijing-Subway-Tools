@@ -324,13 +324,13 @@ def format_duration(duration: timedelta | int | float) -> str:
             return "-" + format_duration(-duration)
         return format_duration(timedelta(minutes=duration))
 
-    # we don't care about seconds or lower, just day-hour-minute
+    # Split into day-hour-minute
     days, seconds = duration.days, duration.seconds
     minutes, seconds = seconds // 60, seconds % 60
     hours, minutes = minutes // 60, minutes % 60
     result = ("" if days == 0 else f"{days}d") + ("" if hours == 0 else f"{hours}h")
     if seconds > 0:
-        result += f"{minutes + seconds / 60:.2f}min"
+        result += f"{minutes + seconds / 60 + duration.microseconds / 60 / 1000 / 1000:.2f}min"
     elif minutes > 0:
         result += f"{minutes}min"
     return "<1min" if result == "" else result

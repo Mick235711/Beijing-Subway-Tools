@@ -20,13 +20,14 @@ from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import to_pinyin, get_text_color, suffix_s, distance_str, format_duration, average, get_time_str, \
-    percentage_str, valid_positive, diff_time_tuple, parse_time, to_minutes
+from src.city.through_spec import ThroughSpec
+from src.common.common import to_pinyin, get_text_color, distance_str, format_duration, average, get_time_str, \
+    percentage_str, valid_positive, parse_time, to_minutes
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
-from src.routing.through_train import parse_through_train
+from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
-from src.routing_pk.analyze_routes import PathData, calculate_data, get_first_cutoff
+from src.routing_pk.analyze_routes import PathData, calculate_data, strip_routes
 from src.routing_pk.common import Route, route_str, RouteData
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
     get_station_row, calculate_moving_average, get_time_input
@@ -237,9 +238,9 @@ def route_tab(city: City) -> None:
     async def on_start_click() -> None:
         """ Handle start analyze button clicks """
         analyze_button.set_enabled(False)
-        _, data_list = await analyze_routes(city, current_routes, date.fromisoformat(date_input.value), progress)
+        path_list, through_dict = await analyze_routes(city, current_routes, date.fromisoformat(date_input.value), progress)
         analyze_button.set_enabled(True)
-        await display_data.refresh(data_list=data_list)
+        await display_data.refresh(path_list=path_list, through_dict=through_dict)
 
     with ui.tabs().classes("w-full") as add_route_tabs:
         ui.tab("Add routes via").props("disable")
@@ -253,6 +254,7 @@ def route_tab(city: City) -> None:
     with ui.row().classes("items-center w-full flex-nowrap"):
         date_input = get_date_input(label="Riding date")
         analyze_button = ui.button("Start Analyze", on_click=on_start_click)
+        analyze_button.set_enabled(False)
         progress = ui.linear_progress(size="20px", show_value=False).props("instant-feedback").classes("flex-1")
         progress.set_visibility(False)
 
@@ -486,7 +488,7 @@ def progress_callback(queue: Queue[tuple[int, int]], index: int, total: int) -> 
 
 async def analyze_routes(
     city: City, routes: list[Route], start_date: date, progress_bar: LinearProgress
-) -> tuple[dict[str, set[int]], list[RouteData]]:
+) -> tuple[list[PathData], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Start the analysis process """
     manager = Manager()
     progress_queue: Queue[tuple[int, int]] = manager.Queue()
@@ -520,22 +522,12 @@ async def analyze_routes(
     manager.shutdown()
 
     path_list: list[PathData] = []
-    discarded = 0
     for i, paths in path_dict.items():
         if len(paths) == 0:
-            discarded += 1
             continue
         path_list.append((i, routes[i], paths))
-    _, best_dict, data_list = calculate_data(path_list, city.transfers, through_dict, time_only_mode=True)
-    if discarded > 0:
-        ui.notify(
-            "Warning: " + suffix_s("path", discarded, "es") +
-            " was discarded because there are no suitable starting times.",
-            multi_line=True, type="warning"
-        )
-    else:
-        ui.notify("Analysis finished!", type="positive")
-    return best_dict, data_list
+    ui.notify("Analysis finished!", type="positive")
+    return path_list, through_dict
 
 
 def get_signal_html(key: str, signal: str) -> str:
@@ -570,62 +562,51 @@ def parse_index(index_str: str) -> int:
     return int(index_str[index_str.rfind("#") + 1:]) - 1
 
 
-def strip_first_from_dict(info_dict: dict[str, PathInfo]) -> dict[str, PathInfo]:
-    """ Strip trains up until the real first train """
-    min_cutoff = get_first_cutoff(list(info_dict.values()))
-    return {
-        key: info for key, info in info_dict.items()
-        if diff_time_tuple((info[2].initial_time, info[2].initial_day), min_cutoff) >= 0
-    }
-
-
-def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[str | None, int]:
+def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[str, str | None, int]:
     """ Get target arrival time from the information dict """
     cur_time_str = get_time_str(cur_time)
     if cur_time_str in info_dict:
-        return info_dict[cur_time_str][2].arrival_time_str(), to_minutes(
+        return cur_time_str, info_dict[cur_time_str][2].arrival_time_str(), to_minutes(
             info_dict[cur_time_str][2].arrival_time, info_dict[cur_time_str][2].arrival_day
         )
     elif get_time_str(cur_time, True) in info_dict:
-        return info_dict[get_time_str(cur_time, True)][2].arrival_time_str(), to_minutes(
-            info_dict[get_time_str(cur_time, True)][2].arrival_time,
-            info_dict[get_time_str(cur_time, True)][2].arrival_day
+        key = get_time_str(cur_time, True)
+        return key, info_dict[key][2].arrival_time_str(), to_minutes(
+            info_dict[key][2].arrival_time, info_dict[key][2].arrival_day
         )
     else:
-        return None, 24 * 60 * 2
+        return "", None, 24 * 60 * 2
 
 
 def calculate_data_rows(
-    city: City, data_list: list[RouteData],
-    *, cur_time: time, exclude_next_day: bool = True, strip_first: bool = True,
-    percentage_field: Literal["best", "tie", "other"] = "best",
+    city: City, best_dict: dict[str, set[int]], data_list: list[RouteData],
+    *, cur_time: time, percentage_field: Literal["best", "tie", "other"] = "best",
     insert_transfer: Literal["none", "necessary", "all"] = "necessary",
     baseline: int | None = None
 ) -> list[dict]:
     """ Calculate rows for the data table """
-    stripped_data: dict[int, RouteData] = {}
-    for data_elem in data_list:
-        info_dict = data_elem[2]
-        if exclude_next_day:
-            info_dict = {time_str: data for time_str, data in info_dict.items() if not data[-1].force_next_day}
-        if strip_first:
-            info_dict = strip_first_from_dict(info_dict)
-        stripped_data[data_elem[0]] = (data_elem[0], data_elem[1], info_dict) + data_elem[3:]  # type: ignore
-
+    data_dict = {value[0]: value for value in data_list}
     rows = []
-    for index, (_, route, info_dict, percentage, percentage_tie, *_) in stripped_data.items():
+    for index, (_, route, info_dict, percentage, percentage_tie, *_) in data_dict.items():
         assert isinstance(route, tuple), route
         if percentage_field == "best":
             per_str = percentage_str(percentage - percentage_tie)
             per_raw = percentage - percentage_tie
+            candidate_index = [k for k, v in best_dict.items() if index in v and len(v) == 1]
         elif percentage_field == "tie":
             per_str = percentage_str(percentage_tie)
             per_raw = percentage_tie
+            candidate_index = [k for k, v in best_dict.items() if index in v and len(v) > 1]
         elif percentage_field == "other":
             per_str = percentage_str(1 - percentage)
             per_raw = 1 - percentage
+            candidate_index = [k for k, v in best_dict.items() if index not in v]
         else:
             assert False, percentage_field
+        if len(candidate_index) == 0:
+            per_time = ""
+        else:
+            per_time = candidate_index[0]
 
         avg_min = average(x[0] for x in info_dict.values())
         min_key, min_info = min(list(info_dict.items()), key=lambda x: x[1][0])
@@ -638,7 +619,7 @@ def calculate_data_rows(
         num_station = len(expand_path(path, end_station))
         transfer = total_transfer(path)
         distance = path_distance(path, end_station)
-        arrival_str, arrival_sort = get_target_arrival(info_dict, cur_time)
+        arrival_start, arrival_str, arrival_sort = get_target_arrival(info_dict, cur_time)
         if baseline is None:
             avg_min_str = format_duration(avg_min)
             min_str = format_duration(min_info[0])
@@ -658,17 +639,17 @@ def calculate_data_rows(
             if arrival_str is not None:
                 arrival_str = "[" + arrival_str + "]"
         else:
-            diff_avg_min = avg_min - average(x[0] for x in stripped_data[baseline][2].values())
-            diff_min = min_info[0] - min(list(stripped_data[baseline][2].values()), key=lambda x: x[0])[0]
-            diff_max = max_info[0] - max(list(stripped_data[baseline][2].values()), key=lambda x: x[0])[0]
-            other_path = stripped_data[baseline][-1][1]
-            other_route = stripped_data[baseline][1]
+            diff_avg_min = avg_min - average(x[0] for x in data_dict[baseline][2].values())
+            diff_min = min_info[0] - min(list(data_dict[baseline][2].values()), key=lambda x: x[0])[0]
+            diff_max = max_info[0] - max(list(data_dict[baseline][2].values()), key=lambda x: x[0])[0]
+            other_path = data_dict[baseline][-1][1]
+            other_route = data_dict[baseline][1]
             assert isinstance(other_route, tuple), other_route
             other_end = other_route[1]
             diff_station = num_station - len(expand_path(other_path, other_end))
             diff_transfer = transfer - total_transfer(other_path)
             diff_dist = distance - path_distance(other_path, other_end)
-            other_arr, other_sort = get_target_arrival(stripped_data[baseline][2], cur_time)
+            _, other_arr, other_sort = get_target_arrival(data_dict[baseline][2], cur_time)
             if arrival_str is not None and other_arr is not None:
                 diff_arr = arrival_sort - other_sort
                 arrival_str = format_duration(diff_arr)
@@ -698,7 +679,7 @@ def calculate_data_rows(
 
         rows.append({
             "index": index + 1,
-            "percentage": per_str,
+            "percentage": (per_str, per_time),
             "percentage_sort": per_raw,
             "start_station": get_station_row(route[0][0][0]),
             "start_station_sort": to_pinyin(route[0][0][0])[0],
@@ -723,17 +704,25 @@ def calculate_data_rows(
                 min_arrive[1][2].arrival_time_str(), max_arrive[1][2].arrival_time_str(),
                 min_arrive[0], max_arrive[0]
             ),
-            "target_arrival": arrival_str,
+            "target_arrival": (arrival_str, arrival_start),
             "target_arrival_sort": arrival_sort,
         })
     return rows
 
 
 @ui.refreshable
-def display_data(city: City, *, data_list: list[RouteData] | None = None) -> None:
+def display_data(
+    city: City, *,
+    path_list: list[PathData] | None = None,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+) -> None:
     """ Display analysis data """
-    if data_list is None:
+    if path_list is None or through_dict is None:
         return
+    _, best_dict, data_list = calculate_data(
+        strip_routes(path_list, strip_first=True), city.transfers, through_dict,
+        time_only_mode=True, exclude_next_day=True
+    )
 
     def on_select_change(selection: list[dict]) -> None:
         """ Handle selection changes """
@@ -741,18 +730,26 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
 
     def on_switch_change() -> None:
         """ Handle switch changes """
+        nonlocal best_dict, data_list
         cur_time = parse_time(time_input.value)[0]
         [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = percentage_select.value
+        if strip_first_switch.value:
+            path_list2 = strip_routes(path_list, strip_first=True)
+        else:
+            path_list2 = path_list[:]
+        _, best_dict, data_list = calculate_data(
+            path_list2, city.transfers, through_dict,
+            time_only_mode=True, exclude_next_day=next_day_switch.value
+        )
         data_table.rows = calculate_data_rows(
-            city, data_list, cur_time=cur_time,
-            exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value,
+            city, best_dict, data_list, cur_time=cur_time,
             percentage_field=percentage_select.value.lower(), insert_transfer=transfer_select.value.lower(),
             baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value))
         )
         data_table.selected = data_table.rows[:]
-        on_chart_data_change(exclude_next_day=next_day_switch.value, strip_first=strip_first_switch.value)
+        on_chart_data_change()
 
-    data_rows = calculate_data_rows(city, data_list, cur_time=datetime.now().time())
+    data_rows = calculate_data_rows(city, best_dict, data_list, cur_time=datetime.now().time())
     with ui.column():
         with ui.row().classes("w-full items-center"):
             next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
@@ -864,6 +861,16 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
     data_table.on("lineBadgeClick", lambda n: None if n.args is None else refresh_line_drawer(line_indexes[n.args], city.lines))
     data_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, city.station_lines))
     data_table.on("depTimeClick", lambda n: print("Departure:", n))
+    data_table.add_slot("body-cell-percentage", """
+<q-td key="percentage" :props="props">
+    <span v-if="props.value[1] !== ''" @click="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
+        {{ props.value[0] }}
+    </span>
+    <span v-if="props.value[1] === ''">
+        {{ props.value[0] }}
+    </span>
+</q-td>
+    """)
     data_table.add_slot("body-cell-start", get_station_html("start"))
     data_table.add_slot("body-cell-route", get_route_html("route"))
     data_table.add_slot("body-cell-end", get_station_html("end"))
@@ -875,9 +882,16 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
     data_table.add_slot("body-cell-maxTime", get_signal_html("maxTime", "depTimeClick"))
     data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))
     data_table.add_slot("body-cell-arrTime", get_time_pair_html("arrTime", "depTimeClick", have_aux=True))
+    data_table.add_slot("body-cell-targetArrival", """
+<q-td key="targetArrival" :props="props">
+    <span v-if="props.value[1] !== ''" @click="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
+        {{ props.value[0] }}
+    </span>
+</q-td>
+    """)
     data_search.bind_value(data_table, "filter")
 
-    def on_chart_data_change(exclude_next_day: bool = True, strip_first: bool = True) -> None:
+    def on_chart_data_change() -> None:
         """ Handle data switch changes """
         try:
             moving_average = int(moving_avg_input.value)
@@ -889,10 +903,6 @@ def display_data(city: City, *, data_list: list[RouteData] | None = None) -> Non
         dataset: dict[str, dict[str, float]] = {}
         dimensions_set: set[str] = set()
         for index, _, info_dict, *_ in data_list:
-            if exclude_next_day:
-                info_dict = {time_str: data for time_str, data in info_dict.items() if not data[-1].force_next_day}
-            if strip_first:
-                info_dict = strip_first_from_dict(info_dict)
             dataset[index_name(index)] = {time_str: data[0] for time_str, data in info_dict.items()}
             dimensions_set.update(info_dict.keys())
         if moving_average > 1:
