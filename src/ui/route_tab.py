@@ -91,12 +91,12 @@ def get_route_html(key: str) -> str:
         <q-badge v-if="text === ''" :style="{{ background: color }}" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
             <span v-if="name !== ''">
                 {{{{ name }}}}
-                <q-icon v-if="icon !== ''" :name="icon" />
-                <q-icon v-if="dir_icon !== ''" :name="dir_icon" />
+                <q-icon v-if="icon !== ''" :name="icon" class="mt-[-1px]" />
+                <q-icon v-if="dir_icon !== ''" :name="dir_icon" class="mt-[-1px]" />
             </span>
             <span v-if="name === ''">
-                <q-icon v-if="icon !== ''" :name="icon" />
-                <q-icon v-if="dir_icon !== ''" :name="dir_icon" />
+                <q-icon v-if="icon !== ''" :name="icon" class="mt-[-1px]" />
+                <q-icon v-if="dir_icon !== ''" :name="dir_icon" class="mt-[-1px]" />
             </span>
         </q-badge>
     </span>
