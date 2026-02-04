@@ -592,18 +592,21 @@ def train_table(
         train_dict[n.args], n.args, train_dict, station_lines
     ))
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
+    trains_table.on("row-click", js_handler="(e, row, index) => emit(row['id'])", handler=lambda n: refresh_train_drawer(
+        train_dict[n.args], n.args, train_dict, station_lines
+    ))
     trains_table.add_slot("body-cell-id", """
-<q-td key="id" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="id" :props="props" @click.stop="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value }}
 </q-td>
     """)
     trains_table.add_slot("body-cell-start", """
-<q-td key="start" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="start" :props="props" @click.stop="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value }}
 </q-td>
     """)
     trains_table.add_slot("body-cell-end", """
-<q-td key="end" :props="props" @click="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="end" :props="props" @click.stop="$parent.$emit('stationBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value }}
 </q-td>
     """)

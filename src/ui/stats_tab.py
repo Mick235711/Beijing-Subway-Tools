@@ -563,12 +563,12 @@ def display_speed_table(
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
     trains_table.add_slot("body-cell-line", get_line_html("line"))
     trains_table.add_slot("body-cell-first", """
-<q-td key="first" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="first" :props="props" @click.stop="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value[0] }}
 </q-td>
     """)
     trains_table.add_slot("body-cell-last", """
-<q-td key="last" :props="props" @click="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
+<q-td key="last" :props="props" @click.stop="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">
     {{ props.value[0] }}
 </q-td>
     """)

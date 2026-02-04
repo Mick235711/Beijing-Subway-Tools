@@ -349,6 +349,9 @@ def info_tab(city: City, data: InfoData) -> None:
             )
             lines_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             lines_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, data.station_lines))
+            lines_table.on("row-click", js_handler="(e, row, index) => emit(row['index'])", handler=lambda n: refresh_line_drawer(
+                line_indexes[n.args], data.lines
+            ))
             lines_table.add_slot("body-cell-name", get_line_html("name"))
             lines_table.add_slot("body-cell-start", get_station_html("start"))
             lines_table.add_slot("body-cell-end", get_station_html("end"))
@@ -424,8 +427,11 @@ def info_tab(city: City, data: InfoData) -> None:
                 line_id_dict[(n.args[0], n.args[1])][n.args[2]], n.args[2],
                 line_id_dict[(n.args[0], n.args[1])], data.station_lines
             ))
+            stations_table.on("row-click", js_handler="(e, row, index) => emit(row['name'][0])", handler=lambda n: refresh_station_drawer(
+                n.args, data.station_lines
+            ))
             stations_table.add_slot("body-cell-name", """
-<q-td key="name" :props="props" @click="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
+<q-td key="name" :props="props" @click.stop="$parent.$emit('stationBadgeClick', props.value[0])" class="cursor-pointer">
     {{ props.value[0] }}
     <q-badge v-for="[color, textColor, icon] in props.value[1]" :style="{ background: color }" :text-color="textColor" class="align-middle">
         <q-icon v-if="icon !== ''" :name="icon" />
@@ -434,7 +440,7 @@ def info_tab(city: City, data: InfoData) -> None:
             """)
             stations_table.add_slot("body-cell-lines", """
 <q-td key="lines" :props="props">
-    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="align-middle cursor-pointer">
+    <q-badge v-for="[index, name, color, textColor, icon] in props.value" :style="{ background: color }" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="align-middle cursor-pointer">
         {{ name }}
         <q-icon v-if="icon !== ''" :name="icon" :class="name === '' ? '' : 'q-ml-xs'" />
     </q-badge>
@@ -443,7 +449,7 @@ def info_tab(city: City, data: InfoData) -> None:
             stations_table.add_slot("body-cell-virtualTransfers", """
 <q-td key="virtualTransfers" :props="props">
     <div class="inline-flex items-center align-middle flex-col">
-        <div v-for="[station, badges, data] in props.value" class="inline-flex items-center align-middle gap-x-1" @click="$parent.$emit('stationBadgeClick', station)" class="cursor-pointer">
+        <div v-for="[station, badges, data] in props.value" class="inline-flex items-center align-middle gap-x-1" @click.stop="$parent.$emit('stationBadgeClick', station)" class="cursor-pointer">
             {{ station }}
             <q-badge v-for="[color, textColor, icon] in badges" :style="{ background: color }" :text-color="textColor" class="align-middle">
                 <q-icon v-if="icon !== ''" :name="icon" />
@@ -457,12 +463,12 @@ def info_tab(city: City, data: InfoData) -> None:
 </q-td>
             """)
             stations_table.add_slot("body-cell-firstTrain", """
-<q-td key="firstTrain" :props="props" @click="$parent.$emit('trainClick', props.value[1], props.value[2], props.value[3])" class="cursor-pointer">
+<q-td key="firstTrain" :props="props" @click.stop="$parent.$emit('trainClick', props.value[1], props.value[2], props.value[3])" class="cursor-pointer">
     {{ props.value[0] }}
 </q-td>
             """)
             stations_table.add_slot("body-cell-lastTrain", """
-<q-td key="firstTrain" :props="props" @click="$parent.$emit('trainClick', props.value[1], props.value[2], props.value[3])" class="cursor-pointer">
+<q-td key="firstTrain" :props="props" @click.stop="$parent.$emit('trainClick', props.value[1], props.value[2], props.value[3])" class="cursor-pointer">
     {{ props.value[0] }}
 </q-td>
             """)

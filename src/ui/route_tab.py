@@ -84,10 +84,10 @@ def get_route_html(key: str) -> str:
     return f"""
 <q-td key="{key}" :props="props">
     <span v-for="[index, name, color, textColor, icon, dir_icon, text] in props.value">
-        <span v-if="text !== ''" @click="$parent.$emit('stationBadgeClick', text)" class="cursor-pointer pl-[2px] pr-[2px]">
+        <span v-if="text !== ''" @click.stop="$parent.$emit('stationBadgeClick', text)" class="cursor-pointer pl-[2px] pr-[2px]">
             {{{{ text }}}}
         </span>
-        <q-badge v-if="text === ''" :style="{{ background: color }}" :text-color="textColor" @click="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+        <q-badge v-if="text === ''" :style="{{ background: color }}" :text-color="textColor" @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
             <span v-if="name !== ''">
                 {{{{ name }}}}
                 <q-icon v-if="icon !== ''" :name="icon" />
@@ -533,7 +533,7 @@ async def analyze_routes(
 def get_signal_html(key: str, signal: str) -> str:
     """ Get the HTML for the field that can emit a signal """
     return f"""
-<q-td key="{key}" :props="props" class="cursor-pointer" @click="$parent.$emit('{signal}', props.value[1])">
+<q-td key="{key}" :props="props" class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[1])">
     {{{{ props.value[0] }}}}
 </q-td>
     """
@@ -545,9 +545,9 @@ def get_time_pair_html(key: str, signal: str, *, have_aux: bool = False) -> str:
     index2 = 3 if have_aux else 1
     return f"""
 <q-td key="{key}" :props="props">
-    <span class="cursor-pointer" @click="$parent.$emit('{signal}', props.value[{index1}])">{{{{ props.value[0] }}}}</span>
+    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index1}])">{{{{ props.value[0] }}}}</span>
     &mdash;
-    <span class="cursor-pointer" @click="$parent.$emit('{signal}', props.value[{index2}])">{{{{ props.value[1] }}}}</span>
+    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index2}])">{{{{ props.value[1] }}}}</span>
 </q-td>
     """
 
@@ -863,7 +863,7 @@ def display_data(
     data_table.on("depTimeClick", lambda n: print("Departure:", n))
     data_table.add_slot("body-cell-percentage", """
 <q-td key="percentage" :props="props">
-    <span v-if="props.value[1] !== ''" @click="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
+    <span v-if="props.value[1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
         {{ props.value[0] }}
     </span>
     <span v-if="props.value[1] === ''">
@@ -884,7 +884,7 @@ def display_data(
     data_table.add_slot("body-cell-arrTime", get_time_pair_html("arrTime", "depTimeClick", have_aux=True))
     data_table.add_slot("body-cell-targetArrival", """
 <q-td key="targetArrival" :props="props">
-    <span v-if="props.value[1] !== ''" @click="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
+    <span v-if="props.value[1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
         {{ props.value[0] }}
     </span>
 </q-td>
