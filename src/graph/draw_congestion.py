@@ -485,6 +485,8 @@ def main() -> None:
         parser.add_argument("-l", "--load-factor", help="Load factor for each path")
         parser.add_argument("--have-no-direction", action="store_true",
                             help="Specify whether load & transfer stats source have direction")
+        parser.add_argument("-d", "--data-source", choices=["time", "station", "distance", "fare"],
+                            default="time", help="Path criteria")
         parser.add_argument("--line-metric", choices=[
             "total_passenger", "entry_passenger", "exit_passenger", "transfer_passenger",
             "density_distance", "density_station"
@@ -513,9 +515,9 @@ def main() -> None:
     _, through_dict = parse_through_train(train_dict, city.through_specs)
     stations = set(graph.keys())
     paths = all_station_bfs(
-        stations, city.lines, train_dict, through_dict, city.transfers,
-        {} if args.exclude_virtual else city.virtual_transfers,
-        start_date, time_set, exclude_edge=args.exclude_edge, include_express=args.include_express
+        city, stations, train_dict, through_dict, city.transfers,
+        {} if args.exclude_virtual else city.virtual_transfers, start_date, time_set,
+        data_source=args.data_source, exclude_edge=args.exclude_edge, include_express=args.include_express, graph=graph
     )
     print_congestion(paths, city.lines, load_factor,
                      limit_num=args.limit_num, have_direction=(not args.have_no_direction),

@@ -2780,8 +2780,9 @@ Drawing done! Saving to ../test.png...
 ### [`draw_congestion.py`](/src/graph/draw_congestion.py): Draw and tally congestion stats for a network
 ```
 usage: draw_congestion.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single] [-n LIMIT_NUM]
-                          [-l LOAD_FACTOR] [--have-no-direction] [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}]
-                          [--load-metric {passenger,congestion}] [--transfer-source {station,line,direction}] [--data-output DATA_OUTPUT] [--baseline BASELINE] [--baseline-threshold BASELINE_THRESHOLD]
+                          [-l LOAD_FACTOR] [--have-no-direction] [-d {time,station,distance,fare}]
+                          [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}] [--load-metric {passenger,congestion}]
+                          [--transfer-source {station,line,direction}] [--data-output DATA_OUTPUT] [--baseline BASELINE] [--baseline-threshold BASELINE_THRESHOLD]
 
 options:
   -h, --help            show this help message and exit
@@ -2802,6 +2803,8 @@ options:
   -l, --load-factor LOAD_FACTOR
                         Load factor for each path
   --have-no-direction   Specify whether load & transfer stats source have direction
+  -d, --data-source {time,station,distance,fare}
+                        Path criteria
   --line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}
                         Line sort criteria
   --load-metric {passenger,congestion}

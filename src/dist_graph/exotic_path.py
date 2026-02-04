@@ -31,29 +31,49 @@ from src.stats.common import parse_args, display_first
 
 
 def all_station_bfs(
-    stations: set[str], lines: dict[str, Line],
+    city: City, stations: set[str],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_date: date, time_set: set[TimeSpec],
-    *, exclude_edge: bool = False, include_express: bool = False
+    *, data_source: str = "time", exclude_edge: bool = False, include_express: bool = False, graph: Graph | None = None
 ) -> dict[str, dict[str, dict[int, PathInfo]]]:
     """ Run BFS through all stations with a specific starting time """
+    results: dict[str, dict[str, dict[int, PathInfo]]] = {}
+    if data_source != "time":
+        assert data_source in ["station", "distance", "fare"], data_source
+        assert graph is not None, graph
+        for start_time, start_day in time_set:
+            bfs_dict = all_bfs_path(
+                city, graph, train_dict, start_date, start_time, start_day,
+                data_source=data_source, fare_mode=(data_source == "fare")
+            )
+            for fr, to_dict in bfs_dict.items():
+                if fr not in results:
+                    results[fr] = {}
+                for to, (_, single_result, path) in to_dict.items():
+                    if to not in results[fr]:
+                        results[fr][to] = {}
+                    results[fr][to][to_minutes(start_time, start_day)] = (diff_time(
+                        single_result.arrival_time, start_time,
+                        single_result.arrival_day, start_day
+                    ), path, single_result)
+        return results
+
     data_set = [(station, start_time, start_day) for station in stations for start_time, start_day in time_set]
     with tqdm(desc="Calculating Paths", total=len(data_set)) as bar:
         with mp.Pool() as pool:
             multi_result = []
             for elem in pool.imap_unordered(
                 partial(
-                    single_bfs, lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
+                    single_bfs, city.lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
                     exclude_edge=exclude_edge, include_express=include_express
                 ), data_set, chunksize=50
             ):
-                bar.set_description("Calculating " + station_full_name(elem[0][0], lines) +
+                bar.set_description("Calculating " + station_full_name(elem[0][0], city.lines) +
                                     " at " + get_time_repr(elem[0][1], elem[0][2]))
                 bar.update()
                 multi_result.append(elem)
 
-    results: dict[str, dict[str, dict[int, PathInfo]]] = {}
     for (cur_station, start_time, start_day), bfs_result in multi_result:
         bfs_stations = {x[0] for x in bfs_result.keys()}
         for station in bfs_stations:
@@ -78,13 +98,13 @@ def all_path(
     city: City, stations: set[str], graph: Graph,
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     start_date: date, start_time: time, start_day: bool = False,
-    *, data_source: str = "station", exclude_virtual: bool = False,
+    *, data_source: str = "time", exclude_virtual: bool = False,
     exclude_edge: bool = False, include_express: bool = False
 ) -> dict[str, dict[str, PathInfo]]:
     """ Get all station's shortest path dict, with real trains """
     if data_source == "time":
         inner_result = all_station_bfs(
-            stations, city.lines, train_dict, through_dict, city.transfers,
+            city, stations, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
             start_date, {(start_time, start_day)}, exclude_edge=exclude_edge, include_express=include_express
         )
