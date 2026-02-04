@@ -41,9 +41,17 @@ class BFSResult:
         """ Get string representation of initial time """
         return get_time_str(self.initial_time, self.initial_day)
 
+    def initial_time_repr(self) -> str:
+        """ Get string representation of initial time """
+        return get_time_repr(self.initial_time, self.initial_day)
+
     def arrival_time_str(self) -> str:
         """ Get string representation of arrival time """
-        return get_time_str(self.arrival_time, self.arrival_day)
+        return get_time_str(self.arrival_time, self.arrival_day or self.force_next_day)
+
+    def arrival_time_repr(self) -> str:
+        """ Get string representation of arrival time """
+        return get_time_repr(self.arrival_time, self.arrival_day or self.force_next_day)
 
     def prev_key(self) -> tuple[str, str, str]:
         """ Generate key for result_dict """
@@ -99,8 +107,7 @@ class BFSResult:
 
     def time_str(self) -> str:
         """ Return string representation of start/end time """
-        return f"{get_time_repr(self.initial_time, self.initial_day)} -> " +\
-               f"{get_time_repr(self.arrival_time, self.arrival_day or self.force_next_day)}"
+        return f"{self.initial_time_repr()} -> {self.arrival_time_repr()}"
 
     def total_duration_str(
         self, path: Path, indent: int = 0,
@@ -324,6 +331,10 @@ def find_next_train(
 def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None) -> int:
     """ Get total number of transfers in a path """
     total_len = len(list(filter(lambda x: isinstance(x[1], Train), path))) - 1
+    if not isinstance(path[0][1], Train):
+        total_len += 1
+    if len(path) > 1 and not isinstance(path[-1][1], Train):
+        total_len += 1
     if through_dict is None:
         return total_len
     for i in range(len(path) - 1):

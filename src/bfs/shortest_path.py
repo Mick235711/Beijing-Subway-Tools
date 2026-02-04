@@ -106,9 +106,8 @@ def display_info_min(
     times = {x[2].initial_time_str() for x in infos}
     print("Average over all " + suffix_s("path", len(infos)) + " with " +
           suffix_s("distinct starting time", len(times)) +
-          f" ({get_time_repr(min_time[2].initial_time, min_time[2].initial_day)} - " +
-          f"{get_time_repr(max_time[2].initial_time, max_time[2].initial_day)})" +
-          ": " + suffix_s("minute", f"{average(x[0] for x in infos):.2f}") +
+          f" ({min_time[2].initial_time_repr()} - {max_time[2].initial_time_repr()}): " +
+          suffix_s("minute", f"{average(x[0] for x in infos):.2f}") +
           f" (stddev = {stddev(x[0] for x in infos):.2f}) (min {min_info[0]} - max {max_info[0]})")
     print("\nMaximum time path:")
     max_info[2].pretty_print_path(

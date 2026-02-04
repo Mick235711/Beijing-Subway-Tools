@@ -31,7 +31,8 @@ from src.routing_pk.analyze_routes import PathData, calculate_data, strip_routes
 from src.routing_pk.common import Route, route_str, RouteData
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
     get_station_row, calculate_moving_average, get_time_input
-from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge
+from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
+    refresh_train_drawer
 
 
 def is_necessary(city: City, route: Route, index: int) -> bool:
@@ -543,11 +544,12 @@ def get_time_pair_html(key: str, signal: str, *, have_aux: bool = False) -> str:
     """ Get the HTML for the time pair field """
     index1 = 2 if have_aux else 0
     index2 = 3 if have_aux else 1
+    aux_str = "" if have_aux else "[1]"
     return f"""
 <q-td key="{key}" :props="props">
-    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index1}])">{{{{ props.value[0] }}}}</span>
+    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index1}])">{{{{ props.value[0]{aux_str} }}}}</span>
     &mdash;
-    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index2}])">{{{{ props.value[1] }}}}</span>
+    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index2}])">{{{{ props.value[1]{aux_str} }}}}</span>
 </q-td>
     """
 
@@ -679,7 +681,7 @@ def calculate_data_rows(
 
         rows.append({
             "index": index + 1,
-            "percentage": (per_str, per_time),
+            "percentage": (per_str, (index, per_time)),
             "percentage_sort": per_raw,
             "start_station": get_station_row(route[0][0][0]),
             "start_station_sort": to_pinyin(route[0][0][0])[0],
@@ -695,16 +697,16 @@ def calculate_data_rows(
             "transfer_sort": transfer,
             "avg_time": avg_min_str,
             "avg_time_sort": avg_min,
-            "min_time": (min_str, min_key),
+            "min_time": (min_str, (index, min_key)),
             "min_time_sort": min_info[0],
-            "max_time": (max_str, max_key),
+            "max_time": (max_str, (index, max_key)),
             "max_time_sort": max_info[0],
-            "dep_time": (min_time, max_time),
+            "dep_time": ((index, min_time), (index, max_time)),
             "arr_time": (
                 min_arrive[1][2].arrival_time_str(), max_arrive[1][2].arrival_time_str(),
-                min_arrive[0], max_arrive[0]
+                (index, min_arrive[0]), (index, max_arrive[0])
             ),
-            "target_arrival": (arrival_str, arrival_start),
+            "target_arrival": (arrival_str, (index, arrival_start)),
             "target_arrival_sort": arrival_sort,
         })
     return rows
@@ -723,6 +725,7 @@ def display_data(
         strip_routes(path_list, strip_first=True), city.transfers, through_dict,
         time_only_mode=True, exclude_next_day=True
     )
+    data_dict = {value[0]: value for value in data_list}
 
     def on_select_change(selection: list[dict]) -> None:
         """ Handle selection changes """
@@ -741,6 +744,7 @@ def display_data(
             path_list2, city.transfers, through_dict,
             time_only_mode=True, exclude_next_day=next_day_switch.value
         )
+        data_dict = {value[0]: value for value in data_list}
         data_table.rows = calculate_data_rows(
             city, best_dict, data_list, cur_time=cur_time,
             percentage_field=percentage_select.value.lower(), insert_transfer=transfer_select.value.lower(),
@@ -860,13 +864,15 @@ def display_data(
     line_indexes = {line.index: line for line in city.lines.values()}
     data_table.on("lineBadgeClick", lambda n: None if n.args is None else refresh_line_drawer(line_indexes[n.args], city.lines))
     data_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, city.station_lines))
-    data_table.on("depTimeClick", lambda n: print("Departure:", n))
+    data_table.on("depTimeClick", lambda n: refresh_train_drawer(
+        data_dict[n.args[0]][2][n.args[1]], index_name(n.args[0]), None, city.station_lines
+    ))
     data_table.add_slot("body-cell-percentage", """
 <q-td key="percentage" :props="props">
-    <span v-if="props.value[1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
+    <span v-if="props.value[1][1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
         {{ props.value[0] }}
     </span>
-    <span v-if="props.value[1] === ''">
+    <span v-if="props.value[1][1] === ''">
         {{ props.value[0] }}
     </span>
 </q-td>
@@ -884,7 +890,7 @@ def display_data(
     data_table.add_slot("body-cell-arrTime", get_time_pair_html("arrTime", "depTimeClick", have_aux=True))
     data_table.add_slot("body-cell-targetArrival", """
 <q-td key="targetArrival" :props="props">
-    <span v-if="props.value[1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
+    <span v-if="props.value[1][1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
         {{ props.value[0] }}
     </span>
 </q-td>

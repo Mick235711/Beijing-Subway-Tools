@@ -203,12 +203,9 @@ def routes_timed(
                 print("(No departure)")
                 continue
             info = info_dict[key]
-        duration = diff_time_tuple(
-            (info[2].arrival_time, info[2].arrival_day), (info[2].initial_time, info[2].initial_day)
-        )
+        duration = info[2].total_duration()
         print(f"Duration {duration}min ({format_duration(duration)}), " +
-              get_time_repr(info[2].initial_time, info[2].initial_day) + " -> " +
-              get_time_repr(info[2].arrival_time, info[2].arrival_day))
+              info[2].initial_time_repr() + " -> " + info[2].arrival_time_repr())
         processed.append((index, route, info))
 
     print("\nDetailed statistics:")
