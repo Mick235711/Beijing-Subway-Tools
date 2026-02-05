@@ -189,7 +189,7 @@ def distance_str(distance: int | float) -> str:
     return f"{distance / 1000:.2f}km"
 
 
-def segment_speed(distance: int, duration: int) -> float:
+def segment_speed(distance: int | float, duration: int | float) -> float:
     """ Get segment speed with m and min -> km/h """
     assert distance > 0 and duration >= 0, (distance, duration)
     if duration == 0:

@@ -239,6 +239,7 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
             train_chart.options["xAxis"]["axisLabel"]["interval"] = "auto"
         elif tooltip_select.value == "All":
             train_chart.options["xAxis"]["axisLabel"]["interval"] = 0
+        train_chart.options["tooltip"]["trigger"] = "axis" if tooltip_select.value == "Hover" else "item"
         if data_select.value == "Online Train Count":
             train_chart.options["yAxis"]["name"] = "Train Capacity" if is_capacity else "Train Count"
         else:
@@ -259,7 +260,7 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
                     city.lines[line_name].total_distance() / 1000 if per_km else 1
                 )) for t in dimensions],
                 "smooth": True,
-                "showSymbol": tooltip_select.value != "None",
+                "showSymbol": tooltip_select.value not in ["Hover", "None"],
                 "itemStyle": {"color": city.lines[line_name].color or "#333"},
                 "markPoint": {
                     "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
@@ -273,7 +274,7 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
             "type": "line",
             "data": [t / total_distance for t in total_data],
             "smooth": True,
-            "showSymbol": tooltip_select.value != "None",
+            "showSymbol": tooltip_select.value not in ["Hover", "None"],
             "itemStyle": {"color": "black"},
             "markPoint": {
                 "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
@@ -314,7 +315,7 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
             backward=lambda v: "Add min marker" if v == "Full-Distance Portion" else "Add max marker"
         )
         ui.label("Symbol:")
-        tooltip_select = ui.select(["None", "Auto", "All"], value="Auto", on_change=on_data_change)
+        tooltip_select = ui.select(["Hover", "None", "Auto", "All"], value="Hover", on_change=on_data_change)
         ui.label("Moving average:")
         moving_avg_input = ui.input(
             value="1", label="minutes", validation=valid_positive, on_change=on_data_change
@@ -327,7 +328,7 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
         "yAxis": {"type": "value", "name": "Train Count"},
         "series": [],
         "legend": {},
-        "tooltip": {"trigger": "item"},
+        "tooltip": {"trigger": "axis"},
         "grid": {
             "left": "3%",
             "right": "4%",

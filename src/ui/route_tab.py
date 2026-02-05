@@ -22,7 +22,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import to_pinyin, get_text_color, distance_str, format_duration, average, get_time_str, \
-    percentage_str, valid_positive, parse_time, to_minutes
+    percentage_str, valid_positive, parse_time, to_minutes, speed_str, segment_speed
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
@@ -582,7 +582,7 @@ def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[
 
 def calculate_data_rows(
     city: City, best_dict: dict[str, set[int]], data_list: list[RouteData],
-    *, cur_time: time, percentage_field: Literal["best", "tie", "other"] = "best",
+    *, cur_time: time, percentage_field: Literal["best", "one", "tie", "other"] = "best",
     insert_transfer: Literal["none", "necessary", "all"] = "necessary",
     baseline: int | None = None
 ) -> list[dict]:
@@ -595,6 +595,10 @@ def calculate_data_rows(
             per_str = percentage_str(percentage - percentage_tie)
             per_raw = percentage - percentage_tie
             candidate_index = [k for k, v in best_dict.items() if index in v and len(v) == 1]
+        elif percentage_field == "one":
+            per_str = percentage_str(percentage)
+            per_raw = percentage
+            candidate_index = [k for k, v in best_dict.items() if index in v]
         elif percentage_field == "tie":
             per_str = percentage_str(percentage_tie)
             per_raw = percentage_tie
@@ -621,6 +625,7 @@ def calculate_data_rows(
         num_station = len(expand_path(path, end_station))
         transfer = total_transfer(path)
         distance = path_distance(path, end_station)
+        speed_display = "Avg speed: " + speed_str(segment_speed(distance, avg_min))
         arrival_start, arrival_str, arrival_sort = get_target_arrival(info_dict, cur_time)
         if baseline is None:
             avg_min_str = format_duration(avg_min)
@@ -695,7 +700,7 @@ def calculate_data_rows(
             "num_stations_sort": num_station,
             "transfer": transfer_str,
             "transfer_sort": transfer,
-            "avg_time": avg_min_str,
+            "avg_time": (avg_min_str, speed_display),
             "avg_time_sort": avg_min,
             "min_time": (min_str, (index, min_key)),
             "min_time_sort": min_info[0],
@@ -726,6 +731,7 @@ def display_data(
         time_only_mode=True, exclude_next_day=True
     )
     data_dict = {value[0]: value for value in data_list}
+    best_options = {"best": "Best", "one": "One of Best", "tie": "Tie", "other": "Other"}
 
     def on_select_change(selection: list[dict]) -> None:
         """ Handle selection changes """
@@ -733,9 +739,9 @@ def display_data(
 
     def on_switch_change() -> None:
         """ Handle switch changes """
-        nonlocal best_dict, data_list
+        nonlocal best_dict, data_list, data_dict
         cur_time = parse_time(time_input.value)[0]
-        [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = percentage_select.value
+        [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = best_options[percentage_select.value]
         if strip_first_switch.value:
             path_list2 = strip_routes(path_list, strip_first=True)
         else:
@@ -747,7 +753,7 @@ def display_data(
         data_dict = {value[0]: value for value in data_list}
         data_table.rows = calculate_data_rows(
             city, best_dict, data_list, cur_time=cur_time,
-            percentage_field=percentage_select.value.lower(), insert_transfer=transfer_select.value.lower(),
+            percentage_field=percentage_select.value, insert_transfer=transfer_select.value.lower(),
             baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value))
         )
         data_table.selected = data_table.rows[:]
@@ -759,7 +765,7 @@ def display_data(
             next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
             strip_first_switch = ui.switch("Strip first", value=True, on_change=on_switch_change)
             percentage_select = ui.select(
-                ["Best", "Tie", "Other"], label="Percentage", value="Best", on_change=on_switch_change
+                best_options, label="Percentage", value="best", on_change=on_switch_change
             ).classes("min-w-25")
             transfer_select = ui.select(
                 ["None", "Necessary", "All"], label="Transfer", value="Necessary", on_change=on_switch_change
@@ -884,6 +890,10 @@ def display_data(
         with data_table.cell("distance"):
             ui.label().props(":innerHTML=\"props.value[0]\"")
             ui.tooltip().props(":innerHTML=\"props.value[1]\"")
+    with data_table.add_slot("body-cell-avgTime"):
+        with data_table.cell("avgTime"):
+            ui.label().props(":innerHTML=\"props.value[0]\"")
+            ui.tooltip().props(":innerHTML=\"props.value[1]\"")
     data_table.add_slot("body-cell-minTime", get_signal_html("minTime", "depTimeClick"))
     data_table.add_slot("body-cell-maxTime", get_signal_html("maxTime", "depTimeClick"))
     data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))
@@ -921,6 +931,7 @@ def display_data(
             time_chart.options["xAxis"]["axisLabel"]["interval"] = "auto"
         elif tooltip_select.value == "All":
             time_chart.options["xAxis"]["axisLabel"]["interval"] = 0
+        time_chart.options["tooltip"]["trigger"] = "axis" if tooltip_select.value == "Hover" else "item"
         if data_select.value == "Total Duration":
             time_chart.options["yAxis"]["name"] = "Total Duration (min)"
         else:
@@ -930,30 +941,40 @@ def display_data(
             "show": True,
             ":formatter": "(params) => params.value.toFixed(2)"
         } if moving_average > 1 else {}
-        def get_mark_point(data_dict: dict[str, float]) -> list[dict]:
+        def get_mark_point(inner_data_dict: dict[str, float]) -> list[dict]:
             """ Get specification for mark point array """
             mark_point_array: list[dict] = []
             if max_switch.value:
                 mark_point_array.append({
-                    "type": "max", "name": "Max (" + max(dimensions, key=lambda t: data_dict.get(t, -1)) + ")"
+                    "type": "max", "name": "Max (" + max(dimensions, key=lambda t: inner_data_dict.get(t, -1)) + ")"
                 })
             if min_switch.value:
                 mark_point_array.append({
-                    "type": "min", "name": "Min (" + min(dimensions, key=lambda t: data_dict.get(t, -1)) + ")"
+                    "type": "min", "name": "Min (" + min(dimensions, key=lambda t: inner_data_dict.get(t, -1)) + ")"
                 })
             return mark_point_array
+
+        def get_series_data(inner_data_dict: dict[str, float]) -> list[float | None]:
+            """ Get data to be displayed """
+            if graph_baseline_select.value == "None":
+                return [None if t not in inner_data_dict else inner_data_dict[t] for t in dimensions]
+            baseline_data = dataset[graph_baseline_select.value]
+            return [
+                None if t not in inner_data_dict or t not in baseline_data
+                else inner_data_dict[t] - baseline_data[t] for t in dimensions
+            ]
         time_chart.options["series"] = [
             {
                 "name": series_name,
                 "type": "line",
-                "data": [None if t not in data_dict else data_dict[t] for t in dimensions],
+                "data": get_series_data(inner_data_dict),
                 "smooth": True,
-                "showSymbol": tooltip_select.value != "None",
+                "showSymbol": tooltip_select.value not in ["Hover", "None"],
                 "markPoint": {
-                    "data": get_mark_point(data_dict),
+                    "data": get_mark_point(inner_data_dict),
                     "label": mark_point_label
                 } if max_switch.value or min_switch.value else {}
-            } for series_name, data_dict in sorted(dataset.items(), key=lambda x: parse_index(x[0]))
+            } for series_name, inner_data_dict in sorted(dataset.items(), key=lambda x: parse_index(x[0]))
         ]
 
     def on_chart_select_change(selection: bool | dict[str, bool], *, callback: bool = True) -> None:
@@ -973,10 +994,14 @@ def display_data(
         data_select = ui.select([
             "Total Duration"
         ], value="Total Duration", label="Viewing data", on_change=on_chart_data_change)
+        graph_baseline_select = ui.select(
+            ["None"] + [index_name(index) for index, *_ in data_list], label="Baseline", value="None",
+            on_change=on_chart_data_change
+        ).classes("min-w-25")
         max_switch = ui.switch("Add max marker", on_change=on_chart_data_change)
         min_switch = ui.switch("Add min marker", on_change=on_chart_data_change)
         ui.label("Symbol:")
-        tooltip_select = ui.select(["None", "Auto", "All"], value="Auto", on_change=on_chart_data_change)
+        tooltip_select = ui.select(["Hover", "None", "Auto", "All"], value="Hover", on_change=on_chart_data_change)
         ui.label("Moving average:")
         moving_avg_input = ui.input(
             value="1", label="minutes", validation=valid_positive, on_change=on_chart_data_change
@@ -987,7 +1012,7 @@ def display_data(
         "yAxis": {"type": "value", "name": "Total Duration (min)", "scale": True},
         "series": [],
         "legend": {},
-        "tooltip": {"trigger": "item"},
+        "tooltip": {"trigger": "axis"},
         "grid": {
             "left": "3%",
             "right": "4%",
