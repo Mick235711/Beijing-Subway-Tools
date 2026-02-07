@@ -19,9 +19,10 @@ from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
-    get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec
+    get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec, unequal
 from src.routing.show_express_trains import find_overtaken
-from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train, get_train_id_through
+from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train, get_train_id, \
+    get_train_id_through
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_virtual_dict
 from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input, get_all_trains, find_train_id, \
@@ -559,7 +560,7 @@ def get_train_repr(
             first_train = train
             last_train = train
             trains = {train.line.name: train}
-            stations = train.stations
+            stations = train.stations[:]
             if train.loop_next is not None:
                 stations.append(train.loop_next.stations[0])
             lines = [(train.line, train.direction)]
@@ -703,6 +704,7 @@ def train_drawer(
                             ui.label(f"Capacity: {full_train.train_capacity()} people").classes("text-subtitle-1")
 
         with ui.tab_panel(timetable_tab).classes("p-0 flex flex-col h-full drawers-train-timeline"):
+            select_opt_default: Literal["all", "stop", "none"] = "none" if isinstance(full_train, tuple) else "all"
             with ui.column().classes("gap-y-0 w-full"):
                 with ui.row().classes("w-full items-center"):
                     train_select = ui.select(
@@ -713,8 +715,10 @@ def train_drawer(
                     select_opt = {"all": "All"}
                     if is_express:
                         select_opt["stop"] = "Stopping"
+                    if isinstance(full_train, tuple):
+                        select_opt["none"] = "None"
                     ui.select(
-                        select_opt, value="all", label="Show station",
+                        select_opt, value=select_opt_default, label="Show station",
                         on_change=lambda v: train_timeline.refresh(show_station=v.value)
                     ).classes("flex-1")
                 ui.switch(
@@ -732,10 +736,10 @@ def train_drawer(
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 
             with ui.scroll_area().classes("flex-grow"):
-                if isinstance(full_train, tuple):
-                    ui.label("TODO")
-                else:
-                    train_timeline(train_dict, train_id_dict, full_train, show_tally=True)
+                train_timeline(
+                    train_dict, through_dict, train_id_dict, full_train,
+                    show_tally=True, show_station=select_opt_default
+                )
 
             if last_train is not None and last_train.loop_next is not None and train_id_dict is not None:
                 next_id = find_train_id(train_id_dict, last_train.loop_next)
@@ -749,22 +753,92 @@ def train_drawer(
 
 @ui.refreshable
 def train_timeline(
-    train_dict: dict[str, dict[str, dict[str, list[Train]]]], train_id_dict: dict[str, Train] | None,
-    train: Train | ThroughTrain, *, show_station: Literal["all", "stop", "none"] = "all",
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
+    train_id_dict: dict[str, Train] | None, train: Train | ThroughTrain | PathInfo,
+    *, show_station: Literal["all", "stop", "none"] = "all",
     interval_metric: Literal["none", "duration", "distance", "speed"] = "none", show_tally: bool
 ) -> None:
     """ Create a timeline for this train """
     global AVAILABLE_LINES
-    if isinstance(train, Train):
-        stations = [(s, train.line, train) for s in train.stations]
+    train_id_dicts: dict[tuple[str, str], dict[str, Train]] | None = None
+    if isinstance(train, tuple):
+        first_t = train[1][0][1]
+        first_train = first_t if isinstance(first_t, Train) else None
+        last_t = train[1][-1][1]
+        last_train = last_t if isinstance(last_t, Train) else None
+        stations: list[tuple[str, tuple[str, bool, Line, Train] | str | None]] = []  # station, (first station, is through, line, train)
+        prev_line_name: str | None = None
+        prev_train: Train | None = None
+        last_station = train[1][0][0]
+        is_first = True
+        for inner_station, inner_train in (
+            train[1] if show_station == "none" else expand_path(train[1], train[2].station, expand_all=True)
+        ):
+            if isinstance(inner_train, Train):
+                is_through = False
+                if inner_train.line.name != prev_line_name:
+                    last_station = inner_station
+                    query_result = find_through_train(through_dict, inner_train)
+                    if query_result is not None:
+                        query_prev = query_result[1].prev_train(inner_train)
+                        is_through = False if query_prev is None else query_prev == prev_train
+                stations.append((inner_station, (last_station, is_through, inner_train.line, inner_train)))
+                prev_line_name = inner_train.line.name
+                prev_train = inner_train
+            else:
+                stations.append((inner_station, train[2].initial_time_repr() if is_first else None))
+                prev_line_name = None
+                prev_train = None
+            if is_first:
+                is_first = False
+        stations.append((
+            train[2].station, train[2].arrival_time_repr() if last_train is None else (
+                train[1][-1][0], False, last_train.line, last_train
+            )
+        ))
+        overtaken: list[tuple[str, str, Train]] = []
+        train_id_dicts = {}
+        arrival_times: dict[tuple[str, str | None], TimeSpec] = {}  # (station, line) -> time
+        if first_train is None:
+            arrival_times[(train[1][0][0], None)] = (train[2].initial_time, train[2].initial_day)
+        if last_train is None:
+            arrival_times[(train[2].station, None)] = (train[2].arrival_time, train[2].arrival_day)
+        for i, (inner_station, inner_train) in enumerate(train[1]):
+            if not isinstance(inner_train, Train):
+                if i > 0:
+                    prev_entry = train[1][i - 1][1]
+                    arrival_times[(inner_station, None)] = arrival_times[(
+                        inner_station, prev_entry.line.name if isinstance(prev_entry, Train) else None
+                    )]
+                continue
+            next_station = train[2].station if i == len(train[1]) - 1 else train[1][i + 1][0]
+            arrival_times.update({
+                (s, inner_train.line.name): t
+                for s, t in inner_train.arrival_time_two_station(inner_station, next_station, inclusive=True).items()
+            })
+            train_id_dicts[(inner_train.line.name, inner_train.direction)] = get_train_id(
+                train_dict[inner_train.line.name][inner_train.direction][inner_train.date_group]
+            )
+            if not inner_train.is_express():
+                continue
+            overtaken += find_overtaken(
+                inner_train, train_dict[inner_train.line.name][inner_train.direction][inner_train.date_group]
+            )
+        skip_stations = {ss for _, t in train[1] if isinstance(t, Train) for ss in t.skip_stations}
+    elif isinstance(train, Train):
+        stations = [(s, (train.stations[0], False, train.line, train)) for s in train.stations]
         first_train = train
         last_train = train
-        overtaken: list[tuple[str, str, Train]] = []
+        overtaken = []
         if train.is_express():
             overtaken = find_overtaken(train, train_dict[train.line.name][train.direction][train.date_group])
+        arrival_times = dict(train.arrival_times().items())
+        skip_stations = train.skip_stations
     else:
         station_lines_temp = train.station_lines(prev_on_transfer=False)
-        stations = [(s, station_lines_temp[s][0], station_lines_temp[s][2]) for s in train.stations]
+        stations = [(s, (
+            station_lines_temp[s][2].stations[0], True, station_lines_temp[s][0], station_lines_temp[s][2]
+        )) for s in train.stations]
         first_train = train.first_train()
         last_train = train.last_train()
         overtaken = []
@@ -773,6 +847,8 @@ def train_timeline(
                 overtaken += find_overtaken(
                     inner_train, train_dict[inner_line][inner_train.direction][inner_train.date_group]
                 )
+        arrival_times = dict(train.arrival_times().items())
+        skip_stations = train.skip_stations
     overtaken_dict: dict[str, list[tuple[str, Train]]] = {}
     for station1, station2, overtaken_train in overtaken:
         if station1 not in overtaken_dict:
@@ -780,9 +856,10 @@ def train_timeline(
         overtaken_dict[station1].append((station2, overtaken_train))
 
     station_lines = parse_station_lines(AVAILABLE_LINES)
-    if last_train.loop_next is not None:
-        stations.append((last_train.loop_next.stations[0], last_train.loop_next.line, last_train.loop_next))
-    arrival_times = train.arrival_times()
+    if not isinstance(train, tuple) and last_train is not None and last_train.loop_next is not None:
+        stations.append((last_train.loop_next.stations[0], (
+            last_train.loop_next.stations[0], False, last_train.loop_next.line, last_train.loop_next
+        )))
 
     tally_duration = 0
     interval_duration: int | None = 0
@@ -790,37 +867,45 @@ def train_timeline(
     interval_dist: int | None = 0
     next_station = ""
     with ui.timeline(side="right", layout="comfortable"):
-        for i, (station, line, single_train) in enumerate(stations):
-            if i == len(stations) - 1 and last_train.loop_next is not None:
+        for i, (station, line_train) in enumerate(stations):
+            station_key = (station, line_train[2].name if isinstance(line_train, tuple) else None)
+            if station in skip_stations and show_station != "all":
+                continue
+            if i == len(stations) - 1 and last_train is not None and last_train.loop_next is not None:
                 arrival_time: TimeSpec | None = last_train.loop_next.arrival_time[station]
             else:
-                arrival_time = None if station not in arrival_times else arrival_times[station]
+                arrival_time = arrival_times.get(station_key)
+
             if i < len(stations) - 1:
                 next_station = stations[i + 1][0]
-                if i == len(stations) - 2 and last_train.loop_next is not None:
+                next_key_lt = stations[i + 1][1]
+                next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
+                if i == len(stations) - 2 and last_train is not None and last_train.loop_next is not None:
                     next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
                 else:
-                    if show_station != "all" or (station in arrival_times and next_station not in arrival_times):
+                    if show_station != "all" or (station_key in arrival_times and next_key not in arrival_times):
                         j = i + 2
-                        while next_station in train.skip_stations and j < len(stations):
+                        while next_station in skip_stations and j < len(stations):
                             next_station = stations[j][0]
+                            next_key_lt = stations[j][1]
+                            next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
                             j += 1
-                        assert next_station not in train.skip_stations, (train, stations, next_station)
-                    next_time = None if next_station not in arrival_times else arrival_times[next_station]
+                        assert next_station not in skip_stations, (train, stations, next_station)
+                    next_time = arrival_times.get(next_key)
                 if next_time is None or arrival_time is None:
                     interval_duration = None
                     interval_dist = None
                 else:
                     interval_duration = diff_time_tuple(next_time, arrival_time)
-                    interval_dist = train.two_station_dist(station, next_station)
-
-            express_icon = line.station_badges[line.stations.index(station)]
-            if i > 0 and station == single_train.stations[0]:
-                express_icon = "south"
-            elif station in train.skip_stations:
-                if show_station != "all":
-                    continue
-                express_icon = "keyboard_double_arrow_down"
+                    if isinstance(line_train, tuple):
+                        if station in line_train[3].arrival_time:
+                            interval_dist = line_train[3].two_station_dist(station, next_station)
+                        else:
+                            next_train = line_train[3].loop_next
+                            assert next_train is not None and station in next_train.arrival_time, (line_train, station)
+                            interval_dist = next_train.two_station_dist(station, next_station)
+                    else:
+                        interval_dist = 0
             if interval_metric == "none" or i == len(stations) - 1:
                 interval_str: str | None = None
             elif interval_metric == "duration":
@@ -841,22 +926,54 @@ def train_timeline(
                 tally_str = None if interval_duration is None or interval_dist is None else speed_str(
                     segment_speed(tally_dist, tally_duration)
                 )
+            if interval_duration is not None:
+                tally_duration += interval_duration
+            if interval_dist is not None:
+                tally_dist += interval_dist
 
             if arrival_time is None:
-                subtitle = "passing"
+                subtitle = line_train if isinstance(line_train, str) else "passing"
             else:
                 subtitle = get_time_repr(*arrival_time)
-                if show_tally and tally_str is not None:
-                    subtitle += "\n" + tally_str
+            if show_tally and tally_str is not None:
+                subtitle += "\n" + tally_str
+
+            if not isinstance(line_train, tuple):
+                with ui.timeline_entry(
+                    subtitle=subtitle, side="right", color="black",
+                    icon=(None if i == len(stations) - 1 else "multiple_stop")
+                ) as entry:
+                    if i < len(stations) - 1:
+                        ui.label("Virtual transfer")
+                with entry.add_slot("subtitle"):
+                    ui.label(subtitle).classes("whitespace-pre-line")
+                with entry.add_slot("title"):
+                    with ui.column().classes("gap-y-1"):
+                        with ui.row().classes("items-center gap-1"):
+                            get_station_badge(station, show_badges=False, show_line_badges=False)
+                continue
+
+            last_station, is_through, line, single_train = line_train
+            express_icon = line.station_badges[line.stations.index(station)]
+            if i > 0 and station == last_station:
+                express_icon = "south" if is_through else "sync"
+            elif station in skip_stations:
+                express_icon = "keyboard_double_arrow_down"
+
             with ui.timeline_entry(
                 subtitle=subtitle, side="right", color=f"line-{line.index}",
-                icon=(express_icon if (i != 0 or first_train.loop_prev is None) and
-                                      (i != len(stations) - 1 or last_train.loop_next is None) else "replay")
+                icon=(express_icon if isinstance(train, tuple) or (
+                    (i != 0 or first_train is None or first_train.loop_prev is None) and
+                    (i != len(stations) - 1 or last_train is None or last_train.loop_next is None)
+                ) else "replay")
             ) as entry:
-                if station not in train.arrival_times() or next_station not in train.arrival_times():
+                if station_key not in arrival_times or next_key not in arrival_times:
                     between_stations: list[str] = []
+                elif station not in single_train.arrival_time:
+                    assert single_train.loop_next is not None and station in single_train.loop_next.arrival_time, (single_train, station)
+                    between_stations = single_train.loop_next.two_station_interval(station, next_station)
                 else:
-                    between_stations = train.two_station_interval(station, next_station)
+                    between_stations = single_train.two_station_interval(station, next_station)
                 if i != len(stations) - 1 and any(s in overtaken_dict for s in between_stations) and train_id_dict is not None:
                     with ui.card().props("flat").classes("q-pa-sm mb-2 bg-secondary"):
                         with ui.card_section().classes("p-0"):
@@ -884,25 +1001,37 @@ def train_timeline(
                 if i != len(stations) - 1 and interval_str is not None:
                     ui.label(interval_str)
 
+            with entry.add_slot("subtitle"):
+                ui.label(subtitle).classes("whitespace-pre-line")
             with entry.add_slot("title"):
                 with ui.column().classes("gap-y-1"):
                     with ui.row().classes("items-center gap-1"):
                         get_station_badge(
                             station, prefer_line=line, show_badges=False, show_line_badges=False,
-                            add_line_click=lambda l, ln=line.name: l != ln  # type: ignore
+                            add_line_click=unequal(line.name)
                         )
 
-                    prev_line = line if i == 0 else stations[i - 1][1]
-                    other_lines = [l for l in station_lines[station] if l.name != line.name and l.name != prev_line.name]
-                    if len(other_lines) > 0:
-                        with ui.row().classes("items-center gap-x-1"):
-                            for line2 in sorted(other_lines, key=lambda l: l.index):
-                                get_line_badge(line2, show_name=False, add_click=True)
-
-            if interval_duration is not None:
-                tally_duration += interval_duration
-            if interval_dist is not None:
-                tally_dist += interval_dist
+                    if isinstance(train, tuple):
+                        if i == 0 or station == last_station:
+                            with ui.row().classes("items-center gap-x-1 gap-y-1"):
+                                get_line_badge(line, add_click=True, force_icon_dir=single_train.direction)
+                                assert train_id_dicts is not None, train_id_dicts
+                                train_id = find_train_id(
+                                    train_id_dicts[(single_train.line.name, single_train.direction)], single_train
+                                )
+                                ui.label(train_id).classes("cursor-pointer text-sm font-normal leading-none whitespace-nowrap").on(
+                                    "click", lambda t=single_train, tid=train_id: refresh_train_drawer(
+                                        t, tid, train_id_dicts[(t.line.name, t.direction)], station_lines
+                                    )
+                                )
+                    else:
+                        prev_lt = line_train if i == 0 else stations[i - 1][1]
+                        assert isinstance(prev_lt, tuple), prev_lt
+                        other_lines = [l for l in station_lines[station] if l.name != line.name and l.name != prev_lt[2].name]
+                        if len(other_lines) > 0:
+                            with ui.row().classes("items-center gap-x-1"):
+                                for line2 in sorted(other_lines, key=lambda l: l.index):
+                                    get_line_badge(line2, show_name=False, add_click=True)
 
 
 @ui.refreshable

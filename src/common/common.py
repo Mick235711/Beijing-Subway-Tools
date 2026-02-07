@@ -191,7 +191,9 @@ def distance_str(distance: int | float) -> str:
 
 def segment_speed(distance: int | float, duration: int | float) -> float:
     """ Get segment speed with m and min -> km/h """
-    assert distance > 0 and duration >= 0, (distance, duration)
+    assert distance >= 0 and duration >= 0, (distance, duration)
+    if distance == 0:
+        return 0.0
     if duration == 0:
         duration = 1
     return (distance / 1000) / (duration / 60)
@@ -443,6 +445,11 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
 def suffix_s(word: str, number: Any, suffix: str = "s") -> str:
     """ Conditionally add s suffix """
     return f"{number} {word}" + ("" if number == 1 or number == "1" else suffix)
+
+
+def unequal(other: T) -> Callable[[T], bool]:
+    """ Return a function that performs this != other """
+    return lambda x, o=other: x != o  # type: ignore
 
 
 def percentage_str(data: float) -> str:

@@ -71,7 +71,8 @@ class Train:
         """ Return an equal tuple """
         return (
             self.line.name, self.carriage_num, self.direction, tuple(self.stations),
-            self.real_end, tuple(self.skip_stations), tuple(self.arrival_time.items())
+            self.real_end, tuple(sorted(self.skip_stations, key=lambda t: to_pinyin(t)[0])),
+            tuple(self.arrival_time[s] for s in self.stations if s in self.arrival_time)
         )
 
     def __eq__(self, other: object) -> bool:
@@ -80,9 +81,13 @@ class Train:
             return False
         return self.equal_tuple() == other.equal_tuple()
 
+    def __ne__(self, other: object) -> bool:
+        """ Determine inequality """
+        return not self.__eq__(other)
+
     def __hash__(self) -> int:
         """ Hash function """
-        return hash(self.equal_tuple())
+        return self.equal_tuple().__hash__()
 
     def train_capacity(self) -> int:
         """ Capacity for this line """
@@ -186,9 +191,9 @@ class Train:
             return "(" + self.show_with(station, reverse) + ") " + self.direction_repr(reverse)
         return self.direction_repr(reverse) + " (" + self.show_with(station, reverse) + ")"
 
-    def arrival_times(self) -> dict[str, TimeSpec]:
+    def arrival_times(self) -> dict[tuple[str, str], TimeSpec]:
         """ Return the arrival times for uniformity with ThroughTrain """
-        return self.arrival_time
+        return {(s, self.line.name): t for s, t in self.arrival_time.items()}
 
     def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """
@@ -206,10 +211,12 @@ class Train:
             cur_list += next_list
         return dict(cur_list)
 
-    def arrival_time_two_station(self, start_station: str, end_station: str) -> dict[str, TimeSpec]:
+    def arrival_time_two_station(
+        self, start_station: str, end_station: str, *, inclusive: bool = False
+    ) -> dict[str, TimeSpec]:
         """ Display arrival_time dict between two stations """
         virtual = self.arrival_time_virtual(start_station)
-        return dict(list(virtual.items())[:list(virtual.keys()).index(end_station)])
+        return dict(list(virtual.items())[:list(virtual.keys()).index(end_station) + (1 if inclusive else 0)])
 
     def two_station_dist(self, start_station: str, end_station: str) -> int:
         """ Distance between two stations """

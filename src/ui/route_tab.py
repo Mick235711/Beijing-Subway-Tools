@@ -519,7 +519,7 @@ async def analyze_routes(
         }, start_date,
         progress_callback=partial(progress_callback, progress_queue)
     )
-    progress_timer.cancel()
+    progress_timer.cancel(with_current_invocation=True)
     manager.shutdown()
 
     path_list: list[PathData] = []

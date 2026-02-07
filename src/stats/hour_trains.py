@@ -27,10 +27,7 @@ def hour_trains(
     hour_dict: dict[int, set[Train | ThroughTrain]] = {}
 
     for _, train in get_train_set(date_group_dict, through_dict):
-        if isinstance(train, Train):
-            arrival_times = train.arrival_time
-        else:
-            arrival_times = train.arrival_times()
+        arrival_times = train.arrival_times()
         for arrival_time, arrival_day in arrival_times.values():
             hour = arrival_time.hour + (24 if arrival_day else 0)
             if hour not in hour_dict:

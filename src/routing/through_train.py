@@ -52,17 +52,22 @@ class ThroughTrain:
         """ Return last train """
         return self.trains[self.spec.spec[-1][0].name]
 
-    def arrival_times(self) -> dict[str, TimeSpec]:
-        """ Return the cumulative arrival times """
-        first = True
-        arrival_times: dict[str, TimeSpec] = {}
+    def prev_train(self, train: Train) -> Train | None:
+        """ Find previous train """
+        if train.line.name not in self.trains or train != self.trains[train.line.name]:
+            return None
+        line_names = [x[0].name for x in self.spec.spec]
+        line_index = line_names.index(train.line.name)
+        if line_index == 0:
+            return None
+        return self.trains[line_names[line_index - 1]]
+
+    def arrival_times(self) -> dict[tuple[str, str], TimeSpec]:
+        """ Return the cumulative arrival times (station, line) -> time """
+        arrival_times: dict[tuple[str, str], TimeSpec] = {}
         for line, _, _, _ in self.spec.spec:
             train = self.trains[line.name]
-            if first:
-                arrival_times = dict(train.arrival_time.items())
-                first = False
-            else:
-                arrival_times.update({k: v for k, v in train.arrival_time.items() if k != train.stations[0]})
+            arrival_times.update({(k, train.line.name): v for k, v in train.arrival_time.items()})
         return arrival_times
 
     def two_station_dist(self, start_station: str, end_station: str) -> int:
@@ -247,7 +252,7 @@ def parse_through_train(
             assert last_line is not None, last_line
             for through_train in result[through_spec]:
                 through_train.trains[line.name] = time_dict[through_train.trains[last_line.name].end_time_str()]
-                through_train.stations = list(through_train.arrival_times().keys())
+                through_train.stations = [x[0] for x in through_train.arrival_times().keys()]
 
             last_line = line
     return train_dict, result

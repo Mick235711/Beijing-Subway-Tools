@@ -5,7 +5,7 @@
 
 # Libraries
 from collections.abc import Callable
-from datetime import datetime, date, time
+from datetime import datetime, date
 from typing import Any
 
 from nicegui import ui
@@ -320,16 +320,16 @@ def get_all_trains(
 def find_train_id(train_dict: dict[str, Train], train: Train) -> str:
     """ Find train ID by train """
     ids = [k for k, t in train_dict.items() if t == train]
-    assert len(ids) == 1, (train_dict.keys(), ids, train)
+    assert len(ids) == 1, (train_dict, ids, train)
     return ids[0]
 
 
 def find_first_train(train_list: list[Train | ThroughTrain], station: str, reverse: bool = False) -> tuple[Train, str]:
     """ Find first/last train passing through a station """
     if reverse:
-        train_full = max(train_list, key=lambda t: get_time_str(*t.arrival_times()[station]))
+        train_full = max(train_list, key=lambda t: get_time_str(*{k[0]: v for k, v in t.arrival_times().items()}[station]))
     else:
-        train_full = min(train_list, key=lambda t: get_time_str(*t.arrival_times()[station]))
+        train_full = min(train_list, key=lambda t: get_time_str(*{k[0]: v for k, v in t.arrival_times().items()}[station]))
     if isinstance(train_full, Train):
         train = train_full
     else:
