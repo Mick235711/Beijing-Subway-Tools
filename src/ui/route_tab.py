@@ -326,6 +326,8 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
                     ui.label("Virtual transfer")
                 else:
                     get_line_badge(city.lines[last_line], force_icon_dir=last_dir)
+        else:
+            last_line = None
         for index in range(select_index + 1, len(station_selects)):
             container.remove(station_selects[index])
             if index < len(line_selects):
@@ -338,8 +340,8 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
             station_select2 = ui.select(
                 get_station_selector_options(
                     {s: ls for s, ls in city.station_lines.items()
-                     if ((last_station, s) in city.virtual_transfers and last_line is None) or
-                        (last_line in [l.name for l in ls] and s != last_station and last_line is not None)}
+                     if (last_line is None and (last_station, s) in city.virtual_transfers) or
+                        (last_line is not None and last_line in [l.name for l in ls] and s != last_station)}
                 ), with_input=True
             ).props(add="options-html", remove="fill-input hide-selected")
             station_select2.on_value_change(lambda l=len(station_selects): on_station_select_change(l))
@@ -491,15 +493,16 @@ async def analyze_routes(
     progress_bar.set_value(0.0)
     progress_bar.set_visibility(True)
     await asyncio.sleep(0.1)
+    last_progress: tuple[int, int] | None = None
 
     def update_progress() -> None:
         """ Handle progress bar updates """
-        last: tuple[int, int] | None = None
+        nonlocal last_progress
         while progress_recv.poll():
-            last = progress_recv.recv()
-        if last is None:
+            last_progress = progress_recv.recv()
+        if last_progress is None:
             return
-        index, total = last
+        index, total = last_progress
         value = 0.0 if total == 0 else index / total
         progress_bar.set_value(value)
         progress_label.set_text(f"{index} / {total} ({value * 100:.2f}%)")
@@ -516,6 +519,7 @@ async def analyze_routes(
             }, start_date,
             progress_callback=partial(progress_callback, progress_send)
         )
+        update_progress()
     finally:
         progress_timer.cancel(with_current_invocation=True)
         progress_send.close()

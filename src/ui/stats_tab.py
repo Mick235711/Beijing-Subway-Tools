@@ -5,10 +5,10 @@
 
 # Libraries
 from datetime import date
-from math import sqrt
-from typing import Literal
+from typing import Callable, Literal
 
-from nicegui import binding, ui
+from math import sqrt
+from nicegui import background_tasks, binding, run, ui
 
 from src.city.city import City
 from src.city.line import Line
@@ -31,6 +31,11 @@ class StatsData:
     info_data: InfoData
     cur_date: date
     train_dict: dict[tuple[str, str], list[Train]]
+    train_dict_key: tuple[date, tuple[str, ...]] | None
+    chart_cache_key: tuple | None
+    chart_cache: tuple[list[str], dict[str, dict[str, float]], list[float]] | None
+    speed_cache_key: tuple | None
+    speed_cache: dict[str, tuple[int, float, float]] | None
 
 
 def collect_directions(train_dict: dict[tuple[str, str], list[Train]]) -> dict[str, list[Train]]:
@@ -46,12 +51,37 @@ def collect_directions(train_dict: dict[tuple[str, str], list[Train]]) -> dict[s
 def stats_tab(city: City, data: StatsData) -> None:
     """ Statistics tab for the main page """
     with ui.row().classes("items-center justify-between"):
+        ui.label("Viewing statistics for date ")
+
+        async def refresh_stats() -> None:
+            """ Refresh statistics in the background """
+            loading.set_visibility(True)
+            cur_date = data.cur_date
+            lines_key = tuple(sorted(data.info_data.lines.keys()))
+            train_dict = await run.io_bound(get_train_dict, data.info_data.lines.values(), cur_date)
+            if (cur_date, lines_key) != (data.cur_date, tuple(sorted(data.info_data.lines.keys()))):
+                loading.set_visibility(False)
+                return
+            data.train_dict = train_dict
+            data.train_dict_key = (cur_date, lines_key)
+            data.chart_cache_key = None
+            data.chart_cache = None
+            data.speed_cache_key = None
+            data.speed_cache = None
+            await final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
+            await display_train_chart.refresh(data=data)
+            await display_speed_graph.refresh(data=data)
+            loading.set_visibility(False)
+
         def on_any_change() -> None:
             """ Update the train list based on current data """
-            data.train_dict = get_train_dict(data.info_data.lines.values(), data.cur_date)
-            final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
-            display_train_chart.refresh(data=data)
-            display_speed_graph.refresh(data=data)
+            key = (data.cur_date, tuple(sorted(data.info_data.lines.keys())))
+            if data.train_dict_key == key:
+                final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
+                display_train_chart.refresh(data=data)
+                display_speed_graph.refresh(data=data)
+                return
+            background_tasks.create_lazy(refresh_stats(), name="stats_tab_refresh")
 
         def on_date_change(new_date: date) -> None:
             """ Update the current date and refresh the train list """
@@ -60,8 +90,9 @@ def stats_tab(city: City, data: StatsData) -> None:
 
         data.info_data.on_line_change.append(on_any_change)
 
-        ui.label("Viewing statistics for date ")
         get_date_input(on_date_change, label=None)
+        loading = ui.spinner(size="lg").classes("ml-2")
+        loading.set_visibility(False)
         on_any_change()
 
     with ui.tabs().classes("w-full") as tabs:
@@ -70,10 +101,10 @@ def stats_tab(city: City, data: StatsData) -> None:
         radar_tab = ui.tab("Radar")
     with ui.tab_panels(tabs, value=train_tab).classes("w-full stats-tab-selection"):
         with ui.tab_panel(train_tab):
-            display_train_chart(city, data=data)
+            display_train_chart(city)
 
         with ui.tab_panel(speed_tab):
-            display_speed_graph(city, data=data)
+            display_speed_graph(city)
 
         def on_line_change(line: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -181,70 +212,38 @@ def train_chart_data(
 
 
 @ui.refreshable
-def display_train_chart(city: City, *, data: StatsData) -> None:
+def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
     """ Display chart for train data """
-    def on_data_change() -> None:
-        """ Handle data switch changes """
-        if data_select.value == "Comparison With Date":
-            other_date: date | None = date.fromisoformat(date_input.value)
-        else:
-            other_date = None
-        try:
-            moving_average = int(moving_avg_input.value)
-            if moving_average <= 0:
-                return
-        except ValueError:
-            return
-        is_capacity = capacity_switch.value and data_select.value == "Online Train Count"
-        is_full = data_select.value == "Full-Distance Portion"
-        view_metric: Literal["capacity", "count"] = "capacity" if is_capacity else "count"
-        dimensions, dataset = train_chart_data(
-            collect_directions(data.train_dict),
-            view_metric=("full_distance" if is_full and dist_switch.value else view_metric),
-            full_only=(False if is_full else full_switch.value),
-            moving_average=moving_average
-        )
-        if is_full:
-            _, dataset2 = train_chart_data(
-                collect_directions(data.train_dict),
-                view_metric=("distance" if is_full and dist_switch.value else view_metric),
-                full_only=(not dist_switch.value), moving_average=moving_average
-            )
-            total_data = [zero_div(
-                sum(data_dict.get(t, 0) for data_dict in dataset2.values()),
-                sum(data_dict.get(t, 0) for data_dict in dataset.values())
-            ) for t in dimensions]
-            dataset = {line_name: {
-                k: zero_div(dataset2[line_name].get(k, 0), v) for k, v in inner.items()
-            } for line_name, inner in dataset.items()}
-        elif other_date is not None:
-            other_train_dict = get_train_dict(data.info_data.lines.values(), other_date)
-            _, dataset2 = train_chart_data(
-                collect_directions(other_train_dict),
-                view_metric=view_metric,
-                full_only=full_switch.value, moving_average=moving_average
-            )
-            total_data = [zero_div(
-                sum(data_dict.get(t, 0) for data_dict in dataset.values()),
-                sum(data_dict.get(t, 0) for data_dict in dataset2.values())
-            ) for t in dimensions]
-            dataset = {line_name: {
-                k: zero_div(v, dataset2[line_name].get(k, 0)) for k, v in inner.items()
-            } for line_name, inner in dataset.items()}
-        else:
-            total_data = [sum(data_dict.get(t, 0) for data_dict in dataset.values()) for t in dimensions]
+    if data is None:
+        return
+
+    last_chart_key: tuple | None = None
+    def apply_chart(
+        dimensions: list[str],
+        dataset: dict[str, dict[str, float]],
+        total_data: list[float],
+        *,
+        data_select_value: str,
+        other_date: date | None,
+        is_capacity: bool,
+        is_full: bool,
+        per_km: bool,
+        tooltip_value: str,
+        max_marker: bool,
+        moving_average: int
+    ) -> None:
+        """ Apply chart data to the EChart options """
         train_chart.options["legend"]["data"] = sorted(dataset.keys(), key=lambda x: city.lines[x].index) + ["Total"]
         train_chart.options["xAxis"]["data"] = dimensions
-        if tooltip_select.value == "Auto":
+        if tooltip_value == "Auto":
             train_chart.options["xAxis"]["axisLabel"]["interval"] = "auto"
-        elif tooltip_select.value == "All":
+        elif tooltip_value == "All":
             train_chart.options["xAxis"]["axisLabel"]["interval"] = 0
-        train_chart.options["tooltip"]["trigger"] = "axis" if tooltip_select.value == "Hover" else "item"
-        if data_select.value == "Online Train Count":
+        train_chart.options["tooltip"]["trigger"] = "axis" if tooltip_value == "Hover" else "item"
+        if data_select_value == "Online Train Count":
             train_chart.options["yAxis"]["name"] = "Train Capacity" if is_capacity else "Train Count"
         else:
             train_chart.options["yAxis"]["name"] = "Portion"
-        per_km = per_km_switch.value and not is_full and other_date is None
         total_distance = (sum(city.lines[ln].total_distance() for ln in dataset.keys()) / 1000) if per_km else 1
         mark_point_label = {
             "show": True,
@@ -252,6 +251,12 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
         } if per_km or is_full or other_date is not None or moving_average > 1 else {}
         marker = "min" if is_full else "max"
         marker_func = min if is_full else max
+        def make_marker_key(name: str) -> Callable[[str], float]:
+            """ Create a marker key function for a specific line """
+            def marker_key(t: str) -> float:
+                """ Return the marker key value for a timestamp """
+                return dataset[name].get(t, 2 if is_full else -1)
+            return marker_key
         train_chart.options["series"] = [
             {
                 "name": line_name,
@@ -260,29 +265,152 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
                     city.lines[line_name].total_distance() / 1000 if per_km else 1
                 )) for t in dimensions],
                 "smooth": True,
-                "showSymbol": tooltip_select.value not in ["Hover", "None"],
+                "showSymbol": tooltip_value not in ["Hover", "None"],
                 "itemStyle": {"color": city.lines[line_name].color or "#333"},
                 "markPoint": {
                     "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
-                        dimensions, key=lambda t: data_dict.get(t, 2 if is_full else -1)
+                        dimensions, key=make_marker_key(line_name)
                     ) + ")"}],
                     "label": mark_point_label
-                } if max_switch.value else {}
+                } if max_marker else {}
             } for line_name, data_dict in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
         ] + [{
             "name": "Total",
             "type": "line",
             "data": [t / total_distance for t in total_data],
             "smooth": True,
-            "showSymbol": tooltip_select.value not in ["Hover", "None"],
+            "showSymbol": tooltip_value not in ["Hover", "None"],
             "itemStyle": {"color": "black"},
             "markPoint": {
                 "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
                     dimensions, key=lambda t: sum(data_dict.get(t, 0) for data_dict in dataset.values())
                 ) + ")"}],
                 "label": mark_point_label
-            } if max_switch.value else {}
+            } if max_marker else {}
         }]
+        train_chart.update()
+
+    async def refresh_chart(key: tuple) -> None:
+        """ Refresh chart data in the background """
+        nonlocal last_chart_key
+
+        data_select_value = data_select.value
+        other_date = date.fromisoformat(date_input.value) if data_select_value == "Comparison With Date" else None
+        full_only = full_switch.value
+        dist_only = dist_switch.value
+        is_capacity = capacity_switch.value and data_select_value == "Online Train Count"
+        is_full = data_select_value == "Full-Distance Portion"
+        moving_average = int(moving_avg_input.value)
+        tooltip_value = tooltip_select.value
+        per_km = per_km_switch.value and not is_full and other_date is None
+        max_marker = max_switch.value
+        train_dict_snapshot = data.train_dict
+        lines_snapshot = list(data.info_data.lines.values())
+
+        def build() -> tuple[list[str], dict[str, dict[str, float]], list[float]]:
+            """ Build the train chart dataset """
+            view_metric: Literal["capacity", "count"] = "capacity" if is_capacity else "count"
+            inner_dimensions, inner_dataset = train_chart_data(
+                collect_directions(train_dict_snapshot),
+                view_metric=("full_distance" if is_full and dist_only else view_metric),
+                full_only=(False if is_full else full_only),
+                moving_average=moving_average
+            )
+            if is_full:
+                _, dataset2 = train_chart_data(
+                    collect_directions(train_dict_snapshot),
+                    view_metric=("distance" if is_full and dist_only else view_metric),
+                    full_only=(not dist_only), moving_average=moving_average
+                )
+                inner_data = [zero_div(
+                    sum(data_dict.get(t, 0) for data_dict in dataset2.values()),
+                    sum(data_dict.get(t, 0) for data_dict in inner_dataset.values())
+                ) for t in inner_dimensions]
+                inner_dataset = {line_name: {
+                    k: zero_div(dataset2[line_name].get(k, 0), v) for k, v in inner.items()
+                } for line_name, inner in inner_dataset.items()}
+            elif other_date is not None:
+                other_train_dict = get_train_dict(lines_snapshot, other_date)
+                _, dataset2 = train_chart_data(
+                    collect_directions(other_train_dict),
+                    view_metric=view_metric,
+                    full_only=full_only, moving_average=moving_average
+                )
+                inner_data = [zero_div(
+                    sum(data_dict.get(t, 0) for data_dict in inner_dataset.values()),
+                    sum(data_dict.get(t, 0) for data_dict in dataset2.values())
+                ) for t in inner_dimensions]
+                inner_dataset = {line_name: {
+                    k: zero_div(v, dataset2[line_name].get(k, 0)) for k, v in inner.items()
+                } for line_name, inner in inner_dataset.items()}
+            else:
+                inner_data = [
+                    sum(data_dict.get(t, 0) for data_dict in inner_dataset.values()) for t in inner_dimensions
+                ]
+
+            return inner_dimensions, inner_dataset, inner_data
+
+        dimensions, dataset, total_data = await run.io_bound(build)
+
+        if last_chart_key != key:
+            return
+
+        data.chart_cache_key = key
+        data.chart_cache = (dimensions, dataset, total_data)
+
+        apply_chart(
+            dimensions, dataset, total_data,
+            data_select_value=data_select_value,
+            other_date=other_date,
+            is_capacity=is_capacity,
+            is_full=is_full,
+            per_km=per_km,
+            tooltip_value=tooltip_value,
+            max_marker=max_marker,
+            moving_average=moving_average
+        )
+
+    def on_data_change() -> None:
+        """ Handle data switch changes """
+        try:
+            moving_average = int(moving_avg_input.value)
+            if moving_average <= 0:
+                return
+        except ValueError:
+            return
+        key = (
+            data_select.value,
+            date_input.value,
+            full_switch.value,
+            dist_switch.value,
+            capacity_switch.value,
+            per_km_switch.value,
+            max_switch.value,
+            tooltip_select.value,
+            moving_avg_input.value,
+            tuple(sorted(data.info_data.lines.keys())),
+        )
+        nonlocal last_chart_key
+        last_chart_key = key
+        if data.chart_cache_key == key and data.chart_cache is not None:
+            data_select_value = data_select.value
+            other_date = date.fromisoformat(date_input.value) if data_select_value == "Comparison With Date" else None
+            is_capacity = capacity_switch.value and data_select_value == "Online Train Count"
+            is_full = data_select_value == "Full-Distance Portion"
+            per_km = per_km_switch.value and not is_full and other_date is None
+            apply_chart(
+                data.chart_cache[0], data.chart_cache[1], data.chart_cache[2],
+                data_select_value=data_select_value,
+                other_date=other_date,
+                is_capacity=is_capacity,
+                is_full=is_full,
+                per_km=per_km,
+                tooltip_value=tooltip_select.value,
+                max_marker=max_switch.value,
+                moving_average=moving_average
+            )
+            return
+        background_tasks.create_lazy(refresh_chart(key), name="stats_train_chart")
 
     def on_select_change(selection: bool | dict[str, bool]) -> None:
         """ Handle select button changes """
@@ -320,18 +448,24 @@ def display_train_chart(city: City, *, data: StatsData) -> None:
         moving_avg_input = ui.input(
             value="1", label="minutes", validation=valid_positive, on_change=on_data_change
         )
-        ui.button(icon="deselect", on_click=lambda: on_select_change(False)).props("flat rounded")
-        ui.button(icon="select_all", on_click=lambda: on_select_change(True)).props("flat rounded")
 
     train_chart = ui.echart({
         "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
-        "yAxis": {"type": "value", "name": "Train Count"},
+        "yAxis": {"type": "value", "name": "Train Count", "nameLocation": "middle", "nameGap": 45},
         "series": [],
-        "legend": {},
+        "legend": {
+            "selector": ["all", "inverse"],
+            "selectorPosition": "start",
+            "top": 0,
+            "left": "center",
+            "width": "85%",
+            "itemGap": 8
+        },
         "tooltip": {"trigger": "axis"},
         "grid": {
             "left": "3%",
             "right": "4%",
+            "top": 90,
             "bottom": "10%",
             "containLabel": True
         }
@@ -359,20 +493,19 @@ def speed_graph_data(
 
 
 @ui.refreshable
-def display_speed_graph(city: City, *, data: StatsData) -> None:
+def display_speed_graph(city: City, *, data: StatsData | None = None) -> None:
     """ Display graph for speed data """
-    def on_data_change() -> None:
-        """ Handle data switch changes """
-        if x_select.value == "Average Distance":
-            view_metric: Literal["avg_dist", "dist"] = "avg_dist"
-        elif x_select.value == "Total Distance":
-            view_metric = "dist"
-        else:
-            assert False, x_select.value
-        dataset = speed_graph_data(
-            city, collect_directions(data.train_dict),
-            view_metric=view_metric, full_only=full_switch.value,
-        )
+    if data is None:
+        return
+
+    last_graph_key: tuple | None = None
+    def apply_graph(
+        dataset: dict[str, tuple[int, float, float]], *,
+        view_metric: Literal["avg_dist", "dist"],
+        size_on: bool,
+        full_only: bool
+    ) -> None:
+        """ Apply graph data to the EChart options """
         total_cnt = sum(x[0] for x in dataset.values())
         speed_graph.options["legend"]["data"] = [
             k + " (" + suffix_s("train", dataset[k][0]) + ")"
@@ -380,26 +513,80 @@ def display_speed_graph(city: City, *, data: StatsData) -> None:
         ] + ["Total (" + suffix_s("train", total_cnt) + ")"]
         speed_graph.options["xAxis"]["name"] = x_select.value + " (km)"
         if view_metric == "avg_dist":
-            total_metric = sum(x[1] * x[0] for x in dataset.values()) / total_cnt
+            total_metric = 0 if total_cnt == 0 else sum(x[1] * x[0] for x in dataset.values()) / total_cnt
         else:
             total_metric = average(x[1] for x in dataset.values())
-        total_value = sum(x[2] * x[0] for x in dataset.values()) / total_cnt
+        total_value = 0 if total_cnt == 0 else sum(x[2] * x[0] for x in dataset.values()) / total_cnt
         speed_graph.options["series"] = [
             {
                 "name": line_name + " (" + suffix_s("train", cnt) + ")",
                 "type": "scatter",
                 "data": [(metric, value)],
                 "itemStyle": {"color": city.lines[line_name].color or "#333"},
-                **({"symbolSize": sqrt(cnt)} if size_switch.value else {})
+                **({"symbolSize": sqrt(cnt)} if size_on else {})
             } for line_name, (cnt, metric, value) in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
         ] + [{
             "name": "Total (" + suffix_s("train", total_cnt) + ")",
             "type": "scatter",
             "data": [(total_metric, total_value)],
             "itemStyle": {"color": "black"},
-            **({"symbolSize": sqrt(total_cnt)} if size_switch.value else {})
+            **({"symbolSize": sqrt(total_cnt)} if size_on else {})
         }]
-        display_speed_table.refresh(full_only=full_switch.value)
+        speed_graph.update()
+        display_speed_table.refresh(full_only=full_only)
+
+    async def refresh_graph(key: tuple) -> None:
+        """ Refresh speed graph in the background """
+        nonlocal last_graph_key
+
+        view_metric: Literal["avg_dist", "dist"]
+        if x_select.value == "Average Distance":
+            view_metric = "avg_dist"
+        else:
+            view_metric = "dist"
+        full_only = full_switch.value
+        size_on = size_switch.value
+        train_dict_snapshot = data.train_dict
+
+        def build() -> dict[str, tuple[int, float, float]]:
+            """ Build the speed graph dataset """
+            return speed_graph_data(
+                city, collect_directions(train_dict_snapshot),
+                view_metric=view_metric, full_only=full_only,
+            )
+
+        dataset = await run.io_bound(build)
+
+        if last_graph_key != key:
+            return
+        data.speed_cache_key = key
+        data.speed_cache = dataset
+        apply_graph(dataset, view_metric=view_metric, size_on=size_on, full_only=full_only)
+
+    def on_data_change() -> None:
+        """ Handle data switch changes """
+        key = (
+            x_select.value,
+            full_switch.value,
+            size_switch.value,
+            tuple(sorted(data.info_data.lines.keys())),
+        )
+        nonlocal last_graph_key
+        last_graph_key = key
+        if data.speed_cache_key == key and data.speed_cache is not None:
+            view_metric: Literal["avg_dist", "dist"]
+            if x_select.value == "Average Distance":
+                view_metric = "avg_dist"
+            else:
+                view_metric = "dist"
+            apply_graph(
+                data.speed_cache,
+                view_metric=view_metric,
+                size_on=size_switch.value,
+                full_only=full_switch.value
+            )
+            return
+        background_tasks.create_lazy(refresh_graph(key), name="stats_speed_graph")
 
     def on_select_change(selection: bool | dict[str, bool]) -> None:
         """ Handle select button changes """
@@ -414,18 +601,25 @@ def display_speed_graph(city: City, *, data: StatsData) -> None:
         ], value="Average Distance", label="X-Axis Label", on_change=on_data_change)
         full_switch = ui.switch("Full-Distance only", on_change=on_data_change)
         size_switch = ui.switch("Train count as size", on_change=on_data_change)
-        ui.button(icon="deselect", on_click=lambda: on_select_change(False)).props("flat rounded")
-        ui.button(icon="select_all", on_click=lambda: on_select_change(True)).props("flat rounded")
+        # Selection controls are available in the chart legend.
 
     speed_graph = ui.echart({
         "xAxis": {"type": "value"},
-        "yAxis": {"type": "value", "name": "Average Speed (km/h)"},
+        "yAxis": {"type": "value", "name": "Average Speed (km/h)", "nameLocation": "middle", "nameGap": 45},
         "series": [],
-        "legend": {},
+        "legend": {
+            "selector": ["all", "inverse"],
+            "selectorPosition": "start",
+            "top": 0,
+            "left": "center",
+            "width": "85%",
+            "itemGap": 8
+        },
         "tooltip": {"trigger": "item"},
         "grid": {
             "left": "3%",
             "right": "4%",
+            "top": 90,
             "bottom": "10%",
             "containLabel": True
         }
@@ -491,11 +685,12 @@ def display_speed_table(
     """ Display table on trains """
     if train_dict is None:
         return
+    train_id_dict: dict[tuple[str, str], dict[str, Train]] = {}
+    table_key = (id(train_dict), full_only)
     with ui.row().classes("w-full items-center justify-between"):
         ui.label("Fastest/Slowest Trains").classes("text-xl font-semibold mt-6 mb-2")
         trains_search = ui.input("Search trains...")
 
-    train_id_dict, train_rows = calculate_train_rows(train_dict, full_only=full_only)
     trains_table = ui.table(
         columns=[
             {"name": "tie", "label": "Tied", "field": "tie"},
@@ -552,14 +747,18 @@ def display_speed_table(
              "classes": "hidden", "headerClasses": "hidden"}
         ],
         column_defaults={"align": "right", "required": True, "sortable": True},
-        rows=train_rows,
+        rows=[],
         pagination=10
     )
+    trains_table.props("loading")
     line_indexes = {line.index: line for line in lines.values()}
     trains_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], lines))
-    trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(
-        train_id_dict[(n.args[1], n.args[2])][n.args[0]], n.args[0],
-        train_id_dict[(n.args[1], n.args[2])], station_lines
+    trains_table.on("trainBadgeClick", lambda n: (
+        None if (n.args[1], n.args[2]) not in train_id_dict or n.args[0] not in train_id_dict[(n.args[1], n.args[2])]
+        else refresh_train_drawer(
+            train_id_dict[(n.args[1], n.args[2])][n.args[0]], n.args[0],
+            train_id_dict[(n.args[1], n.args[2])], station_lines
+        )
     ))
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
     trains_table.add_slot("body-cell-line", get_line_html("line"))
@@ -576,6 +775,18 @@ def display_speed_table(
     trains_table.add_slot("body-cell-start", get_station_html("start"))
     trains_table.add_slot("body-cell-end", get_station_html("end"))
     trains_search.bind_value(trains_table, "filter")
+
+    async def load_rows(key: tuple[int, bool]) -> None:
+        """ Load rows for the speed table in the background """
+        nonlocal train_id_dict
+        train_id_dict, train_rows = await run.io_bound(calculate_train_rows, train_dict, full_only=full_only)
+        if key != table_key:
+            return
+        trains_table.rows = train_rows
+        trains_table.update()
+        trains_table.props(remove="loading")
+
+    background_tasks.create_lazy(load_rows(table_key), name="stats_speed_table")
 
 
 @ui.refreshable
@@ -636,7 +847,10 @@ def final_train_radar(
         if show_all_dir:
             candidates = intersections[:]
         else:
-            candidates = [(min if use_first else max)(intersections, key=lambda s: stations.index(s))]
+            def intersection_key(station: str, *, ln: str = line_name, d: str = direction) -> int:
+                """ Return the direction station index for sorting intersections """
+                return city.lines[ln].direction_stations(d).index(station)
+            candidates = [(min if use_first else max)(intersections, key=intersection_key)]
         for last_station in candidates:
             train_list = get_train_list(line, direction, last_station, train_dict)
             train_id_dicts[(line_name, direction)] = get_train_id(train_list)
@@ -648,13 +862,14 @@ def final_train_radar(
                 continue
             if last_station not in last_dict:
                 last_dict[last_station] = []
-            last_train = (min if use_first else max)(
-                filtered_list, key=lambda t: get_time_str(*t.arrival_time[last_station])
-            )
+            def arrival_key(inner_train: Train, *, ls: str = last_station) -> str:
+                """ Return arrival time string for sorting trains """
+                return get_time_str(*inner_train.arrival_time[ls])
+            last_train = (min if use_first else max)(filtered_list, key=arrival_key)
             last_dict[last_station].append(last_train)
             last_full = (min if use_first else max)(
                 [t for t in filtered_list if t.is_full()],
-                key=lambda t: get_time_str(*t.arrival_time[last_station])
+                key=arrival_key
             )
             diff = diff_time_tuple(last_full.arrival_time[last_station], last_train.arrival_time[last_station])
             if last_full != last_train and ((use_first and diff > 0) or (not use_first and diff < 0)):

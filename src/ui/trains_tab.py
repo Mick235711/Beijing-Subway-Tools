@@ -7,7 +7,7 @@
 from datetime import date
 from typing import Literal
 
-from nicegui import binding, ui
+from nicegui import background_tasks, binding, run, ui
 
 from src.city.city import City
 from src.city.line import Line
@@ -32,6 +32,7 @@ class TrainsData:
     cur_date: date
     cur_mode: Literal["single", "combination"]
     train_list: list[Train]
+    train_list_key: tuple[str, str, date, Literal["single", "combination"]] | None
 
 
 def get_train_list(city: City, data: TrainsData) -> list[Train]:
@@ -49,23 +50,47 @@ def get_train_list(city: City, data: TrainsData) -> list[Train]:
 def trains_tab(city: City, data: TrainsData) -> None:
     """ Train tab for the main page """
     with ui.row().classes("items-center justify-between"):
-        def on_any_change() -> None:
-            """ Update the train list based on current data """
-            data.train_list = get_train_list(city, data)
-
+        def apply_train_list(inner_train_list: list[Train]) -> None:
+            """ Apply train list to UI """
             route_timeline.refresh(
                 station_lines=data.info_data.station_lines,
                 line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
-                train_list=data.train_list, route_mode=data.cur_mode
+                train_list=inner_train_list, route_mode=data.cur_mode
             )
             route_table.refresh(
                 station_lines=data.info_data.station_lines,
                 line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
-                train_list=data.train_list, route_mode=data.cur_mode
+                train_list=inner_train_list, route_mode=data.cur_mode
             )
             train_table.refresh(
-                station_lines=data.info_data.station_lines, full_list=data.train_list, train_list=data.train_list
+                station_lines=data.info_data.station_lines, full_list=inner_train_list, train_list=inner_train_list
             )
+
+        async def refresh_trains() -> None:
+            """ Refresh train list in the background """
+            loading.set_visibility(True)
+            line = data.line
+            direction = data.direction
+            cur_date = data.cur_date
+            cur_mode = data.cur_mode
+            key = (line, direction, cur_date, cur_mode)
+            snapshot = TrainsData(data.info_data, line, direction, cur_date, cur_mode, [], key)
+            inner_train_list = await run.io_bound(get_train_list, city, snapshot)
+            if (line, direction, cur_date, cur_mode) != (data.line, data.direction, data.cur_date, data.cur_mode):
+                loading.set_visibility(False)
+                return
+            data.train_list = inner_train_list
+            data.train_list_key = key
+            apply_train_list(data.train_list)
+            loading.set_visibility(False)
+
+        def on_any_change() -> None:
+            """ Update the train list based on current data """
+            key = (data.line, data.direction, data.cur_date, data.cur_mode)
+            if data.train_list_key == key:
+                apply_train_list(data.train_list)
+                return
+            background_tasks.create_lazy(refresh_trains(), name="trains_tab_refresh")
 
         def on_direction_change(direction: str | None = None) -> None:
             """ Update the data based on selection states """
@@ -124,6 +149,8 @@ def trains_tab(city: City, data: TrainsData) -> None:
         get_date_input(on_date_change, label=None)
         ui.label(" with route mode ")
         select_mode = ui.toggle(["Single", "Combination"], value="Single").on_value_change(on_mode_change)
+        loading = ui.spinner(size="lg").classes("ml-2")
+        loading.set_visibility(False)
         on_line_change()
 
     with ui.row():
@@ -171,12 +198,12 @@ def trains_tab(city: City, data: TrainsData) -> None:
                 ui.label("Average Speed").classes(card_caption)
                 ui.label().bind_text_from(
                     data, "train_list",
-                    backward=lambda tl: speed_str(average(t.speed() for t in tl))
+                    backward=lambda tl: ("N/A" if len(tl) == 0 else speed_str(average(t.speed() for t in tl)))
                 ).classes(card_text)
 
         ui.separator()
         with ui.row().classes("w-full justify-between"):
-            train_list = get_train_list(city, data)
+            train_list: list[Train] = []
             with ui.column():
                 with ui.row().classes("w-full items-center justify-between mt-5 mb-2"):
                     ui.label("Train Routes Diagram").classes("text-xl font-semibold")

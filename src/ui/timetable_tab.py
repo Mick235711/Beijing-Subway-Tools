@@ -7,7 +7,7 @@
 from collections.abc import Callable, Iterable
 from datetime import date
 
-from nicegui import binding, ui
+from nicegui import background_tasks, binding, run, ui
 from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.label import Label
 
@@ -36,6 +36,8 @@ class TimetableData:
     cur_date: date
     train_dict: dict[tuple[str, str], list[Train]]
     through_dict: dict[ThroughSpec, list[ThroughTrain]]
+    train_dict_key: tuple[str, date] | None
+    through_dict_key: tuple[str, ...] | None
 
 
 def get_train_dict(lines: Iterable[Line], cur_date: date) -> dict[tuple[str, str], list[Train]]:
@@ -55,19 +57,68 @@ def get_train_dict(lines: Iterable[Line], cur_date: date) -> dict[tuple[str, str
 def timetable_tab(city: City, data: TimetableData) -> None:
     """ Timetable tab for the main page """
     with ui.row().classes("items-center justify-between timetable-tab-selection"):
-        def on_any_change() -> None:
-            """ Update the train dict based on current data """
-            data.train_dict = get_train_dict(city.station_lines[data.station], data.cur_date)
+        timetables_built = False
+
+        async def refresh_timetables() -> None:
+            """ Refresh timetables in the background """
+            nonlocal timetables_built
+            loading.set_visibility(True)
+            station = data.station
+            cur_date = data.cur_date
+            key = (station, cur_date)
+            if data.train_dict_key != key:
+                train_dict = await run.io_bound(get_train_dict, city.station_lines[station], cur_date)
+                if (station, cur_date) != (data.station, data.cur_date):
+                    loading.set_visibility(False)
+                    return
+                data.train_dict = train_dict
+                data.train_dict_key = key
+            if not data.through_dict:
+                loading.set_visibility(False)
+                return
 
             skipped_switch.set_visibility(any(
                 data.station in t.arrival_time and data.station in t.skip_stations
                 for tl in data.train_dict.values() for t in tl
             ))
-            timetables.refresh(
-                station_lines=data.info_data.station_lines, station=data.station,
-                train_dict=data.train_dict, through_dict=data.through_dict,
-                hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
+            if not timetables_built:
+                timetables_container.clear()
+                with timetables_container:
+                    timetables(
+                        city, station_lines=data.info_data.station_lines, station=data.station,
+                        train_dict=data.train_dict, through_dict=data.through_dict,
+                        hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
+                    )
+                timetables_built = True
+            else:
+                await timetables.refresh(
+                    station_lines=data.info_data.station_lines, station=data.station,
+                    train_dict=data.train_dict, through_dict=data.through_dict,
+                    hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
+                )
+            loading.set_visibility(False)
+
+        async def load_through_dict() -> None:
+            """ Load through-train dictionary in the background """
+            lines_key = tuple(sorted(data.info_data.lines.keys()))
+            if data.through_dict_key == lines_key and data.through_dict:
+                on_any_change()
+                return
+            loading.set_visibility(True)
+            through_dict = await run.io_bound(
+                lambda: parse_through_train(
+                    parse_all_trains(list(data.info_data.lines.values())),
+                    city.through_specs
+                )[1]
             )
+            data.through_dict = through_dict
+            data.through_dict_key = lines_key
+            loading.set_visibility(False)
+            on_any_change()
+
+        def on_any_change() -> None:
+            """ Update the train dict based on current data """
+            background_tasks.create_lazy(refresh_timetables(), name="timetable_tab_refresh")
 
         def on_station_change(station: str | None = None, new_date: date | None = None) -> None:
             """ Update the data based on selection states """
@@ -106,6 +157,8 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         ).props(add="options-html", remove="fill-input hide-selected").on_value_change(on_station_change)
         ui.label(" on date ")
         date_input = get_date_input(on_date_change, label=None)
+        loading = ui.spinner(size="lg").classes("ml-2")
+        loading.set_visibility(False)
 
     with ui.row().classes("items-center justify-between"):
         ui.label("Hour display mode: ")
@@ -113,12 +166,9 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                                    value="Prefix", on_change=on_any_change)
         skipped_switch = ui.switch("Show skipping trains", on_change=on_any_change)
 
+    timetables_container = ui.column().classes("w-full")
     on_station_change()
-    data.through_dict = parse_through_train(parse_all_trains(list(data.info_data.lines.values())), city.through_specs)[1]
-    timetables(
-        city, station_lines=data.info_data.station_lines, station=data.station,
-        train_dict=data.train_dict, through_dict=data.through_dict
-    )
+    background_tasks.create(load_through_dict(), name="timetable_through_dict")
 
 
 def get_train_list(
@@ -526,7 +576,7 @@ def show_filter_inner_menu(
             route_types = get_train_type(train)
             if result is not None:
                 route_types.append("Through")
-            if len(route_types) > 1:
+            if len(route_types) > 1 and "Full" in route_types:
                 route_types.remove("Full")
             reverse_tag_dict[train] = route_types
             for tag in route_types:

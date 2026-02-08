@@ -7,7 +7,7 @@
 from collections.abc import Callable
 from datetime import date
 
-from nicegui import binding, ui
+from nicegui import background_tasks, binding, run, ui
 
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
@@ -134,6 +134,36 @@ def calculate_station_rows(
 
 def info_tab(city: City, data: InfoData) -> None:
     """ Info tab for the main page """
+    line_id_dict: dict[tuple[str, str], dict[str, Train]] = {}
+    stations_table = None
+
+    async def load_station_rows(cur_date: date, full_only: bool, show_ending: bool) -> None:
+        """ Load station rows in the background """
+        nonlocal line_id_dict, stations_table
+        station_rows, new_line_id_dict = await run.io_bound(
+            calculate_station_rows,
+            city, data.lines, data.station_lines, cur_date,
+            full_only=full_only, show_ending=show_ending
+        )
+        line_id_dict = new_line_id_dict
+        if stations_table is None:
+            return
+        stations_table.rows = station_rows
+        stations_table.update()
+        stations_table.props(remove="loading")
+
+    def schedule_station_rows(cur_date: date, full_only: bool, show_ending: bool) -> None:
+        """ Schedule a background refresh for station rows """
+        nonlocal stations_table
+        if stations_table is None:
+            return
+        stations_table.props("loading")
+        stations_table.update()
+        background_tasks.create_lazy(
+            load_station_rows(cur_date, full_only, show_ending),
+            name="info_station_rows"
+        )
+
     with ui.row().classes("items-center justify-between info-tab-selection"):
         ui.label("Include lines with:")
 
@@ -162,10 +192,11 @@ def info_tab(city: City, data: InfoData) -> None:
                 for callback in data.on_line_change:
                     callback()
 
-            stations_table.rows = calculate_station_rows(
-                city, data.lines, data.station_lines, date.fromisoformat(date_input.value),
-                full_only=date_full_switch.value, show_ending=ending_switch.value
-            )[0]
+            schedule_station_rows(
+                date.fromisoformat(date_input.value),
+                date_full_switch.value,
+                ending_switch.value
+            )
 
         def on_line_badge_click(line: Line) -> None:
             """ Refresh the line drawer with the clicked line """
@@ -374,9 +405,6 @@ def info_tab(city: City, data: InfoData) -> None:
                 ending_switch = ui.switch("Show ending trains", on_change=lambda: on_switch_change(False))
                 stations_search = ui.input("Search stations...")
 
-            station_rows, line_id_dict = calculate_station_rows(
-                city, city.lines, city.station_lines, date.fromisoformat(date_input.value)
-            )
             stations_table = ui.table(
                 columns=[
                     {"name": "name", "label": "Name", "field": "name", "align": "center",
@@ -418,14 +446,18 @@ def info_tab(city: City, data: InfoData) -> None:
                      "classes": "hidden", "headerClasses": "hidden"}
                 ],
                 column_defaults={"align": "right", "required": True, "sortable": True},
-                rows=station_rows,
+                rows=[],
                 pagination=10
             )
+            stations_table.props("loading")
             stations_table.on("lineBadgeClick", lambda n: refresh_line_drawer(line_indexes[n.args], data.lines))
             stations_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, data.station_lines))
-            stations_table.on("trainClick", lambda n: refresh_train_drawer(
-                line_id_dict[(n.args[0], n.args[1])][n.args[2]], n.args[2],
-                line_id_dict[(n.args[0], n.args[1])], data.station_lines
+            stations_table.on("trainClick", lambda n: (
+                None if (n.args[0], n.args[1]) not in line_id_dict or n.args[2] not in line_id_dict[(n.args[0], n.args[1])]
+                else refresh_train_drawer(
+                    line_id_dict[(n.args[0], n.args[1])][n.args[2]], n.args[2],
+                    line_id_dict[(n.args[0], n.args[1])], data.station_lines
+                )
             ))
             stations_table.on("row-click", js_handler="(e, row, index) => emit(row['name'][0])", handler=lambda n: refresh_station_drawer(
                 n.args, data.station_lines
@@ -473,3 +505,8 @@ def info_tab(city: City, data: InfoData) -> None:
 </q-td>
             """)
             stations_search.bind_value(stations_table, "filter")
+            schedule_station_rows(
+                date.fromisoformat(date_input.value),
+                date_full_switch.value,
+                ending_switch.value
+            )
