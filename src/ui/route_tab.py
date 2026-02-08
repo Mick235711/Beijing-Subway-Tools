@@ -4,11 +4,12 @@
 """ Frontend - Main Page - Routing Tab """
 
 # Libraries
+import asyncio
 from collections.abc import Callable
 from datetime import datetime, date, time
 from functools import partial
-from multiprocessing import Manager
-from queue import Queue
+from multiprocessing import get_context
+from multiprocessing.connection import Connection
 from typing import Literal
 
 from nicegui import run, ui
@@ -482,45 +483,53 @@ def add_route_shorthand(city: City, on_route_change: Callable[[Route], None]) ->
     on_input_change()
 
 
-def progress_callback(queue: Queue[tuple[int, int]], index: int, total: int) -> None:
+def progress_callback(conn: Connection, index: int, total: int) -> None:
     """ Handle progress bar updates """
-    queue.put_nowait((index, total))
+    conn.send((index, total))
 
 
 async def analyze_routes(
     city: City, routes: list[Route], start_date: date, progress_bar: LinearProgress
 ) -> tuple[list[PathData], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Start the analysis process """
-    manager = Manager()
-    progress_queue: Queue[tuple[int, int]] = manager.Queue()
-    progress_callback(progress_queue, 0, 0)
+    mp_context = get_context("spawn")
+    progress_recv, progress_send = mp_context.Pipe(duplex=False)
+    progress_callback(progress_send, 0, 0)
     progress_bar.clear()
     with progress_bar:
         progress_label = ui.label("0%").classes("absolute-center text-sm text-white")
     progress_bar.set_value(0.0)
     progress_bar.set_visibility(True)
+    await asyncio.sleep(0.1)
+
     def update_progress() -> None:
         """ Handle progress bar updates """
-        if progress_queue.empty():
+        last: tuple[int, int] | None = None
+        while progress_recv.poll():
+            last = progress_recv.recv()
+        if last is None:
             return
-        index, total = progress_queue.get()
+        index, total = last
         value = 0.0 if total == 0 else index / total
         progress_bar.set_value(value)
         progress_label.set_text(f"{index} / {total} ({value * 100:.2f}%)")
     progress_timer = ui.timer(0.1, callback=lambda: update_progress())
 
-    lines = city.lines
-    train_dict = parse_all_trains(list(lines.values()))
-    _, through_dict = parse_through_train(train_dict, city.through_specs)
-    path_dict = await run.cpu_bound(
-        all_time_paths,
-        city, train_dict, {
-            i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
-        }, start_date,
-        progress_callback=partial(progress_callback, progress_queue)
-    )
-    progress_timer.cancel(with_current_invocation=True)
-    manager.shutdown()
+    try:
+        lines = city.lines
+        train_dict = parse_all_trains(list(lines.values()))
+        _, through_dict = parse_through_train(train_dict, city.through_specs)
+        path_dict = await run.cpu_bound(
+            all_time_paths,
+            city, train_dict, {
+                i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
+            }, start_date,
+            progress_callback=partial(progress_callback, progress_send)
+        )
+    finally:
+        progress_timer.cancel(with_current_invocation=True)
+        progress_send.close()
+        progress_recv.close()
 
     path_list: list[PathData] = []
     for i, paths in path_dict.items():
