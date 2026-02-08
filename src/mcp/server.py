@@ -13,7 +13,7 @@ from src.mcp.tools.timetable import get_station_timetable, get_train_detailed_in
 from src.mcp.tools.journey import get_transfer_metrics, plan_journey
 
 
-def main():
+def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
     parser.add_argument("--http", action="store_true", help="Enable HTTP transport mode")

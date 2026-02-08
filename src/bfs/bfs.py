@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, time, timedelta
 from math import floor, ceil
+from typing import Any
 
 from src.bfs.common import VTSpec, Path
 from src.city.line import Line, station_full_name
@@ -677,7 +678,7 @@ def bfs_wrap(lines: dict[str, Line],
              through_dict: dict[ThroughSpec, list[ThroughTrain]],
              transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
              start_date: date, start_station: str, minute: int,
-             *_, **kwargs) -> tuple[time, bool, dict[tuple[str, str, str], BFSResult]]:
+             *_: Any, **kwargs: Any) -> tuple[time, bool, dict[tuple[str, str, str], BFSResult]]:
     """ Wrap around the bfs() method """
     cur_time, cur_day = from_minutes(minute)
     return cur_time, cur_day, bfs(
@@ -691,7 +692,7 @@ def single_bfs(lines: dict[str, Line],
                through_dict: dict[ThroughSpec, list[ThroughTrain]],
                transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
                start_date: date, data: tuple[str, time, bool],
-               *_, **kwargs) -> tuple[tuple[str, time, bool], dict[tuple[str, str, str], BFSResult]]:
+               *_: Any, **kwargs: Any) -> tuple[tuple[str, time, bool], dict[tuple[str, str, str], BFSResult]]:
     """ Wrap around the bfs() method but with station at the end """
     return data, bfs(
         lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date, data[0], (data[1], data[2]),

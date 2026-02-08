@@ -9,18 +9,21 @@ from datetime import datetime
 import io
 from typing import Any
 
+from src.city.city import City
 from src.mcp.context import get_city, get_train_dict
 from src.mcp.utils import fuzzy_match
 from src.common.common import get_time_str
 from src.timetable.print_timetable import in_route
 
 
-def _resolve_station(city, station_name: str) -> str | None:
+def _resolve_station(city: City, station_name: str) -> str | None:
+    """ Resolve a station name to a canonical station name """
     candidates = fuzzy_match(station_name, city.station_lines.keys())
     return candidates[0] if candidates else None
 
 
-def _resolve_line(city, line_name: str) -> str | None:
+def _resolve_line(city: City, line_name: str) -> str | None:
+    """ Resolve a line name to a canonical line name """
     candidates = fuzzy_match(line_name, city.lines.keys())
     return candidates[0] if candidates else None
 

@@ -7,7 +7,7 @@
 import os
 from abc import ABC, abstractmethod
 from glob import glob
-from typing import Literal
+from typing import Any, Literal
 
 import pyjson5
 from PIL import ImageDraw
@@ -42,7 +42,7 @@ class Shape(ABC):
         pass
 
     @abstractmethod
-    def draw(self, draw: ImageDraw.ImageDraw, **kwargs) -> None:
+    def draw(self, draw: ImageDraw.ImageDraw, **kwargs: Any) -> None:
         """ Draw this shape on the image """
         pass
 
@@ -64,7 +64,7 @@ class Circle(Shape):
         """ Return the max allowed width """
         return self.r * 2
 
-    def draw(self, draw: ImageDraw.ImageDraw, **kwargs) -> None:
+    def draw(self, draw: ImageDraw.ImageDraw, **kwargs: Any) -> None:
         """ Draw this circle on the image """
         if "fill" not in kwargs:
             kwargs["fill"] = "white"
@@ -92,7 +92,7 @@ class Ellipse(Shape):
         """ Return the max allowed width """
         return min(self.rx, self.ry) * 2
 
-    def draw(self, draw: ImageDraw.ImageDraw, **kwargs) -> None:
+    def draw(self, draw: ImageDraw.ImageDraw, **kwargs: Any) -> None:
         """ Draw this circle on the image """
         if "fill" not in kwargs:
             kwargs["fill"] = "white"
@@ -121,7 +121,7 @@ class Rectangle(Shape):
         """ Return the max allowed width """
         return min(self.w, self.h)
 
-    def draw(self, draw: ImageDraw.ImageDraw, **kwargs) -> None:
+    def draw(self, draw: ImageDraw.ImageDraw, **kwargs: Any) -> None:
         """ Draw this circle on the image """
         if "fill" not in kwargs:
             kwargs["fill"] = "white"

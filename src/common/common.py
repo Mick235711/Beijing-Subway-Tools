@@ -149,8 +149,8 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
     return display_dict[answer.lower()]
 
 
-def ask_question(msg: str, func: Callable[[str], T], *args,
-                 valid_answer: Mapping[str, Callable[[], T]] | None = None, **kwargs) -> tuple[str, T]:
+def ask_question(msg: str, func: Callable[[str], T], *args: Any,
+                 valid_answer: Mapping[str, Callable[[], T]] | None = None, **kwargs: Any) -> tuple[str, T]:
     """ Ask a question with validator and post-processor """
 
     def validate_func(answer: str) -> str | bool:
@@ -338,7 +338,7 @@ def format_duration(duration: timedelta | int | float) -> str:
     return "<1min" if result == "" else result
 
 
-def direction_repr(stations: list[str], loop: bool = False):
+def direction_repr(stations: list[str], loop: bool = False) -> str:
     """ Format station direction, A -> B -> C """
     # choose three intermediate stations
     if len(stations) <= 5:
@@ -693,7 +693,9 @@ class Reverser:
 # Credit: https://stackoverflow.com/a/42721412/6593187
 class NoIndent:
     """ Value wrapper """
+
     def __init__(self, value: list | tuple) -> None:
+        """ Constructor """
         if not isinstance(value, (list, tuple)):
             raise TypeError('Only lists and tuples can be wrapped')
         self.value = value
@@ -704,7 +706,8 @@ class InnerArrayEncoder(json.JSONEncoder):
     FORMAT_SPEC = '@@{}@@'  # Unique string pattern of NoIndent object ids.
     regex = re.compile(FORMAT_SPEC.format(r'(\d+)'))  # compile(r'@@(\d+)@@')
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
+        """ Constructor """
         # Keyword arguments to ignore when encoding NoIndent wrapped values.
         ignore = {'cls', 'indent'}
 
@@ -717,7 +720,7 @@ class InnerArrayEncoder(json.JSONEncoder):
         return (self.FORMAT_SPEC.format(id(obj)) if isinstance(obj, NoIndent)
                 else super(InnerArrayEncoder, self).default(obj))
 
-    def iterencode(self, obj: Any, **kwargs) -> Iterator[str]:  # type: ignore
+    def iterencode(self, obj: Any, **kwargs: Any) -> Iterator[str]:  # type: ignore
         """ Encode an item """
         format_spec = self.FORMAT_SPEC  # Local var to expedite access.
 

@@ -4,11 +4,13 @@
 """ MCP metadata-related tools """
 
 # Libraries
+from src.city.city import City
 from src.mcp.context import get_city
 from src.mcp.utils import fuzzy_match
 
 
-def _resolve_line(city, line_name: str) -> str | None:
+def _resolve_line(city: City, line_name: str) -> str | None:
+    """ Resolve a line name or alias to a canonical line name """
     if line_name in city.lines:
         return line_name
     for name, line in city.lines.items():
@@ -18,7 +20,8 @@ def _resolve_line(city, line_name: str) -> str | None:
     return candidates[0] if candidates else None
 
 
-def _resolve_station(city, station_name: str) -> str | None:
+def _resolve_station(city: City, station_name: str) -> str | None:
+    """ Resolve a station name to a canonical station name """
     if station_name in city.station_lines:
         return station_name
     candidates = fuzzy_match(station_name, city.station_lines.keys())

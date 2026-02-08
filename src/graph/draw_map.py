@@ -30,7 +30,7 @@ Color = tuple[float, float, float] | tuple[float, float, float, float]
 
 def map_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None,
-    *, contour_args: bool = True, multi_source: bool = True, include_limits: bool = True, **kwargs
+    *, contour_args: bool = True, multi_source: bool = True, include_limits: bool = True, **kwargs: Any
 ) -> argparse.Namespace:
     """ Parse arguments """
     parser = argparse.ArgumentParser()
@@ -74,7 +74,7 @@ def get_levels(kind: str = "time") -> list[int]:
 
 
 def find_font_size(
-    draw: ImageDraw.ImageDraw, text: str, max_length: float, *args, **kwargs
+    draw: ImageDraw.ImageDraw, text: str, max_length: float, *args: Any, **kwargs: Any
 ) -> float:
     """ Find optimal font size that can fit in a length"""
     font_size = max_length / 2
@@ -93,7 +93,7 @@ def convert_color(color: Color) -> tuple:
 
 def draw_station(
     draw: ImageDraw.ImageDraw, station: str, color: Color,
-    map_obj: Map, text: str, *args, **kwargs
+    map_obj: Map, text: str, *args: Any, **kwargs: Any
 ) -> None:
     """ Draw circle & text onto station position """
     if station not in map_obj.coordinates:
@@ -113,7 +113,7 @@ def draw_station(
 
 def draw_station_filled(
     draw: ImageDraw.ImageDraw, station: str, color: Color,
-    map_obj: Map, **kwargs
+    map_obj: Map, **kwargs: Any
 ) -> None:
     """ Draw filled circle onto the station """
     shape = map_obj.coordinates[station]
@@ -266,7 +266,7 @@ def parse_contour_spec(spec: list[list] | None = None) -> dict[int, str]:
 
 
 def draw_contour_wrap(
-    img: Image.Image, cmd_args: argparse.Namespace, *args,
+    img: Image.Image, cmd_args: argparse.Namespace, *args: Any,
     default_contours: set[int] | None = None,
     levels: int | list[int] | None = None
 ) -> None:

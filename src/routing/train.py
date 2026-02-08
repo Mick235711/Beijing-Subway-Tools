@@ -6,6 +6,7 @@
 # Libraries
 from __future__ import annotations
 
+import threading
 from collections.abc import Iterable
 from functools import lru_cache
 
@@ -15,6 +16,8 @@ from src.common.common import diff_time, get_time_repr, get_time_str, format_dur
     distance_str, chin_len, segment_speed, speed_str, add_min_tuple, suffix_s, TimeSpec, diff_time_tuple, pad_to, \
     to_pinyin
 from src.timetable.timetable import Timetable, route_stations, route_skip_stations, route_without_timetable
+
+_PARSE_LOCK = threading.RLock()
 
 
 class Train:
@@ -504,32 +507,33 @@ def parse_trains(
     only_direction: set[str] | None = None
 ) -> dict[str, dict[str, list[Train]]]:
     """ Parse the trains from a timetable """
-    # reverse such that station is the innermost layer
-    temp_dict: dict[str, dict[str, dict[str, Timetable]]] = {}
-    timetable_dict = line.timetables()
-    for station, station_dict in timetable_dict.items():
-        for direction, direction_dict in station_dict.items():
+    with _PARSE_LOCK:
+        # reverse such that station is the innermost layer
+        temp_dict: dict[str, dict[str, dict[str, Timetable]]] = {}
+        timetable_dict = line.timetables()
+        for station, station_dict in timetable_dict.items():
+            for direction, direction_dict in station_dict.items():
+                if only_direction is not None and direction not in only_direction:
+                    continue
+                if direction not in temp_dict:
+                    temp_dict[direction] = {}
+                for date_group, timetable in direction_dict.items():
+                    if date_group not in temp_dict[direction]:
+                        temp_dict[direction][date_group] = {}
+                    temp_dict[direction][date_group][station] = timetable
+
+        # relay to inner function
+        result_dict: dict[str, dict[str, list[Train]]] = {}
+        for direction, direction_dict2 in temp_dict.items():
             if only_direction is not None and direction not in only_direction:
                 continue
-            if direction not in temp_dict:
-                temp_dict[direction] = {}
-            for date_group, timetable in direction_dict.items():
-                if date_group not in temp_dict[direction]:
-                    temp_dict[direction][date_group] = {}
-                temp_dict[direction][date_group][station] = timetable
-
-    # relay to inner function
-    result_dict: dict[str, dict[str, list[Train]]] = {}
-    for direction, direction_dict2 in temp_dict.items():
-        if only_direction is not None and direction not in only_direction:
-            continue
-        if direction not in result_dict:
-            result_dict[direction] = {}
-        for date_group, station_dict2 in direction_dict2.items():
-            result_dict[direction][date_group] = parse_trains_stations(
-                line, direction, date_group, station_dict2, line.direction_base_route[direction].stations
-            )
-    return result_dict
+            if direction not in result_dict:
+                result_dict[direction] = {}
+            for date_group, station_dict2 in direction_dict2.items():
+                result_dict[direction][date_group] = parse_trains_stations(
+                    line, direction, date_group, station_dict2, line.direction_base_route[direction].stations
+                )
+        return result_dict
 
 
 def parse_all_trains(
@@ -537,20 +541,21 @@ def parse_all_trains(
     include_lines: set[str] | str | None = None, exclude_lines: set[str] | str | None = None
 ) -> dict[str, dict[str, dict[str, list[Train]]]]:
     """ Parse all trains from timetables """
-    result: dict[str, dict[str, dict[str, list[Train]]]] = {}
-    index_dict: dict[str, int] = {}
-    if isinstance(include_lines, str):
-        include_lines = {x.strip() for x in include_lines.split(",")}
-    if isinstance(exclude_lines, str):
-        exclude_lines = {x.strip() for x in exclude_lines.split(",")}
-    for line in lines:
-        if include_lines is not None and line.name not in include_lines:
-            continue
-        if exclude_lines is not None and line.name in exclude_lines:
-            continue
-        result[line.name] = parse_trains(line)
-        index_dict[line.name] = line.index
-    return dict(sorted(result.items(), key=lambda x: index_dict[x[0]]))
+    with _PARSE_LOCK:
+        result: dict[str, dict[str, dict[str, list[Train]]]] = {}
+        index_dict: dict[str, int] = {}
+        if isinstance(include_lines, str):
+            include_lines = {x.strip() for x in include_lines.split(",")}
+        if isinstance(exclude_lines, str):
+            exclude_lines = {x.strip() for x in exclude_lines.split(",")}
+        for line in lines:
+            if include_lines is not None and line.name not in include_lines:
+                continue
+            if exclude_lines is not None and line.name in exclude_lines:
+                continue
+            result[line.name] = parse_trains(line)
+            index_dict[line.name] = line.index
+        return dict(sorted(result.items(), key=lambda x: index_dict[x[0]]))
 
 
 def get_train_id(train_list: list[Train]) -> dict[str, Train]:
