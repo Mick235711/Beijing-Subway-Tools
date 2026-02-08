@@ -447,7 +447,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         ui.label("Moving average:")
         moving_avg_input = ui.input(
             value="1", label="minutes", validation=valid_positive, on_change=on_data_change
-        )
+        ).props("type=number").classes("w-20")
 
     train_chart = ui.echart({
         "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},

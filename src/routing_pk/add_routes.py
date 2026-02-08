@@ -386,7 +386,7 @@ def get_multi_path(city: City, args: argparse.Namespace) -> Route:
     for i, (start, end) in enumerate(todo):
         results = k_shortest_path(
             lines, train_dict, through_dict, city.transfers, virtual_transfers,
-            start, end, start_date, current_tuple[0], current_tuple[1],
+            start, end, start_date, current_tuple,
             exclude_edge=args.exclude_edge, include_express=args.include_express
         )
         if len(results) == 0:

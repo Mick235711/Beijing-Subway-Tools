@@ -162,7 +162,7 @@ def plan_journey(
             results = k_shortest_path(
                 city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers,
                 start_station, end_station,
-                query_date, query_time,
+                query_date, (query_time, False),
                 k=num_paths
             )
 

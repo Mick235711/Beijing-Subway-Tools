@@ -10,7 +10,7 @@ from datetime import datetime, date, time
 from functools import partial
 from multiprocessing import get_context
 from multiprocessing.connection import Connection
-from typing import Literal
+from typing import Literal, TypeVar, ParamSpec, Concatenate, Awaitable
 
 from nicegui import run, ui
 from nicegui.elements.button import Button
@@ -19,12 +19,16 @@ from nicegui.elements.select import Select
 
 from src.bfs.avg_shortest_time import PathInfo
 from src.bfs.bfs import path_distance, expand_path, total_transfer
+from src.bfs.k_shortest_path import k_shortest_path
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import to_pinyin, get_text_color, distance_str, format_duration, average, get_time_str, \
-    percentage_str, valid_positive, parse_time, to_minutes, speed_str, segment_speed
-from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path
+    percentage_str, valid_positive, parse_date_opt, parse_time_opt, to_minutes, speed_str, segment_speed, TimeSpec
+from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path, get_dist_graph, simplify_path
+from src.dist_graph.exotic_path import PathMetric
+from src.dist_graph.shortest_path import shortest_path, Path
+from src.fare.fare import to_abstract
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
@@ -200,14 +204,16 @@ def route_tab(city: City) -> None:
 
     current_routes: list[Route] = []
     current_route_strs: set[str] = set()
-    def on_route_change(new_route: Route) -> None:
+    def on_route_change(new_route: Route | list[Route]) -> None:
         """ Handle route selection changes """
         nonlocal current_routes, current_route_strs
-        route_repr = route_str(city.lines, new_route)
-        if route_repr in current_route_strs:
-            return
-        current_routes.append(new_route)
-        current_route_strs.add(route_repr)
+        route_list = new_route if isinstance(new_route, list) else [new_route]
+        for single_route in route_list:
+            route_repr = route_str(city.lines, single_route)
+            if route_repr in current_route_strs:
+                return
+            current_routes.append(single_route)
+            current_route_strs.add(route_repr)
         route_table.rows = calculate_route_rows(city, current_routes)
         analyze_button.set_enabled(len(route_table.rows) > 0)
 
@@ -239,8 +245,14 @@ def route_tab(city: City) -> None:
 
     async def on_start_click() -> None:
         """ Handle start analyze button clicks """
+        start_date = parse_date_opt(date_input.value)
+        if start_date is None:
+            return
+
         analyze_button.set_enabled(False)
-        path_list, through_dict = await analyze_routes(city, current_routes, date.fromisoformat(date_input.value), progress)
+        path_list, through_dict = await handle_progress(
+            progress, analyze_routes, city, current_routes, start_date
+        )
         analyze_button.set_enabled(True)
         await display_data.refresh(path_list=path_list, through_dict=through_dict)
 
@@ -248,11 +260,14 @@ def route_tab(city: City) -> None:
         ui.tab("Add routes via").props("disable")
         guided_tab = ui.tab("Guided")
         shorthand_tab = ui.tab("Shorthand")
+        top_tab = ui.tab("Top")
     with ui.tab_panels(add_route_tabs, value=guided_tab).classes('w-full'):
         with ui.tab_panel(guided_tab):
             add_route_guided(city, on_route_change)
         with ui.tab_panel(shorthand_tab):
             add_route_shorthand(city, on_route_change)
+        with ui.tab_panel(top_tab):
+            add_route_top(city, on_route_change)
     with ui.row().classes("items-center w-full flex-nowrap"):
         date_input = get_date_input(label="Riding date")
         analyze_button = ui.button("Start Analyze", on_click=on_start_click)
@@ -475,18 +490,171 @@ def add_route_shorthand(city: City, on_route_change: Callable[[Route], None]) ->
     on_input_change()
 
 
-def progress_callback(conn: Connection, index: int, total: int) -> None:
-    """ Handle progress bar updates """
+async def get_kth_routes(
+    progress_callback: Callable[[int, int], None], city: City, start_station: str, end_station: str,
+    start_date: date, start_time: TimeSpec | None, k: int,
+    *, metric: PathMetric, exclude_virtual: bool = False
+) -> list[PathInfo] | tuple[int, Path, str] | None:
+    """ Analyze selected routes """
+    lines = city.lines
+    if metric == "time":
+        assert start_time is not None, start_time
+        train_dict = parse_all_trains(list(lines.values()))
+        _, through_dict = parse_through_train(train_dict, city.through_specs)
+        progress_callback(0, k)
+        results = await run.cpu_bound(
+            k_shortest_path,
+            city.lines, train_dict, through_dict, city.transfers,
+            {} if exclude_virtual else city.virtual_transfers,
+            start_station, end_station, start_date, start_time,
+            k=k, progress_callback=progress_callback
+        )
+        if len(results) == 0:
+            return None
+        return [(result.total_duration(), path, result) for result, path in results]
+
+    graph = get_dist_graph(city, include_virtual=(not exclude_virtual))
+    progress_callback(0, 1)
+    path_dict = shortest_path(
+        graph, start_station, ignore_dists=(metric == "station"), fare_mode=(metric == "fare")
+    )
+    progress_callback(1, 1)
+    if end_station not in path_dict:
+        return None
+    return path_dict[end_station][0], path_dict[end_station][1], end_station
+
+
+def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], None]) -> None:
+    """ Top (kth) panel to add new routes """
+    def on_input_change() -> None:
+        """ Handle input changes """
+        kth_select.set_visibility(metric_select.value == "time")
+        calc_button.set_enabled(
+            metric_select.value is not None and valid_positive(kth_select.value) is None and
+            start_station.value is not None and end_station.value is not None and
+            parse_date_opt(date_input.value) is not None and parse_time_opt(time_input.value) is not None
+        )
+        on_label.set_visibility(metric_select.value == "time")
+        date_input.set_visibility(metric_select.value == "time")
+        at_label.set_visibility(metric_select.value == "time")
+        time_input.set_visibility(metric_select.value == "time")
+        if metric_select.value != "time":
+            kth_select.set_value("5")
+            date_input.set_value(date.today().isoformat())
+            time_input.set_value(get_time_str(datetime.now().time()))
+
+    def compute_text(value: str) -> str:
+        """ Compute what route text to display """
+        try:
+            return ("routes" if int(value) != 1 else "route") + " from"
+        except ValueError:
+            return "route from"
+
+    async def on_calc_click() -> None:
+        """ Calculate top-kth routes """
+        start_date = parse_date_opt(date_input.value)
+        start_time = parse_time_opt(time_input.value)
+        if start_date is None or start_time is None:
+            return
+
+        calc_button.set_enabled(False)
+        results = await handle_progress(
+            progress, get_kth_routes, city, start_station.value, end_station.value,
+            start_date, start_time, int(kth_select.value),
+            metric=metric_select.value, exclude_virtual=virtual_switch.value
+        )
+        calc_button.set_enabled(True)
+        await kth_table.refresh(results=results)
+
+    with ui.column().classes("w-full"):
+        virtual_switch = ui.switch("Exclude virtual transfers", value=False, on_change=on_input_change)
+        with ui.row().classes("items-center route-tab-top-selection w-full flex-nowrap"):
+            metric_select = ui.select({
+                "time": "Fastest", "station": "Fewest station", "distance": "Shortest"
+            }, label="Metric", value="time").on_value_change(on_input_change)
+            kth_select = ui.input(
+                value="5", label="Kth", validation=valid_positive
+            ).props("hide-bottom-space type=number").classes("w-20").on_value_change(on_input_change)
+            ui.label("route from").bind_text_from(kth_select, "value", backward=compute_text)
+            start_station = ui.select(
+                get_station_selector_options(city.station_lines), with_input=True
+            ).props(add="options-html", remove="fill-input hide-selected").on_value_change(on_input_change)
+            ui.label("to")
+            end_station = ui.select(
+                get_station_selector_options(city.station_lines), with_input=True
+            ).props(add="options-html", remove="fill-input hide-selected").on_value_change(on_input_change)
+            on_label = ui.label("on date")
+            date_input = get_date_input(lambda _: on_input_change(), label="Riding date").classes("w-40")
+            at_label = ui.label("at")
+            time_input = get_time_input(lambda _: on_input_change(), label="Departure").classes("w-30")
+            calc_button = ui.button("Calculate", on_click=on_calc_click)
+            calc_button.set_enabled(False)
+            progress = ui.linear_progress(size="20px", show_value=False).props("instant-feedback").classes("flex-1")
+            progress.set_visibility(False)
+        kth_table(city, on_route_change)
+
+
+@ui.refreshable
+def kth_table(
+    city: City, on_route_change: Callable[[Route | list[Route]], None],
+    *, results: list[PathInfo] | tuple[int, Path, str] | None = None
+) -> None:
+    """ Display the top kth route calculated """
+    if results is None:
+        return
+    if isinstance(results, tuple):
+        with ui.row().classes("items-center gap-x-1"):
+            ui.label("Computed route:")
+            route = (simplify_path(results[1], results[2]), results[2])
+            display_route(city.lines, route)
+            ui.button("Add to current routes").classes("ml-1").on_click(lambda: on_route_change(route))
+        return
+
+    with ui.row().classes("items-center gap-x-1"):
+        ui.label("Computed routes:")
+        ui.button("Add All").on_click(lambda: on_route_change([(to_abstract(p), r.station) for _, p, r in results]))
+    with ui.list().props("separator"):
+        for index, info in enumerate(results):
+            name = f"Shortest #{index + 1}"
+            _, path, bfs_result = info
+            route = (to_abstract(path), bfs_result.station)
+            with ui.item(
+                on_click=(lambda n=name, pi=info: refresh_train_drawer(pi, n, None, city.station_lines))
+            ):
+                with ui.item_section():
+                    with ui.element("div").classes("flex items-center flex-wrap gap-1"):
+                        ui.item_label(name + ":")
+                        get_station_badge(path[0][0], show_badges=False, show_line_badges=False)
+                        ui.item_label(bfs_result.initial_time_repr())
+                        ui.icon("arrow_right_alt")
+                        get_station_badge(bfs_result.station, show_badges=False, show_line_badges=False)
+                        ui.item_label(bfs_result.arrival_time_repr())
+                    with ui.item_label().props("caption").add_slot("default"):
+                        with ui.row().classes("items-center gap-x-1"):
+                            display_route(city.lines, route)
+                with ui.item_section().props("side"):
+                    with ui.row().classes("items-center gap-x-1"):
+                        ui.button("Add").on("click.stop", lambda r=route: on_route_change(r))
+                        ui.icon("navigate_next").props("size=md")
+
+
+def progress_report(conn: Connection, index: int, total: int) -> None:
+    """ Handle callback from inner progress bar """
     conn.send((index, total))
 
 
-async def analyze_routes(
-    city: City, routes: list[Route], start_date: date, progress_bar: LinearProgress
-) -> tuple[list[PathData], dict[ThroughSpec, list[ThroughTrain]]]:
-    """ Start the analysis process """
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+async def handle_progress(
+    progress_bar: LinearProgress, inner: Callable[Concatenate[Callable[[int, int], None], P], Awaitable[R]],
+    *args: P.args, **kwargs: P.kwargs
+) -> R:
+    """ Handle progress bar updates """
     mp_context = get_context("spawn")
     progress_recv, progress_send = mp_context.Pipe(duplex=False)
-    progress_callback(progress_send, 0, 0)
+    progress_report(progress_send, 0, 0)
     progress_bar.clear()
     with progress_bar:
         progress_label = ui.label("0%").classes("absolute-center text-sm text-white")
@@ -509,29 +677,13 @@ async def analyze_routes(
     progress_timer = ui.timer(0.1, callback=lambda: update_progress())
 
     try:
-        lines = city.lines
-        train_dict = parse_all_trains(list(lines.values()))
-        _, through_dict = parse_through_train(train_dict, city.through_specs)
-        path_dict = await run.cpu_bound(
-            all_time_paths,
-            city, train_dict, {
-                i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
-            }, start_date,
-            progress_callback=partial(progress_callback, progress_send)
-        )
+        result = await inner(partial(progress_report, progress_send), *args, **kwargs)
         update_progress()
     finally:
         progress_timer.cancel(with_current_invocation=True)
         progress_send.close()
         progress_recv.close()
-
-    path_list: list[PathData] = []
-    for i, paths in path_dict.items():
-        if len(paths) == 0:
-            continue
-        path_list.append((i, routes[i], paths))
-    ui.notify("Analysis finished!", type="positive")
-    return path_list, through_dict
+    return result
 
 
 def get_signal_html(key: str, signal: str) -> str:
@@ -581,6 +733,30 @@ def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[
         )
     else:
         return "", None, 24 * 60 * 2
+
+
+async def analyze_routes(
+    progress_callback: Callable[[int, int], None], city: City, routes: list[Route], start_date: date
+) -> tuple[list[PathData], dict[ThroughSpec, list[ThroughTrain]]]:
+    """ Analyze selected routes """
+    lines = city.lines
+    train_dict = parse_all_trains(list(lines.values()))
+    _, through_dict = parse_through_train(train_dict, city.through_specs)
+    path_dict = await run.cpu_bound(
+        all_time_paths,
+        city, train_dict, {
+            i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
+        }, start_date,
+        progress_callback=progress_callback
+    )
+
+    path_list: list[PathData] = []
+    for i, paths in path_dict.items():
+        if len(paths) == 0:
+            continue
+        path_list.append((i, routes[i], paths))
+    ui.notify("Analysis finished!", type="positive")
+    return path_list, through_dict
 
 
 def calculate_data_rows(
@@ -743,7 +919,9 @@ def display_data(
     def on_switch_change() -> None:
         """ Handle switch changes """
         nonlocal best_dict, data_list, data_dict
-        cur_time = parse_time(time_input.value)[0]
+        cur_time = parse_time_opt(time_input.value)
+        if cur_time is None:
+            return
         [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = best_options[percentage_select.value]
         if strip_first_switch.value:
             path_list2 = strip_routes(path_list, strip_first=True)
@@ -755,7 +933,7 @@ def display_data(
         )
         data_dict = {value[0]: value for value in data_list}
         data_table.rows = calculate_data_rows(
-            city, best_dict, data_list, cur_time=cur_time,
+            city, best_dict, data_list, cur_time=cur_time[0],
             percentage_field=percentage_select.value, insert_transfer=transfer_select.value.lower(),
             baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value))
         )
@@ -1008,7 +1186,7 @@ def display_data(
         ui.label("Moving average:")
         moving_avg_input = ui.input(
             value="1", label="minutes", validation=valid_positive, on_change=on_chart_data_change
-        )
+        ).props("type=number").classes("w-20")
 
     time_chart = ui.echart({
         "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},

@@ -121,6 +121,12 @@ async def main_page(city_name: str) -> None:
 .route-tab-shorthand-selection .q-select .q-field__input--padding {
     max-width: 50px;
 }
+.route-tab-top-selection .q-select .q-field__input--padding {
+    max-width: 50px;
+}
+.route-tab-top-selection .q-field__bottom {
+    min-height: 20px;
+}
 .stats-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;
 }

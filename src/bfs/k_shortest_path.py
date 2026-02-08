@@ -5,13 +5,15 @@
 
 # Libraries
 from datetime import date, time
+from typing import Callable
+
 from math import floor, ceil
 
 from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index, get_result, combine_trains
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import add_min
+from src.common.common import add_min, TimeSpec
 from src.routing.through_train import ThroughTrain
 from src.routing.train import Train
 
@@ -116,8 +118,9 @@ def k_shortest_path(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_station: str, end_station: str,
-    start_date: date, start_time: time, start_day: bool = False,
-    k: int = 1, *, exclude_edge: bool = False, include_express: bool = False
+    start_date: date, start_time: TimeSpec,
+    k: int = 1, *, exclude_edge: bool = False, include_express: bool = False,
+    progress_callback: Callable[[int, int], None] | None = None
 ) -> list[tuple[BFSResult, Path]]:
     """ Find the k shortest paths """
     result: list[tuple[BFSResult, Path]] = []
@@ -126,7 +129,7 @@ def k_shortest_path(
     # First find p1
     bfs_result = bfs(
         lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
-        start_station, (start_time, start_day), exclude_edge=exclude_edge, include_express=include_express
+        start_station, start_time, exclude_edge=exclude_edge, include_express=include_express
     )
     end_result = get_result(bfs_result, end_station, transfer_dict, through_dict)
     if end_result is None:
@@ -134,6 +137,8 @@ def k_shortest_path(
     first_path = end_result[1].shortest_path(bfs_result)
     result.append((end_result[1], first_path))
     print(f"Found {len(result)}-th shortest path!")
+    if progress_callback is not None:
+        progress_callback(1, k)
 
     # Main loop
     while len(result) < k:
@@ -142,7 +147,7 @@ def k_shortest_path(
         # Iterate through all possible deviate points
         trace = expand_path(pk_path, end_station)
         saved_station, saved_train = None, None
-        saved_arrival_time = (start_time, start_day)
+        saved_arrival_time = start_time
         for i, (station, train) in enumerate(trace):
             if saved_station is None:
                 saved_station = station
@@ -187,7 +192,7 @@ def k_shortest_path(
             # Calculate deviate -> end and pin with start -> deviate together
             if station == start_station:
                 line_direction = None
-                saved_arrival_time = (start_time, start_day)
+                saved_arrival_time = start_time
             elif isinstance(saved_train, Train):
                 line_direction = (saved_train.line, saved_train.direction)
                 saved_arrival_time = saved_train.arrival_time_virtual(saved_station)[station]
@@ -212,8 +217,8 @@ def k_shortest_path(
                 continue
             new_result = new_result_tuple[1]
             new_path = new_result.shortest_path(bfs_result)
-            new_result.initial_time = start_time
-            new_result.initial_day = start_day
+            new_result.initial_time = start_time[0]
+            new_result.initial_day = start_time[1]
             final_path = merge_path(limit_path(pk_path, station, end_station), new_path, end_station)
             fixed_path = fix_path(final_path, virtual_dict, start_date)
             new_candidate = (new_result, fixed_path)
@@ -245,6 +250,8 @@ def k_shortest_path(
         candidate_list = sorted(candidate, key=lambda p: path_index(p[0], p[1], transfer_dict, through_dict))
         result.append(candidate_list[0])
         print(f"Found {len(result)}-th shortest path!")
+        if progress_callback is not None:
+            progress_callback(len(result), k)
         candidate = candidate_list[1:]
 
     return result

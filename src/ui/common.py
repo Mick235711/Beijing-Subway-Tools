@@ -15,7 +15,7 @@ from nicegui.elements.time_input import TimeInput
 from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.common.common import get_text_color, to_pinyin, TimeSpec, from_minutes, to_minutes, get_time_repr, \
-    get_time_str, to_polar, parse_time
+    get_time_str, to_polar, parse_time, parse_time_opt, parse_date_opt
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 from src.stats.common import get_all_trains_through, is_possible_to_board, get_virtual_dict
@@ -221,7 +221,7 @@ def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str 
     """ Get an input box for date selection """
     return ui.date_input(
         label, value=date.today().isoformat(),
-        on_change=lambda e: None if callback is None else callback(date.fromisoformat(e.value))
+        on_change=lambda e: None if callback is None or parse_date_opt(e.value) is None else callback(date.fromisoformat(e.value))
     )
 
 
@@ -229,7 +229,7 @@ def get_time_input(callback: Callable[[TimeSpec], Any] | None = None, *, label: 
     """ Get an input box for time selection """
     return ui.time_input(
         label, value=get_time_str(datetime.now().time()),
-        on_change=lambda e: None if callback is None else callback(parse_time(e.value))
+        on_change=lambda e: None if callback is None or parse_time_opt(e.value) is None else callback(parse_time(e.value))
     )
 
 

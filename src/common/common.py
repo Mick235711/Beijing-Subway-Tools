@@ -208,8 +208,8 @@ def parse_time(time_str: str, next_day: bool = False) -> TimeSpec:
     """ Parse time as hh:mm """
     if len(time_str) == 4:
         time_str = "0" + time_str
-    assert len(time_str) == 5 and time_str[2] == ":" and (
-        time_str[:2] + time_str[3:]).isdigit(), f"{time_str} not in yy:mm!"
+    if not (len(time_str) == 5 and time_str[2] == ":" and (time_str[:2] + time_str[3:]).isdigit()):
+        raise ValueError(f"{time_str} not in yy:mm!")
     if int(time_str[:2]) >= 24:
         return time(hour=(int(time_str[:2]) - 24), minute=int(time_str[3:])), True
     return time.fromisoformat(time_str), next_day
@@ -234,11 +234,24 @@ def parse_time_seq(time_seq_str: str) -> set[TimeSpec]:
     return result
 
 
+def parse_date_opt(date_str: str | None) -> date | None:
+    """ Parse date with optional None """
+    if date_str is None:
+        return None
+    try:
+        return date.fromisoformat(date_str)
+    except ValueError:
+        return None
+
+
 def parse_time_opt(time_str: str | None, next_day: bool = False) -> TimeSpec | None:
     """ Parse time as hh:mm with optional None """
     if time_str is None:
         return None
-    return parse_time(time_str, next_day)
+    try:
+        return parse_time(time_str, next_day)
+    except ValueError:
+        return None
 
 
 def add_min(time_obj: time, minutes: int, next_day: bool = False) -> TimeSpec:

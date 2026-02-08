@@ -59,7 +59,7 @@ def get_line_badge(
             badge.classes(classes)
         if add_click:
             badge.classes("cursor-pointer")
-            badge.on("click", lambda l=line: refresh_line_drawer(l, AVAILABLE_LINES))
+            badge.on("click.stop", lambda l=line: refresh_line_drawer(l, AVAILABLE_LINES))
         if line.badge_icon is not None:
             ui.icon(line.badge_icon).classes("q-ml-xs")
         if line.loop and force_icon_dir is not None and force_icon_dir in line.direction_icons:

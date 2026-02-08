@@ -152,7 +152,7 @@ def get_kth_path(
         results = k_shortest_path(
             lines, train_dict, through_dict, city.transfers, virtual_transfers,
             start[0], end[0],
-            start_date, start_time, start_day,
+            start_date, (start_time, start_day),
             k=num_path, exclude_edge=args.exclude_edge, include_express=args.include_express
         )
         if len(results) == 0:
