@@ -284,6 +284,19 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
     clear_button: Button | None = None
     container = ui.row().classes("items-center route-tab-guided-selection")
 
+    def delete_buttons() -> None:
+        """ Delete all buttons """
+        nonlocal add_button, confirm_button, clear_button
+        if add_button is not None:
+            container.remove(add_button)
+            add_button = None
+        if confirm_button is not None:
+            container.remove(confirm_button)
+            confirm_button = None
+        if clear_button is not None:
+            container.remove(clear_button)
+            clear_button = None
+
     def on_station_select_change(select_index: int) -> None:
         """ Handle station selection changes """
         nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
@@ -295,15 +308,7 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
                 container.remove(line_selects[index])
         station_selects = station_selects[:select_index + 1]
         line_selects = line_selects[:select_index]
-        if add_button is not None:
-            container.remove(add_button)
-            add_button = None
-        if confirm_button is not None:
-            container.remove(confirm_button)
-            confirm_button = None
-        if clear_button is not None:
-            container.remove(clear_button)
-            clear_button = None
+        delete_buttons()
         with container:
             add_button = ui.button(icon="add", on_click=on_add_button_click).props("round")
             if len(station_selects) > 1:
@@ -327,15 +332,7 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
                 container.remove(line_selects[index])
         station_selects = station_selects[:select_index + 1]
         line_selects = line_selects[:select_index + 1]
-        if add_button is not None:
-            container.remove(add_button)
-            add_button = None
-        if confirm_button is not None:
-            container.remove(confirm_button)
-            confirm_button = None
-        if clear_button is not None:
-            container.remove(clear_button)
-            clear_button = None
+        delete_buttons()
         last_station = station_selects[-1].value
         with container:
             station_select2 = ui.select(
@@ -352,15 +349,7 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
     def on_add_button_click() -> None:
         """ Handle add button clicks """
         nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
-        if add_button is not None:
-            container.remove(add_button)
-            add_button = None
-        if confirm_button is not None:
-            container.remove(confirm_button)
-            confirm_button = None
-        if clear_button is not None:
-            container.remove(clear_button)
-            clear_button = None
+        delete_buttons()
         last_station = station_selects[-1].value
         last_line = None if len(line_selects) == 0 else parse_line_direction(line_selects[-1].value)[0]
         with container:
