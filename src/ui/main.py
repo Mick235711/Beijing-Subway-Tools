@@ -24,13 +24,6 @@ from src.ui.timetable_tab import get_train_dict, timetable_tab, TimetableData
 from src.ui.trains_tab import get_train_list, trains_tab, TrainsData
 
 
-def shutdown_run_pools() -> None:
-    """ Shutdown NiceGUI's process pool cleanly to avoid leaked semaphores """
-    if run.process_pool is not None:
-        run.process_pool.shutdown(cancel_futures=True)
-        run.process_pool = None
-
-
 @ui.page("/", title="Beijing Subway Tools - Select City")
 async def city_selector() -> None:
     """ City selection page """
@@ -382,7 +375,6 @@ def main() -> None:
     else:
         dark = None
 
-    app.on_shutdown(shutdown_run_pools)
     if args.browser:
         ui.run(dark=dark, title="Beijing Subway Tools - Browser Mode")
     elif args.window_size is None:

@@ -639,7 +639,7 @@ def train_drawer(
 
     if isinstance(full_train, tuple):
         skip_stations = [ss for _, t in full_train[1] if isinstance(t, Train) for ss in t.skip_stations]
-        num_stations = len(stations) - 1 - len(skip_stations)
+        num_stations = len([s for s in stations if s not in skip_stations]) - 1
         distance = path_distance(full_train[1], full_train[2].station)
         duration = full_train[2].total_duration()
         speed = segment_speed(distance, duration)
@@ -708,7 +708,10 @@ def train_drawer(
             with ui.column().classes("gap-y-0 w-full"):
                 with ui.row().classes("w-full items-center"):
                     train_select = ui.select(
-                        {"none": "None", "duration": "Duration", "distance": "Distance", "speed": "Speed"},
+                        {
+                            "none": "None", "num_station": "Station",
+                            "duration": "Duration", "distance": "Distance", "speed": "Speed"
+                        },
                         value="none", label="Show interval as",
                         on_change=lambda v: train_timeline.refresh(interval_metric=v.value)
                     ).classes("flex-1")
@@ -756,7 +759,7 @@ def train_timeline(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     train_id_dict: dict[str, Train] | None, train: Train | ThroughTrain | PathInfo,
     *, show_station: Literal["all", "stop", "none"] = "all",
-    interval_metric: Literal["none", "duration", "distance", "speed"] = "none", show_tally: bool
+    interval_metric: Literal["none", "num_station", "duration", "distance", "speed"] = "none", show_tally: bool
 ) -> None:
     """ Create a timeline for this train """
     global AVAILABLE_LINES
@@ -861,6 +864,8 @@ def train_timeline(
             last_train.loop_next.stations[0], False, last_train.loop_next.line, last_train.loop_next
         )))
 
+    tally_num_sta = 0
+    interval_num_sta: int | None = 0
     tally_duration = 0
     interval_duration: int | None = 0
     tally_dist = 0
@@ -880,6 +885,7 @@ def train_timeline(
                 next_station = stations[i + 1][0]
                 next_key_lt = stations[i + 1][1]
                 next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
+                interval_num_sta = 1
                 if i == len(stations) - 2 and last_train is not None and last_train.loop_next is not None:
                     next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
                 else:
@@ -890,24 +896,33 @@ def train_timeline(
                             next_key_lt = stations[j][1]
                             next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
                             j += 1
+                            interval_num_sta += 1
                         assert next_station not in skip_stations, (train, stations, next_station)
                     next_time = arrival_times.get(next_key)
                 if next_time is None or arrival_time is None:
+                    interval_num_sta = None
                     interval_duration = None
                     interval_dist = None
                 else:
                     interval_duration = diff_time_tuple(next_time, arrival_time)
                     if isinstance(line_train, tuple):
                         if station in line_train[3].arrival_time:
+                            interval_num_sta = len(line_train[3].two_station_interval(station, next_station, expand_all=True))
                             interval_dist = line_train[3].two_station_dist(station, next_station)
                         else:
                             next_train = line_train[3].loop_next
                             assert next_train is not None and station in next_train.arrival_time, (line_train, station)
+                            interval_num_sta = len(next_train.two_station_interval(station, next_station, expand_all=True))
                             interval_dist = next_train.two_station_dist(station, next_station)
                     else:
+                        interval_num_sta = 1
                         interval_dist = 0
             if interval_metric == "none" or i == len(stations) - 1:
                 interval_str: str | None = None
+            elif interval_metric == "num_station":
+                interval_str = None if interval_num_sta is None or (
+                    (not isinstance(line_train, tuple) or show_station != "none") and interval_num_sta == 1
+                ) else suffix_s("station", interval_num_sta)
             elif interval_metric == "duration":
                 interval_str = None if interval_duration is None else format_duration(interval_duration)
             elif interval_metric == "distance":
@@ -918,6 +933,8 @@ def train_timeline(
                 )
             if interval_metric == "none" or i == 0:
                 tally_str: str | None = None
+            elif interval_metric == "num_station":
+                tally_str = None if interval_num_sta is None else "+" + str(tally_num_sta)
             elif interval_metric == "duration":
                 tally_str = None if interval_duration is None else "+" + format_duration(tally_duration)
             elif interval_metric == "distance":
@@ -926,6 +943,8 @@ def train_timeline(
                 tally_str = None if interval_duration is None or interval_dist is None else speed_str(
                     segment_speed(tally_dist, tally_duration)
                 )
+            if interval_num_sta is not None:
+                tally_num_sta += interval_num_sta
             if interval_duration is not None:
                 tally_duration += interval_duration
             if interval_dist is not None:

@@ -502,7 +502,7 @@ async def get_kth_routes(
         train_dict = parse_all_trains(list(lines.values()))
         _, through_dict = parse_through_train(train_dict, city.through_specs)
         progress_callback(0, k)
-        results = await run.cpu_bound(
+        results = await run.io_bound(
             k_shortest_path,
             city.lines, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
@@ -742,7 +742,7 @@ async def analyze_routes(
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
     _, through_dict = parse_through_train(train_dict, city.through_specs)
-    path_dict = await run.cpu_bound(
+    path_dict = await run.io_bound(
         all_time_paths,
         city, train_dict, {
             i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
