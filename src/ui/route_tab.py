@@ -314,12 +314,13 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
         """ Handle line selection changes """
         nonlocal station_selects, line_selects, add_button, confirm_button, clear_button
         assert 0 <= select_index < len(line_selects), (line_selects, select_index)
-        last_line, last_dir = parse_line_direction(line_selects[-1].value)
-        with line_selects[-1].add_slot("selected"):
-            if last_line is None:
-                ui.label("Virtual transfer")
-            else:
-                get_line_badge(city.lines[last_line], force_icon_dir=last_dir)
+        if line_selects[-1].value is not None:
+            last_line, last_dir = parse_line_direction(line_selects[-1].value)
+            with line_selects[-1].add_slot("selected"):
+                if last_line is None:
+                    ui.label("Virtual transfer")
+                else:
+                    get_line_badge(city.lines[last_line], force_icon_dir=last_dir)
         for index in range(select_index + 1, len(station_selects)):
             container.remove(station_selects[index])
             if index < len(line_selects):

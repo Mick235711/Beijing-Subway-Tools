@@ -5,6 +5,7 @@
 
 # Libraries
 import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from collections.abc import Callable
 from datetime import date, time, timedelta
 from functools import partial
@@ -246,14 +247,15 @@ def all_bfs_path(
 ) -> dict[str, dict[str, tuple[Path, BFSResult, BFSPath]]]:
     """ Get BFS paths between all pairs of stations """
     with tqdm(desc="Calculating Paths", total=len(list(graph.keys()))) as bar:
-        with mp.Pool() as pool:
+        executor_cls = ProcessPoolExecutor if mp.parent_process() is None else ThreadPoolExecutor
+        with executor_cls() as executor:
             processed_dict: dict[str, dict[str, tuple[Path, BFSResult, BFSPath]]] = {}
-            for start_station, result in pool.imap_unordered(
-                partial(
-                    single_station_bfs, city, graph, train_dict,
-                    start_date, start_time, start_day, data_source=data_source, fare_mode=fare_mode
-                ), list(graph.keys()), chunksize=50
-            ):
+            work = partial(
+                single_station_bfs, city, graph, train_dict,
+                start_date, start_time, start_day, data_source=data_source, fare_mode=fare_mode
+            )
+            iterator = executor.map(work, list(graph.keys()), chunksize=50)
+            for start_station, result in iterator:
                 bar.set_description("Calculating " + city.station_full_name(start_station))
                 bar.update()
                 processed_dict[start_station] = result
@@ -293,14 +295,15 @@ def all_time_path(
         ))
     )
     with tqdm(desc=(prefix + "Calculating " + city.station_full_name(start_station)), total=len(all_list)) as bar:
-        with mp.Pool() as pool:
-            for start_time, start_day, (bfs_result, bfs_path) in pool.imap_unordered(
-                partial(
-                    to_trains_wrap, city.lines, train_dict, city.transfers, city.virtual_transfers,
-                    path, end_station, start_date,
-                    exclude_edge=exclude_edge
-                ), all_list, chunksize=50
-            ):
+        executor_cls = ProcessPoolExecutor if mp.parent_process() is None else ThreadPoolExecutor
+        with executor_cls() as executor:
+            work = partial(
+                to_trains_wrap, city.lines, train_dict, city.transfers, city.virtual_transfers,
+                path, end_station, start_date,
+                exclude_edge=exclude_edge
+            )
+            iterator = executor.map(work, all_list, chunksize=50)
+            for start_time, start_day, (bfs_result, bfs_path) in iterator:
                 bar.set_description(prefix + "Calculating " + city.station_full_name(start_station) +
                                     " at " + get_time_repr(start_time, start_day))
                 bar.update()
@@ -345,13 +348,14 @@ def all_time_paths(
         ))
     )]
     with tqdm(desc="Calculating", total=len(all_list)) as bar:
-        with mp.Pool() as pool:
-            for index, start_time, start_day, (bfs_result, bfs_path) in pool.imap_unordered(
-                partial(
-                    to_trains_wrap_multi, paths, city.lines, train_dict, city.transfers, city.virtual_transfers,
-                    start_date, exclude_edge=exclude_edge
-                ), all_list, chunksize=50
-            ):
+        executor_cls = ProcessPoolExecutor if mp.parent_process() is None else ThreadPoolExecutor
+        with executor_cls() as executor:
+            work = partial(
+                to_trains_wrap_multi, paths, city.lines, train_dict, city.transfers, city.virtual_transfers,
+                start_date, exclude_edge=exclude_edge
+            )
+            iterator = executor.map(work, all_list, chunksize=50)
+            for index, start_time, start_day, (bfs_result, bfs_path) in iterator:
                 prefix_str = "" if prefix is None else prefix(index, paths[index][0], paths[index][1])
                 bar.set_description(prefix_str + "Calculating " + city.station_full_name(paths[index][0][0][0]) +
                                     " at " + get_time_repr(start_time, start_day))

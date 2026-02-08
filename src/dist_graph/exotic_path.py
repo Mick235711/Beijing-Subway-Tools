@@ -6,6 +6,7 @@
 # Libraries
 import argparse
 import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import date, time
 from functools import partial
 from typing import Literal
@@ -61,14 +62,15 @@ def all_station_bfs(
 
     data_set = [(station, start_time, start_day) for station in stations for start_time, start_day in time_set]
     with tqdm(desc="Calculating Paths", total=len(data_set)) as bar:
-        with mp.Pool() as pool:
+        executor_cls = ProcessPoolExecutor if mp.parent_process() is None else ThreadPoolExecutor
+        with executor_cls() as executor:
+            work = partial(
+                single_bfs, city.lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
+                exclude_edge=exclude_edge, include_express=include_express
+            )
+            iterator = executor.map(work, data_set, chunksize=50)
             multi_result = []
-            for elem in pool.imap_unordered(
-                partial(
-                    single_bfs, city.lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
-                    exclude_edge=exclude_edge, include_express=include_express
-                ), data_set, chunksize=50
-            ):
+            for elem in iterator:
                 bar.set_description("Calculating " + station_full_name(elem[0][0], city.lines) +
                                     " at " + get_time_repr(elem[0][1], elem[0][2]))
                 bar.update()
