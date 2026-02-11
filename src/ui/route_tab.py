@@ -32,7 +32,7 @@ from src.fare.fare import to_abstract
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
-from src.routing_pk.analyze_routes import PathData, calculate_data, strip_routes
+from src.routing_pk.analyze_routes import PathData, calculate_data, strip_routes, reassign_index
 from src.routing_pk.common import Route, route_str, RouteData
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
     get_station_row, calculate_moving_average, get_time_input
@@ -742,7 +742,7 @@ async def analyze_routes(
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
     _, through_dict = parse_through_train(train_dict, city.through_specs)
-    path_dict = await run.io_bound(
+    path_dict = await run.cpu_bound(
         all_time_paths,
         city, train_dict, {
             i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
@@ -940,6 +940,12 @@ def display_data(
         data_table.selected = data_table.rows[:]
         on_chart_data_change()
 
+    async def on_reassign_click() -> None:
+        """ Handle reassigning indexes """
+        sorted_rows = await data_table.get_filtered_sorted_rows()
+        indexes = [row["index"] - 1 for row in sorted_rows]
+        await display_data.refresh(path_list=reassign_index(sorted(path_list, key=lambda x: indexes.index(x[0]))))
+
     data_rows = calculate_data_rows(city, best_dict, data_list, cur_time=datetime.now().time())
     with ui.column():
         with ui.row().classes("w-full items-center"):
@@ -956,6 +962,7 @@ def display_data(
                 on_change=on_switch_change
             ).classes("min-w-25")
             time_input = get_time_input(lambda _: on_switch_change(), label="Departure").classes("w-30")
+            ui.button("Reassign Indexes", on_click=on_reassign_click)
         with ui.row().classes("w-full items-center justify-between"):
             ui.label("Route Basic Data").classes("text-xl font-semibold mt-6 mb-2")
             data_search = ui.input("Search data...")
