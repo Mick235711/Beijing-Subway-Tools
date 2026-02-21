@@ -539,7 +539,7 @@ def bfs(
             prev_train = None
             prev_station: str | None = None
         else:
-            cur_time, cur_day = results[key].arrival_time, results[key].arrival_day
+            cur_time, cur_day = results[key].arrival_time, results[key].arrival_day or results[key].force_next_day
             prev_train = results[key].prev_train
             prev_station = results[key].prev_station
 

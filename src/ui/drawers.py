@@ -805,7 +805,9 @@ def train_timeline(
         if first_train is None:
             arrival_times[(train[1][0][0], None)] = (train[2].initial_time, train[2].initial_day)
         if last_train is None:
-            arrival_times[(train[2].station, None)] = (train[2].arrival_time, train[2].arrival_day)
+            arrival_times[(train[2].station, None)] = (train[2].arrival_time, train[2].arrival_day or train[2].force_next_day)
+        force_next_day = False
+        last_time: TimeSpec | None = None
         for i, (inner_station, inner_train) in enumerate(train[1]):
             if not isinstance(inner_train, Train):
                 if i > 0:
@@ -814,11 +816,15 @@ def train_timeline(
                         inner_station, prev_entry.line.name if isinstance(prev_entry, Train) else None
                     )]
                 continue
+            if last_time is not None and diff_time_tuple(inner_train.arrival_time[inner_station], last_time) < 0:
+                force_next_day = True
             next_station = train[2].station if i == len(train[1]) - 1 else train[1][i + 1][0]
             arrival_times.update({
-                (s, inner_train.line.name): t
+                (s, inner_train.line.name): (t[0], t[1] or force_next_day)
                 for s, t in inner_train.arrival_time_two_station(inner_station, next_station, inclusive=True).items()
             })
+            last_time = inner_train.arrival_time_virtual(inner_station)[next_station]
+            force_next_day = force_next_day or last_time[1]
             train_id_dicts[(inner_train.line.name, inner_train.direction)] = get_train_id(
                 train_dict[inner_train.line.name][inner_train.direction][inner_train.date_group]
             )

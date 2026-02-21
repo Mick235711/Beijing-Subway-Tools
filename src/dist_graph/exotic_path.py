@@ -56,7 +56,7 @@ def all_station_bfs(
                         results[fr][to] = {}
                     results[fr][to][to_minutes(start_time, start_day)] = (diff_time(
                         single_result.arrival_time, start_time,
-                        single_result.arrival_day, start_day
+                        single_result.arrival_day or single_result.force_next_day, start_day
                     ), path, single_result)
         return results
 
@@ -91,7 +91,7 @@ def all_station_bfs(
                 results[cur_station][station] = {}
             results[cur_station][station][to_minutes(start_time, start_day)] = (diff_time(
                 single_result.arrival_time, start_time,
-                single_result.arrival_day, start_day
+                single_result.arrival_day or single_result.force_next_day, start_day
             ), single_result.shortest_path(bfs_result), single_result)
     return results
 
@@ -125,7 +125,7 @@ def all_path(
         )
         return {fr: {to: (diff_time(
             result.arrival_time, start_time,
-            result.arrival_day, start_day
+            result.arrival_day or result.force_next_day, start_day
         ), path, result) for to, (_, result, path) in to_dict.items()} for fr, to_dict in bfs_dict.items()}
 
 

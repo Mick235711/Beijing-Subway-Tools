@@ -724,12 +724,13 @@ def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[
     cur_time_str = get_time_str(cur_time)
     if cur_time_str in info_dict:
         return cur_time_str, info_dict[cur_time_str][2].arrival_time_str(), to_minutes(
-            info_dict[cur_time_str][2].arrival_time, info_dict[cur_time_str][2].arrival_day
+            info_dict[cur_time_str][2].arrival_time,
+            info_dict[cur_time_str][2].arrival_day or info_dict[cur_time_str][2].force_next_day
         )
     elif get_time_str(cur_time, True) in info_dict:
         key = get_time_str(cur_time, True)
         return key, info_dict[key][2].arrival_time_str(), to_minutes(
-            info_dict[key][2].arrival_time, info_dict[key][2].arrival_day
+            info_dict[key][2].arrival_time, info_dict[key][2].arrival_day or info_dict[key][2].force_next_day
         )
     else:
         return "", None, 24 * 60 * 2
