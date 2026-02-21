@@ -140,11 +140,14 @@ def info_tab(city: City, data: InfoData) -> None:
     async def load_station_rows(cur_date: date, full_only: bool, show_ending: bool) -> None:
         """ Load station rows in the background """
         nonlocal line_id_dict, stations_table
-        station_rows, new_line_id_dict = await run.io_bound(
+        calc_result = await run.io_bound(
             calculate_station_rows,
             city, data.lines, data.station_lines, cur_date,
             full_only=full_only, show_ending=show_ending
         )
+        if calc_result is None:
+            return
+        station_rows, new_line_id_dict = calc_result
         line_id_dict = new_line_id_dict
         if stations_table is None:
             return

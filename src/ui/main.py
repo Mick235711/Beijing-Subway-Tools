@@ -259,6 +259,8 @@ async def main_page(city_name: str) -> None:
                 trains_data.cur_date, trains_data.cur_mode, [], trains_key
             )
             train_list = await run.io_bound(get_train_list, city, snapshot)
+            if train_list is None:
+                return
             if trains_key == (trains_data.line, trains_data.direction, trains_data.cur_date, trains_data.cur_mode):
                 trains_data.train_list = train_list
                 trains_data.train_list_key = trains_key
@@ -266,6 +268,8 @@ async def main_page(city_name: str) -> None:
         stats_key = (stats_data.cur_date, tuple(sorted(info_data.lines.keys())))
         if stats_data.train_dict_key != stats_key:
             train_dict = await run.io_bound(get_train_dict, info_data.lines.values(), stats_data.cur_date)
+            if train_dict is None:
+                return
             if stats_key == (stats_data.cur_date, tuple(sorted(info_data.lines.keys()))):
                 stats_data.train_dict = train_dict
                 stats_data.train_dict_key = stats_key
@@ -294,7 +298,10 @@ async def main_page(city_name: str) -> None:
                     }
                     return inner_dimensions, inner_dataset, inner_data
 
-                dimensions, dataset, total_data = await run.io_bound(build_chart)
+                build_result = await run.io_bound(build_chart)
+                if build_result is None:
+                    return
+                dimensions, dataset, total_data = build_result
                 if stats_key == (stats_data.cur_date, tuple(sorted(info_data.lines.keys()))):
                     stats_data.chart_cache_key = chart_key
                     stats_data.chart_cache = (dimensions, dataset, total_data)
@@ -306,6 +313,8 @@ async def main_page(city_name: str) -> None:
                     return speed_graph_data(city, collect_directions(stats_data.train_dict))
 
                 speed_dataset = await run.io_bound(build_speed)
+                if speed_dataset is None:
+                    return
                 if stats_key == (stats_data.cur_date, tuple(sorted(info_data.lines.keys()))):
                     stats_data.speed_cache_key = speed_key
                     stats_data.speed_cache = speed_dataset
@@ -317,6 +326,8 @@ async def main_page(city_name: str) -> None:
                     parse_all_trains(list(info_data.lines.values())), city.through_specs
                 )[1]
             )
+            if through_dict is None:
+                return
             if lines_key == tuple(sorted(info_data.lines.keys())):
                 timetable_data.through_dict = through_dict
                 timetable_data.through_dict_key = lines_key
@@ -326,6 +337,8 @@ async def main_page(city_name: str) -> None:
             train_dict = await run.io_bound(
                 get_train_dict, city.station_lines[timetable_data.station], timetable_data.cur_date
             )
+            if train_dict is None:
+                return
             if timetable_key == (timetable_data.station, timetable_data.cur_date):
                 timetable_data.train_dict = train_dict
                 timetable_data.train_dict_key = timetable_key

@@ -76,6 +76,8 @@ def trains_tab(city: City, data: TrainsData) -> None:
             key = (line, direction, cur_date, cur_mode)
             snapshot = TrainsData(data.info_data, line, direction, cur_date, cur_mode, [], key)
             inner_train_list = await run.io_bound(get_train_list, city, snapshot)
+            if inner_train_list is None:
+                return
             if (line, direction, cur_date, cur_mode) != (data.line, data.direction, data.cur_date, data.cur_mode):
                 loading.set_visibility(False)
                 return

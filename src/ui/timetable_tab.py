@@ -68,6 +68,8 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             key = (station, cur_date)
             if data.train_dict_key != key:
                 train_dict = await run.io_bound(get_train_dict, city.station_lines[station], cur_date)
+                if train_dict is None:
+                    return
                 if (station, cur_date) != (data.station, data.cur_date):
                     loading.set_visibility(False)
                     return
@@ -111,6 +113,8 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                     city.through_specs
                 )[1]
             )
+            if through_dict is None:
+                return
             data.through_dict = through_dict
             data.through_dict_key = lines_key
             loading.set_visibility(False)

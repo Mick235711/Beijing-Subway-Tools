@@ -59,6 +59,8 @@ def stats_tab(city: City, data: StatsData) -> None:
             cur_date = data.cur_date
             lines_key = tuple(sorted(data.info_data.lines.keys()))
             train_dict = await run.io_bound(get_train_dict, data.info_data.lines.values(), cur_date)
+            if train_dict is None:
+                return
             if (cur_date, lines_key) != (data.cur_date, tuple(sorted(data.info_data.lines.keys()))):
                 loading.set_visibility(False)
                 return
@@ -359,8 +361,10 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
 
             return inner_dimensions, inner_dataset, inner_data
 
-        dimensions, dataset, total_data = await run.io_bound(build)
-
+        build_result = await run.io_bound(build)
+        if build_result is None:
+            return
+        dimensions, dataset, total_data = build_result
         if last_chart_key != key:
             return
 
@@ -572,7 +576,8 @@ def display_speed_graph(city: City, *, data: StatsData | None = None) -> None:
             )
 
         dataset = await run.io_bound(build)
-
+        if dataset is None:
+            return
         if last_graph_key != key:
             return
         data.speed_cache_key = key
@@ -795,7 +800,10 @@ def display_speed_table(
     async def load_rows(key: tuple[int, bool]) -> None:
         """ Load rows for the speed table in the background """
         nonlocal train_id_dict
-        train_id_dict, train_rows = await run.io_bound(calculate_train_rows, train_dict, full_only=full_only)
+        calc_result = await run.io_bound(calculate_train_rows, train_dict, full_only=full_only)
+        if calc_result is None:
+            return
+        train_id_dict, train_rows = calc_result
         if key != table_key:
             return
         trains_table.rows = train_rows

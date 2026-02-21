@@ -509,7 +509,7 @@ async def get_kth_routes(
             start_station, end_station, start_date, start_time,
             k=k, progress_callback=progress_callback
         )
-        if len(results) == 0:
+        if results is None or len(results) == 0:
             return None
         return [(result.total_duration(), path, result) for result, path in results]
 
@@ -750,6 +750,8 @@ async def analyze_routes(
         }, start_date,
         progress_callback=progress_callback
     )
+    if path_dict is None:
+        return [], through_dict
 
     path_list: list[PathData] = []
     for i, paths in path_dict.items():
