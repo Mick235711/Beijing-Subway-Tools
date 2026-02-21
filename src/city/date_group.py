@@ -7,7 +7,7 @@
 from datetime import date, time
 from typing import Any
 
-from src.common.common import get_time_repr, diff_time_tuple, TimeSpec, parse_time
+from src.common.common import get_time_repr, diff_time_tuple, TimeSpec, parse_time, parse_date_opt
 
 
 class DateGroup:
@@ -24,8 +24,8 @@ class DateGroup:
         if self.dates is None:
             self.weekday = weekday or {1, 2, 3, 4, 5, 6, 7}
             assert all(1 <= x <= 7 for x in self.weekday), self.weekday
-            self.start_date = date.fromisoformat(start_date) if start_date else None
-            self.end_date = date.fromisoformat(end_date) if end_date else None
+            self.start_date = parse_date_opt(start_date)
+            self.end_date = parse_date_opt(end_date)
 
     def group_str(self) -> str:
         """ Get string representation of this group """

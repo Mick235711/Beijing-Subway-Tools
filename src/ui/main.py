@@ -285,13 +285,13 @@ async def main_page(city_name: str) -> None:
                 lines_key,
             )
             if stats_data.chart_cache_key != chart_key:
-                def build_chart() -> tuple[list[str], dict[str, dict[str, float]], list[float]]:
+                def build_chart() -> tuple[list[str], dict[str, dict[str, float]], dict[str, float]]:
                     """ Build the train chart dataset for prefetch """
                     inner_dimensions, inner_dataset = train_chart_data(collect_directions(stats_data.train_dict))
-                    inner_data = [
-                        sum(data_dict.get(t, 0)
+                    inner_data = {
+                        t: sum(data_dict.get(t, 0)
                         for data_dict in inner_dataset.values()) for t in inner_dimensions
-                    ]
+                    }
                     return inner_dimensions, inner_dataset, inner_data
 
                 dimensions, dataset, total_data = await run.io_bound(build_chart)

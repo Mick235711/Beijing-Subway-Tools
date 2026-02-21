@@ -14,10 +14,10 @@ from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
     TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar, zero_div, average, suffix_s, to_pinyin, \
-    speed_str, format_duration, distance_str
+    speed_str, format_duration, distance_str, parse_time
 from src.routing.train import Train, get_train_id
 from src.stats.common import is_possible_to_board
-from src.ui.common import get_date_input, get_default_line, get_line_selector_options, find_train_id, \
+from src.ui.common import get_date_input, get_time_input, get_default_line, get_line_selector_options, find_train_id, \
     get_station_selector_options, get_default_station, draw_arc, draw_text, get_line_row, get_line_html, \
     get_station_html, get_station_row, calculate_moving_average
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
@@ -33,7 +33,7 @@ class StatsData:
     train_dict: dict[tuple[str, str], list[Train]]
     train_dict_key: tuple[date, tuple[str, ...]] | None
     chart_cache_key: tuple | None
-    chart_cache: tuple[list[str], dict[str, dict[str, float]], list[float]] | None
+    chart_cache: tuple[list[str], dict[str, dict[str, float]], dict[str, float]] | None
     speed_cache_key: tuple | None
     speed_cache: dict[str, tuple[int, float, float]] | None
 
@@ -221,10 +221,11 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
     def apply_chart(
         dimensions: list[str],
         dataset: dict[str, dict[str, float]],
-        total_data: list[float],
+        total_data: dict[str, float],
         *,
         data_select_value: str,
         other_date: date | None,
+        other_time: TimeSpec | None,
         is_capacity: bool,
         is_full: bool,
         per_km: bool,
@@ -244,11 +245,20 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
             train_chart.options["yAxis"]["name"] = "Train Capacity" if is_capacity else "Train Count"
         else:
             train_chart.options["yAxis"]["name"] = "Portion"
-        total_distance = (sum(city.lines[ln].total_distance() for ln in dataset.keys()) / 1000) if per_km else 1
+        if other_time is not None:
+            time_key = get_time_str(*other_time)
+            distance_div = {l.name: dataset[l.name].get(time_key, 0) for l in city.lines.values()}
+            total_distance = total_data.get(time_key, 0)
+        elif per_km:
+            distance_div = {l.name: l.total_distance() / 1000 for l in city.lines.values()}
+            total_distance = sum(city.lines[ln].total_distance() for ln in dataset.keys()) / 1000
+        else:
+            distance_div = {l.name: 1 for l in city.lines.values()}
+            total_distance = 1
         mark_point_label = {
             "show": True,
             ":formatter": "(params) => params.value.toFixed(2)"
-        } if per_km or is_full or other_date is not None or moving_average > 1 else {}
+        } if per_km or is_full or other_date is not None or other_time is not None or moving_average > 1 else {}
         marker = "min" if is_full else "max"
         marker_func = min if is_full else max
         def make_marker_key(name: str) -> Callable[[str], float]:
@@ -261,9 +271,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
             {
                 "name": line_name,
                 "type": "line",
-                "data": [None if t not in data_dict else (data_dict[t] / (
-                    city.lines[line_name].total_distance() / 1000 if per_km else 1
-                )) for t in dimensions],
+                "data": [None if t not in data_dict else zero_div(data_dict[t], distance_div[line_name]) for t in dimensions],
                 "smooth": True,
                 "showSymbol": tooltip_value not in ["Hover", "None"],
                 "itemStyle": {"color": city.lines[line_name].color or "#333"},
@@ -277,7 +285,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         ] + [{
             "name": "Total",
             "type": "line",
-            "data": [t / total_distance for t in total_data],
+            "data": [zero_div(t, total_distance) for t in total_data.values()],
             "smooth": True,
             "showSymbol": tooltip_value not in ["Hover", "None"],
             "itemStyle": {"color": "black"},
@@ -296,6 +304,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
 
         data_select_value = data_select.value
         other_date = date.fromisoformat(date_input.value) if data_select_value == "Comparison With Date" else None
+        other_time = parse_time(time_input.value) if data_select_value == "Comparison With Time" else None
         full_only = full_switch.value
         dist_only = dist_switch.value
         is_capacity = capacity_switch.value and data_select_value == "Online Train Count"
@@ -307,7 +316,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         train_dict_snapshot = data.train_dict
         lines_snapshot = list(data.info_data.lines.values())
 
-        def build() -> tuple[list[str], dict[str, dict[str, float]], list[float]]:
+        def build() -> tuple[list[str], dict[str, dict[str, float]], dict[str, float]]:
             """ Build the train chart dataset """
             view_metric: Literal["capacity", "count"] = "capacity" if is_capacity else "count"
             inner_dimensions, inner_dataset = train_chart_data(
@@ -322,10 +331,10 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
                     view_metric=("distance" if is_full and dist_only else view_metric),
                     full_only=(not dist_only), moving_average=moving_average
                 )
-                inner_data = [zero_div(
+                inner_data = {t: zero_div(
                     sum(data_dict.get(t, 0) for data_dict in dataset2.values()),
                     sum(data_dict.get(t, 0) for data_dict in inner_dataset.values())
-                ) for t in inner_dimensions]
+                ) for t in inner_dimensions}
                 inner_dataset = {line_name: {
                     k: zero_div(dataset2[line_name].get(k, 0), v) for k, v in inner.items()
                 } for line_name, inner in inner_dataset.items()}
@@ -336,17 +345,17 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
                     view_metric=view_metric,
                     full_only=full_only, moving_average=moving_average
                 )
-                inner_data = [zero_div(
+                inner_data = {t: zero_div(
                     sum(data_dict.get(t, 0) for data_dict in inner_dataset.values()),
                     sum(data_dict.get(t, 0) for data_dict in dataset2.values())
-                ) for t in inner_dimensions]
+                ) for t in inner_dimensions}
                 inner_dataset = {line_name: {
                     k: zero_div(v, dataset2[line_name].get(k, 0)) for k, v in inner.items()
                 } for line_name, inner in inner_dataset.items()}
             else:
-                inner_data = [
-                    sum(data_dict.get(t, 0) for data_dict in inner_dataset.values()) for t in inner_dimensions
-                ]
+                inner_data = {
+                    t: sum(data_dict.get(t, 0) for data_dict in inner_dataset.values()) for t in inner_dimensions
+                }
 
             return inner_dimensions, inner_dataset, inner_data
 
@@ -362,6 +371,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
             dimensions, dataset, total_data,
             data_select_value=data_select_value,
             other_date=other_date,
+            other_time=other_time,
             is_capacity=is_capacity,
             is_full=is_full,
             per_km=per_km,
@@ -381,6 +391,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         key = (
             data_select.value,
             date_input.value,
+            time_input.value,
             full_switch.value,
             dist_switch.value,
             capacity_switch.value,
@@ -395,6 +406,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         if data.chart_cache_key == key and data.chart_cache is not None:
             data_select_value = data_select.value
             other_date = date.fromisoformat(date_input.value) if data_select_value == "Comparison With Date" else None
+            other_time = parse_time(time_input.value) if data_select_value == "Comparison With Time" else None
             is_capacity = capacity_switch.value and data_select_value == "Online Train Count"
             is_full = data_select_value == "Full-Distance Portion"
             per_km = per_km_switch.value and not is_full and other_date is None
@@ -402,6 +414,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
                 data.chart_cache[0], data.chart_cache[1], data.chart_cache[2],
                 data_select_value=data_select_value,
                 other_date=other_date,
+                other_time=other_time,
                 is_capacity=is_capacity,
                 is_full=is_full,
                 per_km=per_km,
@@ -421,10 +434,13 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
 
     with ui.row().classes("w-full items-center justify-center"):
         data_select = ui.select([
-            "Online Train Count", "Full-Distance Portion", "Comparison With Date"
+            "Online Train Count", "Full-Distance Portion", "Comparison With Date", "Comparison With Time"
         ], value="Online Train Count", label="Viewing data", on_change=on_data_change)
         date_input = get_date_input(lambda d: on_data_change(), label="Target date").bind_visibility_from(
             data_select, "value", backward=lambda v: v == "Comparison With Date"
+        )
+        time_input = get_time_input(lambda t: on_data_change(), label="Target time").bind_visibility_from(
+            data_select, "value", backward=lambda v: v == "Comparison With Time"
         )
         full_switch = ui.switch("Full-Distance only", on_change=on_data_change).bind_visibility_from(
             data_select, "value", backward=lambda v: v != "Full-Distance Portion"
