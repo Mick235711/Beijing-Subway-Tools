@@ -741,7 +741,7 @@ def train_drawer(
 
             with ui.scroll_area().classes("flex-grow"):
                 train_timeline(
-                    train_dict, through_dict, train_id_dict, full_train, city.transfers, city.virtual_transfers,
+                    train_dict, through_dict, train_id_dict, full_train, city.transfers,
                     show_tally=True, show_station=select_opt_default
                 )
 
@@ -759,8 +759,7 @@ def train_drawer(
 def train_timeline(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     train_id_dict: dict[str, Train] | None, train: Train | ThroughTrain | PathInfo,
-    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
-    *, show_station: Literal["all", "stop", "none"] = "all",
+    transfer_dict: dict[str, Transfer], *, show_station: Literal["all", "stop", "none"] = "all",
     interval_metric: Literal["none", "num_station", "duration", "distance", "speed"] = "none", show_tally: bool
 ) -> None:
     """ Create a timeline for this train """
@@ -909,7 +908,7 @@ def train_timeline(
     tally_dist = 0
     interval_dist: int | None = 0
     next_station = ""
-    with ui.timeline(side="right", layout="comfortable"):
+    with (ui.timeline(side="right", layout="comfortable")):
         for i, (station, line_train) in enumerate(stations):
             station_key = (station, line_train[2].name if isinstance(line_train, tuple) else None)
             if station in skip_stations and show_station != "all":
@@ -919,7 +918,7 @@ def train_timeline(
             else:
                 arrival_time = arrival_times.get(station_key)
 
-            transfer_str = ""
+            transfer_str = ("", "")
             if i < len(stations) - 1:
                 next_station = stations[i + 1][0]
                 next_key_lt = stations[i + 1][1]
@@ -950,10 +949,13 @@ def train_timeline(
                     if transfer_time_value is None:
                         real_interval_duration = interval_duration
                     elif transfer_time_value[1] is None:
-                        transfer_str = f"Transfer: {format_duration(transfer_time_value[0])}"
+                        transfer_str = (f"Transfer: {format_duration(transfer_time_value[0])}", "")
                         real_interval_duration = interval_duration - transfer_time_value[0]
                     else:
-                        transfer_str = f"Transfer: {format_duration(transfer_time_value[0])}\nWaiting: {format_duration(transfer_time_value[1])}"
+                        transfer_str = (
+                            f"Transfer: {format_duration(transfer_time_value[0])}",
+                            f"Waiting: {format_duration(transfer_time_value[1])}"
+                        )
                         real_interval_duration = interval_duration - (transfer_time_value[0] + transfer_time_value[1])
                     if isinstance(line_train, tuple):
                         if station in line_train[3].arrival_time:
@@ -1014,8 +1016,10 @@ def train_timeline(
                 ) as entry:
                     if i < len(stations) - 1:
                         ui.label("Virtual transfer")
-                        if transfer_str != "":
-                            ui.label(transfer_str)
+                        if transfer_str[0] != "":
+                            ui.label(transfer_str[0])
+                        if transfer_str[1] != "":
+                            ui.label(transfer_str[1])
                 with entry.add_slot("subtitle"):
                     ui.label(subtitle).classes("whitespace-pre-line")
                 with entry.add_slot("title"):
@@ -1072,8 +1076,10 @@ def train_timeline(
                 if i != len(stations) - 1:
                     if interval_str is not None:
                         ui.label(interval_str)
-                    if transfer_str != "":
-                        ui.label(transfer_str)
+                    if transfer_str[0] != "":
+                        ui.label(transfer_str[0])
+                    if transfer_str[1] != "":
+                        ui.label(transfer_str[1])
 
             with entry.add_slot("subtitle"):
                 ui.label(subtitle).classes("whitespace-pre-line")
