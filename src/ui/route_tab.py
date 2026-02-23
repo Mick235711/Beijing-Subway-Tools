@@ -1137,11 +1137,15 @@ def display_data(
             mark_point_array: list[dict] = []
             if max_switch.value:
                 mark_point_array.append({
-                    "type": "max", "name": "Max (" + max(dimensions, key=lambda t: inner_data_dict.get(t, -1)) + ")"
+                    "type": "max", "name": "Max (" + max(
+                        [t for t in dimensions if t in inner_data_dict], key=lambda t: inner_data_dict[t]
+                    ) + ")"
                 })
             if min_switch.value:
                 mark_point_array.append({
-                    "type": "min", "name": "Min (" + min(dimensions, key=lambda t: inner_data_dict.get(t, -1)) + ")"
+                    "type": "min", "name": "Min (" + min(
+                        [t for t in dimensions if t in inner_data_dict], key=lambda t: inner_data_dict[t]
+                    ) + ")"
                 })
             return mark_point_array
 
