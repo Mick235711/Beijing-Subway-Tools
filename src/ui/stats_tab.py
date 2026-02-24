@@ -17,9 +17,9 @@ from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_min
     speed_str, format_duration, distance_str, parse_time
 from src.routing.train import Train, get_train_id
 from src.stats.common import is_possible_to_board
-from src.ui.common import get_date_input, get_time_input, get_default_line, get_line_selector_options, find_train_id, \
-    get_station_selector_options, get_default_station, draw_arc, draw_text, get_line_row, get_line_html, \
-    get_station_html, get_station_row, calculate_moving_average
+from src.ui.common import get_date_input, get_time_input, get_default_line, get_default_direction, get_default_station, \
+    get_line_selector_options, get_direction_selector_options, get_station_selector_options, get_line_html, get_station_html, \
+    find_train_id, draw_arc, draw_text, get_line_row, get_station_row, calculate_moving_average
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -112,7 +112,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             """ Update the data based on selection states """
             if len(data.info_data.lines) == 0:
                 radar_base_line.clear()
-                final_train_radar.refresh(base_line=None, save_image=False)
+                final_train_radar.refresh(base_line=None, base_direction=None, base_station=None, save_image=False)
                 return
 
             line_temp = line or radar_base_line.value
@@ -124,6 +124,11 @@ def stats_tab(city: City, data: StatsData) -> None:
             with radar_base_line.add_slot("selected"):
                 get_line_badge(city.lines[line_temp])
             radar_base_line.update()
+
+            select_direction.set_options(get_direction_selector_options(city.lines[line_temp]))
+            direction = get_default_direction(city.lines[line_temp])
+            select_direction.set_value(direction)
+            select_direction.update()
 
             if city.lines[line_temp].loop:
                 station_lines = {s: city.station_lines[s] for s in city.lines[line_temp].stations}
@@ -137,12 +142,18 @@ def stats_tab(city: City, data: StatsData) -> None:
                 select_station.set_value(station)
                 select_station.clear()
 
-            final_train_radar.refresh(base_line=city.lines[line_temp], base_station=station, save_image=False)
+            final_train_radar.refresh(
+                base_line=city.lines[line_temp], base_direction=direction, base_station=station, save_image=False
+            )
 
         with ui.tab_panel(radar_tab).classes("pt-0"):
             with ui.row().classes("w-full items-center justify-center"):
                 ui.label("Base line: ")
                 radar_base_line = ui.select([]).props("use-chips options-html").on_value_change(on_line_change)
+                ui.label("Base direction: ")
+                select_direction = ui.select(
+                    [], on_change=lambda e: final_train_radar.refresh(base_direction=e.value, save_image=False)
+                ).props(add="options-html", remove="fill-input hide-selected")
                 ui.label("Base station: ").bind_visibility_from(
                     radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
                 )
@@ -152,6 +163,7 @@ def stats_tab(city: City, data: StatsData) -> None:
                 ).props(add="options-html", remove="fill-input hide-selected").bind_visibility_from(
                     radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
                 )
+            with ui.row().classes("w-full items-center justify-center"):
                 ui.toggle(
                     ["First Train", "Last Train"], value="First Train",
                     on_change=lambda e: final_train_radar.refresh(use_first=(e.value == "First Train"), save_image=False)
@@ -815,13 +827,17 @@ def display_speed_table(
 
 @ui.refreshable
 def final_train_radar(
-    city: City, *, base_line: Line | None = None, base_station: str | None = None,
+    city: City, *, base_line: Line | None = None, base_direction: str | None = None, base_station: str | None = None,
     train_dict: dict[tuple[str, str], list[Train]],
     use_first: bool = True, show_all_dir: bool = False, show_ending: bool = False,
     show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False
 ) -> None:
     """ Display a radar graph for final trains """
-    if base_line is None or len(train_dict) == 0 or (base_station is not None and base_station not in base_line.stations):
+    if base_line is None or len(train_dict) == 0 or (
+        base_direction is not None and base_direction not in base_line.directions
+    ) or (
+        base_station is not None and base_station not in base_line.stations
+    ):
         return
 
     # First, gather the desired last train for each line+direction
@@ -977,9 +993,10 @@ def final_train_radar(
     base_color = base_line.color or "#333"
     station_coords: list[tuple[float, float, str]] = []
     trains = []
-    base_index = 0 if base_station is None else base_line.stations.index(base_station)
+    base_stations = base_line.direction_stations(base_direction)
+    base_index = 0 if base_station is None else base_stations.index(base_station)
     for last_station, train_list in sorted(
-        last_dict.items(), key=lambda x: shift_max(base_line.stations.index(x[0]), base_index, len(base_line.stations))
+        last_dict.items(), key=lambda x: shift_max(base_stations.index(x[0]), base_index, len(base_stations))
     ):
         for train in train_list:
             start_time, end_time = train.start_time(), train.last_time()
