@@ -34,13 +34,13 @@ class ThroughSpec:
                     station_lines = [(line.station_full_name(s), line, direction) for s in route.stations]
                 else:
                     station_lines = [(s, line, direction) for s in route.stations]
-                last_station = route.stations[-1]
             else:
                 assert last_station == route.stations[0], (station_lines, route, self.spec)
                 if use_full_name:
                     station_lines.extend([(line.station_full_name(s), line, direction) for s in route.stations[1:]])
                 else:
                     station_lines.extend([(s, line, direction) for s in route.stations[1:]])
+            last_station = route.stations[-1]
         return station_lines
 
     def stations(self, use_full_name: bool = False) -> list[str]:

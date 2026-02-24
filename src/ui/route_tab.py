@@ -115,7 +115,7 @@ def display_route(lines: dict[str, Line], route: Route) -> None:
         get_station_badge(station, show_badges=False, show_code_badges=False, show_line_badges=False)
         if line_direction is None:
             with ui.badge(color="black"):
-                ui.icon("multiple_stop").classes("q-ml-xs")
+                ui.icon("multiple_stop")
         else:
             line, direction = lines[line_direction[0]], line_direction[1]
             get_line_badge(line, force_icon_dir=direction, add_click=True)

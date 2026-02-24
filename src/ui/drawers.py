@@ -908,7 +908,7 @@ def train_timeline(
     tally_dist = 0
     interval_dist: int | None = 0
     next_station = ""
-    with (ui.timeline(side="right", layout="comfortable")):
+    with ui.timeline(side="right", layout="comfortable"):
         for i, (station, line_train) in enumerate(stations):
             station_key = (station, line_train[2].name if isinstance(line_train, tuple) else None)
             if station in skip_stations and show_station != "all":

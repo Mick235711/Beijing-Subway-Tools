@@ -70,6 +70,20 @@ class ThroughTrain:
             arrival_times.update({(k, train.line.name): v for k, v in train.arrival_time.items()})
         return arrival_times
 
+    def arrival_time_stations(self) -> list[str]:
+        """ Return the stations that have arrival times """
+        arrival_stations: list[str] = []
+        first = True
+        for line, _, _, _ in self.spec.spec:
+            train = self.trains[line.name]
+            if first:
+                first = False
+                arrival_stations.extend(train.stations)
+            else:
+                assert arrival_stations[-1] == train.stations[0], (arrival_stations, train)
+                arrival_stations.extend(train.stations[1:])
+        return arrival_stations
+
     def two_station_dist(self, start_station: str, end_station: str) -> int:
         """ Distance between two stations """
         tally = 0
@@ -252,7 +266,7 @@ def parse_through_train(
             assert last_line is not None, last_line
             for through_train in result[through_spec]:
                 through_train.trains[line.name] = time_dict[through_train.trains[last_line.name].end_time_str()]
-                through_train.stations = [x[0] for x in through_train.arrival_times().keys()]
+                through_train.stations = through_train.arrival_time_stations()
 
             last_line = line
     return train_dict, result
