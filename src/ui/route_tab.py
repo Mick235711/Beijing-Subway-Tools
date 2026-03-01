@@ -1168,7 +1168,7 @@ def display_data(
                 "markPoint": {
                     "data": get_mark_point(inner_data_dict),
                     "label": mark_point_label
-                } if max_switch.value or min_switch.value else {}
+                }
             } for series_name, inner_data_dict in sorted(dataset.items(), key=lambda x: parse_index(x[0]))
         ]
 

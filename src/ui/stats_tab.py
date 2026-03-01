@@ -292,9 +292,9 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
                 "markPoint": {
                     "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
                         dimensions, key=make_marker_key(line_name)
-                    ) + ")"}],
+                    ) + ")"}] if max_marker else [],
                     "label": mark_point_label
-                } if max_marker else {}
+                }
             } for line_name, data_dict in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
         ] + [{
             "name": "Total",
@@ -306,9 +306,9 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
             "markPoint": {
                 "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
                     dimensions, key=lambda t: sum(data_dict.get(t, 0) for data_dict in dataset.values())
-                ) + ")"}],
+                ) + ")"}] if max_marker else [],
                 "label": mark_point_label
-            } if max_marker else {}
+            }
         }]
         train_chart.update()
 
@@ -486,7 +486,10 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         "yAxis": {"type": "value", "name": "Train Count", "nameLocation": "middle", "nameGap": 45},
         "series": [],
         "legend": {
-            "selector": ["all", "inverse"],
+            "selector": [
+                {"type": "all", "title": "All"},
+                {"type": "inverse", "title": "Inv"}
+            ],
             "selectorPosition": "start",
             "top": 0,
             "left": "center",
