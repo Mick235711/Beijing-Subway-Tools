@@ -1857,7 +1857,7 @@ Earliest -> Latest Last Trains:
 
 ### [`shortest_dist.py`](/src/stats/shortest_dist.py): Show the shortest/longest distance between stations
 ```
-usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [-d {single_station,station,distance,fare}] [-r]
+usage: shortest_dist.py [-h] [-n LIMIT_NUM] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single] [-d {single_dist,single_time,single_speed,station,distance,time,speed,fare}] [-r]
 
 options:
   -h, --help            show this help message and exit
@@ -1869,7 +1869,7 @@ options:
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
   --exclude-single      Exclude single-direction lines
-  -d, --data-source {single_station,station,distance,fare}
+  -d, --data-source {single_dist,single_time,single_speed,station,distance,time,speed,fare}
                         Path criteria
   -r, --reverse         Reverse sorting
 ```
@@ -1877,12 +1877,14 @@ options:
 Show the shortest/longest N station distance figures. Do not consider trains, so no parameter like `-a` and `-f`.
 
 Specifying `--data-source` can affect how the station distances are computed:
-- `single_station` only shows the distance between adjacent stations
 - `station` shows the distance between all stations, measured by stations traveled
 - `distance` shows the distance between all stations, measured by meters
+- `time` shows the total time for traveling between all stations starting at a specified time
+- `speed` shows the average speed for traveling between all stations starting at a specified time
 - `fare` shows the fare between all stations
+- `single_` prefixed version of above shows the corresponding metric for adjacent station pairs
 
-**NOTE: Fare mode may require several minutes to compute.**
+**NOTE: Some metrics may require several minutes to compute.**
 
 Example Usage:
 <pre>

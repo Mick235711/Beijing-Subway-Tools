@@ -5,7 +5,6 @@
 
 # Libraries
 from collections.abc import Sequence
-from typing import cast
 
 from src.city.ask_for_city import ask_for_train_list
 from src.common.common import suffix_s, diff_time_tuple, format_duration, segment_speed, speed_str
@@ -14,17 +13,21 @@ from src.routing.train import Train
 
 
 def average_speed(
-    trains: Sequence[Train], start: str | Sequence[str], end: str | Sequence[str]
+    trains: Sequence[Train], start: str | Sequence[str], end: str | Sequence[str], *, allow_reverse: bool = False
 ) -> tuple[int, float, float]:
     """ Return average minutes and speed between two stations in all trains """
     total_cnt, total_duration, total_speed = 0, 0, 0.0
     for i, train in enumerate(trains):
         start_elem = start if isinstance(start, str) else start[i]
         end_elem = end if isinstance(end, str) else end[i]
-        if start_elem not in train.arrival_time or end_elem not in train.arrival_time:
+        if allow_reverse and train.direction != train.line.determine_direction(start_elem, end_elem):
+            start_elem, end_elem = end_elem, start_elem
+        if start_elem not in train.arrival_time or end_elem not in train.arrival_time_virtual(start_elem):
+            continue
+        if start_elem in train.skip_stations or end_elem in train.skip_stations:
             continue
         total_cnt += 1
-        single_duration = diff_time_tuple(train.arrival_time[end_elem], train.arrival_time[start_elem])
+        single_duration = diff_time_tuple(train.arrival_time_virtual(start_elem)[end_elem], train.arrival_time[start_elem])
         total_duration += single_duration
         total_speed += segment_speed(train.two_station_dist(start_elem, end_elem), single_duration)
     return total_cnt, total_duration / total_cnt, total_speed / total_cnt
@@ -51,7 +54,8 @@ def main() -> None:
     # Ask for an express train
     train_list = ask_for_train_list(only_express=True)
     train_list_express = [train for train in train_list if train.is_express()]
-    train = cast(Train, ask_for_train(train_list_express, with_speed=True))
+    train = ask_for_train(train_list_express, with_speed=True)
+    assert isinstance(train, Train), train
     overtaken = find_overtaken(train, train_list)
 
     # Print
@@ -89,7 +93,7 @@ def main() -> None:
     overall_cnt, overall_duration, overall_speed = average_speed(
         [train for train in train_list if not train.is_express()], route_start, route_end
     )
-    print("\nAverage over all " + suffix_s("train", overall_cnt) +
+    print("\nAverage over all " + suffix_s("non-express train", overall_cnt) +
           f", segment speed: {format_duration(overall_duration)}, {speed_str(overall_speed)}")
 
 
