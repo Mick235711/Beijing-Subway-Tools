@@ -17,7 +17,7 @@ from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 
-from src.bfs.avg_shortest_time import PathInfo
+from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
 from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.bfs.k_shortest_path import k_shortest_path
 from src.city.city import City
@@ -1110,7 +1110,18 @@ def display_data(
         dataset: dict[str, dict[str, float]] = {}
         dimensions_set: set[str] = set()
         for index, _, info_dict, *_ in data_list:
-            dataset[index_name(index)] = {time_str: data[0] for time_str, data in info_dict.items()}
+            if data_select.value == "Total Duration":
+                dataset[index_name(index)] = {time_str: data[0] for time_str, data in info_dict.items()}
+            elif data_select.value in ["Outside Trains", "Total Waiting"]:
+                dataset[index_name(index)] = {time_str: get_waiting_time(
+                    data, city.transfers, exclude_transfer=(data_select.value == "Total Waiting")
+                ) for time_str, data in info_dict.items()}
+            elif data_select.value == "Moving Time":
+                dataset[index_name(index)] = {time_str: data[0] - get_waiting_time(
+                    data, city.transfers
+                ) for time_str, data in info_dict.items()}
+            else:
+                assert False, data_select.value
             dimensions_set.update(info_dict.keys())
         if moving_average > 1:
             dimensions_set, dataset = calculate_moving_average(dataset, moving_average)
@@ -1123,10 +1134,7 @@ def display_data(
         elif tooltip_select.value == "All":
             time_chart.options["xAxis"]["axisLabel"]["interval"] = 0
         time_chart.options["tooltip"]["trigger"] = "axis" if tooltip_select.value == "Hover" else "item"
-        if data_select.value == "Total Duration":
-            time_chart.options["yAxis"]["name"] = "Total Duration (min)"
-        else:
-            assert False, data_select.value
+        time_chart.options["yAxis"]["name"] = data_select.value + " (min)"
 
         mark_point_label = {
             "show": True,
@@ -1187,7 +1195,7 @@ def display_data(
 
     with ui.row().classes("w-full items-center justify-center"):
         data_select = ui.select([
-            "Total Duration"
+            "Total Duration", "Moving Time", "Outside Trains", "Total Waiting"
         ], value="Total Duration", label="Viewing data", on_change=on_chart_data_change)
         graph_baseline_select = ui.select(
             ["None"] + [index_name(index) for index, *_ in data_list], label="Baseline", value="None",

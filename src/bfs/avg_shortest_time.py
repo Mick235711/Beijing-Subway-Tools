@@ -20,8 +20,8 @@ from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import to_minutes, from_minutes, get_time_str, parse_time_opt, percentage_coverage, \
-    percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin, TimeSpec, get_time_repr
+from src.common.common import to_minutes, from_minutes, get_time_repr, parse_time_opt, percentage_coverage, \
+    percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin, TimeSpec, diff_time_tuple
 from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
@@ -309,6 +309,33 @@ def path_shorthand(end_station: str, lines: dict[str, Line], path: AbstractPath,
     if line_only:
         return result.rstrip("-")
     return result + station_full_name(end_station, lines)
+
+
+def get_waiting_time(
+    path_info: PathInfo, transfer_dict: dict[str, Transfer],
+    *, exclude_transfer: bool = False
+) -> float:
+    """ Get total waiting time in a path """
+    total_waiting = 0.0
+    cur_time = (path_info[2].initial_time, path_info[2].initial_day)
+    for i, (station, train) in enumerate(path_info[1]):
+        next_station = path_info[1][i + 1][0] if i < len(path_info[1]) - 1 else path_info[2].station
+        if isinstance(train, tuple):
+            if exclude_transfer:
+                total_waiting -= train[3]
+            continue
+
+        next_time = train.arrival_time[station]
+        total_waiting += diff_time_tuple(next_time, cur_time)
+        cur_time = train.arrival_time_virtual(station)[next_station]
+        if exclude_transfer and i < len(path_info[1]) - 1:
+            next_train = path_info[1][i + 1][1]
+            if not isinstance(next_train, tuple):
+                total_waiting -= transfer_dict[next_station].get_transfer_time(
+                    train.line, train.direction, next_train.line, next_train.direction,
+                    path_info[2].start_date, cur_time[0], cur_time[1]
+                )[0]
+    return total_waiting
 
 
 def shortest_path_args(

@@ -13,7 +13,7 @@ from nicegui import binding, ui
 from nicegui.elements.drawer import RightDrawer
 from nicegui.elements.tabs import Tab
 
-from src.bfs.avg_shortest_time import PathInfo
+from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
 from src.bfs.bfs import expand_path, path_distance, total_transfer
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
@@ -35,6 +35,9 @@ SELECTED_STATION: str | None = None
 SELECTED_TRAIN: tuple[Train | PathInfo, str] | None = None  # (train, train_id)
 AVAILABLE_LINES: dict[str, Line] = {}
 AVAILABLE_STATIONS: dict[str, set[Line]] = {}
+CARD_CAPTION = "text-subtitle-1 font-bold"
+CARD_TEXT = "text-h6"
+BADGE_TEXT = "text-h5 text-bold"
 
 
 def get_badge(tag: str, color: str, icon: str | None = None) -> None:
@@ -138,10 +141,21 @@ def get_line_direction_repr(line: Line, direction_stations: list[str] | None = N
         )
 
 
+def line_train_type_card(line: Line | Train | ThroughTrain) -> None:
+    """ Display card on a line or train's train type """
+    with ui.card().classes("col-span-2 q-pa-sm"):
+        with ui.card_section().classes("p-0"):
+            ui.label("Train Type").classes(CARD_CAPTION)
+            with ui.row().classes("items-center"):
+                ui.label(line.train_formal_name()).classes(CARD_TEXT)
+                ui.badge(line.train_code())
+            ui.label(f"Capacity: {line.train_capacity()} people").classes("text-subtitle-1")
+
+
 def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], None]) -> None:
     """ Create line drawer """
     global AVAILABLE_LINES
-    get_line_badge(line, classes="text-h5 text-bold")
+    get_line_badge(line, classes=BADGE_TEXT)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         get_line_badge(line, show_name=False)
         line_types = line.line_type()
@@ -174,12 +188,9 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
 
     with ui.tab_panels(tabs, value=info_tab).classes("w-full h-full"):
         with ui.tab_panel(info_tab).classes("p-1"):
-            card_caption = "text-subtitle-1 font-bold"
-            card_text = "text-h6"
-
             with ui.card().classes("q-pa-sm w-full"):
                 with ui.card_section().classes("w-full p-0"):
-                    ui.label("Directions").classes(card_caption + " mb-2")
+                    ui.label("Directions").classes(CARD_CAPTION + " mb-2")
                     with ui.list().props("dense"):
                         for direction, direction_stations in line.directions.items():
                             with ui.item().classes("mb-2").props("dense").style("padding: 0"):
@@ -197,31 +208,25 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                             f"{direction}: {line.total_distance(direction)}m" for direction in line.directions.keys()
                         ))
                     with ui.card_section().classes("p-0"):
-                        ui.label("Distance").classes(card_caption)
-                        ui.label(distance_str(line.total_distance())).classes(card_text)
+                        ui.label("Distance").classes(CARD_CAPTION)
+                        ui.label(distance_str(line.total_distance())).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     num_intervals = len(line.stations)
                     if not line.loop:
                         num_intervals -= 1
                     ui.tooltip("Average distance: " + distance_str(line.total_distance() / num_intervals))
                     with ui.card_section().classes("p-0"):
-                        ui.label("Stations").classes(card_caption)
-                        ui.label(str(len(line.stations))).classes(card_text)
+                        ui.label("Stations").classes(CARD_CAPTION)
+                        ui.label(str(len(line.stations))).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     with ui.card_section().classes("p-0"):
-                        ui.label("Index").classes(card_caption)
-                        ui.label(str(line.index)).classes(card_text)
+                        ui.label("Index").classes(CARD_CAPTION)
+                        ui.label(str(line.index)).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     with ui.card_section().classes("p-0"):
-                        ui.label("Design Speed").classes(card_caption)
-                        ui.label(speed_str(line.design_speed)).classes(card_text)
-                with ui.card().classes("col-span-2 q-pa-sm"):
-                    with ui.card_section().classes("p-0"):
-                        ui.label("Train Type").classes(card_caption)
-                        with ui.row().classes("items-center"):
-                            ui.label(line.train_formal_name()).classes(card_text)
-                            ui.badge(line.train_code())
-                        ui.label(f"Capacity: {line.train_capacity()} people").classes("text-subtitle-1")
+                        ui.label("Design Speed").classes(CARD_CAPTION)
+                        ui.label(speed_str(line.design_speed)).classes(CARD_TEXT)
+                line_train_type_card(line)
 
                 station_lines = parse_station_lines(AVAILABLE_LINES)
                 num_transfer = len([s for s in line.stations if len(station_lines[s]) > 1])
@@ -230,17 +235,17 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                     if num_virtual > 0:
                         ui.tooltip("real + virtual")
                     with ui.card_section().classes("p-0"):
-                        ui.label("# Transfer").classes(card_caption)
+                        ui.label("# Transfer").classes(CARD_CAPTION)
                         with ui.row().classes("items-center"):
-                            ui.label(str(num_transfer)).classes(card_text)
+                            ui.label(str(num_transfer)).classes(CARD_TEXT)
                             if num_virtual > 0:
                                 ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
                 with ui.card().classes("q-pa-sm"):
                     if num_virtual > 0:
                         ui.tooltip("Each virtual counts as half")
                     with ui.card_section().classes("p-0"):
-                        ui.label("% Transfer").classes(card_caption)
-                        ui.label(percentage_str((num_transfer + num_virtual / 2) / len(line.stations))).classes(card_text)
+                        ui.label("% Transfer").classes(CARD_CAPTION)
+                        ui.label(percentage_str((num_transfer + num_virtual / 2) / len(line.stations))).classes(CARD_TEXT)
 
         for direction, tab in direction_tabs.items():
             with ui.tab_panel(tab).classes("p-0 flex flex-col h-full drawers-line-timeline"):
@@ -324,7 +329,7 @@ def station_drawer(city: City, station: str, switch_to_timetable: Callable[[str,
     lines = sorted(AVAILABLE_STATIONS[station], key=lambda l: l.index)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         get_station_badge(
-            station, show_line_badges=False, add_click=False, classes="text-h5 text-bold"
+            station, show_line_badges=False, add_click=False, classes=BADGE_TEXT
         )
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         for line in lines:
@@ -455,8 +460,6 @@ def station_cards(
         set(virtual_dict[station].keys()), key=lambda x: to_pinyin(x[0])[0]
     )
 
-    card_caption = "text-subtitle-1 font-bold"
-    card_text = "text-h6"
     with ui.column().classes("gap-y-4 w-full"):
         num_transfer = len(lines)
         num_virtual = len(virtual_transfers)
@@ -464,7 +467,7 @@ def station_cards(
             if num_virtual > 0:
                 with ui.card().classes("col-span-2 q-pa-sm"):
                     with ui.card_section().classes("p-0"):
-                        ui.label("Virtual Transfers").classes(card_caption)
+                        ui.label("Virtual Transfers").classes(CARD_CAPTION)
                         for station2 in virtual_transfers:
                             with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
                                 get_station_badge(station2)
@@ -472,20 +475,20 @@ def station_cards(
                 if num_virtual > 0:
                     ui.tooltip("real + virtual")
                 with ui.card_section().classes("p-0"):
-                    ui.label("# Lines").classes(card_caption)
+                    ui.label("# Lines").classes(CARD_CAPTION)
                     with ui.row().classes("items-center"):
-                        ui.label(str(num_transfer)).classes(card_text)
+                        ui.label(str(num_transfer)).classes(CARD_TEXT)
                         if num_virtual > 0:
                             ui.label("+" + str(num_virtual)).classes("text-subtitle-1")
             with ui.card().classes("q-pa-sm"):
                 with ui.card_section().classes("p-0"):
-                    ui.label("# Trains").classes(card_caption)
-                    ui.label(str(len(train_list))).classes(card_text)
+                    ui.label("# Trains").classes(CARD_CAPTION)
+                    ui.label(str(len(train_list))).classes(CARD_TEXT)
         with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
             with ui.card_section().classes("w-full p-0"):
                 train_count_table = LineTable("count")
                 with ui.row().classes("items-center justify-between"):
-                    ui.label("Train For Each Line").classes(card_caption)
+                    ui.label("Train For Each Line").classes(CARD_CAPTION)
                     ui.button(
                         icon=card_data.count_icon, on_click=lambda: card_data.count_clicked(train_count_table)
                     ).props("flat").classes("p-0").bind_icon(card_data, "count_icon")
@@ -619,7 +622,7 @@ def train_drawer(
     train_dict = parse_all_trains(list(AVAILABLE_LINES.values()))
     _, through_dict = parse_through_train(train_dict, city.through_specs)
 
-    ui.label(train_id).classes("text-h5 text-bold")
+    ui.label(train_id).classes(BADGE_TEXT)
     full_train, stations, first_train, last_train, lines = get_train_repr(through_dict, train)
     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
         for line, direction in lines:
@@ -643,7 +646,10 @@ def train_drawer(
         num_stations = len([s for s in stations if s not in skip_stations]) - 1
         distance = path_distance(full_train[1], full_train[2].station)
         duration = full_train[2].total_duration()
+        total_outside = get_waiting_time(full_train, city.transfers)
+        total_waiting = get_waiting_time(full_train, city.transfers, exclude_transfer=True)
         speed = segment_speed(distance, duration)
+        op_speed = segment_speed(distance, duration - total_outside)
         is_express = any(t.is_express() for _, t in full_train[1] if isinstance(t, Train))
     else:
         skip_stations = list(full_train.skip_stations)
@@ -651,29 +657,27 @@ def train_drawer(
         distance = full_train.distance()
         duration = full_train.duration()
         speed = full_train.speed()
+        total_outside, total_waiting, op_speed = 0, 0, 0
         is_express = full_train.is_express()
     with ui.tab_panels(tabs, value=info_tab).classes("w-full h-full"):
         with ui.tab_panel(info_tab).classes("p-1"):
-            card_caption = "text-subtitle-1 font-bold"
-            card_text = "text-h6"
-
             with ui.grid(rows=4, columns=2):
                 with ui.card().classes("q-pa-sm"):
                     ui.tooltip(str(distance) + "m")
                     with ui.card_section().classes("p-0"):
-                        ui.label("Distance").classes(card_caption)
-                        ui.label(distance_str(distance)).classes(card_text)
+                        ui.label("Distance").classes(CARD_CAPTION)
+                        ui.label(distance_str(distance)).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     with ui.card_section().classes("p-0"):
-                        ui.label("Stations").classes(card_caption)
-                        ui.label(str(num_stations)).classes(card_text)
+                        ui.label("Stations").classes(CARD_CAPTION)
+                        ui.label(str(num_stations)).classes(CARD_TEXT)
                         if len(skip_stations) > 0:
                             ui.label(f"Skips: {len(skip_stations)}").classes("text-subtitle-1")
                 with ui.card().classes("q-pa-sm"):
                     ui.tooltip(suffix_s("minute", duration))
                     with ui.card_section().classes("p-0"):
-                        ui.label("Duration").classes(card_caption)
-                        ui.label(format_duration(duration)).classes(card_text)
+                        ui.label("Duration").classes(CARD_CAPTION)
+                        ui.label(format_duration(duration)).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     if isinstance(full_train, tuple):
                         num_lines = total_transfer(full_train[1], through_dict=through_dict)
@@ -681,28 +685,28 @@ def train_drawer(
                         if num_virtual > 0:
                             ui.tooltip(f"Virtual transfers: {num_virtual}")
                         with ui.card_section().classes("p-0"):
-                            ui.label("Transfers").classes(card_caption)
-                            ui.label(str(num_lines)).classes(card_text)
+                            ui.label("Transfers").classes(CARD_CAPTION)
+                            ui.label(str(num_lines)).classes(CARD_TEXT)
                     else:
                         avg_dist = distance / (num_stations - (
                             1 if last_train is not None and last_train.loop_next is None else 0
                         ))
                         ui.tooltip(f"{avg_dist:.2f}m")
                         with ui.card_section().classes("p-0"):
-                            ui.label("Average Distance").classes(card_caption)
-                            ui.label(distance_str(avg_dist)).classes(card_text)
+                            ui.label("Average Distance").classes(CARD_CAPTION)
+                            ui.label(distance_str(avg_dist)).classes(CARD_TEXT)
                 with ui.card().classes("col-span-2 q-pa-sm"):
+                    if isinstance(full_train, tuple):
+                        ui.tooltip("Operation speed: " + speed_str(op_speed))
                     with ui.card_section().classes("p-0"):
-                        ui.label("Average Speed").classes(card_caption)
-                        ui.label(speed_str(speed)).classes(card_text)
+                        ui.label("Average Speed").classes(CARD_CAPTION)
+                        ui.label(speed_str(speed)).classes(CARD_TEXT)
+                        if isinstance(full_train, tuple):
+                            ui.label(
+                                f"Transfer: {format_duration(total_outside - total_waiting)} / Waiting: {format_duration(total_waiting)}"
+                            ).classes("text-subtitle-1")
                 if not isinstance(full_train, tuple):
-                    with ui.card().classes("col-span-2 q-pa-sm"):
-                        with ui.card_section().classes("p-0"):
-                            ui.label("Train Type").classes(card_caption)
-                            with ui.row().classes("items-center"):
-                                ui.label(full_train.train_formal_name()).classes(card_text)
-                                ui.badge(full_train.train_code())
-                            ui.label(f"Capacity: {full_train.train_capacity()} people").classes("text-subtitle-1")
+                    line_train_type_card(full_train)
 
         with ui.tab_panel(timetable_tab).classes("p-0 flex flex-col h-full drawers-train-timeline"):
             select_opt_default: Literal["all", "stop", "none"] = "none" if isinstance(full_train, tuple) else "all"

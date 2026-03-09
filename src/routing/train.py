@@ -266,6 +266,7 @@ class Train:
         """ Get all intermediate stations between two stations (left-closed, right-open) """
         if expand_all:
             stations = self.line.direction_stations(self.direction)
+            assert start_station in stations and end_station in stations, (start_station, end_station, stations)
             index1 = stations.index(start_station)
             if self.line.loop:
                 stations = stations[index1:] + stations[:index1]

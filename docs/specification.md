@@ -161,7 +161,7 @@ If only time from Line A to Line B is provided, then the reverse direction is as
 
 `apply_time` field can be present when this time only applies under specific time (such as a shortcut that can only be taken under non-peak times).
 All three fields are optional, `start` and `end` defaults to the first/last train of the day, and if `date_group` is not present
-all dates are applicable.
+all dates are applicable. `date_group` should be one of the from line's date group names.
 
 For a virtual transfer specification, each element of the array should be something like
 ```json5

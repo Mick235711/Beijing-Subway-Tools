@@ -40,7 +40,6 @@ def avg_waiting_time(
 ) -> None:
     """ Print the average waiting time for each transfer station """
     lines = city.lines
-    date_groups = city.all_date_groups()
     transfer_dict = city.transfers
     virtual_dict = city.virtual_transfers
 
@@ -52,7 +51,7 @@ def avg_waiting_time(
             key = (train.line.name, train.direction)
             if key not in ordered_dict:
                 ordered_dict[key] = []
-            ordered_dict[key].append((date_groups[date_group_name], train))
+            ordered_dict[key].append((train.line.date_groups[date_group_name], train))
         for key, trains in ordered_dict.items():
             ordered_dict[key] = sorted(trains, key=lambda x: x[1].stop_time_str(station))
         full_dict[station] = ordered_dict
@@ -81,7 +80,8 @@ def avg_waiting_time(
             cur_index = 0  # Index into train_list2
             for date_group, train in train_list1:
                 transfer_time, _ = transfer_spec.get_transfer_time(
-                    lines[from_l], from_d, lines[to_l], to_d, date_group, *train.arrival_time[station1])
+                    lines[from_l], from_d, lines[to_l], to_d, date_group, *train.arrival_time[station1]
+                )
                 minutes = (floor if exclude_edge else ceil)(transfer_time)
                 while cur_index < len(train_list2) and diff_time_tuple(
                     train_list2[cur_index][1].arrival_time[station2], train.arrival_time[station1]

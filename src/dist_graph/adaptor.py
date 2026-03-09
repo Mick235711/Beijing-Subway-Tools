@@ -175,7 +175,7 @@ def to_trains(
             trains = sorted(
                 [train for train in train_list if station in train.arrival_time.keys()
                  and next_station in train.arrival_time_virtual(station).keys()
-                 and next_station not in train.skip_stations
+                 and station not in train.skip_stations and next_station not in train.skip_stations
                  and (station != next_station or train.loop_next is not None)],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )
