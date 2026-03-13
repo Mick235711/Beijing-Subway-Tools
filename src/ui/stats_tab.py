@@ -558,14 +558,14 @@ def display_speed_graph(city: City, *, data: StatsData | None = None) -> None:
                 "type": "scatter",
                 "data": [(metric, value)],
                 "itemStyle": {"color": city.lines[line_name].color or "#333"},
-                **({"symbolSize": sqrt(cnt)} if size_on else {})
+                "symbolSize": sqrt(cnt) if size_on else 10
             } for line_name, (cnt, metric, value) in sorted(dataset.items(), key=lambda x: city.lines[x[0]].index)
         ] + [{
             "name": "Total (" + suffix_s("train", total_cnt) + ")",
             "type": "scatter",
             "data": [(total_metric, total_value)],
             "itemStyle": {"color": "black"},
-            **({"symbolSize": sqrt(total_cnt)} if size_on else {})
+            "symbolSize": sqrt(total_cnt) if size_on else 10
         }]
         speed_graph.update()
         display_speed_table.refresh(full_only=full_only)
