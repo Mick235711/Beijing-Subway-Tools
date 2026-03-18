@@ -2,7 +2,7 @@
 // 8号线时刻表 新10版
 {
     name: "8号线",
-    color: "#009B77",
+    color: "#009A6D",
     aliases: ["Line 8"],
     carriage_num: 6,
     carriage_type: "B",

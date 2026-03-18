@@ -2,7 +2,7 @@
 // 16号线时刻表 第7版+官网丽泽商务区时刻表
 {
     name: "16号线",
-    color: "#6BA539",
+    color: "#83A13B",
     aliases: ["Line 16"],
     carriage_num: 8,
     carriage_type: "A",

@@ -2,7 +2,7 @@
 // 西郊线时刻表 亿通行版
 {
     name: "西郊线",
-    color: "#D22630",
+    color: "#BA0F1E",
     badge: "XJ",
     aliases: ["Xijiao Line", "Tram", "Line 29"],
     index: 29,

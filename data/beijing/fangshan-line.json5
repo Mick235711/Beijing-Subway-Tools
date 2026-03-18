@@ -2,7 +2,7 @@
 // 9号线-房山线时刻表 新9版
 {
     name: "房山线",
-    color: "#D86018",
+    color: "#C9602B",
     badge: "FS",
     aliases: ["Fangshan Line", "Line 25"],
     index: 25,

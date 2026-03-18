@@ -2,7 +2,7 @@
 // 首都机场线时刻表 新9版
 {
     name: "首都机场线",
-    color: "#A192B2",
+    color: "#9F9AB9",
     badge: "CAE",
     badge_icon: "local_airport",
     aliases: ["Capital Airport Express", "CAE", "Line 34", "ABC"],

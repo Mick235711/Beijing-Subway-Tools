@@ -2,7 +2,7 @@
 // 9号线-房山线时刻表 新10版
 {
     name: "9号线",
-    color: "#97D700",
+    color: "#9FC238",
     aliases: ["Line 9"],
     carriage_num: 6,
     carriage_type: "B",

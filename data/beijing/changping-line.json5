@@ -2,7 +2,7 @@
 // 昌平线时刻表 新13版
 {
     name: "昌平线",
-    color: "#D986BA",
+    color: "#C881AF",
     badge: "CP",
     aliases: ["Changping Line", "Line 27"],
     index: 27,

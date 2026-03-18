@@ -2,7 +2,7 @@
 // S1线时刻表 新5版
 {
     name: "S1线",
-    color: "#A45A2A",
+    color: "#9E5A2A",
     badge: "S1",
     aliases: ["Line S1", "Mentougou Line", "Maglev"],
     index: 26,

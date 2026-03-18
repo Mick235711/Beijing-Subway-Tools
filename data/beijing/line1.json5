@@ -2,7 +2,7 @@
 // 1号线-八通线时刻表 新16版
 {
     name: "1号线",
-    color: "#A4343A",
+    color: "#A73C34",
     aliases: ["Line 1", "Batong Line"],
     carriage_num: 6,
     carriage_type: "B-",

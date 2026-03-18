@@ -2,7 +2,7 @@
 // 13号线时刻表 新8版
 {
     name: "13号线",
-    color: "#F4DA40",
+    color: "#F4E636",
     aliases: ["Line 13"],
     carriage_num: 6,
     carriage_type: "B-",

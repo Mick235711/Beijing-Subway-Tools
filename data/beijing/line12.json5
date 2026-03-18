@@ -2,7 +2,7 @@
 // 12号线时刻表 新2版
 {
     name: "12号线",
-    color: "#9C4F01",
+    color: "#B16B09",
     aliases: ["Line 12"],
     carriage_num: 4, // 目前运营编组为4A
     carriage_type: "A",

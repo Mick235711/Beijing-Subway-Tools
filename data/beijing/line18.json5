@@ -2,7 +2,7 @@
 // 18号线时刻表 第1版
 {
     name: "18号线",
-    color: "#776CB1",
+    color: "#685BC6",
     aliases: ["Line 18"],
     carriage_num: 6,
     carriage_type: "B-",

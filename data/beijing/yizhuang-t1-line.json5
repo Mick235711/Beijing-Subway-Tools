@@ -2,7 +2,7 @@
 // 亦庄T1线时刻表 亿通行版
 {
     name: "亦庄T1线",
-    color: "#D22630",
+    color: "#BA0F1E",
     badge: "T1",
     aliases: ["Yizhuang T1 Line", "Tram T1"],
     index: 30,

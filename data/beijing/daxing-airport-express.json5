@@ -2,7 +2,7 @@
 // 大兴机场线时刻表 第6版+首班提前
 {
     name: "大兴机场线",
-    color: "#0049A5",
+    color: "#1C109C",
     badge: "DAE",
     badge_icon: "local_airport",
     aliases: ["Daxing Airport Express", "DAE", "Line 35"],
