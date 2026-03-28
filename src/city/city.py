@@ -25,8 +25,9 @@ FARE_RULE_FILE = "fare_rules.json5"
 class City:
     """ Represents a city or a group of cities connected by metro """
 
-    def __init__(self, name: str, root: str, aliases: list[str] | None = None) -> None:
+    def __init__(self, metadata_file: str, name: str, root: str, aliases: list[str] | None = None) -> None:
         """ Constructor """
+        self.metadata_file = metadata_file
         self.name = name
         assert os.path.exists(root), root
         self.root = root
@@ -105,7 +106,7 @@ def parse_city(city_root: str) -> City:
 
     with open(metadata_file) as fp:
         city_dict = pyjson5.decode_io(fp)
-        city = City(city_dict["city_name"], city_root, city_dict.get("city_aliases"))
+        city = City(metadata_file, city_dict["city_name"], city_root, city_dict.get("city_aliases"))
 
     # Insert lines
     for line in glob(os.path.join(city_root, "*.json5")):

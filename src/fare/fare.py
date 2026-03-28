@@ -126,8 +126,9 @@ class FareRule:
 class Fare:
     """ A class for storing fare rules """
 
-    def __init__(self, rule_groups: list[FareRule], currency: str = "") -> None:
+    def __init__(self, fare_file: str, rule_groups: list[FareRule], currency: str = "") -> None:
         """ Constructor """
+        self.fare_file = fare_file
         self.currency = currency
         self.rule_groups = rule_groups
         for rule in self.rule_groups:
@@ -272,7 +273,7 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
     currency = fare_dict.get("currency", "")
     fill_index: str | None = None
     to_fill: list[str] = []
-    fare = Fare([], currency)
+    fare = Fare(fare_file, [], currency)
     group_dict: dict[str, FareRule] = {}
     filled: set[str] = set()
     for inner_dict in fare_dict["rule_groups"]:
@@ -357,4 +358,4 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
             [line for line in lines if line not in filled],
             key=lambda l: lines[l].index
         )
-    return Fare(list(group_dict.values()), currency)
+    return Fare(fare_file, list(group_dict.values()), currency)

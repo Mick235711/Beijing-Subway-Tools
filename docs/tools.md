@@ -252,6 +252,24 @@ Current Timetable:
                     filters: []
 </pre>
 
+### [`fill_timetable.py`](/src/timetable/fill_timetable.py): Fill in new timetable in batch
+```
+usage: fill_timetable.py [-h] [-l LEVEL] [-b BREAK_ENTRIES]
+
+options:
+  -h, --help            show this help message and exit
+  -l, --level LEVEL     Indentation level before each line
+  -b, --break BREAK_ENTRIES
+                        Entry break
+```
+Modify/insert timetable in batch, used to modify all timetables for a specific direction and date group in a line.
+
+- `-b` determines the threshold of number of entries to break two consecutive `schedule` specification (defaults to 15).
+- `-l N` will append `4 * N` spaces before each line. (Default behavior is to not prepend spaces; `-l 2` is recommended for storing timetable specs)
+
+Please follow the prompts shown. This program is essentially a combination of [`input_to_timetable.py`](#input_to_timetablepy-parse-text-input-into-timetable-description)
+and [`timetable_from_prev.py`](#timetable_from_prevpy-create-next-timetable-from-previous-stations-timetable) and call into these two when appropriate.
+
 # [`routing/`](/src/routing): Train Storing & Loop/Express Train Analyze
 ### [`show_trains.py`](/src/routing/show_trains.py): Show all trains calculated in a line
 ```

@@ -12,9 +12,10 @@ import pyjson5
 class Carriage:
     """ Represents the transfer metadata """
 
-    def __init__(self, code: str, name: str, capacity: int,
+    def __init__(self, carriage_file: str, code: str, name: str, capacity: int,
                  head_capacity: int | None = None, aliases: list[str] | None = None) -> None:
         """ Constructor """
+        self.carriage_file = carriage_file
         self.code = code
         self.name = name
         self.capacity = capacity
@@ -55,7 +56,7 @@ def parse_carriage(carriage_file: str) -> dict[str, Carriage]:
     result: dict[str, Carriage] = {}
     for code, carriage_datas in carriage_dict.items():
         carriage = Carriage(
-            code,
+            carriage_file, code,
             carriage_datas["name"],
             carriage_datas["capacity"],
             carriage_datas.get("head_capacity"),

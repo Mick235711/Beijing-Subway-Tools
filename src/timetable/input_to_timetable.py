@@ -18,11 +18,11 @@ from src.routing.train import filter_route
 from src.timetable.timetable import Timetable
 
 
-def parse_input(tolerate: bool = False) -> Timetable:
+def parse_input(tolerate: bool = False, routes: tuple[DateGroup, TrainRoute, dict[str, TrainRoute]] | None = None) -> Timetable:
     """ Parse input into a timetable object """
     # provide base date group and base train route
-    base_group = DateGroup("Base Group")
-    base_route = TrainRoute("Base Route", "Base Direction", [])
+    base_group = DateGroup("Base Group") if routes is None else routes[0]
+    base_route = TrainRoute("Base Route", "Base Direction", []) if routes is None else routes[1]
     base_station = "Base Station"
 
     # construct trains
@@ -70,13 +70,17 @@ def parse_input(tolerate: bool = False) -> Timetable:
                     route_dict[brace] = []
                 route_dict[brace].append(len(trains))
             trains.append(Timetable.Train(
-                base_station, base_group, time(hour=hour, minute=minute), base_route, next_day))
+                base_station, base_group, time(hour=hour, minute=minute), base_route, next_day
+            ))
 
     # apply filters
     table = Timetable({train.leaving_time: train for train in trains}, base_route)
     for brace, indexes in route_dict.items():
-        name = input(f"{brace} = ") if len(brace) > 0 else "Base"
-        route = TrainRoute(name, "Base Direction", [])
+        if len(brace) == 0:
+            route = TrainRoute("Base", "Base Direction", []) if routes is None else routes[1]
+        else:
+            name = input(f"{brace} = ")
+            route = TrainRoute(name, "Base Direction", []) if routes is None else routes[2][name]
         if brace == "":
             table.base_route = route
         for index in indexes:
@@ -334,8 +338,8 @@ def without_criteria(skip_set: set[str], stations: list[str], prev_station: str,
 
 
 def filter_without(
-    line: Line, prev: Timetable, prev_station: str, direction: str, date_group: DateGroup,
-    skip_prev: bool = False
+    line: Line, prev: Timetable, prev_station: str, direction: str, date_group: DateGroup, *,
+    skip_prev: bool = False, timetables: dict[str, dict[str, dict[str, Timetable]]] | None = None
 ) -> Timetable:
     """ Filter out all without_timetable trains """
     direction_stations = line.direction_stations(direction)
@@ -349,9 +353,10 @@ def filter_without(
         if next_station not in cur_train.route_without_timetable()
     }
     if not skip_prev:
+        line_timetables = timetables or line.timetables()
         min_diff: dict[str, int] = {}
         for station in direction_stations[:index]:
-            for cur_time, cur_train in line.timetables()[station][direction][date_group.name].trains.items():
+            for cur_time, cur_train in line_timetables[station][direction][date_group.name].trains.items():
                 if not without_criteria(cur_train.route_without_timetable(), direction_stations, station, next_station):
                     continue
 
@@ -359,7 +364,7 @@ def filter_without(
                     # Try to determine a minutes between station and prev_station
                     # The basic idea is that base route trains are always available and the same
                     candidates = [
-                        train for train in line.timetables()[station][direction][date_group.name].trains.values()
+                        train for train in line_timetables[station][direction][date_group.name].trains.values()
                         if train.route_iter() == [line.direction_base_route[direction]]
                     ]
                     candidates_next = [
@@ -456,7 +461,8 @@ def insert_end_trains(
 
 def validate_timetable(
     line: Line, prev: Timetable, prev_station: str, direction: str, date_group: DateGroup,
-    current: Timetable, *, tolerate: bool = False, skip_prev: bool = False
+    current: Timetable, *, tolerate: bool = False, skip_prev: bool = False,
+    timetables: dict[str, dict[str, dict[str, Timetable]]] | None = None
 ) -> Timetable:
     """ Validate two timetables. Throw if not valid. """
     # Basically, we validate if each route has the same number,
@@ -473,7 +479,7 @@ def validate_timetable(
     prev.trains = new_prev
 
     # Filter
-    prev = filter_without(line, prev, prev_station, direction, date_group, skip_prev)
+    prev = filter_without(line, prev, prev_station, direction, date_group, skip_prev=skip_prev, timetables=timetables)
     if tolerate:
         # assign the corresponding route to every train in current
         # first let's sort everything by time
@@ -566,8 +572,8 @@ def main(
         args = parser.parse_args()
         if args.skip_prev and not args.validate:
             print("Warning: skip_prev set without validation enabled!")
-    level = vars(args).get("level", False)
-    break_entries = vars(args).get("break_entries", False)
+    level = vars(args).get("level", 0)
+    break_entries = vars(args).get("break_entries", 15)
     validate = vars(args).get("validate", False)
     empty = vars(args).get("empty", False)
     skip_prev = vars(args).get("skip_prev", False)

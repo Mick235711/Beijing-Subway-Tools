@@ -141,10 +141,11 @@ class Map:
     """ A class for storing a map """
 
     def __init__(
-        self, name: str, path: str, radius: int, transfer_radius: int,
+        self, map_file: str, name: str, path: str, radius: int, transfer_radius: int,
         coordinates: dict[str, Shape | None], path_coords: dict[str, Shape | None]
     ) -> None:
         """ Constructor """
+        self.map_file = map_file
         self.name = name
         assert os.path.exists(path), path
         self.path = path
@@ -235,7 +236,7 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
             width=width, height=height, transfer_width=transfer_width, transfer_height=transfer_height
         )
 
-    map_obj = Map(map_dict["name"], path, radius, transfer_radius, coords, path_coords)
+    map_obj = Map(map_file, map_dict["name"], path, radius, transfer_radius, coords, path_coords)
     map_obj.font_size = map_dict.get("font_size")
     map_obj.transfer_font_size = map_dict.get("transfer_font_size")
     return map_obj
