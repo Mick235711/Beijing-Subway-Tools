@@ -1,5 +1,5 @@
-// 数据截止2025/01/20，八通线，大兴线完全并入1号线和4号线描述
-// 昌平线时刻表 新13版
+// 数据截止2026/03/28，八通线，大兴线完全并入1号线和4号线描述
+// 昌平线时刻表 新14版
 {
     name: "昌平线",
     color: "#C881AF",
@@ -248,16 +248,17 @@
                     schedule: [
                         {first_train: "05:08", delta: [8, 4, 5, 4, 5, 4, 4, 4, 3, 5, 4, 6, 3, 5]},
                         {first_train: "06:17", delta: [3, 3, 3, 4, 4, 6, [2, [5, 2, 5, 3]], 5, 2, 4]},
-                        {first_train: "07:27", delta: [[2, [2, 5, 4, 2, 5, 2, 5, 5]], 3, 4, 4, 2, [2, [5, 2, 5, 3]]]},
-                        {first_train: "09:15", delta: [2, 7, 7, 7, 10, 9, [2, [10, 10, 10, 10, 9, 11, 10, 9, 11, 10, 9, 11]]]},
-                        {first_train: "14:07", delta: [9, 11, [6, [10]], 9, 8, 9, 4, 6, 4, 5, 4, 8]},
-                        {first_train: "16:27", delta: [4, 4, 7, [10, [5]], 2, 8, 5, 5, 7, 3, 7, 8, 7, [7, [3, 5, 2, 5]]]},
+                        {first_train: "07:27", delta: [2, 5, 4, 2, 5, 2, 5, 5, 2, 5, 4, 7, 2, 5]},
+                        {first_train: "08:27", delta: [3, 4, 4, 2, [2, [5, 2, 5, 3]], 5, 2, 7, 7, 7]},
+                        {first_train: "09:48", delta: [9, [2, [10, 10, 10, 10, 9, 11, 10, 9, 11, 10, 9, 11]]]},
+                        {first_train: "14:07", delta: [9, 11, [6, [10]], 9, 8, 9, 4, 6, 4, 5, 4, 8, 3]},
+                        {first_train: "16:31", delta: [4, 7, [10, [5]], 2, 8, 5, 5, 7, 3, 7, 8, 7, [7, [3, 5, 2, 5]]]},
                         {first_train: "20:12", delta: [5, 2, 6, 7, 8, 8, 8, 5, 8, 9, 9, 10, 9]},
                         {first_train: "21:55", delta: [10, 10, 8, 9, 10, 8, 9, 8, 9, 9, 9, 10]}
                     ],
                     filters: [
-                        {plan: "昌平东关始发空车", first_train: "07:27", skip_trains: 3, count: 5},
-                        {plan: "昌平东关始发空车", first_train: "08:34", skip_trains: 1, until: "09:17"},
+                        {plan: "昌平东关始发空车", first_train: "07:27", skip_trains: 3, count: 3},
+                        {plan: "昌平东关始发空车", first_train: "08:27", skip_trains: 1, until: "09:17"},
                         {plan: "昌平东关始发空车", first_train: "18:27", skip_trains: 1, until: "20:19"},
                         {plan: "朱辛庄回库车", first_train: "23:07", count: 5}
                     ]
@@ -313,16 +314,16 @@
                     schedule: [
                         {first_train: "05:10", delta: [8, 5, 4, 5, 4, 5, 3, 5, 3, 5, 4, 6, 3, 4]},
                         {first_train: "06:19", delta: [3, 4, 3, 4, 4, 5, [2, [5, 3, 5, 2]], 5, 3, 4]},
-                        {first_train: "07:29", delta: [4, 3, 5, 2, 4, 3, 5, 4, 3, 4, 5, 2, 4, 3]},
-                        {first_train: "08:25", delta: [4, [2, [4, 3, 5, 2]], 5, 3, 5, 2, 5, 3, 6, 7]},
-                        {first_train: "09:41", delta: [9, 10, 9, [32, [10]], 9, 8, 9, 5, 5, 5, 4, 4, 8]},
-                        {first_train: "16:30", delta: [4, 4, 6, [10, [5]], 3, 7, 5, 5, 8, 2, 8, 7, 8, [8, [2, 5, 3, 5]]]},
+                        {first_train: "07:29", delta: [4, 3, 5, 2, 4, 3, 5, 4, 3, 4, 5, 6, 3, 5]},
+                        {first_train: "08:29", delta: [[2, [4, 3, 5, 2]], 5, 3, 5, 2, 5, 3, 6, 7, 8]},
+                        {first_train: "09:50", delta: [10, 9, [32, [10]], 9, 8, 9, 5, 5, 5, 4, 4, 8, 4]},
+                        {first_train: "16:34", delta: [4, 6, [10, [5]], 3, 7, 5, 5, 8, 2, 8, 7, 8, [8, [2, 5, 3, 5]]]},
                         {first_train: "20:34", delta: [9, 7, 8, 6, 8, 8, 10, 9, 10, 9, 10, [5, [9]]]},
                         {first_train: "23:01", delta: [[5, [9]]]}
                     ],
                     filters: [
-                        {plan: "昌平东关始发空车", first_train: "07:29", skip_trains: 3, count: 5},
-                        {plan: "昌平东关始发空车", first_train: "08:36", skip_trains: 1, until: "09:20"},
+                        {plan: "昌平东关始发空车", first_train: "07:29", skip_trains: 3, count: 3},
+                        {plan: "昌平东关始发空车", first_train: "08:29", skip_trains: 1, until: "09:20"},
                         {plan: "昌平东关始发空车", first_train: "18:29", skip_trains: 1, until: "20:22"},
                         {plan: "朱辛庄回库车", first_train: "23:10", count: 5}
                     ]
@@ -381,16 +382,16 @@
                     schedule: [
                         {first_train: "05:13", delta: [8, 5, 4, 5, 4, 5, 3, 5, 3, 5, 4, 6, 3, 4]},
                         {first_train: "06:22", delta: [3, 3, 3, 5, 4, 5, [2, [5, 3, 5, 2]], 5, 3, 4]},
-                        {first_train: "07:32", delta: [4, 3, 4, 3, 4, 2, 5, 5, 4, 3, 4, 3, 4, 3]},
-                        {first_train: "08:27", delta: [5, 5, 2, 4, 3, 4, [2, [2, 5, 3, 5]], 2, 7, 7]},
-                        {first_train: "09:44", delta: [9, 10, 9, [32, [10]], 9, 8, 9, 5, 5, 4, 5, 4, 8]},
-                        {first_train: "16:32", delta: [4, 4, 7, [10, [5]], 2, 8, 5, 5, 7, 3, 7, 8, 7, [7, [3, 5, 2, 5]]]},
+                        {first_train: "07:32", delta: [4, 3, 4, 3, 4, 2, 5, 5, 4, 3, 4, 7, 3, 4]},
+                        {first_train: "08:32", delta: [5, 2, 4, 3, 4, [2, [2, 5, 3, 5]], 2, 7, 7, 8]},
+                        {first_train: "09:53", delta: [10, 9, [32, [10]], 9, 8, 9, 5, 5, 4, 5, 4, 8, 3]},
+                        {first_train: "16:36", delta: [4, 7, [10, [5]], 2, 8, 5, 5, 7, 3, 7, 8, 7, [7, [3, 5, 2, 5]]]},
                         {first_train: "20:17", delta: [5, 2, 6, 7, 9, 7, 8, 6, 7, 9, 9, 10, 9]},
                         {first_train: "22:01", delta: [9, 10, 8, 9, 10, 8, 9, 8, 9, 9, 9, 10]}
                     ],
                     filters: [
-                        {plan: "昌平东关始发空车", first_train: "07:32", skip_trains: 3, count: 5},
-                        {plan: "昌平东关始发空车", first_train: "08:39", skip_trains: 1, until: "09:22"},
+                        {plan: "昌平东关始发空车", first_train: "07:32", skip_trains: 3, count: 3},
+                        {plan: "昌平东关始发空车", first_train: "08:32", skip_trains: 1, until: "09:22"},
                         {plan: "昌平东关始发空车", first_train: "18:32", skip_trains: 1, until: "20:24"},
                         {plan: "朱辛庄回库车", first_train: "23:12", count: 5}
                     ]
@@ -450,23 +451,24 @@
                     schedule: [
                         {first_train: "05:18", delta: [8, 5, 4, 5, 4, 5, 3, 5, 3, 5, 4, 5, 4, 4]},
                         {first_train: "06:27", delta: [3, 3, 3, 5, 4, 5, 5, [2, [3, 2, 3, 2, 2, 3]]]},
-                        {first_train: "07:28", delta: [2, 3, 4, [2, [2, 3, 2, 2]], 2, 3, 2, 5, [3, [2, 2, 3]]]},
-                        {first_train: "08:30", delta: [2, 5, [2, [2, 3, 2, 2]], [7, [2, 3]], 4, 3, 4]},
-                        {first_train: "09:45", delta: [3, 5, 5, 10, 9, [32, [10]], 9, 8, 9, 5, 5, 4, 5]},
-                        {first_train: "16:26", delta: [8, 3, 4, 4, 7, [9, [5]], [2, [2, 3, 2, 3, 5]], 2]},
-                        {first_train: "18:12", delta: [5, 2, 5, 3, 5, [24, [2, 3]], 3, 3, 4, 4, 5, 3]},
-                        {first_train: "20:58", delta: [4, 4, 6, 8, 8, 10, 9, 10, 9, 10, [5, [9]], 8, [5, [9]]]}
+                        {first_train: "07:28", delta: [2, 3, 4, [2, [2, 3, 2, 2]], 2, 3, 2, 5, 2, 2, 3, 2, 2, 5, 2, 3, 2, 2]},
+                        {first_train: "08:37", delta: [[2, [2, 3, 2, 2]], [7, [2, 3]], 4, 3, 4, 4, 3, 5]},
+                        {first_train: "09:58", delta: [10, 9, [32, [10]], 9, 8, 9, 5, 5, 4, 5, 4, 8, 3]},
+                        {first_train: "16:41", delta: [4, 7, [9, [5]], [2, [2, 3, 2, 3, 5]], 2, 3, 5, 2]},
+                        {first_train: "18:24", delta: [3, 5, [24, [2, 3]], 3, 3, 4, 4, 5, 3, 4, 4, 4]},
+                        {first_train: "21:12", delta: [8, 8, 10, 9, 10, 9, 10, [5, [9]], 8, [5, [9]]]}
                     ],
                     filters: [
-                        {plan: "沙河高教园始发空车", first_train: "07:00", skip_trains: 2, until: "09:30"},
+                        {plan: "沙河高教园始发空车", first_train: "07:00", skip_trains: 2, until: "08:16"},
+                        {plan: "沙河高教园始发空车", first_train: "08:23", skip_trains: 2, until: "09:30"},
                         {plan: "沙河高教园始发空车", first_train: "09:37", skip_trains: 1, count: 3},
                         {plan: "沙河高教园始发空车", trains: ["17:39"]},
                         {plan: "沙河高教园始发空车", first_train: "17:47", skip_trains: 1, count: 4},
                         {plan: "沙河高教园始发空车", first_train: "18:17", skip_trains: 1, count: 3},
                         {plan: "沙河高教园始发空车", first_train: "18:39", skip_trains: 2, until: "20:32"},
                         {plan: "沙河高教园始发空车", first_train: "20:38", skip_trains: 1, count: 4},
-                        {plan: "昌平东关始发空车", first_train: "07:37", skip_trains: 5, count: 5},
-                        {plan: "昌平东关始发空车", first_train: "08:44", skip_trains: 2, until: "09:27"},
+                        {plan: "昌平东关始发空车", first_train: "07:37", skip_trains: 5, count: 3},
+                        {plan: "昌平东关始发空车", first_train: "08:37", skip_trains: 2, until: "09:27"},
                         {plan: "昌平东关始发空车", first_train: "18:37", skip_trains: 2, until: "20:29"},
                         {plan: "朱辛庄回库车", first_train: "23:18", count: 5}
                     ]
@@ -549,8 +551,8 @@
                         {plan: "沙河高教园始发空车", first_train: "18:20", skip_trains: 1, count: 3},
                         {plan: "沙河高教园始发空车", first_train: "18:42", skip_trains: 2, until: "20:35"},
                         {plan: "沙河高教园始发空车", first_train: "20:41", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "07:38", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["07:40", "07:53", "08:10", "08:23"]},
+                        {plan: "沙河始发空车", trains: ["07:38", "08:08", "08:23", "08:38"]},
+                        {plan: "昌平东关始发空车", trains: ["07:40", "07:53", "08:10"]},
                         {plan: "昌平东关始发空车", first_train: "08:40", skip_trains: 2, until: "09:30"},
                         {plan: "昌平东关始发空车", first_train: "18:40", skip_trains: 2, until: "20:32"},
                         {plan: "朱辛庄回库车", first_train: "23:20", count: 5}
@@ -635,8 +637,8 @@
                         {plan: "沙河高教园始发空车", first_train: "18:22", skip_trains: 1, count: 3},
                         {plan: "沙河高教园始发空车", first_train: "18:45", skip_trains: 2, until: "20:37"},
                         {plan: "沙河高教园始发空车", first_train: "20:44", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "07:40", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["07:43", "07:56", "08:13", "08:26"]},
+                        {plan: "沙河始发空车", trains: ["07:40", "08:10", "08:26", "08:40"]},
+                        {plan: "昌平东关始发空车", trains: ["07:43", "07:56", "08:13"]},
                         {plan: "昌平东关始发空车", first_train: "08:43", skip_trains: 2, until: "09:33"},
                         {plan: "昌平东关始发空车", first_train: "18:42", skip_trains: 2, until: "20:35"},
                         {plan: "朱辛庄回库车", first_train: "23:23", count: 5}
@@ -724,8 +726,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:09", "18:16"]},
                         {plan: "沙河高教园始发空车", first_train: "18:26", skip_trains: 2, until: "20:41"},
                         {plan: "沙河高教园始发空车", first_train: "20:48", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "07:45", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["07:47", "08:00", "08:17", "08:30"]},
+                        {plan: "沙河始发空车", trains: ["07:45", "08:15", "08:30", "08:45"]},
+                        {plan: "昌平东关始发空车", trains: ["07:47", "08:00", "08:17"]},
                         {plan: "昌平东关始发空车", first_train: "08:47", skip_trains: 2, until: "09:37"},
                         {plan: "昌平东关始发空车", first_train: "18:46", skip_trains: 2, until: "20:39"},
                         {plan: "朱辛庄回库车", first_train: "23:28", count: 5}
@@ -813,8 +815,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:12", "18:19"]},
                         {plan: "沙河高教园始发空车", first_train: "18:29", skip_trains: 2, until: "20:44"},
                         {plan: "沙河高教园始发空车", first_train: "20:51", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "07:48", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["07:50", "08:04", "08:20", "08:34"]},
+                        {plan: "沙河始发空车", trains: ["07:48", "08:18", "08:34", "08:48"]},
+                        {plan: "昌平东关始发空车", trains: ["07:50", "08:04", "08:20"]},
                         {plan: "昌平东关始发空车", first_train: "08:50", skip_trains: 2, until: "09:41"},
                         {plan: "昌平东关始发空车", first_train: "18:49", skip_trains: 2, until: "20:42"}
                     ]
@@ -901,8 +903,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:17", "18:25"]},
                         {plan: "沙河高教园始发空车", first_train: "18:35", skip_trains: 2, until: "20:50"},
                         {plan: "沙河高教园始发空车", first_train: "20:57", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "07:54", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["07:56", "08:09", "08:26", "08:39"]},
+                        {plan: "沙河始发空车", trains: ["07:54", "08:24", "08:39", "08:54"]},
+                        {plan: "昌平东关始发空车", trains: ["07:56", "08:09", "08:26"]},
                         {plan: "昌平东关始发空车", first_train: "08:56", skip_trains: 2, until: "09:46"},
                         {plan: "昌平东关始发空车", first_train: "18:55", skip_trains: 2, until: "20:47"}
                     ]
@@ -989,8 +991,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:21", "18:28"]},
                         {plan: "沙河高教园始发空车", first_train: "18:38", skip_trains: 2, until: "20:53"},
                         {plan: "沙河高教园始发空车", first_train: "21:00", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "07:57", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["07:59", "08:13", "08:29", "08:43"]},
+                        {plan: "沙河始发空车", trains: ["07:57", "08:27", "08:43", "08:57"]},
+                        {plan: "昌平东关始发空车", trains: ["07:59", "08:13", "08:29"]},
                         {plan: "昌平东关始发空车", first_train: "08:59", skip_trains: 2, until: "09:49"},
                         {plan: "昌平东关始发空车", first_train: "18:58", skip_trains: 2, until: "20:51"}
                     ]
@@ -1076,8 +1078,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:23", "18:31"]},
                         {plan: "沙河高教园始发空车", first_train: "18:41", skip_trains: 2, until: "20:56"},
                         {plan: "沙河高教园始发空车", first_train: "21:03", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:00", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:02", "08:16", "08:32", "08:46"]},
+                        {plan: "沙河始发空车", trains: ["08:00", "08:30", "08:46", "09:00"]},
+                        {plan: "昌平东关始发空车", trains: ["08:02", "08:16", "08:32"]},
                         {plan: "昌平东关始发空车", first_train: "09:02", skip_trains: 2, until: "09:52"},
                         {plan: "昌平东关始发空车", first_train: "19:01", skip_trains: 2, until: "20:53"}
                     ]
@@ -1159,8 +1161,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:26", "18:34"]},
                         {plan: "沙河高教园始发空车", first_train: "18:44", skip_trains: 2, until: "20:59"},
                         {plan: "沙河高教园始发空车", first_train: "21:05", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:03", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:05", "08:18", "08:35", "08:48"]},
+                        {plan: "沙河始发空车", trains: ["08:03", "08:33", "08:48", "09:03"]},
+                        {plan: "昌平东关始发空车", trains: ["08:05", "08:18", "08:35"]},
                         {plan: "昌平东关始发空车", first_train: "09:05", skip_trains: 2, until: "09:55"},
                         {plan: "昌平东关始发空车", first_train: "19:04", skip_trains: 2, until: "20:56"}
                     ]
@@ -1244,8 +1246,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:29", "18:37"]},
                         {plan: "沙河高教园始发空车", first_train: "18:47", skip_trains: 2, until: "21:02"},
                         {plan: "沙河高教园始发空车", first_train: "21:08", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:06", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:08", "08:21", "08:38", "08:51"]},
+                        {plan: "沙河始发空车", trains: ["08:06", "08:36", "08:51", "09:06"]},
+                        {plan: "昌平东关始发空车", trains: ["08:08", "08:21", "08:38"]},
                         {plan: "昌平东关始发空车", first_train: "09:08", skip_trains: 2, until: "09:58"},
                         {plan: "昌平东关始发空车", first_train: "19:07", skip_trains: 2, until: "20:59"}
                     ]
@@ -1328,8 +1330,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:32", "18:39"]},
                         {plan: "沙河高教园始发空车", first_train: "18:49", skip_trains: 2, until: "21:04"},
                         {plan: "沙河高教园始发空车", first_train: "21:11", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:08", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:10", "08:24", "08:40", "08:54"]},
+                        {plan: "沙河始发空车", trains: ["08:08", "08:38", "08:54", "09:08"]},
+                        {plan: "昌平东关始发空车", trains: ["08:10", "08:24", "08:40"]},
                         {plan: "昌平东关始发空车", first_train: "09:10", skip_trains: 2, until: "10:01"},
                         {plan: "昌平东关始发空车", first_train: "19:09", skip_trains: 2, until: "21:02"}
                     ]
@@ -1412,8 +1414,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:34", "18:41"]},
                         {plan: "沙河高教园始发空车", first_train: "18:51", skip_trains: 2, until: "21:06"},
                         {plan: "沙河高教园始发空车", first_train: "21:13", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:11", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:13", "08:26", "08:43", "08:56"]},
+                        {plan: "沙河始发空车", trains: ["08:11", "08:41", "08:56", "09:11"]},
+                        {plan: "昌平东关始发空车", trains: ["08:13", "08:26", "08:43"]},
                         {plan: "昌平东关始发空车", first_train: "09:13", skip_trains: 2, until: "10:03"},
                         {plan: "昌平东关始发空车", first_train: "19:11", skip_trains: 2, until: "21:04"}
                     ]
@@ -1495,8 +1497,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:36", "18:44"]},
                         {plan: "沙河高教园始发空车", first_train: "18:54", skip_trains: 2, until: "21:09"},
                         {plan: "沙河高教园始发空车", first_train: "21:16", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:13", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:15", "08:29", "08:45", "08:59"]},
+                        {plan: "沙河始发空车", trains: ["08:13", "08:43", "08:59", "09:13"]},
+                        {plan: "昌平东关始发空车", trains: ["08:15", "08:29", "08:45"]},
                         {plan: "昌平东关始发空车", first_train: "09:15", skip_trains: 2, until: "10:05"},
                         {plan: "昌平东关始发空车", first_train: "19:14", skip_trains: 2, until: "21:06"}
                     ]
@@ -1578,8 +1580,8 @@
                         {plan: "沙河高教园始发空车", trains: ["18:38", "18:46"]},
                         {plan: "沙河高教园始发空车", first_train: "18:56", skip_trains: 2, until: "21:11"},
                         {plan: "沙河高教园始发空车", first_train: "21:18", skip_trains: 1, count: 4},
-                        {plan: "沙河始发空车", first_train: "08:15", skip_trains: 12, count: 3},
-                        {plan: "昌平东关始发空车", trains: ["08:17", "08:31", "08:47", "09:01"]},
+                        {plan: "沙河始发空车", trains: ["08:15", "08:45", "09:01", "09:15"]},
+                        {plan: "昌平东关始发空车", trains: ["08:17", "08:31", "08:47"]},
                         {plan: "昌平东关始发空车", first_train: "09:17", skip_trains: 2, until: "10:07"},
                         {plan: "昌平东关始发空车", first_train: "19:16", skip_trains: 2, until: "21:08"}
                     ]
