@@ -6,6 +6,7 @@
 
 # Libraries
 import argparse
+from copy import copy
 import sys
 import traceback
 
@@ -109,7 +110,7 @@ def input_timetables(
                     break
                 try:
                     final_timetable = validate_timetable(
-                        line, prev_timetable, stations[i - 1], direction, date_group, timetable,
+                        line, copy(prev_timetable), stations[i - 1], direction, date_group, timetable,
                         tolerate=True, timetables=timetables_appending
                     )
                     break

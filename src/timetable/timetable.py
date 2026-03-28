@@ -4,6 +4,7 @@
 """ A class for timetable of a day """
 
 # Libraries
+from copy import copy
 from datetime import time
 from typing import Any
 
@@ -79,6 +80,10 @@ class Timetable:
         """ Constructor """
         self.trains = trains
         self.base_route = base_route
+
+    def __copy__(self) -> Timetable:
+        """ Implement shallow copy """
+        return Timetable(dict(self.trains.items()), copy(self.base_route))
 
     def __repr__(self) -> str:
         """ Get string representation """

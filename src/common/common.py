@@ -152,7 +152,6 @@ def complete_pinyin(message: str, meta_information: dict[str, str],
 def ask_question(msg: str, func: Callable[[str], T], *args: Any,
                  valid_answer: Mapping[str, Callable[[], T]] | None = None, **kwargs: Any) -> tuple[str, T]:
     """ Ask a question with validator and post-processor """
-
     def validate_func(answer: str) -> str | bool:
         """ Validate function """
         if valid_answer is not None and answer in valid_answer:
