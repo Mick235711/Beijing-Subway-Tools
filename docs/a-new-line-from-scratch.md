@@ -278,7 +278,7 @@ and you don't need to add braces. The program will automatically detect the rout
 If you specify `-v -e`, then after sending the EOF the program will ask for the last station and direction/date group.
 Some common error cases are handled, see the above file name link for more information.
 
-This method can be partially automated via the experimental script [`src/timetable/fill_timetable.py](tools.md#fill_timetablepy-fill-in-new-timetable-in-batch),
+This method can be partially automated via the experimental script [`src/timetable/fill_timetable.py`](tools.md#fill_timetablepy-fill-in-new-timetable-in-batch),
 which should perform these operations semi-automatically.
 
 #### 3.2.3. Fill Manually
