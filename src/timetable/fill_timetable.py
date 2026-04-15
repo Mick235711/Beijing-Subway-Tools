@@ -192,7 +192,10 @@ def main() -> None:
         assert date_close < direction_close < station_close, (
             station_index, station_close, direction_index, direction_close, date_index, date_close
         )
-        orig_content = orig_content[:date_index] + timetable_json + orig_content[date_close + 1:].lstrip("\r\n")
+        leftover = orig_content[date_close + 1:].lstrip("\r\n")
+        if leftover.startswith(","):
+            timetable_json = timetable_json.rstrip("\r\n")
+        orig_content = orig_content[:date_index] + timetable_json + leftover
         print(f"Updated {station}...")
     with open(line.line_file, "w") as fp:
         fp.write(orig_content.strip() + "\n")

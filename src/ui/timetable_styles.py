@@ -4,7 +4,7 @@
 """ Frontend - Timetable Styles """
 
 # Libraries
-from typing import override, Literal, cast
+from typing import cast, override, Literal
 
 from src.city.train_route import TrainRoute
 from src.common.common import to_pinyin, TimeSpec
@@ -49,13 +49,11 @@ class Colored(StyleBase):
         return f"color: {self.color};"
 
 
-class FilledSquare(StyleBase):
+class FilledSquare(Colored):
     """ Filled + square """
-    color: str
-
     def __init__(self, color: str) -> None:
         """ Constructor """
-        self.color = color
+        super().__init__(color)
 
     @override
     def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
@@ -75,15 +73,14 @@ class FilledCircle(FilledSquare):
         return super().apply_style(hour_display, is_hour) + " border-radius: 50%;"
 
 
-class BorderSquare(StyleBase):
+class BorderSquare(Colored):
     """ Bordered + square """
     border_style: str
-    color: str
 
     def __init__(self, color: str, border_style: Literal["solid", "dashed", "dotted"] = "solid") -> None:
         """ Constructor """
+        super().__init__(color)
         self.border_style = border_style
-        self.color = color
 
     @override
     def apply_style(self, hour_display: StyleMode, is_hour: bool = False) -> str:
@@ -213,12 +210,12 @@ def assign_styles(
     # Try to solve the conflicts
     directions = {t.direction for t in train_list}
     styles: dict[TrainRoute, StyleBase] = {train_list[0].line.direction_base_route[d]: StyleBase() for d in directions}
-    category_colors = {k: DEFAULT_COLORS[:] for k in [Colored, FilledSquare, FilledCircle, BorderSquare, BorderCircle]}
+    candidates: list[type[Colored]] = [Colored, FilledSquare, FilledCircle, BorderSquare, BorderCircle]
+    category_colors = {k: DEFAULT_COLORS[:] for k in candidates}
     for conflict in conflicts:
         if all(route in styles for route in conflict):
             continue
-        candidates = [Colored, FilledSquare, FilledCircle, BorderSquare, BorderCircle]
-        remaining = candidates + [SuperText]
+        remaining: list[type[StyleBase]] = candidates[:] + [SuperText]
         exclude_colors: set[str] = set()
         exclude_colors_filled: set[str] = set()
         while not all(route in styles for route in conflict):
@@ -243,6 +240,7 @@ def assign_styles(
                     if temp == SuperText:
                         styles[route] = SuperText()
                         break
+                    assert issubclass(temp, Colored), temp
                     temp_colors = category_colors[temp][:]
                     while len(temp_colors) > 0 and ((
                         temp == FilledSquare and temp_colors[0] in exclude_colors_filled
@@ -257,10 +255,8 @@ def assign_styles(
                 break
     for route in routes.keys():
         if route not in styles:
-            first_avail: Colored | FilledSquare | FilledCircle | BorderSquare | BorderCircle | SuperText | None = None
+            first_avail: StyleBase | None = None
             for cat, colors in category_colors.items():
-                if cat == SuperText:
-                    first_avail = SuperText()
                 if len(colors) == 0:
                     continue
                 first_avail = cat(colors[0])
