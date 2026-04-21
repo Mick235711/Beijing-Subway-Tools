@@ -7,7 +7,7 @@
 import argparse
 import json
 
-import networkx as nx  # type: ignore
+import networkx as nx
 
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city
@@ -67,7 +67,7 @@ def main() -> None:
     )
 
     # Construct NetworkX graph
-    nx_graph = nx.Graph()
+    nx_graph: nx.Graph = nx.Graph()
     for station, edges in graph.items():
         for (to_station, line), dist in edges.items():
             if line is not None:

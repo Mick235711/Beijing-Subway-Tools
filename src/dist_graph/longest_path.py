@@ -10,7 +10,7 @@ from collections.abc import Generator
 from datetime import time
 
 from graphillion import GraphSet  # type: ignore
-import networkx as nx  # type: ignore
+import networkx as nx
 from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import shortest_path_args
@@ -51,7 +51,7 @@ def get_best_matching(dist_dict: dict[tuple[str, str], int], verbose: bool = Tru
     # Construct NetworkX graph
     if verbose:
         print("Calculating best matching...", end="", flush=True)
-    graph = nx.Graph()
+    graph: nx.Graph = nx.Graph()
     for (start, end), dist in dist_dict.items():
         graph.add_edge(start, end, weight=dist)
     result = nx.min_weight_matching(graph)

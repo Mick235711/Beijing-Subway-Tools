@@ -9,7 +9,7 @@ from typing import TypeVar, cast
 
 import questionary
 
-from src.bfs.avg_shortest_time import path_shorthand, PathInfo
+from src.bfs.avg_shortest_time import path_shorthand, PathInfo, reverse_path
 from src.bfs.common import AbstractPath
 from src.city.city import City
 from src.city.line import Line
@@ -32,6 +32,14 @@ def route_str(lines: dict[str, Line], route: Route | MixedRoutes) -> str:
         return "Best of {" + ", ".join(f"#{index + 1}" for index in route) + "}"
     path, end_station = route
     return path_shorthand(end_station, lines, path)
+
+
+def reverse_route(city: City, route: Route, *, allow_end_circle: bool = True) -> Route | None:
+    """ Get the reversed version of a route """
+    new_path = reverse_path(route[1], city, route[0], allow_end_circle=allow_end_circle)
+    if new_path is None:
+        return None
+    return new_path, route[0][0][0]
 
 
 def back_to_string(entry: tuple[Line, str | None] | str | None) -> str:

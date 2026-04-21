@@ -33,7 +33,7 @@ from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
 from src.routing_pk.analyze_routes import PathData, calculate_data, strip_routes, reassign_index
-from src.routing_pk.common import Route, route_str, RouteData
+from src.routing_pk.common import Route, route_str, RouteData, reverse_route
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
     get_station_row, calculate_moving_average, get_time_input
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
@@ -144,10 +144,13 @@ def calculate_route_rows(city: City, routes: list[Route]) -> list[dict]:
 def route_tab(city: City) -> None:
     """ Routing tab for the main page """
     with ui.column():
-        with ui.row().classes("w-full items-center justify-between"):
+        with ui.row().classes("w-full items-center"):
             ui.label("Current Routes").classes("text-xl font-semibold mt-6 mb-2")
-            route_delete = ui.button("Delete selected")
-            route_delete.set_enabled(False)
+            with ui.row().classes("flex-1 justify-center items-center gap-x-2"):
+                route_delete = ui.button(icon="delete", color="red").props("round")
+                route_delete.set_enabled(False)
+                route_swap = ui.button(icon="swap_horiz").props("round")
+                route_swap.set_enabled(False)
             route_search = ui.input("Search routes...")
         route_table = ui.table(
             columns=[
@@ -221,8 +224,10 @@ def route_tab(city: City) -> None:
         """ Handle selection changes """
         if len(selection) == 0:
             route_delete.set_enabled(False)
+            route_swap.set_enabled(False)
         else:
             route_delete.set_enabled(True)
+            route_swap.set_enabled(True)
 
     def on_route_delete() -> None:
         """ Handle route deletion """
@@ -241,7 +246,32 @@ def route_tab(city: City) -> None:
         route_table.selected = []
         route_table.rows = calculate_route_rows(city, current_routes)
         analyze_button.set_enabled(len(route_table.rows) > 0)
+        on_select_change([])
     route_delete.on_click(on_route_delete)
+
+    def on_route_swap() -> None:
+        """ Handle route swap """
+        nonlocal current_routes, current_route_strs
+        swapping_str: set[str] = set()
+        for selected in route_table.selected:
+            swapping_str.add(selected["route_str"])
+        new_routes: list[Route] = []
+        current_route_strs = set()
+        for route in current_routes:
+            route_repr = route_str(city.lines, route)
+            if route_repr in swapping_str:
+                new_route = reverse_route(city, route)
+                if new_route is not None:
+                    new_routes.append(new_route)
+                    current_route_strs.add(route_str(city.lines, new_route))
+                    continue
+            new_routes.append(route)
+            current_route_strs.add(route_repr)
+        current_routes = new_routes
+        route_table.selected = []
+        route_table.rows = calculate_route_rows(city, current_routes)
+        on_select_change([])
+    route_swap.on_click(on_route_swap)
 
     async def on_start_click() -> None:
         """ Handle start analyze button clicks """

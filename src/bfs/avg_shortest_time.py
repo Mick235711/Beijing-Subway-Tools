@@ -267,7 +267,9 @@ def avg_shortest_in_city(
     return city, stations, result_dict
 
 
-def reverse_path(end_station: str, city: City, path: AbstractPath) -> AbstractPath | None:
+def reverse_path(
+    end_station: str, city: City, path: AbstractPath, *, allow_end_circle: bool = False
+) -> AbstractPath | None:
     """ Reverse the entire path """
     new_path: AbstractPath = []
     for i, (station, line_direction) in enumerate(path):
@@ -277,12 +279,15 @@ def reverse_path(end_station: str, city: City, path: AbstractPath) -> AbstractPa
         else:
             line = city.lines[line_direction[0]]
             direction = line_direction[1]
-            if line.in_end_circle(station, direction) or line.in_end_circle(next_station, direction):
+            if line.in_end_circle(station, direction) and line.in_end_circle(next_station, direction):
                 return None
-            else:
-                new_direction_candidates = [d for d in line.directions.keys() if d != direction]
-                assert len(new_direction_candidates) == 1, line
-                new_ld = (line_direction[0], new_direction_candidates[0])
+            if not allow_end_circle and (
+                line.in_end_circle(station, direction) or line.in_end_circle(next_station, direction)
+            ):
+                return None
+            new_direction_candidates = [d for d in line.directions.keys() if d != direction]
+            assert len(new_direction_candidates) == 1, line
+            new_ld = (line_direction[0], new_direction_candidates[0])
         new_path = [(next_station, new_ld)] + new_path
     return new_path
 

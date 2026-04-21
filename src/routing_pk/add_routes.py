@@ -279,6 +279,12 @@ def parse_shorthand(shorthand: str, city: City, start: str, end: str, *, interac
             path_entry = None
         elif entry[1] is None:
             # Determine a direction
+            if entry[0].in_end_circle(cur_starting) and entry[0].in_end_circle(next_station):
+                if any(
+                    not entry[0].is_in_direction(end_dir, cur_starting, next_station)
+                    for end_dir in entry[0].end_circle_spec.keys()
+                ):
+                    return f"No trains available from {cur_starting} to {next_station}!"
             path_entry = (entry[0].name, entry[0].determine_direction(cur_starting, next_station))
         else:
             path_entry = (entry[0].name, entry[1])

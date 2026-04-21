@@ -11,13 +11,14 @@ import questionary
 
 from src.bfs.avg_shortest_time import shortest_path_args
 from src.city.ask_for_city import ask_for_city
+from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s
 from src.dist_graph.adaptor import reduce_abstract_path
 from src.graph.draw_path import get_path_colormap
 from src.routing_pk.add_routes import add_some_routes
 from src.routing_pk.analyze_routes import analyze_routes
-from src.routing_pk.common import Route, print_routes, select_routes
+from src.routing_pk.common import Route, print_routes, select_routes, reverse_route
 from src.routing_pk.draw_routes import draw_routes
 
 # List of current routes
@@ -31,6 +32,29 @@ def delete_some_routes(lines: dict[str, Line]) -> None:
         lines, list(enumerate(CURRENT_ROUTES)), "Please choose routes to delete:", reverse=True
     )
     print("Deleted " + suffix_s("route", len(indexes)) + ".")
+
+
+def reverse_some_routes(city: City, lines: dict[str, Line]) -> None:
+    """ Ask user for some routes to reverse """
+    global CURRENT_ROUTES
+    indexes, _ = select_routes(
+        lines, list(enumerate(CURRENT_ROUTES)), "Please choose routes to reverse:"
+    )
+    total_cnt = len(indexes)
+    new_routes: list[Route] = []
+    for index, route in enumerate(CURRENT_ROUTES):
+        if index in indexes:
+            new_route = reverse_route(city, route)
+            if new_route is None:
+                print(f"Warning: Route #{index + 1} cannot be reversed.")
+                total_cnt -= 1
+                new_routes.append(route)
+            else:
+                new_routes.append(new_route)
+        else:
+            new_routes.append(route)
+    CURRENT_ROUTES = new_routes
+    print("Reversed " + suffix_s("route", total_cnt) + ".")
 
 
 def main() -> None:
@@ -63,6 +87,7 @@ def main() -> None:
                 "Analyze selected routes",
                 "Draw selected routes",
                 "Delete some existing routes",
+                "Reverse some existing routes",
                 "Clear all routes and start over"
             ]
         main_choices += ["Quit"]
@@ -79,6 +104,8 @@ def main() -> None:
             ], cmap, dpi=args.dpi)
         elif answer == "Delete some existing routes":
             delete_some_routes(city.lines)
+        elif answer == "Reverse some existing routes":
+            reverse_some_routes(city, city.lines)
         elif answer == "Clear all routes and start over":
             # Clear all routes
             CURRENT_ROUTES.clear()

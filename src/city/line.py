@@ -161,6 +161,11 @@ class Line:
             "-" if direction is None else "->"
         ) + f" {self.station_full_name(stations[-1])}"
 
+    def is_in_direction(self, direction: str, station1: str, station2: str) -> bool:
+        """ Determine if two stations are subsequent within a direction """
+        stations = self.direction_stations(direction)
+        return station1 in stations and station2 in stations and stations.index(station1) < stations.index(station2)
+
     def line_str(self) -> str:
         """ Get the start/stop station, line distance, etc. """
         return f"[{self.train_code()}] {self.direction_str()}" + \
