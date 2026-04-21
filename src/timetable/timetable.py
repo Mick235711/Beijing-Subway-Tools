@@ -4,6 +4,8 @@
 """ A class for timetable of a day """
 
 # Libraries
+from __future__ import annotations
+
 from copy import copy
 from datetime import time
 from typing import Any
