@@ -81,11 +81,23 @@ def input_timetables(
     stations = line.direction_stations(direction)
     timetables: dict[str, Timetable] = {}
     timetables_appending = dict(line.timetables().items())
+    asked_skipping: bool | None = None
     for i, station in enumerate(stations):
         if station not in timetables_appending:
             timetables_appending[station] = {}
         if direction not in timetables_appending[station]:
             timetables_appending[station][direction] = {}
+        if station in line.timetables() and direction in line.timetables()[station] and\
+                date_group.name in line.timetables()[station][direction]:
+            if asked_skipping is None:
+                asked_skipping = questionary.confirm("Detected existing timetable, overwrite (y) or append (n)?").ask()
+                if asked_skipping is None:
+                    sys.exit(0)
+            if asked_skipping is not None and not asked_skipping:
+                print(f"Skipping {station}...")
+                timetables[station] = line.timetables()[station][direction][date_group.name]
+                timetables_appending[station][direction][date_group.name] = timetables[station]
+                continue
         print(f"[Station {i + 1:>{len(str(len(stations)))}}/{len(stations)}] {line.station_full_name(station)} - {line.name} {direction}:")
         if i == 0:
             print("Please input proper timetable for this station:")

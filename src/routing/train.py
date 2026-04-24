@@ -409,35 +409,39 @@ class Train:
 def assign_loop_next(
     trains: dict[int, list[Train]], routes_dict: list[list[TrainRoute]],
     stations: list[str], loop_last_segment: int,
-    base_route: TrainRoute, loop_start_route: TrainRoute
+    base_route: TrainRoute, loop_start_route: TrainRoute | None = None
 ) -> dict[int, list[Train]]:
     """ Assign loop_next field for a loop line """
     trains_all = [t for tl in trains.values() for t in tl if stations[0] in t.arrival_time]
     trains_sorted = sorted(trains_all, key=lambda x: get_time_str(*x.arrival_time[stations[0]]))
+    candidate_list: list[Train] = []
     for route_id, train_list in trains.items():
         route_list = routes_dict[route_id]
         loop = all(route.loop for route in route_list)
         if not loop:
             continue
-        for train in train_list:
-            last_time_day = train.arrival_time[stations[-1]]
-            first_time, first_day = add_min_tuple(last_time_day, loop_last_segment)
+        candidate_list += train_list
+    for train in sorted(candidate_list, key=lambda x: get_time_str(*x.arrival_time[stations[-1]])):
+        last_time_day = train.arrival_time[stations[-1]]
+        first_time, first_day = add_min_tuple(last_time_day, loop_last_segment)
 
-            # Assign to nearest existing trains
-            found_train: Train | None = None
-            for train2 in trains_sorted:
-                train2_leave, train2_day = train2.arrival_time[stations[0]]
-                if diff_time(train2_leave, first_time, train2_day, first_day) >= 0:
-                    found_train = train2
-                    break
-            assert found_train is not None, (train, trains_sorted)
-            train.loop_next = found_train
-            found_train.loop_prev = train
+        # Assign to nearest existing trains
+        found_train: Train | None = None
+        for i, train2 in enumerate(trains_sorted):
+            train2_leave, train2_day = train2.arrival_time[stations[0]]
+            if diff_time(train2_leave, first_time, train2_day, first_day) >= 0:
+                found_train = train2
+                trains_sorted = trains_sorted[:i] + trains_sorted[i + 1:]
+                break
+        assert found_train is not None, (train, trains_sorted)
+        train.loop_next = found_train
+        found_train.loop_prev = train
 
     # Assign first trains to start route
     for train in trains[routes_dict.index([base_route])]:
         assert train.routes == [base_route], train
         if train.loop_prev is None:
+            assert loop_start_route is not None, train
             train.routes = [loop_start_route]
     return trains
 
@@ -497,7 +501,7 @@ def parse_trains_stations(
                     )
     if line.loop:
         trains = assign_loop_next(trains, routes_dict, stations, line.loop_last_segment,
-                                  line.direction_base_route[direction], line.loop_start_route[direction])
+                                  line.direction_base_route[direction], line.loop_start_route.get(direction))
 
     # Collect all route types
     return [train for train_list in trains.values() for train in train_list]
