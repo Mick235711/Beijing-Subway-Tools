@@ -27,7 +27,7 @@ def double_confirm() -> bool:
     answer = questionary.confirm("Exit (n) or retry (y)?").ask()
     if answer is None or not answer:
         answer = questionary.confirm("Exit without saving?").ask()
-        if answer is None or not answer:
+        if answer is None or answer:
             sys.exit(0)
         return False
     return True
@@ -82,6 +82,10 @@ def input_timetables(
     timetables: dict[str, Timetable] = {}
     timetables_appending = dict(line.timetables().items())
     for i, station in enumerate(stations):
+        if station not in timetables_appending:
+            timetables_appending[station] = {}
+        if direction not in timetables_appending[station]:
+            timetables_appending[station][direction] = {}
         print(f"[Station {i + 1:>{len(str(len(stations)))}}/{len(stations)}] {line.station_full_name(station)} - {line.name} {direction}:")
         if i == 0:
             print("Please input proper timetable for this station:")
@@ -96,7 +100,7 @@ def input_timetables(
             continue
 
         prev_timetable = timetables[stations[i - 1]]
-        if i == len(stations) - 1:
+        if not line.loop and i == len(stations) - 1:
             delta = ask_for_int(
                 f"What is the running time (in minutes) from {stations[i - 1]} to {station}?",
                 with_default=0
@@ -165,28 +169,31 @@ def main() -> None:
             print(f"Warning: {station} does not exist, adding to the end...")
             last_brace = orig_content.rindex("}")
             second_to_last = orig_content.rindex("}", 0, last_brace)
+            timetable_json = timetable_json.rstrip("\r\n")
             orig_content = inject_to_last(orig_content, f"""
 {start}\"{station}\": {{
 {start}    \"{direction}\": {{
 {start}        {timetable_json}
 {start}    }}
-{start}}}""", second_to_last)
+{start}}}\n""", second_to_last)
             continue
         station_close = find_closing_brace(orig_content, station_index)
         direction_index = orig_content.find(f"\"{direction}\":", station_index)
         if direction_index == -1 or direction_index > station_close:
             print(f"Warning: {station} does not have {direction}, adding to the end...")
+            timetable_json = timetable_json.rstrip("\r\n")
             orig_content = inject_to_last(orig_content, f"""
 {start}    \"{direction}\": {{
 {start}        {timetable_json}
-{start}    }}""", station_close)
+{start}    }}\n""", station_close)
             continue
         direction_close = find_closing_brace(orig_content, direction_index)
         date_index = orig_content.find(f"\"{date_group.name}\":", direction_index)
         if date_index == -1 or date_index > direction_close:
             print(f"Warning: {station} - {direction} does not have {date_group.name}, adding to the end...")
+            timetable_json = timetable_json.rstrip("\r\n")
             orig_content = inject_to_last(orig_content, f"""
-{start}        {timetable_json}""", direction_close)
+{start}        {timetable_json}\n""", direction_close)
             continue
         date_close = find_closing_brace(orig_content, date_index)
         assert date_close < direction_close < station_close, (
