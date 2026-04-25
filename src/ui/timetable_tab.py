@@ -176,19 +176,19 @@ def timetable_tab(city: City, data: TimetableData) -> None:
 
 
 def get_train_list(
-    line: Line, direction: str | None, station: str, train_dict: dict[tuple[str, str], list[Train]],
+    line: Line, direction: str | None, station: str | None, train_dict: dict[tuple[str, str], list[Train]],
     *, show_skipped: bool = False
 ) -> list[Train]:
     """ Get train list from train dict """
     if direction is None:
         return [
             t for direction in line.directions.keys() for t in train_dict[(line.name, direction)]
-            if station in t.arrival_time and (show_skipped or station not in t.skip_stations)
+            if station is None or (station in t.arrival_time and (show_skipped or station not in t.skip_stations))
         ]
     else:
         return [
             t for t in train_dict[(line.name, direction)]
-            if station in t.arrival_time and (show_skipped or station not in t.skip_stations)
+            if station is None or (station in t.arrival_time and (show_skipped or station not in t.skip_stations))
         ]
 
 
@@ -201,13 +201,14 @@ def timetable_expansion(
     train_list = get_train_list(line, direction, station, train_dict, show_skipped=show_skipped)
     if len(train_list) == 0:
         return
+    full_list = get_train_list(line, direction, None, train_dict, show_skipped=show_skipped)
 
     # Assign styles to each route
     hour_dict, routes = group_trains(station, train_list)
     styles: dict[TrainRoute | None, StyleBase] = {}
     for route, style in assign_styles(routes, train_list).items():
         styles[route] = style
-    train_id_dict = get_train_id(train_list)
+    train_id_dict = get_train_id(full_list)
 
     if hour_display in ["prefix", "combined"]:
         hour_labels, minute_labels, hour_style = single_prefix_timetable(
