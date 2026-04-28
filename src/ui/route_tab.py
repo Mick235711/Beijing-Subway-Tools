@@ -35,7 +35,7 @@ from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
 from src.routing_pk.analyze_routes import PathData, calculate_data, strip_routes, reassign_index
 from src.routing_pk.common import Route, route_str, RouteData, reverse_route
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
-    get_station_row, calculate_moving_average, get_time_input
+    get_station_row, calculate_moving_average, get_time_input, get_chart_options
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
     refresh_train_drawer
 
@@ -1241,17 +1241,16 @@ def display_data(
         ).props("type=number").classes("w-20")
 
     time_chart = ui.echart({
+        **get_chart_options(),
         "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
         "yAxis": {"type": "value", "name": "Total Duration (min)", "scale": True},
-        "series": [],
-        "legend": {},
         "tooltip": {"trigger": "axis"},
-        "grid": {
-            "left": "3%",
-            "right": "4%",
-            "bottom": "10%",
-            "containLabel": True
-        }
+        "dataZoom": [{
+            "id": "dataZoomX",
+            "type": "slider",
+            "xAxisIndex": [0],
+            "filterMode": "filter"
+        }]
     }).classes("h-200")
     time_chart.on("chart:legendselectchanged", lambda e: on_chart_select_change(e.args["selected"]))
     on_chart_data_change()

@@ -189,6 +189,31 @@ def get_station_selector_options(station_lines: dict[str, set[Line]]) -> dict[st
     }
 
 
+def get_chart_options() -> dict[str, Any]:
+    """ Get common options for ECharts """
+    return {
+        "series": [],
+        "legend": {
+            "selector": [
+                {"type": "all", "title": "All"},
+                {"type": "inverse", "title": "Inv"}
+            ],
+            "selectorPosition": "start",
+            "top": 0,
+            "left": "center",
+            "width": "85%",
+            "itemGap": 8
+        },
+        "grid": {
+            "left": "3%",
+            "right": "4%",
+            "top": 90,
+            "bottom": "10%",
+            "containLabel": True
+        }
+    }
+
+
 def count_trains(
     trains: list[Train | ThroughTrain], *, split_direction: bool = False
 ) -> dict[tuple[str, ...], dict[tuple[str, ...], list[Train | ThroughTrain]]]:

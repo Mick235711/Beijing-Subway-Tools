@@ -18,8 +18,9 @@ from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_min
 from src.routing.train import Train, get_train_id
 from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_time_input, get_default_line, get_default_direction, get_default_station, \
-    get_line_selector_options, get_direction_selector_options, get_station_selector_options, get_line_html, get_station_html, \
-    find_train_id, draw_arc, draw_text, get_line_row, get_station_row, calculate_moving_average
+    get_line_selector_options, get_direction_selector_options, get_station_selector_options, get_line_html, \
+    get_station_html, find_train_id, draw_arc, draw_text, get_line_row, get_station_row, calculate_moving_average, \
+    get_chart_options
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -482,28 +483,24 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         ).props("type=number").classes("w-20")
 
     train_chart = ui.echart({
+        **get_chart_options(),
         "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
         "yAxis": {"type": "value", "name": "Train Count", "nameLocation": "middle", "nameGap": 45},
-        "series": [],
-        "legend": {
-            "selector": [
-                {"type": "all", "title": "All"},
-                {"type": "inverse", "title": "Inv"}
-            ],
-            "selectorPosition": "start",
-            "top": 0,
-            "left": "center",
-            "width": "85%",
-            "itemGap": 8
-        },
         "tooltip": {"trigger": "axis"},
-        "grid": {
-            "left": "3%",
-            "right": "4%",
-            "top": 90,
-            "bottom": "10%",
-            "containLabel": True
-        }
+        "dataZoom": [
+            {
+                "id": "dataZoomX",
+                "type": "slider",
+                "xAxisIndex": [0],
+                "filterMode": "filter"
+            },
+            {
+                "id": "dataZoomY",
+                "type": "slider",
+                "yAxisIndex": [0],
+                "filterMode": "empty"
+            }
+        ]
     }).classes("h-200")
     train_chart.on("chart:legendselectchanged", lambda e: on_select_change(e.args["selected"]))
     on_data_change()
@@ -640,25 +637,10 @@ def display_speed_graph(city: City, *, data: StatsData | None = None) -> None:
         # Selection controls are available in the chart legend.
 
     speed_graph = ui.echart({
+        **get_chart_options(),
         "xAxis": {"type": "value"},
         "yAxis": {"type": "value", "name": "Average Speed (km/h)", "nameLocation": "middle", "nameGap": 45},
-        "series": [],
-        "legend": {
-            "selector": ["all", "inverse"],
-            "selectorPosition": "start",
-            "top": 0,
-            "left": "center",
-            "width": "85%",
-            "itemGap": 8
-        },
-        "tooltip": {"trigger": "item"},
-        "grid": {
-            "left": "3%",
-            "right": "4%",
-            "top": 90,
-            "bottom": "10%",
-            "containLabel": True
-        }
+        "tooltip": {"trigger": "item"}
     }).classes("h-200")
     speed_graph.on("chart:legendselectchanged", lambda e: on_select_change(e.args["selected"]))
     on_data_change()
