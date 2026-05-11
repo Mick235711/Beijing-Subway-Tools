@@ -171,7 +171,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         skipped_switch = ui.switch("Show skipping trains", on_change=on_any_change)
 
     timetables_container = ui.column().classes("w-full")
-    on_station_change()
+    on_station_change(data.station, data.cur_date)
     background_tasks.create(load_through_dict(), name="timetable_through_dict")
 
 
