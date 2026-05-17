@@ -2738,7 +2738,7 @@ Drawing done! Saving...
 
 ### [`draw_clusters.py`](/src/graph/draw_clusters.py): Draw transfer station clusters on map
 ```
-usage: draw_clusters.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [-n LIMIT_NUM] [-d {station,distance}] [--exclude-transfer]
+usage: draw_clusters.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [-n LIMIT_NUM] [-d {station,distance}] [--exclude-transfer] [--limit-same-line]
 
 options:
   -h, --help            show this help message and exit
@@ -2756,6 +2756,7 @@ options:
   -d, --data-source {station,distance}
                         Cluster size criteria
   --exclude-transfer    Exclude transfer stations
+  --limit-same-line     Limit to station on same line
 ```
 Draw all the clusters formed by interconnected transfer/regular stations on the map.
 By default, clusters are ordered by number of stations; passing `-d distance` can change to order by total sum of edge lengths.
