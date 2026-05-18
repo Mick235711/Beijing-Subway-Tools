@@ -10,7 +10,7 @@
     loop: true,
     loop_last_segment: 3,
     stations: [
-        {name: "西直门", dist: 1899},
+        {name: "西直门", dist: 1899}, // 京港官网
         {name: "车公庄", dist: 910},
         {name: "阜成门", dist: 960},
         {name: "复兴门", dist: 1833},
