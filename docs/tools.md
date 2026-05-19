@@ -270,6 +270,28 @@ Modify/insert timetable in batch, used to modify all timetables for a specific d
 Please follow the prompts shown. This program is essentially a combination of [`input_to_timetable.py`](#input_to_timetablepy-parse-text-input-into-timetable-description)
 and [`timetable_from_prev.py`](#timetable_from_prevpy-create-next-timetable-from-previous-stations-timetable) and call into these two when appropriate.
 
+### [`rotate_timetable.py`](/src/timetable/rotate_timetable.py): Rotate a loop line timetable to use a different starting station
+```
+usage: rotate_timetable.py [-h] [-o OUTPUT] [-b BREAK_ENTRIES]
+
+options:
+  -h, --help            show this help message and exit
+  -o, --output OUTPUT   Output file (Defaults to standard output if not
+                        provided)
+  -b, --break BREAK_ENTRIES
+                        Entry break
+```
+Rotate timetable for a loop line to start from a different station.
+
+Example Usage:
+<pre>
+$ python3 src/timetable/rotate_timetable.py -o /tmp/test.json5
+? Please select a city: <i>北京</i>
+? Please select a line: <i>10号线</i>
+? Please select the new starting station: <i>巴沟</i>
+Writing to /tmp/test.json5...
+</pre>
+
 # [`routing/`](/src/routing): Train Storing & Loop/Express Train Analyze
 ### [`show_trains.py`](/src/routing/show_trains.py): Show all trains calculated in a line
 ```

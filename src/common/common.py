@@ -629,6 +629,12 @@ def to_list(info: T | list[T]) -> list[T]:
     return [info]
 
 
+def rotate_list(values: list[T], start_value: T) -> list[T]:
+    """ Rotate values so start_value is first """
+    index = values.index(start_value)
+    return values[index:] + values[:index]
+
+
 def is_white(r: int, g: int, b: int) -> bool:
     """ Determine if the text should be white based on RGB values """
     return (0.2126 * r / 255) + (0.7152 * g / 255) + (0.0722 * b / 255) > 0.5
@@ -750,3 +756,25 @@ class InnerArrayEncoder(json.JSONEncoder):
                     '"{}"'.format(format_spec.format(encoded_id)), json_repr)
 
             yield encoded
+
+
+def force_no_indent(obj: dict[str, Any]) -> dict[str, Any]:
+    """ Force NoIndent wrappers on all list/tuples """
+    new_obj: dict[str, Any] = {}
+    for key, value in obj.items():
+        if isinstance(value, (list, tuple)):
+            if len(value) == 0 or not isinstance(value[0], dict):
+                new_obj[key] = NoIndent(value)
+            elif len(value) > 0:
+                new_list: list[Any] = []
+                for elem in value:
+                    if isinstance(elem, dict):
+                        new_list.append(force_no_indent(elem))
+                    else:
+                        new_list.append(elem)
+                new_obj[key] = new_list if isinstance(value, list) else tuple(new_list)
+        elif isinstance(value, dict):
+            new_obj[key] = force_no_indent(value)
+        else:
+            new_obj[key] = value
+    return new_obj

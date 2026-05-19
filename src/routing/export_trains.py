@@ -8,6 +8,7 @@ import argparse
 from datetime import date
 import json
 import sys
+from typing import Any
 
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date
 from src.city.city import City
@@ -219,6 +220,16 @@ def format_pyetrc(
     return result
 
 
+def output_json(final_dict: dict[str, Any], output_file: str | None = None, *, indent: int = 4) -> None:
+    """ Output formatted JSON5 to standard output or to file """
+    if output_file is None:
+        json.dump(final_dict, sys.stdout, indent=indent, ensure_ascii=False, cls=InnerArrayEncoder)
+    else:
+        print(f"Writing to {output_file}...")
+        with open(output_file, "w", encoding="utf-8") as fp:
+            json.dump(final_dict, fp, indent=indent, ensure_ascii=False, cls=InnerArrayEncoder)
+
+
 def main() -> None:
     """ Main function """
     # TODO: Support GTFS
@@ -292,12 +303,7 @@ def main() -> None:
         unique_trains=(not args.all_lines and not args.all_directions and not args.all_date_groups),
         limit_start=args.limit_start, limit_end=args.limit_end
     )
-    if args.output is None:
-        print(json.dumps(final_dict, indent=args.indent, ensure_ascii=False, cls=InnerArrayEncoder))
-    else:
-        print(f"Writing to {args.output}...")
-        with open(args.output, "w", encoding="utf-8") as fp:
-            json.dump(final_dict, fp, indent=args.indent, ensure_ascii=False, cls=InnerArrayEncoder)
+    output_json(final_dict, args.output, indent=args.indent)
 
 
 # Call main

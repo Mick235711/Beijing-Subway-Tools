@@ -20,7 +20,7 @@ from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
-    get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec, unequal
+    get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec, unequal, zero_div
 from src.routing.show_express_trains import find_overtaken
 from src.routing.through_train import ThroughTrain, find_through_train, parse_through_train, get_train_id, \
     get_train_id_through
@@ -688,9 +688,9 @@ def train_drawer(
                             ui.label("Transfers").classes(CARD_CAPTION)
                             ui.label(str(num_lines)).classes(CARD_TEXT)
                     else:
-                        avg_dist = distance / (num_stations - (
+                        avg_dist = zero_div(distance, (num_stations - (
                             1 if last_train is not None and last_train.loop_next is None else 0
-                        ))
+                        )))
                         ui.tooltip(f"{avg_dist:.2f}m")
                         with ui.card_section().classes("p-0"):
                             ui.label("Average Distance").classes(CARD_CAPTION)
@@ -917,8 +917,8 @@ def train_timeline(
             station_key = (station, line_train[2].name if isinstance(line_train, tuple) else None)
             if station in skip_stations and show_station != "all":
                 continue
-            if i == len(stations) - 1 and last_train is not None and (
-                last_train.loop_next is not None and station not in last_train.arrival_time
+            if i == len(stations) - 1 and isinstance(line_train, tuple) and (
+                last_train is not None and last_train.loop_next is not None and line_train[3] is last_train.loop_next
             ):
                 arrival_time: TimeSpec | None = last_train.loop_next.arrival_time[station]
             else:
@@ -930,8 +930,8 @@ def train_timeline(
                 next_key_lt = stations[i + 1][1]
                 next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
                 interval_num_sta = 1
-                if i == len(stations) - 2 and last_train is not None and (
-                    last_train.loop_next is not None and next_station not in last_train.arrival_time
+                if i == len(stations) - 2 and isinstance(next_key_lt, tuple) and (
+                    last_train is not None and last_train.loop_next is not None and next_key_lt[3] is last_train.loop_next
                 ):
                     next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
                     transfer_time_value: tuple[float, float | None] | None = None
@@ -1050,7 +1050,10 @@ def train_timeline(
                     (i != len(stations) - 1 or last_train is None or last_train.loop_next is None)
                 ) else "replay")
             ) as entry:
-                if station_key not in arrival_times or next_key not in arrival_times:
+                if (
+                    i == len(stations) - 1 or station_key not in arrival_times or
+                    len(stations) == 1 or next_key not in arrival_times
+                ):
                     between_stations: list[str] = []
                 elif station not in single_train.arrival_time:
                     assert single_train.loop_next is not None and station in single_train.loop_next.arrival_time, (single_train, station)
