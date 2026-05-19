@@ -57,6 +57,13 @@
             {from: "2号线", to: "5号线", minutes: 3},
             {from: "5号线", to: "2号线", minutes: 3.5}
         ],
+        // 6-S1参考：https://www.bilibili.com/video/BV1rq4y1i73c/
+        // 1-6/S1参考：https://www.bilibili.com/video/BV1om5z6CErD/
+        "苹果园": [
+            {from: "1号线", to: "6号线", minutes: 2},
+            {from: "1号线", to: "S1线", minutes: 4},
+            {from: "6号线", to: "S1线", minutes: 4.5}
+        ],
         "车公庄": [
             {from: "2号线", to: "6号线", minutes: 2.5},
             {from: "6号线", to: "2号线", minutes: 3}
@@ -489,10 +496,6 @@
             {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "进城", minutes: 1},
             {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "出城", minutes: 1}
             // 同向同台
-        ],
-        // 参考：https://www.bilibili.com/video/BV1rq4y1i73c/
-        "苹果园": [
-            {from: "6号线", to: "S1线", minutes: 5}
         ],
         "朱辛庄": [
             {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "进城", minutes: 0},
