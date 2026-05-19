@@ -917,7 +917,9 @@ def train_timeline(
             station_key = (station, line_train[2].name if isinstance(line_train, tuple) else None)
             if station in skip_stations and show_station != "all":
                 continue
-            if i == len(stations) - 1 and last_train is not None and last_train.loop_next is not None:
+            if i == len(stations) - 1 and last_train is not None and (
+                last_train.loop_next is not None and station not in last_train.arrival_time
+            ):
                 arrival_time: TimeSpec | None = last_train.loop_next.arrival_time[station]
             else:
                 arrival_time = arrival_times.get(station_key)
@@ -928,7 +930,9 @@ def train_timeline(
                 next_key_lt = stations[i + 1][1]
                 next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
                 interval_num_sta = 1
-                if i == len(stations) - 2 and last_train is not None and last_train.loop_next is not None:
+                if i == len(stations) - 2 and last_train is not None and (
+                    last_train.loop_next is not None and next_station not in last_train.arrival_time
+                ):
                     next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
                     transfer_time_value: tuple[float, float | None] | None = None
                 else:
