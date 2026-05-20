@@ -162,7 +162,7 @@ def to_trains(
                     from_line_name, from_direction, to_line_name, to_direction
                 ), transfer_time, is_special)
             ))
-            cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time))
+            cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time[0]))
             continue
 
         # Normal line, find a suitable train
@@ -212,7 +212,7 @@ def to_trains(
             lines[new_path[i + 1][1][0]], new_path[i + 1][1][1],  # type: ignore
             cur_date, cur_tuple[0], cur_tuple[1]
         )
-        cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time))
+        cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time[0]))
 
     return BFSResult(
         end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1],

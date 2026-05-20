@@ -56,7 +56,7 @@ def analyze_transfer(
             transfer_time, _ = transfer.get_transfer_time(
                 line, direction, new_line, new_direction, cur_date, base_time, base_day
             )
-            minutes = (floor if exclude_edge else ceil)(transfer_time)
+            minutes = (floor if exclude_edge else ceil)(transfer_time[0])
             pre_time, pre_day = add_min(base_time, minutes, base_day)
             candidates = [t for t in new_trains if diff_time_tuple(
                 t.arrival_time[new_station], (pre_time, pre_day)
@@ -75,19 +75,19 @@ def analyze_transfer(
         transfer_time, _ = transfer.get_transfer_time(
             line, direction, new_line, new_direction, cur_date, new_time, new_day
         )
-        minutes = (floor if exclude_edge else ceil)(transfer_time)
+        minutes = (floor if exclude_edge else ceil)(transfer_time[0])
         pre_time, pre_day = add_min(new_time, -minutes, new_day)
         if station is None:
             assert len(train_list) == 1, train_list
             pre_train = train_list[0]
         else:
-            pre_train = sorted([
+            pre_train = max([
                 train for train in train_list if base_station in train.arrival_time_virtual(
                     station
                 ) and diff_time_tuple(
                     train.arrival_time_virtual(station)[base_station], (pre_time, pre_day)
                 ) <= 0 and (not this_full_only or train.is_full())
-            ], key=lambda t: get_time_str(*t.arrival_time_virtual(station)[base_station]))[-1]
+            ], key=lambda t: get_time_str(*t.arrival_time_virtual(station)[base_station]))
         temp[i] = (new_direction, pre_train)
     return result1, tuple(temp)
 

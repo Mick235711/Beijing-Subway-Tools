@@ -160,7 +160,7 @@ def calculate_next(
         for (station1, station2), transfer in city.virtual_transfers.items():
             if station1 != cur_station:
                 continue
-            for (from_l, from_d, to_l, to_d) in transfer.transfer_time:
+            for (from_l, from_d, to_l, to_d) in transfer.transfer_time.keys():
                 assert next_entry is not None, next_entry
                 if isinstance(prev_hint, tuple) and from_l != prev_hint[0].name:
                     continue
@@ -189,7 +189,7 @@ def calculate_next(
                 continue
             if isinstance(next_hint, str) and station2 != next_hint:
                 continue
-            for (from_l, from_d, to_l, to_d) in transfer.transfer_time:
+            for (from_l, from_d, to_l, to_d) in transfer.transfer_time.keys():
                 if isinstance(next_hint, tuple) and to_l != next_hint[0].name:
                     continue
                 if from_l == cur_entry[0].name:

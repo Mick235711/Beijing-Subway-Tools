@@ -82,7 +82,7 @@ def avg_waiting_time(
                 transfer_time, _ = transfer_spec.get_transfer_time(
                     lines[from_l], from_d, lines[to_l], to_d, date_group, *train.arrival_time[station1]
                 )
-                minutes = (floor if exclude_edge else ceil)(transfer_time)
+                minutes = (floor if exclude_edge else ceil)(transfer_time[0])
                 while cur_index < len(train_list2) and diff_time_tuple(
                     train_list2[cur_index][1].arrival_time[station2], train.arrival_time[station1]
                 ) < minutes + (1 if exclude_edge else 0):
@@ -100,7 +100,7 @@ def avg_waiting_time(
                         result_keys.append(station2)
                 cur_diff = diff_time_tuple(
                     train_list2[cur_index][1].arrival_time[station2], train.arrival_time[station1]
-                ) - transfer_time
+                ) - transfer_time[0]
                 for result_key in result_keys:
                     if result_key not in results:
                         results[result_key] = []

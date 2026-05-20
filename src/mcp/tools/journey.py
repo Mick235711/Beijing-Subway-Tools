@@ -44,7 +44,9 @@ def get_transfer_metrics(
                 "station": station_name,
                 "from_line": f_l,
                 "to_line": t_l,
-                "transfer_time_minutes": minutes,
+                "transfer_time_minutes": minutes[0],
+                "transfer_horizontal_distance": minutes[1],
+                "transfer_num_of_stairs": minutes[2],
                 "is_virtual_transfer": False,
                 "note": f"{f_d} -> {t_d}"
             })
@@ -64,7 +66,9 @@ def get_transfer_metrics(
                     "station": f"{station_name} <-> {other_station}",
                     "from_line": f_l,
                     "to_line": t_l,
-                    "transfer_time_minutes": minutes,
+                    "transfer_time_minutes": minutes[0],
+                    "transfer_horizontal_distance": minutes[1],
+                    "transfer_num_of_stairs": minutes[2],
                     "is_virtual_transfer": True,
                     "note": f"{f_d} -> {t_d} (Virtual Transfer)"
                 })

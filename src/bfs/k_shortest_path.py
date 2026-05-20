@@ -199,7 +199,7 @@ def k_shortest_path(
             else:
                 line_direction = (lines[saved_train[2][2]], saved_train[2][3])
                 saved_arrival_time = add_min(
-                    saved_arrival_time[0], (floor if exclude_edge else ceil)(saved_train[3]), saved_arrival_time[1]
+                    saved_arrival_time[0], (floor if exclude_edge else ceil)(saved_train[3][0]), saved_arrival_time[1]
                 )
             bfs_result = bfs(
                 lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,

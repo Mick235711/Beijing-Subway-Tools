@@ -14,7 +14,7 @@ from src.bfs.common import VTSpec, Path
 from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
-from src.city.transfer import Transfer
+from src.city.transfer import Transfer, format_transfer_data
 from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str, \
     get_time_repr, from_minutes
 from src.fare.fare import Fare
@@ -214,7 +214,7 @@ class BFSResult:
                     total_waiting += 24 * 60
                     cur_date += timedelta(days=1)
                 if station in last_train.line.stations:
-                    assert transfer_time <= total_waiting, (last_train, station, train)
+                    assert transfer_time[0] <= total_waiting, (last_train, station, train)
                     if through_dict is None:
                         last_through = None
                     else:
@@ -228,10 +228,10 @@ class BFSResult:
                             split_indexes.append(len(line_list))
                         line_list.append(f"Transfer at {full_name}: " +
                                          f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
-                                         suffix_s("minute", transfer_time) +
+                                         format_transfer_data(transfer_time) +
                                          (" (special time)" if special else ""))
-                if total_waiting > transfer_time:
-                    line_list.append("Waiting time: " + suffix_s("minute", total_waiting - transfer_time))
+                if total_waiting > transfer_time[0]:
+                    line_list.append("Waiting time: " + suffix_s("minute", total_waiting - transfer_time[0]))
 
             # Display train information
             next_station = self.station if i == len(path) - 1 else path[i + 1][0]
@@ -353,12 +353,16 @@ def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTr
 def total_transfer_duration(
     result: BFSResult, path: Path, transfer_dict: dict[str, Transfer],
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
-) -> float:
+) -> tuple[float, int, int]:
     """ Get the sum of all transfer times """
     sum_duration = 0.0
+    sum_distance = 0
+    sum_stairs = 0
     for i, (station, train) in enumerate(path):
         if not isinstance(train, Train):
-            sum_duration += train[3]
+            sum_duration += train[3][0]
+            sum_distance += train[3][1] or 0
+            sum_stairs += train[3][2] or 0
             continue
         if i == len(path) - 1:
             continue
@@ -381,8 +385,10 @@ def total_transfer_duration(
             next_train.line, next_train.direction,
             result.start_date, next_time, next_day
         )
-        sum_duration += transfer_time
-    return sum_duration
+        sum_duration += transfer_time[0]
+        sum_distance += transfer_time[1] or 0
+        sum_stairs += transfer_time[2] or 0
+    return sum_duration, sum_distance, sum_stairs
 
 
 def path_distance(path: Path, end_station: str) -> int:
@@ -399,7 +405,7 @@ def path_distance(path: Path, end_station: str) -> int:
 def path_index(
     result: BFSResult, path: Path, transfer_dict: dict[str, Transfer],
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
-) -> tuple[int | float, ...]:
+) -> tuple[int | float | tuple, ...]:
     """ Index to compare paths """
     # Every virtual transfer counts as two transfers
     result2 = (
@@ -487,7 +493,7 @@ def bfs(
                     start_date, start_time, start_day
                 )
                 starting_time_dict[(line.name, direction)] = add_min(
-                    start_time, (floor if exclude_edge else ceil)(transfer_time), start_day
+                    start_time, (floor if exclude_edge else ceil)(transfer_time[0]), start_day
                 )
 
     # Set starting point at all possible lines and directions
@@ -512,7 +518,7 @@ def bfs(
                 ].get_smallest_time(
                     to_line=line, to_direction=direction, cur_date=start_date, cur_time=start_time, cur_day=start_day
                 )
-                next_time, next_day = add_min(start_time, (floor if exclude_edge else ceil)(transfer_time), start_day)
+                next_time, next_day = add_min(start_time, (floor if exclude_edge else ceil)(transfer_time[0]), start_day)
                 queue.append((new_station, line.name, direction))
                 results[(new_station, line.name, direction)] = BFSResult(
                     new_station, start_date,
@@ -631,7 +637,7 @@ def bfs(
                 line, direction, new_line, new_direction,
                 start_date, cur_time, cur_day
             )
-            next_time, next_day = add_min(cur_time, (floor if exclude_edge else ceil)(transfer_time), cur_day)
+            next_time, next_day = add_min(cur_time, (floor if exclude_edge else ceil)(transfer_time[0]), cur_day)
             new_result = BFSResult(
                 station, start_date,
                 start_time, start_day,

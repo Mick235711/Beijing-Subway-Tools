@@ -490,10 +490,12 @@ def split_n(a: list[T], n: int) -> list[list[T]]:
     return [a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
 
 
-def average(data: Iterable[int | float]) -> float:
+def average(data: Iterable[int | float | None], *, allow_empty: bool = False) -> float:
     """ Calculate average """
-    data_list = list(data)
-    assert len(data_list) > 0, data_list
+    data_list = [x for x in data if x is not None]
+    if len(data_list) == 0:
+        assert allow_empty, data_list
+        return 0.0
     return sum(data_list) / len(data_list)
 
 

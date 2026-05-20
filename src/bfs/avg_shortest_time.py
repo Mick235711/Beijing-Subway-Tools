@@ -327,7 +327,7 @@ def get_waiting_time(
         next_station = path_info[1][i + 1][0] if i < len(path_info[1]) - 1 else path_info[2].station
         if isinstance(train, tuple):
             if exclude_transfer:
-                total_waiting -= train[3]
+                total_waiting -= train[3][0]
             continue
 
         next_time = train.arrival_time[station]
@@ -339,7 +339,7 @@ def get_waiting_time(
                 total_waiting -= transfer_dict[next_station].get_transfer_time(
                     train.line, train.direction, next_train.line, next_train.direction,
                     path_info[2].start_date, cur_time[0], cur_time[1]
-                )[0]
+                )[0][0]
     return total_waiting
 
 

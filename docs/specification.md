@@ -153,7 +153,7 @@ For each sub-specification, its structure must be
 ```json5
 {from: "Line Name", [from_direction: "Direction",]
  to: "Line Name", [to_direction: "Direction",]
- minutes: <minutes needed for transfer>,
+ minutes: <minutes needed for transfer>, [distance: <horizontal distance in meters>, stairs: <# of stairs>,]
  [apply_time: [{[date_group: "Group", ]start: "HH:MM", end: "HH:MM"} * N]]}
 ```
 If no direction is provided for from or to, it is assumed that the same time is needed to reach both directions (i.e., island platform).

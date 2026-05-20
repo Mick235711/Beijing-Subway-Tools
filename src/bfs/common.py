@@ -4,11 +4,11 @@
 """ Common type definition for BFS Paths """
 
 # Libraries
-from src.city.transfer import TransferSpec
+from src.city.transfer import TransferSpec, TransferData
 from src.routing.train import Train
 
 # Virtual Transfer Spec: from_station, to_station, minute, is_special
-VTSpec = tuple[str, str, TransferSpec, float, bool]
+VTSpec = tuple[str, str, TransferSpec, TransferData, bool]
 
 # AbstractPath: (station, (line, direction)), none for virtual transfer
 AbstractPath = list[tuple[str, tuple[str, str] | None]]

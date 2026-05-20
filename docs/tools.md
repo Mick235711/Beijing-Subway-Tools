@@ -1328,7 +1328,7 @@ In all the programs in this section (except those that accept no arguments), the
 ### [`city_statistics.py`](/src/stats/city_statistics.py): Basic statistics for a city
 ```
 usage: city_statistics.py [-h] [--omit-line-info] [--omit-station-info] [--omit-station-name-info] [--omit-transfer-info] [--omit-transfer-time-info] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual]
-                          [-n LIMIT_NUM] [-d {pair,station,line}] [--show-all]
+                          [-n LIMIT_NUM] [-d {pair,station,line}] [-c {time,distance,stairs}] [--show-all]
 
 options:
   -h, --help            show this help message and exit
@@ -1339,14 +1339,16 @@ options:
   --omit-transfer-info  Don't show transfer info
   --omit-transfer-time-info
                         Don't show transfer time info
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --exclude-virtual     Exclude virtual transfers
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -d {pair,station,line}, --data-source {pair,station,line}
+  -d, --data-source {pair,station,line}
+                        Transfer time data source
+  -c, --comparison-source {time,distance,stairs}
                         Transfer time data source
   --show-all            Show all results (including impossible cases)
 ```
@@ -1359,6 +1361,7 @@ For the whole statistics displayed, several params can be used to customize the 
 - `-i` and `-x` can be used to include/exclude specific lines.
 - `--exclude-virtual` can make virtual transfers not being considered.
 - `--show-all` will show all possible transfer directions, regardless of whether it is actually possible to board.
+- For supported stations, you may pass `-c` to select whether you want to display average transfer time, distance, or stairs.
 
 Example Usage:
 <pre>

@@ -18,7 +18,7 @@ from src.bfs.bfs import expand_path, path_distance, total_transfer
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.city.transfer import Transfer
+from src.city.transfer import Transfer, TransferData
 from src.common.common import get_text_color, distance_str, speed_str, percentage_str, to_pinyin, get_time_str, \
     get_time_repr, format_duration, suffix_s, diff_time_tuple, segment_speed, TimeSpec, unequal, zero_div
 from src.routing.show_express_trains import find_overtaken
@@ -769,7 +769,7 @@ def train_timeline(
     """ Create a timeline for this train """
     global AVAILABLE_LINES
     train_id_dicts: dict[tuple[str, str], dict[str, Train]] | None = None
-    transfer_time_dict: dict[tuple[str, str | None], tuple[float, float | None]] = {}  # (transfer time, waiting time)
+    transfer_time_dict: dict[tuple[str, str | None], tuple[TransferData, float | None]] = {}  # (transfer time, waiting time)
     if isinstance(train, tuple):
         first_t = train[1][0][1]
         first_train = first_t if isinstance(first_t, Train) else None
@@ -845,7 +845,7 @@ def train_timeline(
                     inner_train.arrival_time[inner_station][0],
                     inner_train.arrival_time[inner_station][1] or force_next_day
                 )
-                waiting_time = diff_time_tuple(adjusted_time, prev_time) - transfer_time
+                waiting_time = diff_time_tuple(adjusted_time, prev_time) - transfer_time[0]
                 transfer_time_dict[(inner_station, inner_train.line.name)] = (transfer_time, waiting_time)
 
             next_station = train[2].station if i == len(train[1]) - 1 else train[1][i + 1][0]
@@ -934,7 +934,7 @@ def train_timeline(
                     last_train is not None and last_train.loop_next is not None and next_key_lt[3] is last_train.loop_next
                 ):
                     next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
-                    transfer_time_value: tuple[float, float | None] | None = None
+                    transfer_time_value: tuple[TransferData, float | None] | None = None
                 else:
                     if show_station != "all" or (station_key in arrival_times and next_key not in arrival_times):
                         j = i + 2
@@ -957,14 +957,14 @@ def train_timeline(
                     if transfer_time_value is None:
                         real_interval_duration = interval_duration
                     elif transfer_time_value[1] is None:
-                        transfer_str = (f"Transfer: {format_duration(transfer_time_value[0])}", "")
-                        real_interval_duration = interval_duration - transfer_time_value[0]
+                        transfer_str = (f"Transfer: {format_duration(transfer_time_value[0][0])}", "")
+                        real_interval_duration = interval_duration - transfer_time_value[0][0]
                     else:
                         transfer_str = (
-                            f"Transfer: {format_duration(transfer_time_value[0])}",
+                            f"Transfer: {format_duration(transfer_time_value[0][0])}",
                             f"Waiting: {format_duration(transfer_time_value[1])}"
                         )
-                        real_interval_duration = interval_duration - (transfer_time_value[0] + transfer_time_value[1])
+                        real_interval_duration = interval_duration - (transfer_time_value[0][0] + transfer_time_value[1])
                     if isinstance(line_train, tuple):
                         if station in line_train[3].arrival_time:
                             interval_num_sta = len(line_train[3].two_station_interval(station, next_station, expand_all=True))

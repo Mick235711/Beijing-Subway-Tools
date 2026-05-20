@@ -11,7 +11,7 @@ from typing import Any, TypeVar, Literal
 from src.city.ask_for_city import ask_for_city
 from src.city.city import parse_station_lines
 from src.city.line import Line, station_full_name
-from src.city.transfer import transfer_repr, Transfer
+from src.city.transfer import transfer_repr, Transfer, TransferData
 from src.common.common import distance_str, suffix_s, to_pinyin, average, percentage_str
 from src.stats.common import display_first, display_segment, filter_lines
 
@@ -200,11 +200,13 @@ def filter_transfer_time(
 
 
 TransferSource = Literal["pair", "station", "line"]
+ComparisonSource = Literal["time", "distance", "stairs"]
 
 
 def display_transfer_time_info(
     lines: dict[str, Line], transfers: dict[str, Transfer], virtual_transfers: dict[tuple[str, str], Transfer], *,
-    exclude_virtual: bool = False, limit_num: int = 15, data_source: TransferSource = "pair", show_all: bool = False
+    exclude_virtual: bool = False, limit_num: int = 15, show_all: bool = False,
+    data_source: TransferSource = "pair", comparison_source: ComparisonSource = "time"
 ) -> None:
     """ Display transfer time info """
     print("\n=====> Transfer Time Information <=====")
@@ -228,12 +230,18 @@ def display_transfer_time_info(
     print("Total # of special transfer pairs:", num_special)
     print(f"Average # of special transfer pair per station: {num_special / num_stations:.2f}")
 
+    comp_index = ["time", "distance", "stairs"].index(comparison_source)
+    comp_formatter = {
+        "time": lambda t: f"{t:.2f} minutes",
+        "distance": lambda t: "Unknown" if t is None else f"{t:.2f}m",
+        "stairs": lambda t: "Unknown" if t is None else f"{t:.2f} stairs",
+    }[comparison_source]
     if data_source == "pair":
-        data: Any = sorted([(s, s2, t, k, v) for s, s2, t, _ in transfer_times for k, v in t.items()],
-                           key=lambda x: (x[-1], to_pinyin(x[0])[0], x[-2]))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: " + transfer_repr(lines, t[0], t[1], t[-2])
+        data: Any = sorted([(s, s2, t, k, v[comp_index]) for s, s2, t, _ in transfer_times for k, v in t.items()],
+                           key=lambda x: (x[-1] or 0, to_pinyin(x[0])[0], x[-2]))
+        data_str = lambda t: comp_formatter(t[-1]) + ": " + transfer_repr(lines, t[0], t[1], t[-2])
     elif data_source == "station":
-        station_data: dict[str, list[float]] = {}
+        station_data: dict[str, list[TransferData]] = {}
         for station, second_station, transfer_time, _ in transfer_times:
             if station not in station_data:
                 station_data[station] = []
@@ -242,12 +250,13 @@ def display_transfer_time_info(
                 if second_station not in station_data:
                     station_data[second_station] = []
                 station_data[second_station] += list(transfer_time.values())
-        data = sorted([(s, l, average(l)) for s, l in station_data.items() if len(l) > 0],
+        data = sorted([(s, l, average([x[comp_index] for x in l if x[comp_index] is not None], allow_empty=True))
+                       for s, l in station_data.items() if len(l) > 0],
                       key=lambda x: (x[-1], -len(x[1]), to_pinyin(x[0])[0]))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: {station_full_name(t[0], lines)} (" + suffix_s(
+        data_str = lambda t: f"{comp_formatter(t[-1])}: {station_full_name(t[0], lines)} (" + suffix_s(
             "pair", len(t[1])) + ")"
     elif data_source == "line":
-        line_data: dict[str, list[float]] = {}
+        line_data: dict[str, list[TransferData]] = {}
         for _, _, transfer_time, _ in transfer_times:
             for (from_l, _, to_l, _), t in transfer_time.items():
                 if from_l not in line_data:
@@ -256,22 +265,24 @@ def display_transfer_time_info(
                 if to_l not in line_data:
                     line_data[to_l] = []
                 line_data[to_l].append(t)
-        data = sorted([(s, l, average(l)) for s, l in line_data.items() if len(l) > 0],
+        data = sorted([(s, l, average([x[comp_index] for x in l if x[comp_index] is not None], allow_empty=True))
+                       for s, l in line_data.items() if len(l) > 0],
                       key=lambda x: (x[-1], -len(x[1]), lines[x[0]].index))
-        data_str = lambda t: f"{t[-1]:.2f} minutes: {lines[t[0]].full_name()} (" + suffix_s(
+        data_str = lambda t: f"{comp_formatter(t[-1])}: {lines[t[0]].full_name()} (" + suffix_s(
             "pair", len(t[1])) + ")"
     else:
         assert False, data_source
-    times = [x[-1] for x in data]
-    print("Average transfer time:", suffix_s("minute", f"{average(times):.2f}"),
-          f"(over {suffix_s(data_source, len(times))})")
-    print("Segmented transfer time:")
+    times = [float(x[-1]) for x in data if x[-1] is not None]
+    if len(times) == 0:
+        return
+    print(f"Average transfer {comparison_source}: {comp_formatter(average(times))} (over {suffix_s(data_source, len(times))})")
+    print(f"Segmented transfer {comparison_source}:")
     display_segment(
         times, lambda seg1, seg2, num:
-        f"{seg1:.2f} - {seg2:.2f} minutes: " + suffix_s(data_source, num) + f" ({percentage_str(num / len(times))})",
-        limit_num=limit_num
+        f"{comp_formatter(seg1)} - {comp_formatter(seg2)}: " + suffix_s(data_source, num) + f" ({percentage_str(num / len(times))})",
+        limit_num=limit_num, segment_size={"time": 1.0, "distance": 50.0, "stairs": 50.0}[comparison_source]
     )
-    print("Max/Min " + suffix_s("transfer time", limit_num) + ":")
+    print(f"Max/Min {limit_num} transfer {comparison_source}:")
     display_first(data, data_str, limit_num=limit_num)
 
 
@@ -291,11 +302,16 @@ def main() -> None:
     parser.add_argument("-d", "--data-source", choices=[
         "pair", "station", "line"
     ], default="pair", help="Transfer time data source")
+    parser.add_argument("-c", "--comparison-source", choices=[
+        "time", "distance", "stairs"
+    ], default="time", help="Transfer time data source")
     parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
     args = parser.parse_args()
 
     if args.omit_transfer_time_info and args.data_source != "pair":
         print("Warning: --data-source is ignored if you omit transfer time info")
+    if args.omit_transfer_time_info and args.comparison_source != "time":
+        print("Warning: --comparison-source is ignored if you omit transfer time info")
     if args.omit_transfer_time_info and args.show_all:
         print("Warning: --show-all is ignored if you omit transfer time info")
 
@@ -311,9 +327,11 @@ def main() -> None:
         display_transfer_info(lines, city.virtual_transfers,
                               exclude_virtual=args.exclude_virtual, limit_num=args.limit_num)
     if not args.omit_transfer_time_info:
-        display_transfer_time_info(lines, city.transfers, city.virtual_transfers,
-                                   exclude_virtual=args.exclude_virtual, limit_num=args.limit_num,
-                                   data_source=args.data_source, show_all=args.show_all)
+        display_transfer_time_info(
+            lines, city.transfers, city.virtual_transfers,
+            exclude_virtual=args.exclude_virtual, limit_num=args.limit_num, show_all=args.show_all,
+            data_source=args.data_source, comparison_source=args.comparison_source
+        )
 
 
 # Call main

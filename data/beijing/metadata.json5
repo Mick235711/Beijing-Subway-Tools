@@ -3,541 +3,549 @@
     city_aliases: ["Peking"],
     transfers: {
         // 2021年以前参考：http://www.ditiezu.com/forum.php?mod=viewthread&tid=71145（所有时间x2）
+        // 台阶/距离参考：https://mp.weixin.qq.com/s/raFRj_tvyXsc1beD7AKRPA
         "复兴门": [
-            {from: "1号线", to: "2号线", minutes: 3.5},
-            {from: "2号线", to: "1号线", minutes: 0.5},
+            {from: "1号线", to: "2号线", minutes: 3.5, distance: 160, stairs: 50},
+            {from: "2号线", to: "1号线", minutes: 0.5, distance: 0, stairs: 37},
             // 节点2->1, 早晚可逆行
             {
-                from: "1号线", to: "2号线", minutes: 1,
+                from: "1号线", to: "2号线", minutes: 1, distance: 0, stairs: 37,
                 apply_time: [{end: "06:30"}, {start: "20:30"}]
             }
         ],
         "建国门": [
-            {from: "1号线", to: "2号线", minutes: 2.5},
-            {from: "2号线", to: "1号线", minutes: 0.5},
+            {from: "1号线", to: "2号线", minutes: 2.5, distance: 80, stairs: 82},
+            {from: "2号线", to: "1号线", minutes: 0.5, distance: 0, stairs: 38},
             // 节点2->1, 非高峰可逆行
             {
-                from: "1号线", to: "2号线", minutes: 1,
+                from: "1号线", to: "2号线", minutes: 1, distance: 0, stairs: 38,
                 apply_time: [{end: "07:00"}, {start: "09:30", end: "16:30"}, {start: "19:00"}]
             }
         ],
         // 参考：https://www.bilibili.com/video/BV1jMqRY2EZm
         "东四十条": [
-            {from: "2号线", to: "3号线", minutes: 1.5},
-            {from: "3号线", to: "2号线", minutes: 2.5},
+            {from: "2号线", to: "3号线", minutes: 1.5, distance: 40, stairs: 88},
+            {from: "3号线", to: "2号线", minutes: 2.5, distance: 110, stairs: 118},
             // 伪节点2->3
         ],
         "西单": [
-            {from: "1号线", to: "4号线", minutes: 3.5},
-            {from: "4号线", to: "1号线", minutes: 4.5}
+            {from: "1号线", to: "4号线", minutes: 3.5, distance: 170, stairs: 118},
+            {from: "4号线", to: "1号线", minutes: 4.5, distance: 210, stairs: 111}
         ],
         "西直门": [
-            {from: "2号线", to: "4号线", minutes: 0.5},
-            {from: "4号线", to: "2号线", minutes: 2.5},
+            {from: "2号线", to: "4号线", minutes: 0.5, distance: 0, stairs: 37},
+            {from: "4号线", to: "2号线", minutes: 2.5, distance: 100, stairs: 86},
             // 节点2->4
-            {from: "2号线", to: "13号线", minutes: 6},
-            {from: "13号线", to: "2号线", minutes: 6.5},
-            {from: "4号线", to: "13号线", minutes: 4.5},
-            {from: "13号线", to: "4号线", minutes: 5}
+            {from: "2号线", to: "13号线", minutes: 4.5, distance: 180, stairs: 208},
+            {from: "13号线", to: "2号线", minutes: 6.5, distance: 200, stairs: 286},
+            {from: "4号线", to: "13号线", minutes: 6, distance: 280, stairs: 250},
+            {from: "13号线", to: "4号线", minutes: 5, distance: 130, stairs: 249}
         ],
         "宣武门": [
-            {from: "2号线", to: "4号线", minutes: 1.5},
-            {from: "4号线", to: "2号线", minutes: 2.5}
+            {from: "2号线", to: "4号线", minutes: 1.5, distance: 50, stairs: 78},
+            {from: "4号线", to: "2号线", minutes: 2.5, distance: 80, stairs: 108}
             // 伪节点2->4
         ],
         "东单": [
-            {from: "1号线", to: "5号线", minutes: 4}
+            {from: "1号线", to: "5号线", minutes: 4, distance: 180, stairs: 125},
+            {from: "5号线", to: "1号线", minutes: 4, distance: 160, stairs: 120}
         ],
         "雍和宫": [
-            {from: "2号线", to: "5号线", minutes: 1.5},
-            {from: "5号线", to: "2号线", minutes: 2.5}
+            {from: "2号线", to: "5号线", minutes: 1.5, distance: 70, stairs: 45},
+            {from: "5号线", to: "2号线", minutes: 2.5, distance: 80, stairs: 83}
             // 伪节点2->5
         ],
         "崇文门": [
-            {from: "2号线", to: "5号线", minutes: 3},
-            {from: "5号线", to: "2号线", minutes: 3.5}
+            {from: "2号线", to: "5号线", minutes: 3, distance: 120, stairs: 83},
+            {from: "5号线", to: "2号线", minutes: 3.5, distance: 160, stairs: 83}
         ],
         // 6-S1参考：https://www.bilibili.com/video/BV1rq4y1i73c/
         // 1-6/S1参考：https://www.bilibili.com/video/BV1om5z6CErD/
         "苹果园": [
-            {from: "1号线", to: "6号线", minutes: 2},
-            {from: "1号线", to: "S1线", minutes: 4},
-            {from: "6号线", to: "S1线", minutes: 4.5}
+            {from: "1号线", from_direction: "东行", to: "6号线", minutes: 2, distance: 80, stairs: 95},
+            {from: "1号线", from_direction: "西行", to: "6号线", minutes: 2, distance: 100, stairs: 95},
+            {from: "1号线", from_direction: "东行", to: "S1线", minutes: 4, distance: 170, stairs: 196},
+            {from: "1号线", from_direction: "西行", to: "S1线", minutes: 4, distance: 180, stairs: 196},
+            {from: "6号线", to: "S1线", minutes: 5, distance: 130, stairs: 291}
         ],
         "车公庄": [
-            {from: "2号线", to: "6号线", minutes: 2.5},
-            {from: "6号线", to: "2号线", minutes: 3}
+            {from: "2号线", to: "6号线", minutes: 2.5, distance: 100, stairs: 62},
+            {from: "6号线", to: "2号线", minutes: 3, distance: 100, stairs: 114}
         ],
         "朝阳门": [
-            {from: "2号线", to: "6号线", minutes: 2.5},
-            {from: "6号线", to: "2号线", minutes: 3.5}
+            {from: "2号线", to: "6号线", minutes: 2.5, distance: 90, stairs: 96},
+            {from: "6号线", to: "2号线", minutes: 3.5, distance: 160, stairs: 105}
         ],
         "平安里": [
-            {from: "4号线", to: "6号线", minutes: 4},
-            {from: "6号线", to: "4号线", minutes: 3.5},
+            {from: "4号线", to: "6号线", minutes: 3.5, distance: 150, stairs: 115},
             // 参考：https://www.bilibili.com/video/BV16S4y1t7fG/
-            {from: "4号线", to: "19号线", minutes: 6.5},
+            {from: "4号线", to: "19号线", minutes: 6.5, distance: 520, stairs: 69},
             // 参考：https://www.bilibili.com/video/BV1iB4y1b7kH/
-            {from: "6号线", to: "19号线", minutes: 4}
+            {from: "6号线", to: "19号线", minutes: 4, distance: 230, stairs: 114}
         ],
         "东四": [
-            {from: "5号线", to: "6号线", minutes: 4},
-            {from: "6号线", to: "5号线", minutes: 4.5}
+            {from: "5号线", to: "6号线", minutes: 4, distance: 100, stairs: 190},
+            {from: "6号线", to: "5号线", minutes: 4.5, distance: 140, stairs: 203} // 北通道
         ],
         "花庄": [
-            {from: "1号线", to: "7号线", minutes: 1}
+            {from: "1号线", to: "7号线", minutes: 1, distance: 20, stairs: 68}
         ],
         "环球度假区": [
-            {from: "1号线", to: "7号线", minutes: 1}
+            {from: "1号线", to: "7号线", minutes: 1, distance: 40, stairs: 82}
             // 实际上没什么用
         ],
         "菜市口": [
-            {from: "4号线", to: "7号线", minutes: 2},
-            {from: "7号线", to: "4号线", minutes: 0.5}
+            {from: "4号线", to: "7号线", minutes: 2, distance: 80, stairs: 124},
+            {from: "7号线", to: "4号线", minutes: 0.5, distance: 0, stairs: 51}
             // 节点7->4
         ],
         "磁器口": [
-            {from: "5号线", to: "7号线", minutes: 2}
+            {from: "5号线", to: "7号线", minutes: 2, distance: 50, stairs: 121}
         ],
         // 参考：https://www.bilibili.com/video/BV1r34y1z7f6
         "王府井": [
-            {from: "1号线", to: "8号线", minutes: 1.5}
+            {from: "1号线", to: "8号线", minutes: 1.5, distance: 70, stairs: 130}
         ],
         "鼓楼大街": [
-            {from: "2号线", to: "8号线", minutes: 3.5},
-            {from: "8号线", to: "2号线", minutes: 4}
+            {from: "2号线", to: "8号线", minutes: 3.5, distance: 180, stairs: 199},
+            {from: "8号线", to: "2号线", minutes: 4, distance: 180, stairs: 199}
         ],
         // 参考：https://www.bilibili.com/video/BV1wD4y1F7nS
         "前门": [
-            {from: "2号线", to: "8号线", minutes: 5},
-            {from: "8号线", to: "2号线", minutes: 4.5}
+            {from: "2号线", to: "8号线", minutes: 5, distance: 260, stairs: 157},
+            {from: "8号线", to: "2号线", minutes: 4.5, distance: 150, stairs: 169}
         ],
         "南锣鼓巷": [
-            {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "南行", minutes: 1.5},
-            {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "北行", minutes: 1.5},
-            {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "北行", minutes: 2.5},
-            {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "南行", minutes: 2.5}
+            {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "南行", minutes: 1.5, distance: 110, stairs: 0},
+            {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "北行", minutes: 1.5, distance: 110, stairs: 0},
+            {from: "6号线", from_direction: "东行", to: "8号线", to_direction: "北行", minutes: 2.5, distance: 110, stairs: 53},
+            {from: "6号线", from_direction: "西行", to: "8号线", to_direction: "南行", minutes: 2.5, distance: 110, stairs: 53}
             // 带通道的同向同台
         ],
         "珠市口": [
-            {from: "7号线", to: "8号线", minutes: 3},
-            {from: "8号线", to: "7号线", minutes: 0.5},
+            {from: "7号线", to: "8号线", minutes: 3, distance: 130, stairs: 114},
+            {from: "8号线", to: "7号线", minutes: 1, distance: 90, stairs: 34},
             // 节点8->7, 非高峰可逆行
             {
-                from: "7号线", to: "8号线", minutes: 1,
+                from: "7号线", to: "8号线", minutes: 1, distance: 90, stairs: 34,
                 apply_time: [{end: "07:00"}, {start: "09:30", end: "17:00"}, {start: "19:00"}]
             }
         ],
         "军事博物馆": [
-            {from: "1号线", to: "9号线", minutes: 2.5},
-            {from: "9号线", to: "1号线", minutes: 6},
+            {from: "1号线", to: "9号线", minutes: 2.5, distance: 120, stairs: 176},
+            {from: "9号线", to: "1号线", minutes: 6, distance: 260, stairs: 176},
             // 非高峰可逆行1->9通道
             {
-                from: "9号线", to: "1号线", minutes: 3,
+                from: "9号线", to: "1号线", minutes: 3, distance: 120, stairs: 176,
                 apply_time: [{end: "06:30"}, {start: "10:30", end: "15:30"}, {start: "20:30"}]
             }
         ],
         "国家图书馆": [
-            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "南行", minutes: 0},
-            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "北行", minutes: 0},
-            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "北行", minutes: 1},
-            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "南行", minutes: 1},
+            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "南行", minutes: 0, distance: 0, stairs: 0},
+            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "北行", minutes: 0, distance: 0, stairs: 0},
+            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "北行", minutes: 1, distance: 30, stairs: 68},
+            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "南行", minutes: 1, distance: 30, stairs: 68},
             // 同向同台
-            {from: "4号线", to: "16号线", minutes: 4},
-            {from: "9号线", to: "16号线", minutes: 4}
+            {from: "4号线", to: "16号线", minutes: 4, distance: 180, stairs: 121},
+            {from: "9号线", to: "16号线", minutes: 4, distance: 180, stairs: 121}
         ],
         "白石桥南": [
-            {from: "6号线", to: "9号线", minutes: 1.5},
-            {from: "9号线", to: "6号线", minutes: 0.5},
+            {from: "6号线", to: "9号线", minutes: 1.5, distance: 40, stairs: 115},
+            {from: "9号线", to: "6号线", minutes: 0.5, distance: 20, stairs: 47},
             // 节点9->6, 早晚可逆行
             {
-                from: "6号线", to: "9号线", minutes: 1,
+                from: "6号线", to: "9号线", minutes: 1, distance: 20, stairs: 47,
                 apply_time: [{end: "06:30"}, {start: "20:30"}]
             }
         ],
         "北京西站": [
-            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "南行", minutes: 0},
-            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "北行", minutes: 0},
-            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "北行", minutes: 1},
-            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "南行", minutes: 1}
+            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "南行", minutes: 0, distance: 0, stairs: 0},
+            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "北行", minutes: 0, distance: 0, stairs: 0},
+            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "北行", minutes: 1, distance: 20, stairs: 92},
+            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "南行", minutes: 1, distance: 20, stairs: 92}
             // 同向同台
         ],
         "公主坟": [
-            {from: "1号线", to: "10号线", minutes: 2}
+            {from: "1号线", to: "10号线", minutes: 2, distance: 60, stairs: 103}
         ],
         "国贸": [
-            {from: "1号线", to: "10号线", to_direction: "内环", minutes: 4},
-            {from: "1号线", to: "10号线", to_direction: "外环", minutes: 4.5}
+            {from: "1号线", to: "10号线", to_direction: "外环", minutes: 4.5, distance: 220, stairs: 124},
+            {from: "1号线", to: "10号线", to_direction: "内环", minutes: 4, distance: 160, stairs: 124}
         ],
         // 参考：https://www.bilibili.com/video/BV1Wj6JYNED8/
         "团结湖": [
-            {from: "3号线", to: "10号线", minutes: 2.5}
+            {from: "3号线", to: "10号线", minutes: 2.5, distance: 100, stairs: 112}
         ],
         "海淀黄庄": [
-            {from: "4号线", to: "10号线", minutes: 1.5}
+            {from: "4号线", to: "10号线", minutes: 1, distance: 40, stairs: 34}
         ],
         "角门西": [
-            {from: "4号线", to: "10号线", minutes: 2.5}
+            {from: "4号线", to: "10号线", minutes: 2.5, distance: 80, stairs: 122}
         ],
         "惠新西街南口": [
-            {from: "5号线", to: "10号线", minutes: 0.5}
+            {from: "5号线", to: "10号线", minutes: 0.5, distance: 20, stairs: 44}
         ],
         "宋家庄": [
-            {from: "5号线", to: "10号线", to_direction: "外环", minutes: 1},
-            {from: "5号线", to: "10号线", to_direction: "内环", minutes: 1.5},
-            {from: "5号线", to: "亦庄线", minutes: 1},
-            {from: "亦庄线", to: "5号线", minutes: 2},
-            {from: "亦庄线", to: "10号线", to_direction: "外环", minutes: 2},
-            {from: "亦庄线", to: "10号线", to_direction: "内环", minutes: 2.5}
+            {from: "5号线", to: "10号线", to_direction: "外环", minutes: 1, distance: 30, stairs: 68},
+            {from: "5号线", to: "10号线", to_direction: "内环", minutes: 1.5, distance: 60, stairs: 68},
+            {from: "5号线", to: "亦庄线", minutes: 1, distance: 80, stairs: 0},
+            {from: "亦庄线", to: "5号线", minutes: 1.5, distance: 70, stairs: 68},
+            {from: "亦庄线", to: "10号线", to_direction: "外环", minutes: 2, distance: 100, stairs: 68},
+            {from: "亦庄线", to: "10号线", to_direction: "内环", minutes: 2.5, distance: 130, stairs: 68}
         ],
         "慈寿寺": [
-            {from: "6号线", to: "10号线", minutes: 1.5},
-            {from: "10号线", to: "6号线", minutes: 0.5},
+            {from: "6号线", to: "10号线", minutes: 1.5, distance: 50, stairs: 127},
+            {from: "10号线", to: "6号线", minutes: 0.5, distance: 30, stairs: 48},
             // 节点10->6，早晚可逆行
             {
-                from: "6号线", to: "10号线", minutes: 1,
+                from: "6号线", to: "10号线", minutes: 1, distance: 30, stairs: 48,
                 apply_time: [{end: "07:00"}, {start: "09:00", end: "17:00"}, {start: "19:00"}]
             }
         ],
         "呼家楼": [
-            {from: "6号线", to: "10号线", minutes: 0.5}
+            {from: "6号线", to: "10号线", minutes: 0.5, distance: 30, stairs: 43}
         ],
         "双井": [
-            {from: "7号线", to: "10号线", minutes: 2.5}
+            {from: "7号线", to: "10号线", minutes: 2.5, distance: 80, stairs: 120} // 南通道
         ],
         "北土城": [
-            {from: "8号线", to: "10号线", minutes: 1.5},
-            {from: "10号线", to: "8号线", minutes: 0.5},
+            {from: "8号线", to: "10号线", minutes: 1.5, distance: 30, stairs: 102},
+            {from: "10号线", to: "8号线", minutes: 0.5, distance: 0, stairs: 38},
             // 节点10->8, 非高峰可逆行
             {
-                from: "8号线", to: "10号线", minutes: 1,
+                from: "8号线", to: "10号线", minutes: 1, distance: 0, stairs: 38,
                 apply_time: [{end: "07:00"}, {start: "09:00", end: "17:00"}, {start: "19:00"}]
             }
         ],
         // 参考：https://www.bilibili.com/video/BV1Ffk6BWEZy/
         "大红门": [
-            {from: "8号线", to: "10号线", minutes: 3}
+            {from: "8号线", to: "10号线", minutes: 3, distance: 170, stairs: 132}
         ],
         "六里桥": [
-            {from: "9号线", to: "10号线", minutes: 0.5}
+            {from: "9号线", to: "10号线", minutes: 0.5, distance: 0, stairs: 44}
         ],
         // 参考：https://www.bilibili.com/video/BV1bY411n73i/
         "金安桥": [
-            {from: "6号线", to: "11号线", minutes: 3},
-            {from: "6号线", to: "S1线", minutes: 2},
-            {from: "11号线", to: "S1线", minutes: 4}
+            {from: "6号线", to: "11号线", minutes: 3, distance: 120, stairs: 137},
+            {from: "6号线", to: "S1线", minutes: 2, distance: 50, stairs: 140},
+            {from: "11号线", to: "S1线", minutes: 4, distance: 170, stairs: 211}
         ],
         "东坝北": [
-            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "东行", minutes: 0},
-            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "西行", minutes: 0},
-            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "西行", minutes: 1},
-            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "东行", minutes: 1}
+            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "东行", minutes: 0, distance: 0, stairs: 0},
+            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "西行", minutes: 0, distance: 0, stairs: 0},
+            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "西行", minutes: 1, distance: 30, stairs: 72},
+            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "东行", minutes: 1, distance: 30, stairs: 72}
             // 同向同台
         ],
         // 参考：https://www.bilibili.com/video/BV15LBKYrEGW/
         "人民大学": [
-            {from: "4号线", to: "12号线", minutes: 1.5},
-            {from: "12号线", to: "4号线", minutes: 2.5}
+            {from: "4号线", to: "12号线", minutes: 1.5, distance: 110, stairs: 56},
+            {from: "12号线", to: "4号线", minutes: 2.5, distance: 120, stairs: 113}
             // 节点4->12
         ],
         // 参考：https://www.bilibili.com/video/BV1fDqfYYE22
         "和平西桥": [
-            {from: "5号线", to: "12号线", to_direction: "东行", minutes: 3},
-            {from: "5号线", to: "12号线", to_direction: "西行", minutes: 3.5}
+            {from: "5号线", to: "12号线", to_direction: "东行", minutes: 3, distance: 120, stairs: 128},
+            {from: "5号线", to: "12号线", to_direction: "西行", minutes: 3.5, distance: 160, stairs: 128}
         ],
         // 参考：https://www.bilibili.com/video/BV1NrqfY6EAU
         "安华桥": [
-            {from: "8号线", to: "12号线", minutes: 3.5},
-            {from: "12号线", to: "8号线", minutes: 4.5}
+            {from: "8号线", to: "12号线", minutes: 3.5, distance: 200, stairs: 137},
+            {from: "12号线", to: "8号线", minutes: 4.5, distance: 240, stairs: 118}
             // 超长伪节点8->12
         ],
         // 参考：https://www.bilibili.com/video/BV1XEBKYBEPV
         "长春桥": [
-            {from: "10号线", to: "12号线", minutes: 2}
+            {from: "10号线", to: "12号线", minutes: 2, distance: 110, stairs: 126}
         ],
         // 10-CAE参考：https://www.bilibili.com/video/BV1Xm4y1W743/
         // 10-12参考：https://www.bilibili.com/video/BV1MaqfYmEQQ
         // 12-CAE为经由10的路线，扣除两个0.5
         "三元桥": [
-            {from: "10号线", to: "12号线", minutes: 3},
-            {from: "10号线", to: "首都机场线", minutes: 2},
-            {from: "12号线", to: "首都机场线", minutes: 4}
+            {from: "10号线", to: "12号线", minutes: 3, distance: 160, stairs: 121},
+            {from: "10号线", to: "首都机场线", minutes: 2, distance: 70, stairs: 71},
+            {from: "12号线", to: "首都机场线", minutes: 4, distance: 230, stairs: 132} // 外侧通道300m+132台阶
         ],
         "东直门": [
             // 2->13调整时间，按1.5倍算
-            {from: "2号线", to: "13号线", minutes: 6.5},
-            {from: "13号线", to: "2号线", minutes: 5},
+            {from: "2号线", to: "13号线", minutes: 6.5, distance: 380, stairs: 104},
+            {from: "13号线", to: "2号线", minutes: 5, distance: 260, stairs: 23},
 
             // 首都机场线参考：https://www.bilibili.com/video/BV1Tp4y1G7hc/
-            {from: "2号线", to: "首都机场线", minutes: 3},
-            {from: "13号线", to: "首都机场线", minutes: 2.5},
-            {from: "首都机场线", to: "13号线", minutes: 3.5}
+            {from: "2号线", to: "首都机场线", minutes: 3, distance: 190, stairs: 61},
+            {from: "13号线", to: "首都机场线", minutes: 2.5, distance: 90, stairs: 122},
+            {from: "首都机场线", to: "13号线", minutes: 3.5, distance: 180, stairs: 123}
         ],
         "立水桥": [
-            {from: "5号线", from_direction: "南行", to: "13号线", minutes: 2},
-            {from: "5号线", from_direction: "北行", to: "13号线", minutes: 3}
+            {from: "5号线", from_direction: "南行", to: "13号线", minutes: 2, distance: 90, stairs: 38},
+            {from: "5号线", from_direction: "北行", to: "13号线", minutes: 3, distance: 110, stairs: 118}
         ],
         "霍营": [
-            {from: "8号线", to: "13号线", minutes: 3.5}
+            {from: "8号线", to: "13号线", minutes: 3.5, distance: 170, stairs: 94}
         ],
         "知春路": [
-            {from: "10号线", from_direction: "内环", to: "13号线", minutes: 4},
-            {from: "10号线", from_direction: "外环", to: "13号线", minutes: 4.5}
+            {from: "10号线", from_direction: "外环", to: "13号线", minutes: 4.5, distance: 230, stairs: 161}, // 北通道
+            {from: "10号线", from_direction: "内环", to: "13号线", minutes: 4, distance: 120, stairs: 149} // 南通道
         ],
         "芍药居": [
-            {from: "10号线", to: "13号线", to_direction: "东行", minutes: 3.5},
-            {from: "10号线", to: "13号线", to_direction: "西行", minutes: 3}
+            {from: "10号线", to: "13号线", to_direction: "东行", minutes: 3.5, distance: 150, stairs: 116},
+            {from: "10号线", to: "13号线", to_direction: "西行", minutes: 3, distance: 130, stairs: 106}
         ],
         // 参考：https://www.bilibili.com/video/BV1FDqfYeEDG
         "光熙门": [
-            {from: "12号线", to: "13号线", minutes: 4.5}
+            {from: "12号线", to: "13号线", minutes: 4.5, distance: 160, stairs: 208}
         ],
         "大望路": [
-            {from: "1号线", to: "14号线", minutes: 5.5},
-            {from: "14号线", to: "1号线", minutes: 5.5}
+            {from: "1号线", to: "14号线", minutes: 5, distance: 210, stairs: 133},
+            {from: "14号线", to: "1号线", minutes: 5.5, distance: 250, stairs: 133}
         ],
         // 参考：https://www.bilibili.com/video/BV1HAqfYiEKy/
         "朝阳公园": [
-            {from: "3号线", to: "14号线", minutes: 3},
-            {from: "14号线", to: "3号线", minutes: 1.5},
+            {from: "3号线", to: "14号线", minutes: 3, distance: 160, stairs: 105},
+            {from: "14号线", to: "3号线", minutes: 1.5, distance: 110, stairs: 50},
             // 节点14->3
         ],
         "北京南站": [
-            {from: "4号线", to: "14号线", minutes: 0.5},
-            {from: "14号线", to: "4号线", minutes: 1.5}
+            {from: "4号线", to: "14号线", minutes: 0.5, distance: 10, stairs: 52},
+            {from: "14号线", to: "4号线", minutes: 1.5, distance: 40, stairs: 146}
             // 节点4->14
         ],
         "蒲黄榆": [
-            {from: "5号线", to: "14号线", minutes: 2}
+            {from: "5号线", to: "14号线", minutes: 2, distance: 60, stairs: 126}
         ],
         "金台路": [
-            {from: "6号线", to: "14号线", minutes: 0.5},
-            {from: "14号线", to: "6号线", minutes: 2}
+            {from: "6号线", to: "14号线", minutes: 0.5, distance: 30, stairs: 48},
+            {from: "14号线", to: "6号线", minutes: 2, distance: 60, stairs: 117}
             // 节点6->14
         ],
         "九龙山": [
-            {from: "7号线", to: "14号线", minutes: 2},
-            {from: "14号线", to: "7号线", minutes: 0.5}
+            {from: "7号线", to: "14号线", minutes: 2, distance: 70, stairs: 113},
+            {from: "14号线", to: "7号线", minutes: 0.5, distance: 30, stairs: 42}
             // 节点14->7
         ],
         "永定门外": [
-            {from: "8号线", to: "14号线", minutes: 2.5}
+            {from: "8号线", to: "14号线", minutes: 2.5, distance: 120, stairs: 138}
         ],
         "七里庄": [
-            {from: "9号线", to: "14号线", minutes: 0.5}
+            {from: "9号线", to: "14号线", to_direction: "东北行", minutes: 0.5, distance: 30, stairs: 44},
+            {from: "9号线", to: "14号线", to_direction: "西南行", minutes: 0.5, distance: 10, stairs: 53}
         ],
         "西局": [
-            {from: "10号线", to: "14号线", minutes: 1.5},
-            {from: "14号线", to: "10号线", minutes: 0.5}
+            {from: "10号线", to: "14号线", minutes: 1.5, distance: 30, stairs: 113},
+            {from: "14号线", to: "10号线", minutes: 0.5, distance: 20, stairs: 45}
             // 节点14->10
         ],
         "十里河": [
-            {from: "10号线", to: "14号线", minutes: 3},
+            {from: "10号线", to: "14号线", minutes: 3, distance: 130, stairs: 85},
             // 参考：https://www.bilibili.com/video/BV1MS4y1w7vk/
-            {from: "10号线", to: "17号线", minutes: 2.5},
-            {from: "14号线", to: "17号线", minutes: 4}
+            {from: "10号线", to: "17号线", minutes: 3, distance: 140, stairs: 82},
+            {from: "17号线", to: "10号线", minutes: 2.5, distance: 80, stairs: 137},
+            {from: "14号线", to: "17号线", minutes: 4, distance: 260, stairs: 80},
+            {from: "17号线", to: "14号线", minutes: 4, distance: 190, stairs: 154}
+            // 伪节点10->17, 14->17
         ],
         "大屯路东": [
-            {from: "5号线", to: "15号线", minutes: 4.5}
+            {from: "5号线", to: "15号线", minutes: 4.5, distance: 150, stairs: 198}
         ],
         "奥林匹克公园": [
-            {from: "8号线", to: "15号线", minutes: 5}
+            {from: "8号线", to: "15号线", minutes: 4.5, distance: 200, stairs: 144}
         ],
         // 参考：https://www.bilibili.com/video/BV1ES6kBnEr7/
         "望京西": [
-            {from: "13号线", from_direction: "东行", to: "15号线", minutes: 5.5},
-            {from: "13号线", from_direction: "西行", to: "15号线", minutes: 5},
-            {from: "13号线", from_direction: "东行", to: "17号线", minutes: 3.5},
-            {from: "13号线", from_direction: "西行", to: "17号线", minutes: 3},
-            {from: "15号线", to: "17号线", minutes: 2}
+            {from: "13号线", from_direction: "东行", to: "15号线", minutes: 5.5, distance: 340, stairs: 112},
+            {from: "13号线", from_direction: "西行", to: "15号线", minutes: 5, distance: 310, stairs: 112},
+            {from: "13号线", from_direction: "东行", to: "17号线", minutes: 3.5, distance: 130, stairs: 177},
+            {from: "13号线", from_direction: "西行", to: "17号线", minutes: 3, distance: 100, stairs: 177},
+            {from: "15号线", to: "17号线", minutes: 2, distance: 80, stairs: 133}
         ],
         "望京": [
-            {from: "14号线", to: "15号线", minutes: 2.5}
+            {from: "14号线", to: "15号线", minutes: 2.5, distance: 110, stairs: 114}
         ],
         "西苑": [
-            {from: "4号线", to: "16号线", minutes: 3.5}
+            {from: "4号线", to: "16号线", minutes: 3.5, distance: 150, stairs: 116}
         ],
         "二里沟": [
-            {from: "6号线", to: "16号线", minutes: 1}
+            {from: "6号线", to: "16号线", minutes: 1, distance: 50, stairs: 51}
         ],
         // 参考：https://www.bilibili.com/video/BV1vD4y157EP/
         "达官营": [
-            {from: "7号线", to: "16号线", minutes: 3.5},
-            {from: "16号线", to: "7号线", minutes: 3}
+            {from: "7号线", to: "16号线", minutes: 3.5, distance: 190, stairs: 126},
+            {from: "16号线", to: "7号线", minutes: 3, distance: 140, stairs: 126}
         ],
         "丰台南路": [
-            {from: "9号线", to: "16号线", minutes: 1}
+            {from: "9号线", to: "16号线", minutes: 1.5, distance: 40, stairs: 115}
             // 共用站厅
         ],
         // 参考：https://www.bilibili.com/video/BV1QC4y1v7xL/
         "苏州街": [
-            {from: "10号线", to: "16号线", minutes: 1.5}
+            {from: "10号线", to: "16号线", minutes: 1.5, distance: 50, stairs: 65}
         ],
         // 参考：https://www.bilibili.com/video/BV1SG4y1j7hH/
         "丰台站": [
-            {from: "10号线", to: "16号线", minutes: 2.5}
+            {from: "10号线", to: "16号线", minutes: 2.5, distance: 90, stairs: 165} // 东通道
         ],
         // 参考：https://www.bilibili.com/video/BV1R5BKY3ELc
         "苏州桥": [
-            {from: "12号线", to: "16号线", to_direction: "北行", minutes: 1},
-            {from: "12号线", to: "16号线", to_direction: "南行", minutes: 1.5}
+            {from: "12号线", to: "16号线", to_direction: "南行", minutes: 1.5, distance: 50, stairs: 101},
+            {from: "12号线", to: "16号线", to_direction: "北行", minutes: 1, distance: 50, stairs: 51}
             // 16叠落，下层北行站台与12站厅同层，12下穿16
         ],
         // 参考：https://www.bilibili.com/video/BV1cHwveYEiA/
         "丽泽商务区": [
-            {from: "14号线", to: "16号线", minutes: 0.5},
-            {from: "16号线", to: "14号线", minutes: 1},
+            {from: "14号线", to: "16号线", minutes: 0.5, distance: 0, stairs: 51},
+            {from: "16号线", to: "14号线", minutes: 1, distance: 30, stairs: 153},
             // 节点14->16, 非高峰&节假日可逆行
             {
-                from: "16号线", to: "14号线", minutes: 0.5,
+                from: "16号线", to: "14号线", minutes: 0.5, distance: 0, stairs: 51,
                 apply_time: [{date_group: "工作日", start: "10:00", end: "17:00"}, {date_group: "双休日"}]
             }
         ],
         // 参考：https://www.bilibili.com/video/BV1wEBBBuEkK/
         "永安里": [
-            {from: "1号线", to: "17号线", minutes: 3}
+            {from: "1号线", to: "17号线", minutes: 3, distance: 130, stairs: 130}
         ],
         // 参考：https://www.bilibili.com/video/BV1PVcBekEd1/
         "工人体育场": [
-            {from: "3号线", to: "17号线", minutes: 1},
-            {from: "17号线", to: "3号线", minutes: 0.5}
+            {from: "3号线", to: "17号线", minutes: 1.5, distance: 40, stairs: 115},
+            {from: "17号线", to: "3号线", minutes: 1, distance: 70, stairs: 46}
             // 节点17->3
         ],
         // 参考：https://www.bilibili.com/video/BV1VRvrB8E5w/
         "东大桥": [
-            {from: "6号线", to: "17号线", minutes: 3}
+            {from: "6号线", to: "17号线", minutes: 3, distance: 110, stairs: 134}
         ],
         // 参考：https://www.bilibili.com/video/BV1LK41147SW/
         "太阳宫": [
-            {from: "10号线", to: "17号线", minutes: 3}
+            {from: "10号线", to: "17号线", minutes: 3, distance: 80, stairs: 140} // 东通道
         ],
         // 参考：https://www.bilibili.com/video/BV1wmqfYiEHY
         "西坝河": [
-            {from: "12号线", to: "17号线", minutes: 2.5},
-            {from: "17号线", to: "12号线", minutes: 1.5}
+            {from: "12号线", to: "17号线", minutes: 2.5, distance: 140, stairs: 123},
+            {from: "17号线", to: "12号线", minutes: 1.5, distance: 140, stairs: 51}
             // 节点17->12
         ],
         // 参考：https://www.bilibili.com/video/BV1hUBkBPEpT/
         "天通苑": [
-            {from: "5号线", to: "18号线", minutes: 4}
+            {from: "5号线", to: "18号线", minutes: 4, distance: 150, stairs: 198}
         ],
         // 参考：https://www.bilibili.com/video/BV1QViFBgEhC/
         "回龙观东大街": [
-            {from: "8号线", to: "18号线", minutes: 1.5}
+            {from: "8号线", to: "18号线", minutes: 1.5, distance: 40, stairs: 122}
         ],
         // 参考：https://www.bilibili.com/video/BV1crBzBGERV/
         "马连洼": [
-            {from: "16号线", to: "18号线", minutes: 2.5},
-            {from: "18号线", to: "16号线", minutes: 3}
+            {from: "16号线", to: "18号线", minutes: 2.5, distance: 120, stairs: 118},
+            {from: "18号线", to: "16号线", minutes: 3, distance: 140, stairs: 118}
         ],
         // 参考：https://www.bilibili.com/video/BV1azBBB9EAS/
         "天通苑东": [
-            {from: "17号线", to: "18号线", minutes: 0.5},
-            {from: "18号线", to: "17号线", minutes: 1}
+            {from: "17号线", to: "18号线", minutes: 0.5, distance: 30, stairs: 44},
+            {from: "18号线", to: "17号线", minutes: 1, distance: 40, stairs: 114}
             // 节点17->18
         ],
         // 参考：https://www.bilibili.com/video/BV18Y411a7Mc/
         "积水潭": [
-            {from: "2号线", to: "19号线", minutes: 2.5},
-            {from: "19号线", to: "2号线", minutes: 3}
+            {from: "2号线", to: "19号线", minutes: 2.5, distance: 160, stairs: 72},
+            {from: "19号线", to: "2号线", minutes: 3, distance: 180, stairs: 105}
         ],
         "新宫": [
-            {from: "4号线", to: "19号线", minutes: 1.5}
+            {from: "4号线", to: "19号线", minutes: 1.5, distance: 70, stairs: 116}
         ],
         // 参考：https://www.bilibili.com/video/BV1SF411n7FP/
         "牡丹园": [
-            {from: "10号线", to: "19号线", minutes: 1.5},
-            {from: "19号线", to: "10号线", minutes: 2.5}
+            {from: "10号线", to: "19号线", minutes: 1.5, distance: 50, stairs: 118},
+            {from: "19号线", to: "10号线", minutes: 2.5, distance: 120, stairs: 132}
         ],
         // 参考：https://www.bilibili.com/video/BV13m4y1S7XH/
         "草桥": [
-            {from: "10号线", to: "19号线", minutes: 4.5},
+            {from: "10号线", to: "19号线", minutes: 4.5, distance: 330, stairs: 72}, // 内侧通道
             // 大兴机场线参考：https://www.bilibili.com/video/BV18s4y167cu/
-            {from: "10号线", to: "大兴机场线", minutes: 6},
-            {from: "19号线", to: "大兴机场线", minutes: 2}
+            {from: "10号线", to: "大兴机场线", minutes: 6, distance: 390, stairs: 72},
+            {from: "19号线", to: "大兴机场线", minutes: 2, distance: 60, stairs: 76}
         ],
         // 参考：https://www.bilibili.com/video/BV1DnBKYTEsW
         "北太平庄": [
-            {from: "12号线", to: "19号线", minutes: 0.5},
-            {from: "19号线", to: "12号线", minutes: 1}
+            {from: "12号线", to: "19号线", minutes: 0.5, distance: 30, stairs: 48},
+            {from: "19号线", to: "12号线", minutes: 1, distance: 40, stairs: 115}
             // 节点12->19
         ],
         // 参考：https://www.bilibili.com/video/BV13Y411f7Tb/
         // 19-14新通道：https://www.bilibili.com/video/BV1b8BaBiE1d
         "景风门": [
-            {from: "14号线", to: "19号线", minutes: 2.5},
-            {from: "19号线", to: "14号线", minutes: 3.5}
+            {from: "14号线", to: "19号线", minutes: 2.5, distance: 160, stairs: 132},
+            {from: "19号线", to: "14号线", minutes: 3.5, distance: 170, stairs: 217}
         ],
         "次渠": [
-            {from: "17号线", to: "亦庄线", minutes: 1.5}
+            {from: "17号线", to: "亦庄线", minutes: 1.5, distance: 20, stairs: 124}
         ],
         "郭公庄": [
-            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "出城", minutes: 0},
-            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "进城", minutes: 0},
-            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "进城", minutes: 1},
-            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "出城", minutes: 1}
+            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "进城", minutes: 1, distance: 30, stairs: 68},
+            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "出城", minutes: 1, distance: 30, stairs: 68},
+            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "出城", minutes: 0, distance: 0, stairs: 0},
+            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "进城", minutes: 0, distance: 0, stairs: 0}
             // 同向同台
         ],
         "首经贸": [
-            {from: "房山线", to: "10号线", minutes: 2},
-            {from: "10号线", to: "房山线", minutes: 0.5},
+            {from: "房山线", to: "10号线", minutes: 2, distance: 60, stairs: 112},
+            {from: "10号线", to: "房山线", minutes: 0.5, distance: 50, stairs: 46},
             // 节点10->25, 平峰可逆行
             {
-                from: "房山线", to: "10号线", minutes: 1,
+                from: "房山线", to: "10号线", minutes: 1, distance: 50, stairs: 46,
                 apply_time: [{end: "07:00"}, {start: "09:00", end: "17:00"}, {start: "20:00"}]
             }
         ],
         "东管头南": [
-            {from: "16号线", to: "房山线", minutes: 2}
+            {from: "16号线", to: "房山线", minutes: 2, distance: 60, stairs: 127}
         ],
         "阎村东": [
-            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "出城", minutes: 0},
-            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "进城", minutes: 0},
-            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "进城", minutes: 1},
-            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "出城", minutes: 1}
+            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "进城", minutes: 0, distance: 0, stairs: 0},
+            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "出城", minutes: 0, distance: 0, stairs: 0},
+            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "出城", minutes: 1, distance: 30, stairs: 68},
+            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "进城", minutes: 1, distance: 30, stairs: 68}
             // 同向同台
         ],
         "朱辛庄": [
-            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "进城", minutes: 0},
-            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "出城", minutes: 0},
-            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "出城", minutes: 1},
-            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "进城", minutes: 1}
+            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "进城", minutes: 0, distance: 0, stairs: 0},
+            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "出城", minutes: 0, distance: 0, stairs: 0},
+            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "出城", minutes: 1, distance: 30, stairs: 104},
+            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "进城", minutes: 1, distance: 30, stairs: 104}
             // 同向同台
         ],
         "西二旗": [
-            {from: "13号线", from_direction: "西行", to: "昌平线", minutes: 0.5},
-            {from: "13号线", from_direction: "东行", to: "昌平线", to_direction: "出城", minutes: 1},
-            {from: "13号线", from_direction: "东行", to: "昌平线", to_direction: "进城", minutes: 2}
+            {from: "13号线", from_direction: "东行", to: "昌平线", to_direction: "进城", minutes: 2, distance: 60, stairs: 138},
+            {from: "13号线", from_direction: "东行", to: "昌平线", to_direction: "出城", minutes: 1, distance: 60, stairs: 46},
+            {from: "13号线", from_direction: "西行", to: "昌平线", minutes: 0.5, distance: 30, stairs: 46}
         ],
         "清河站": [
-            {from: "13号线", to: "昌平线", minutes: 1}
+            {from: "13号线", to: "昌平线", minutes: 1, distance: 40, stairs: 107}
             // 共用站厅
         ],
         // 参考：https://www.bilibili.com/video/BV1TR4y1B7St/
         "西土城": [
-            {from: "10号线", to: "昌平线", minutes: 2.5}
+            {from: "10号线", to: "昌平线", minutes: 2.5, distance: 90, stairs: 141}
         ],
         // 参考：https://www.bilibili.com/video/BV1DnBKYTEvt
         "蓟门桥": [
-            {from: "12号线", to: "昌平线", minutes: 1},
-            {from: "昌平线", to: "12号线", minutes: 0.5}
+            {from: "12号线", to: "昌平线", minutes: 1, distance: 40, stairs: 111},
+            {from: "昌平线", to: "12号线", minutes: 0.5, distance: 60, stairs: 47}
             // 节点27->12，工作日7-9:30/17-19之外可逆行但不改变时间
         ],
         // 参考：https://www.bilibili.com/video/BV1Uj411P72p/
         "六道口": [
-            {from: "15号线", to: "昌平线", minutes: 2.5}
+            {from: "15号线", to: "昌平线", minutes: 2.5, distance: 90, stairs: 120}
         ],
         "巴沟": [
-            {from: "10号线", to: "西郊线", minutes: 2.5}
+            {from: "10号线", to: "西郊线", minutes: 2.5, distance: 120, stairs: 76},
+            {from: "西郊线", to: "10号线", minutes: 2.5, distance: 160, stairs: 76}
         ],
         // 参考：https://www.bilibili.com/video/BV1Go4y1S7Cq/
         "荣昌东街": [
-            {from: "亦庄线", to: "亦庄T1线", to_direction: "西南行", minutes: 3},
-            {from: "亦庄线", to: "亦庄T1线", to_direction: "东北行", minutes: 3.5}
+            {from: "亦庄线", to: "亦庄T1线", to_direction: "东北行", minutes: 3.5, distance: 170, stairs: 143},
+            {from: "亦庄线", to: "亦庄T1线", to_direction: "西南行", minutes: 3, distance: 150, stairs: 143}
         ],
         // 参考：https://www.bilibili.com/video/BV1qj411r7Lo/
         "北新桥": [
-            {from: "5号线", to: "首都机场线", minutes: 2.5}
+            {from: "5号线", to: "首都机场线", minutes: 2.5, distance: 110, stairs: 126} // 南通道
         ]
     },
     virtual_transfers: [

@@ -9,9 +9,20 @@ from typing import Any
 
 from src.city.date_group import TimeInterval, parse_time_interval, DateGroup
 from src.city.line import Line, station_full_name
+from src.common.common import suffix_s
 
 # (from_line, from_direction, to_line, to_direction)
 TransferSpec = tuple[str, str, str, str]
+
+# (minutes, horizontal distance in meters, # of stairs), the last two fields are either both integer or both None
+TransferData = tuple[float, int | None, int | None]
+
+
+def format_transfer_data(data: TransferData) -> str:
+    """ Format transfer data """
+    return suffix_s("minute", data[0]) + (
+        "" if data[1] is None else (f" ({data[1]}m, " + suffix_s("stair", data[2]) + ")")
+    )
 
 
 class Transfer:
@@ -23,20 +34,20 @@ class Transfer:
         self.second_station = second_station
 
         # (from_line, from_direction, to_line, to_direction) -> minutes
-        self.transfer_time: dict[TransferSpec, float] = {}
-        self.special_time: dict[TransferSpec, tuple[float, TimeInterval]] = {}
+        self.transfer_time: dict[TransferSpec, TransferData] = {}
+        self.special_time: dict[TransferSpec, tuple[TransferData, TimeInterval]] = {}
 
     def __repr__(self) -> str:
         """ String representation """
         base: list[str] = []
         for (from_l, from_d, to_l, to_d), minutes in self.transfer_time.items():
-            base.append(f"{from_l} ({from_d}) -> {to_l} ({to_d}): {minutes} minutes")
+            base.append(f"{from_l} ({from_d}) -> {to_l} ({to_d}): " + format_transfer_data(minutes))
         return "<" + self.station + (
             ": " if self.second_station is None else f" - {self.second_station}: "
         ) + ", ".join(base) + ">"
 
     def add_transfer_time(
-        self, minutes: float, from_line: Line, to_line: Line,
+        self, minutes: float, distance: int | None, stairs: int | None, from_line: Line, to_line: Line,
         from_direction: str | None = None, to_direction: str | None = None,
         time_interval: TimeInterval | None = None, *, allow_reverse: bool = True
     ) -> None:
@@ -44,24 +55,24 @@ class Transfer:
         for from_d in (from_line.directions.keys() if from_direction is None else [from_direction]):
             for to_d in (to_line.directions.keys() if to_direction is None else [to_direction]):
                 if time_interval is None:
-                    self.transfer_time[(from_line.name, from_d, to_line.name, to_d)] = minutes
+                    self.transfer_time[(from_line.name, from_d, to_line.name, to_d)] = (minutes, distance, stairs)
                     reverse = (to_line.name, to_d, from_line.name, from_d)
                     if allow_reverse and reverse not in self.transfer_time:
-                        self.transfer_time[reverse] = minutes
+                        self.transfer_time[reverse] = (minutes, distance, stairs)
                 else:
-                    self.special_time[(from_line.name, from_d, to_line.name, to_d)] = (minutes, time_interval)
+                    self.special_time[(from_line.name, from_d, to_line.name, to_d)] = ((minutes, distance, stairs), time_interval)
 
     def get_transfer_time(
         self, from_line: Line | str, from_direction: str, to_line: Line | str, to_direction: str,
         cur_date: date | DateGroup, cur_time: time, cur_day: bool = False
-    ) -> tuple[float, bool]:
+    ) -> tuple[TransferData, bool]:
         """ Retrieve transfer time (returns true if special) """
         key = (from_line.name if isinstance(from_line, Line) else from_line, from_direction,
                to_line.name if isinstance(to_line, Line) else to_line, to_direction)
         if key[0] == key[2]:
             # FIXME: full solution to same-line transfer
             # assert key[1] != key[3], key
-            return 0.0, False
+            return (0.0, 0, 0), False
         if key in self.special_time:
             special_time, interval = self.special_time[key]
             if interval.covers(cur_date, cur_time, cur_day):
@@ -73,7 +84,7 @@ class Transfer:
         self, from_line: Line | None = None, from_direction: str | None = None,
         to_line: Line | None = None, to_direction: str | None = None,
         cur_date: date | DateGroup | None = None, cur_time: time | None = None, cur_day: bool = False
-    ) -> tuple[str, str, str, str, float, bool]:
+    ) -> tuple[str, str, str, str, TransferData, bool]:
         """ Retrieve the smallest transfer time available, given limited parameters """
         if from_line is None:
             assert from_direction is None, (from_line, from_direction)
@@ -90,7 +101,7 @@ class Transfer:
         else:
             possible_to = [(to_line.name, to_direction)]
 
-        results: list[tuple[str, str, str, str, float, bool]] = []
+        results: list[tuple[str, str, str, str, TransferData, bool]] = []
         for from_l, from_d in possible_from:
             for to_l, to_d in possible_to:
                 if (from_l, from_d, to_l, to_d) not in self.transfer_time.keys():
@@ -116,7 +127,7 @@ def parse_transfer_data(transfer: Transfer, lines: dict[str, Line], transfer_dat
             from_s, to_s = to_s, from_s
             from_d, to_d = to_d, from_d
         transfer.add_transfer_time(
-            transfer_data["minutes"],
+            transfer_data["minutes"], transfer_data.get("distance"), transfer_data.get("stairs"),
             lines[from_s], lines[to_s],
             from_d, to_d,
             parse_time_interval(
