@@ -121,7 +121,11 @@ def generate_next(
     # First ask for a delta
     direction_stations = line.direction_stations(direction)
     prev_index = direction_stations.index(station)
-    next_station = direction_stations[prev_index + 1]
+    if prev_index == len(direction_stations) - 1:
+        assert line.loop, (line, direction, station)
+        next_station = direction_stations[0]
+    else:
+        next_station = direction_stations[prev_index + 1]
     delta = ask_for_int(
         f"What is the running time (in minutes) from {station} to {next_station}?",
         with_default=0

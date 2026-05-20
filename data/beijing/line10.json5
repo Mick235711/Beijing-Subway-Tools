@@ -141,7 +141,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:16", until: "06:44"},
                         {plan: "巴沟出库车", first_train: "07:04", skip_trains: 2, until: "07:34"},
-                        {plan: "巴沟出库车", first_train: "07:38", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:38", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:54"]},
                         {plan: "巴沟出库车", first_train: "15:23", skip_trains: 3, until: "16:55"},
                         {plan: "巴沟出库车", first_train: "17:02", skip_trains: 1, until: "18:02"},
                         {plan: "成寿寺出库车", first_train: "06:48", count: 3},
@@ -226,7 +227,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:14", until: "06:42"},
                         {plan: "巴沟出库车", first_train: "07:02", skip_trains: 2, until: "07:32"},
-                        {plan: "巴沟出库车", first_train: "07:36", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:36", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:52"]},
                         {plan: "巴沟出库车", first_train: "15:21", skip_trains: 3, until: "16:53"},
                         {plan: "巴沟出库车", first_train: "17:00", skip_trains: 1, until: "18:00"},
                         {plan: "成寿寺出库车", first_train: "06:46", count: 3},
@@ -310,7 +312,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:12", until: "06:40"},
                         {plan: "巴沟出库车", first_train: "07:00", skip_trains: 2, until: "07:30"},
-                        {plan: "巴沟出库车", first_train: "07:34", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:34", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:50"]},
                         {plan: "巴沟出库车", first_train: "15:19", skip_trains: 3, until: "16:51"},
                         {plan: "巴沟出库车", first_train: "16:58", skip_trains: 1, until: "17:58"},
                         {plan: "成寿寺出库车", first_train: "06:44", count: 3},
@@ -393,7 +396,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:09", until: "06:37"},
                         {plan: "巴沟出库车", first_train: "06:57", skip_trains: 2, until: "07:27"},
-                        {plan: "巴沟出库车", first_train: "07:31", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:31", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:47"]},
                         {plan: "巴沟出库车", first_train: "15:16", skip_trains: 3, until: "16:48"},
                         {plan: "巴沟出库车", first_train: "16:55", skip_trains: 1, until: "17:55"},
                         {plan: "成寿寺出库车", first_train: "06:41", count: 3},
@@ -477,7 +481,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:06", until: "06:34"},
                         {plan: "巴沟出库车", first_train: "06:54", skip_trains: 2, until: "07:24"},
-                        {plan: "巴沟出库车", first_train: "07:28", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:28", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:44"]},
                         {plan: "巴沟出库车", first_train: "15:13", skip_trains: 3, until: "16:45"},
                         {plan: "巴沟出库车", first_train: "16:52", skip_trains: 1, until: "17:52"},
                         {plan: "成寿寺出库车", first_train: "06:38", count: 3},
@@ -561,7 +566,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:03", until: "06:31"},
                         {plan: "巴沟出库车", first_train: "06:52", skip_trains: 2, until: "07:22"},
-                        {plan: "巴沟出库车", first_train: "07:26", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:26", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:42"]},
                         {plan: "巴沟出库车", first_train: "15:11", skip_trains: 3, until: "16:43"},
                         {plan: "巴沟出库车", first_train: "16:49", skip_trains: 1, until: "17:50"},
                         {plan: "成寿寺出库车", first_train: "06:35", count: 3},
@@ -646,7 +652,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "05:00", until: "06:28"},
                         {plan: "巴沟出库车", first_train: "06:49", skip_trains: 2, until: "07:19"},
-                        {plan: "巴沟出库车", first_train: "07:23", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:23", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:39"]},
                         {plan: "巴沟出库车", first_train: "15:08", skip_trains: 3, until: "16:40"},
                         {plan: "巴沟出库车", first_train: "16:46", skip_trains: 1, until: "17:46"},
                         {plan: "成寿寺出库车", first_train: "06:32", count: 3},
@@ -729,7 +736,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "04:58", until: "06:26"},
                         {plan: "巴沟出库车", first_train: "06:46", skip_trains: 2, until: "07:16"},
-                        {plan: "巴沟出库车", first_train: "07:20", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:20", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:36"]},
                         {plan: "巴沟出库车", first_train: "15:05", skip_trains: 3, until: "16:37"},
                         {plan: "巴沟出库车", first_train: "16:44", skip_trains: 1, until: "17:44"},
                         {plan: "成寿寺出库车", first_train: "06:30", count: 3},
@@ -821,7 +829,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "04:56", until: "06:24"},
                         {plan: "巴沟出库车", first_train: "06:44", skip_trains: 2, until: "07:14"},
-                        {plan: "巴沟出库车", first_train: "07:18", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:18", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:34"]},
                         {plan: "巴沟出库车", first_train: "15:03", skip_trains: 3, until: "16:35"},
                         {plan: "巴沟出库车", first_train: "16:42", skip_trains: 1, until: "17:42"},
                         {plan: "成寿寺出库车", first_train: "06:28", count: 3},
@@ -922,7 +931,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "04:53", until: "06:21"},
                         {plan: "巴沟出库车", first_train: "06:42", skip_trains: 2, until: "07:12"},
-                        {plan: "巴沟出库车", first_train: "07:16", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:16", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:32"]},
                         {plan: "巴沟出库车", first_train: "15:01", skip_trains: 3, until: "16:33"},
                         {plan: "巴沟出库车", first_train: "16:39", skip_trains: 1, until: "17:40"},
                         {plan: "成寿寺出库车", first_train: "06:25", count: 3},
@@ -1023,7 +1033,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "04:51", until: "06:19"},
                         {plan: "巴沟出库车", first_train: "06:40", skip_trains: 2, until: "07:10"},
-                        {plan: "巴沟出库车", first_train: "07:14", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:14", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:30"]},
                         {plan: "巴沟出库车", first_train: "14:59", skip_trains: 3, until: "16:31"},
                         {plan: "巴沟出库车", first_train: "16:38", skip_trains: 1, until: "17:38"},
                         {plan: "成寿寺出库车", first_train: "06:23", count: 3},
@@ -1111,7 +1122,7 @@
                 }
             },
             "外环": {
-                "工作日": {
+                                "工作日": {
                     schedule: [
                         {first_train: "04:49", delta: [[6, [6]], [17, [4]], [24, [2]], 3, 3, [89, [2]], 4, 2, 5, 1]},
                         {first_train: "10:42", delta: [1, 5, [4, [2, 4]], 2, 5, [3, [4, 2, 6]], 6, 7, 6, 6, 6, 6, 6, 6, 7, 6, 6, 6, 6]},
@@ -1124,7 +1135,8 @@
                     filters: [
                         {plan: "巴沟出库车", first_train: "04:49", until: "06:17"},
                         {plan: "巴沟出库车", first_train: "06:37", skip_trains: 2, until: "07:07"},
-                        {plan: "巴沟出库车", first_train: "07:11", skip_trains: 1, count: 4},
+                        {plan: "巴沟出库车", first_train: "07:11", skip_trains: 1, count: 3},
+                        {plan: "巴沟出库车", trains: ["07:27"]},
                         {plan: "巴沟出库车", first_train: "14:56", skip_trains: 3, until: "16:28"},
                         {plan: "巴沟出库车", first_train: "16:35", skip_trains: 1, until: "17:35"},
                         {plan: "成寿寺出库车", first_train: "06:21", count: 3},
