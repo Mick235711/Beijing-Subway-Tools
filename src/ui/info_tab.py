@@ -458,7 +458,7 @@ def info_tab(city: City, data: InfoData) -> None:
             stations_table.on("trainClick", lambda n: (
                 None if (n.args[0], n.args[1]) not in line_id_dict or n.args[2] not in line_id_dict[(n.args[0], n.args[1])]
                 else refresh_train_drawer(
-                    line_id_dict[(n.args[0], n.args[1])][n.args[2]], n.args[2],
+                    line_id_dict[(n.args[0], n.args[1])][n.args[2]], date.fromisoformat(date_input.value), n.args[2],
                     line_id_dict[(n.args[0], n.args[1])], data.station_lines
                 )
             ))

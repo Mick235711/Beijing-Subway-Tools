@@ -88,14 +88,14 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                 with timetables_container:
                     timetables(
                         city, station_lines=data.info_data.station_lines, station=data.station,
-                        train_dict=data.train_dict, through_dict=data.through_dict,
+                        start_date=data.cur_date, train_dict=data.train_dict, through_dict=data.through_dict,
                         hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
                     )
                 timetables_built = True
             else:
                 await timetables.refresh(
                     station_lines=data.info_data.station_lines, station=data.station,
-                    train_dict=data.train_dict, through_dict=data.through_dict,
+                    start_date=data.cur_date, train_dict=data.train_dict, through_dict=data.through_dict,
                     hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
                 )
             loading.set_visibility(False)
@@ -193,7 +193,7 @@ def get_train_list(
 
 
 def timetable_expansion(
-    city: City, line: Line, direction: str | None, station: str,
+    city: City, line: Line, direction: str | None, station: str, start_date: date,
     *, train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     hour_display: StyleMode, show_skipped: bool = False
 ) -> None:
@@ -212,13 +212,13 @@ def timetable_expansion(
 
     if hour_display in ["prefix", "combined"]:
         hour_labels, minute_labels, hour_style = single_prefix_timetable(
-            city, line, station, hour_dict, styles, train_id_dict,
+            city, line, station, start_date, hour_dict, styles, train_id_dict,
             hour_display=hour_display
         )
     elif hour_display in ["title", "list"]:
         assert direction is not None, (line, direction, station)
         hour_labels, minute_labels, hour_style = single_title_timetable(
-            city, station, hour_dict, styles, train_id_dict, through_dict,
+            city, station, start_date, hour_dict, styles, train_id_dict, through_dict,
             hour_display=hour_display
         )
     else:
@@ -249,7 +249,7 @@ def show_line_direction(line: Line, direction: str) -> None:
 
 @ui.refreshable
 def timetables(
-    city: City, *, station_lines: dict[str, set[Line]], station: str,
+    city: City, *, station_lines: dict[str, set[Line]], station: str, start_date: date,
     train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     hour_display: StyleMode = "prefix", show_skipped: bool = False
 ) -> None:
@@ -269,7 +269,7 @@ def timetables(
                 with ui.expansion(value=True).classes("w-full") as expansion:
                     inner = ui.refreshable(timetable_expansion)
                     inner(
-                        city, line, None, station,
+                        city, line, None, station, start_date,
                         train_dict=train_dict, through_dict=through_dict,
                         hour_display=hour_display, show_skipped=show_skipped
                     )
@@ -291,7 +291,7 @@ def timetables(
                     with ui.expansion(value=True).classes("w-[48%]") as expansion:
                         inner = ui.refreshable(timetable_expansion)
                         inner(
-                            city, line, direction, station,
+                            city, line, direction, station, start_date,
                             train_dict=train_dict, through_dict=through_dict,
                             hour_display=hour_display, show_skipped=show_skipped
                         )
@@ -333,7 +333,7 @@ StyleFunction = Callable[[tuple[TrainRoute | None, StyleBase]], tuple[dict[Train
 
 
 def single_hour_timetable(
-    city: City, station: str, hour: int, next_day: bool, train_list: list[Train],
+    city: City, station: str, start_date: date, hour: int, next_day: bool, train_list: list[Train],
     styles: dict[TrainRoute | None, StyleBase], train_id_dict: dict[str, Train],
     label_function: Callable[[Train, str, str], Label] = lambda t, i, x: ui.label(x),
     *, hour_display: StyleMode, reverse: bool = False
@@ -350,7 +350,9 @@ def single_hour_timetable(
         with label_function(
             train, train_id, apply_formatting(hour_display, [styles[route] for route in train.routes], arrival_time)
         ).on(
-            "click", lambda t=train, i=train_id: refresh_train_drawer(t, i, train_id_dict, city.station_lines)
+            "click", lambda t=train, i=train_id: refresh_train_drawer(
+                t, start_date, i, train_id_dict, city.station_lines
+            )
         ).classes(
             "w-full " + DEFAULT_LABEL_CLICK[DEFAULT_LABEL_CLICK.index(" ") + 1:] if hour_display == "list"
             else DEFAULT_LABEL_CLICK
@@ -707,7 +709,7 @@ def show_legend(
 
 
 def single_prefix_timetable(
-    city: City, line: Line, station: str,
+    city: City, line: Line, station: str, start_date: date,
     hour_dict: dict[tuple[int, bool], list[Train]],
     styles: dict[TrainRoute | None, StyleBase], train_id_dict: dict[str, Train],
     *, hour_display: StyleMode
@@ -731,7 +733,7 @@ def single_prefix_timetable(
                         for _ in range(max_width - len(trains)):
                             ui.label().classes(DEFAULT_LABEL)
                         for route, values in single_hour_timetable(
-                            city, station, hour, next_day, trains,
+                            city, station, start_date, hour, next_day, trains,
                             styles, train_id_dict, hour_display=hour_display, reverse=True
                         ).items():
                             if route not in minute_labels:
@@ -742,7 +744,7 @@ def single_prefix_timetable(
                     ) as hour_label:
                         hour_labels.append((hour, hour_label))
                     for route, values in single_hour_timetable(
-                        city, station, hour, next_day,
+                        city, station, start_date, hour, next_day,
                         [t for t in train_list if hour_display != "combined" or t.direction != main_direction],
                         styles, train_id_dict, hour_display=hour_display
                     ).items():
@@ -754,7 +756,7 @@ def single_prefix_timetable(
 
 
 def single_title_timetable(
-    city: City, station: str,
+    city: City, station: str, start_date: date,
     hour_dict: dict[tuple[int, bool], list[Train]],
     styles: dict[TrainRoute | None, StyleBase], train_id_dict: dict[str, Train],
     through_dict: dict[ThroughSpec, list[ThroughTrain]],
@@ -775,7 +777,9 @@ def single_title_timetable(
         if hour_display != "list":
             return ui.label(label)
         with ui.item(
-            on_click=(lambda t=train, i=train_id: refresh_train_drawer(t, i, train_id_dict, city.station_lines))
+            on_click=(lambda t=train, i=train_id: refresh_train_drawer(
+                t, start_date, i, train_id_dict, city.station_lines
+            ))
         ):
             with ui.item_section().props("avatar"):
                 inner = ui.label(label)
@@ -810,8 +814,8 @@ def single_title_timetable(
                 if hour_display == "list":
                     with ui.list().props("separator").classes("w-full"):
                         for route, values in single_hour_timetable(
-                            city, station, hour, next_day, train_list, styles, train_id_dict, label_function,
-                            hour_display=hour_display
+                            city, station, start_date, hour, next_day, train_list,
+                            styles, train_id_dict, label_function, hour_display=hour_display
                         ).items():
                             if route not in minute_labels:
                                 minute_labels[route] = []
@@ -820,8 +824,8 @@ def single_title_timetable(
 
                 with ui.row().classes("gap-x-[8px] w-full no-wrap"):
                     for route, values in single_hour_timetable(
-                        city, station, hour, next_day, train_list, styles, train_id_dict,
-                        hour_display=hour_display
+                        city, station, start_date, hour, next_day, train_list,
+                        styles, train_id_dict, hour_display=hour_display
                     ).items():
                         if route not in minute_labels:
                             minute_labels[route] = []

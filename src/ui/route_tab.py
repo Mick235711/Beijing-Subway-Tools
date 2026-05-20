@@ -284,7 +284,7 @@ def route_tab(city: City) -> None:
             progress, analyze_routes, city, current_routes, start_date
         )
         analyze_button.set_enabled(True)
-        await display_data.refresh(path_list=path_list, through_dict=through_dict)
+        await display_data.refresh(start_date=start_date, path_list=path_list, through_dict=through_dict)
 
     with ui.tabs().classes("w-full") as add_route_tabs:
         ui.tab("Add routes via").props("disable")
@@ -594,7 +594,7 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
             metric=metric_select.value, exclude_virtual=virtual_switch.value
         )
         calc_button.set_enabled(True)
-        await kth_table.refresh(results=results)
+        await kth_table.refresh(start_date=start_date, results=results)
 
     with ui.column().classes("w-full"):
         virtual_switch = ui.switch("Exclude virtual transfers", value=False, on_change=on_input_change)
@@ -627,10 +627,10 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
 @ui.refreshable
 def kth_table(
     city: City, on_route_change: Callable[[Route | list[Route]], None],
-    *, results: list[PathInfo] | tuple[int, Path, str] | None = None
+    *, start_date: date | None = None, results: list[PathInfo] | tuple[int, Path, str] | None = None
 ) -> None:
     """ Display the top kth route calculated """
-    if results is None:
+    if start_date is None or results is None:
         return
     if isinstance(results, tuple):
         with ui.row().classes("items-center gap-x-1"):
@@ -649,7 +649,9 @@ def kth_table(
             _, path, bfs_result = info
             route = (to_abstract(path), bfs_result.station)
             with ui.item(
-                on_click=(lambda n=name, pi=info: refresh_train_drawer(pi, n, None, city.station_lines))
+                on_click=(lambda n=name, pi=info: refresh_train_drawer(
+                    pi, start_date, n, None, city.station_lines
+                ))
             ):
                 with ui.item_section():
                     with ui.element("div").classes("flex items-center flex-wrap gap-1"):
@@ -931,12 +933,12 @@ def calculate_data_rows(
 
 @ui.refreshable
 def display_data(
-    city: City, *,
+    city: City, *, start_date: date | None = None,
     path_list: list[PathData] | None = None,
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> None:
     """ Display analysis data """
-    if path_list is None or through_dict is None:
+    if start_date is None or path_list is None or through_dict is None:
         return
     _, best_dict, data_list = calculate_data(
         strip_routes(path_list, strip_first=True), city.transfers, through_dict,
@@ -977,7 +979,10 @@ def display_data(
         """ Handle reassigning indexes """
         sorted_rows = await data_table.get_filtered_sorted_rows()
         indexes = [row["index"] - 1 for row in sorted_rows]
-        await display_data.refresh(path_list=reassign_index(sorted(path_list, key=lambda x: indexes.index(x[0]))))
+        await display_data.refresh(
+            start_date=start_date,
+            path_list=reassign_index(sorted(path_list, key=lambda x: indexes.index(x[0])))
+        )
 
     data_rows = calculate_data_rows(city, best_dict, data_list, cur_time=datetime.now().time())
     with ui.column():
@@ -1092,7 +1097,7 @@ def display_data(
     data_table.on("lineBadgeClick", lambda n: None if n.args is None else refresh_line_drawer(line_indexes[n.args], city.lines))
     data_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, city.station_lines))
     data_table.on("depTimeClick", lambda n: refresh_train_drawer(
-        data_dict[n.args[0]][2][n.args[1]], index_name(n.args[0]), None, city.station_lines
+        data_dict[n.args[0]][2][n.args[1]], start_date, index_name(n.args[0]), None, city.station_lines
     ))
     data_table.add_slot("body-cell-percentage", """
 <q-td key="percentage" :props="props">

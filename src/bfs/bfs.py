@@ -111,16 +111,18 @@ class BFSResult:
         return f"{self.initial_time_repr()} -> {self.arrival_time_repr()}"
 
     def total_duration_str(
-        self, path: Path, indent: int = 0,
+        self, path: Path, transfer_dict: dict[str, Transfer], indent: int = 0,
         *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, fare_str: str | None = None
     ) -> str:
         """ Return string representation of the total transfer, etc. """
+        have_dist, _, sum_dist, sum_stairs = total_transfer_duration(self.start_date, path, transfer_dict, through_dict)
         indent_str = "    " * indent
         return (f"{indent_str}{self.time_str()}\n" +
                 f"{indent_str}Total time: {format_duration(self.total_duration())}, " +
                 f"total distance: {distance_str(self.total_distance(path))}, " +
                 suffix_s("station", len(expand_path(path, self.station))) + ", " +
                 suffix_s("transfer", total_transfer(path, through_dict=through_dict)) +
+                ("" if not have_dist else f" (total {sum_dist}m + {sum_stairs} stairs)") +
                 ("" if fare_str is None or fare_str == "" else ", fare = " + fare_str) + ".")
 
     def pretty_print(
@@ -156,7 +158,7 @@ class BFSResult:
             continuer = " " * half + "|" + " " * (len(total_fare) - 1 - half) + " "
 
         # Print total time, station, etc.
-        print(self.total_duration_str(path, indent, through_dict=through_dict, fare_str=total_fare) + "\n")
+        print(self.total_duration_str(path, transfer_dict, indent, through_dict=through_dict, fare_str=total_fare) + "\n")
 
         line_list: list[str] = []
         if isinstance(path[0][1], Train):
@@ -184,7 +186,7 @@ class BFSResult:
                 if (train[1], train[2][2], train[2][3]) in splits and len(line_list) > 0:
                     split_indexes.append(len(line_list))
                 line_list.append(f"Virtual transfer: {start_station}[{start_line}] -> {end_station}[{end_line}], " +
-                                 suffix_s("minute", train[3]) + (" (special time)" if train[4] else ""))
+                                 format_transfer_data(train[3]) + (" (special time)" if train[4] else ""))
                 last_virtual = train
                 continue
 
@@ -351,15 +353,17 @@ def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTr
 
 
 def total_transfer_duration(
-    result: BFSResult, path: Path, transfer_dict: dict[str, Transfer],
+    start_date: date, path: Path, transfer_dict: dict[str, Transfer],
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
-) -> tuple[float, int, int]:
+) -> tuple[bool, float, int, int]:
     """ Get the sum of all transfer times """
+    have_dist = False
     sum_duration = 0.0
     sum_distance = 0
     sum_stairs = 0
     for i, (station, train) in enumerate(path):
         if not isinstance(train, Train):
+            have_dist = have_dist or (train[3][1] is not None and train[3][2] is not None)
             sum_duration += train[3][0]
             sum_distance += train[3][1] or 0
             sum_stairs += train[3][2] or 0
@@ -383,12 +387,13 @@ def total_transfer_duration(
         transfer_time, _ = transfer_dict[next_station].get_transfer_time(
             train.line, train.direction,
             next_train.line, next_train.direction,
-            result.start_date, next_time, next_day
+            start_date, next_time, next_day
         )
+        have_dist = have_dist or (transfer_time[1] is not None and transfer_time[2] is not None)
         sum_duration += transfer_time[0]
         sum_distance += transfer_time[1] or 0
         sum_stairs += transfer_time[2] or 0
-    return sum_duration, sum_distance, sum_stairs
+    return have_dist, sum_duration, sum_distance, sum_stairs
 
 
 def path_distance(path: Path, end_station: str) -> int:
@@ -411,7 +416,7 @@ def path_index(
     result2 = (
         result.total_duration(),
         total_transfer(path) + len([1 for _, train in path if not isinstance(train, Train)]),
-        total_transfer_duration(result, path, transfer_dict, through_dict),
+        total_transfer_duration(result.start_date, path, transfer_dict, through_dict)[1:],
         len(expand_path(path, result.station)),
         result.total_distance(path),
     )

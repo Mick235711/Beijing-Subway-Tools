@@ -14,7 +14,7 @@ from nicegui.elements.drawer import RightDrawer
 from nicegui.elements.tabs import Tab
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
-from src.bfs.bfs import expand_path, path_distance, total_transfer
+from src.bfs.bfs import expand_path, path_distance, total_transfer, total_transfer_duration
 from src.city.city import City, parse_station_lines
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
@@ -32,7 +32,7 @@ from src.ui.common import LINE_TYPES, ROUTE_TYPES, count_trains, get_date_input,
 RIGHT_DRAWER: RightDrawer | None = None
 SELECTED_LINE: Line | None = None
 SELECTED_STATION: str | None = None
-SELECTED_TRAIN: tuple[Train | PathInfo, str] | None = None  # (train, train_id)
+SELECTED_TRAIN: tuple[Train | PathInfo, date, str] | None = None  # (train, train_id)
 AVAILABLE_LINES: dict[str, Line] = {}
 AVAILABLE_STATIONS: dict[str, set[Line]] = {}
 CARD_CAPTION = "text-subtitle-1 font-bold"
@@ -357,7 +357,7 @@ class LineTable:
 
     @ui.refreshable_method
     def create_table(
-        self, station: str, station_lines: dict[str, set[Line]], train_list: list[Train | ThroughTrain],
+        self, station: str, station_lines: dict[str, set[Line]], start_date: date, train_list: list[Train | ThroughTrain],
         *, split_direction: bool = False
     ) -> None:
         """ Create a table for train counts """
@@ -381,7 +381,7 @@ class LineTable:
                                 first_id = find_train_id(first_dict, first_train)
                                 ui.label(first_time).on("click", partial(
                                     refresh_train_drawer,
-                                    first_train, first_id, first_dict, station_lines
+                                    first_train, start_date, first_id, first_dict, station_lines
                                 )).classes("cursor-pointer")
                             elif self.display_type == "last":
                                 last_train, last_time = find_first_train(trains, station, reverse=True)
@@ -389,7 +389,7 @@ class LineTable:
                                 last_id = find_train_id(last_dict, last_train)
                                 ui.label(last_time).on("click", partial(
                                     refresh_train_drawer,
-                                    last_train, last_id, last_dict, station_lines
+                                    last_train, start_date, last_id, last_dict, station_lines
                                 )).classes("cursor-pointer")
                             else:
                                 assert False, self.display_type
@@ -493,7 +493,8 @@ def station_cards(
                         icon=card_data.count_icon, on_click=lambda: card_data.count_clicked(train_count_table)
                     ).props("flat").classes("p-0").bind_icon(card_data, "count_icon")
                 train_count_table.create_table(
-                    station, city.station_lines, train_list, split_direction=(card_data.count_icon == "compress")
+                    station, city.station_lines, cur_date, train_list,
+                    split_direction=(card_data.count_icon == "compress")
                 )
         with ui.card().classes("col-span-2 q-pa-sm").classes("w-full"):
             with ui.card_section().classes("w-full p-0"):
@@ -507,7 +508,8 @@ def station_cards(
                         icon=card_data.first_icon, on_click=lambda: card_data.first_clicked(first_train_table)
                     ).props("flat").classes("p-0").bind_icon(card_data, "first_icon")
                 first_train_table.create_table(
-                    station, city.station_lines, train_list, split_direction=(card_data.first_icon == "compress")
+                    station, city.station_lines, cur_date, train_list,
+                    split_direction=(card_data.first_icon == "compress")
                 )
 
 
@@ -614,8 +616,17 @@ def get_train_repr(
         None if isinstance(train, tuple) else first_train, None if isinstance(train, tuple) else last_train, lines
 
 
+def show_transfer_data(sum_dist: int, sum_stairs: int) -> None:
+    """ Display transfer data neatly """
+    with ui.row().classes("items-center gap-0 no-wrap"):
+        ui.icon("directions_walk")
+        ui.label(f"{sum_dist}m").classes("text-subtitle-1")
+        ui.icon("stairs").classes("mx-[2px]")
+        ui.label(str(sum_stairs)).classes("text-subtitle-1")
+
+
 def train_drawer(
-    city: City, train: Train | PathInfo, train_id: str, train_id_dict: dict[str, Train] | None = None
+    city: City, train: Train | PathInfo, start_date: date, train_id: str, train_id_dict: dict[str, Train] | None = None
 ) -> None:
     """ Create train drawer """
     global AVAILABLE_LINES, AVAILABLE_STATIONS
@@ -681,12 +692,17 @@ def train_drawer(
                 with ui.card().classes("q-pa-sm"):
                     if isinstance(full_train, tuple):
                         num_lines = total_transfer(full_train[1], through_dict=through_dict)
+                        have_dist, _, sum_dist, sum_stairs = total_transfer_duration(
+                            start_date, full_train[1], city.transfers, through_dict
+                        )
                         num_virtual = len([1 for _, t in full_train[1] if not isinstance(t, Train)])
                         if num_virtual > 0:
                             ui.tooltip(f"Virtual transfers: {num_virtual}")
                         with ui.card_section().classes("p-0"):
                             ui.label("Transfers").classes(CARD_CAPTION)
                             ui.label(str(num_lines)).classes(CARD_TEXT)
+                            if have_dist:
+                                show_transfer_data(sum_dist, sum_stairs)
                     else:
                         avg_dist = zero_div(distance, (num_stations - (
                             1 if last_train is not None and last_train.loop_next is None else 0
@@ -739,13 +755,13 @@ def train_drawer(
                 ui.button(
                     "Previous: " + prev_id, icon="keyboard_double_arrow_up",
                     on_click=lambda: refresh_train_drawer(
-                        first_train.loop_prev, prev_id, train_id_dict, AVAILABLE_STATIONS
+                        first_train.loop_prev, start_date, prev_id, train_id_dict, AVAILABLE_STATIONS
                     )
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 
             with ui.scroll_area().classes("flex-grow"):
                 train_timeline(
-                    train_dict, through_dict, train_id_dict, full_train, city.transfers,
+                    train_dict, through_dict, train_id_dict, full_train, start_date, city.transfers,
                     show_tally=True, show_station=select_opt_default
                 )
 
@@ -754,7 +770,7 @@ def train_drawer(
                 ui.button(
                     "Next: " + next_id, icon="keyboard_double_arrow_down",
                     on_click=lambda: refresh_train_drawer(
-                        last_train.loop_next, next_id, train_id_dict, AVAILABLE_STATIONS
+                        last_train.loop_next, start_date, next_id, train_id_dict, AVAILABLE_STATIONS
                     )
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 
@@ -762,7 +778,7 @@ def train_drawer(
 @ui.refreshable
 def train_timeline(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
-    train_id_dict: dict[str, Train] | None, train: Train | ThroughTrain | PathInfo,
+    train_id_dict: dict[str, Train] | None, train: Train | ThroughTrain | PathInfo, start_date: date,
     transfer_dict: dict[str, Transfer], *, show_station: Literal["all", "stop", "none"] = "all",
     interval_metric: Literal["none", "num_station", "duration", "distance", "speed"] = "none", show_tally: bool
 ) -> None:
@@ -924,7 +940,7 @@ def train_timeline(
             else:
                 arrival_time = arrival_times.get(station_key)
 
-            transfer_str = ("", "")
+            transfer_str: tuple[str, str, int | None, int | None] = ("", "", None, None)
             if i < len(stations) - 1:
                 next_station = stations[i + 1][0]
                 next_key_lt = stations[i + 1][1]
@@ -957,12 +973,16 @@ def train_timeline(
                     if transfer_time_value is None:
                         real_interval_duration = interval_duration
                     elif transfer_time_value[1] is None:
-                        transfer_str = (f"Transfer: {format_duration(transfer_time_value[0][0])}", "")
+                        transfer_str = (
+                            f"Transfer: {format_duration(transfer_time_value[0][0])}", "",
+                            transfer_time_value[0][1], transfer_time_value[0][2]
+                        )
                         real_interval_duration = interval_duration - transfer_time_value[0][0]
                     else:
                         transfer_str = (
                             f"Transfer: {format_duration(transfer_time_value[0][0])}",
-                            f"Waiting: {format_duration(transfer_time_value[1])}"
+                            f"Waiting: {format_duration(transfer_time_value[1])}",
+                            transfer_time_value[0][1], transfer_time_value[0][2]
                         )
                         real_interval_duration = interval_duration - (transfer_time_value[0][0] + transfer_time_value[1])
                     if isinstance(line_train, tuple):
@@ -1026,6 +1046,8 @@ def train_timeline(
                         ui.label("Virtual transfer")
                         if transfer_str[0] != "":
                             ui.label(transfer_str[0])
+                        if transfer_str[2] is not None and transfer_str[3] is not None:
+                            show_transfer_data(transfer_str[2], transfer_str[3])
                         if transfer_str[1] != "":
                             ui.label(transfer_str[1])
                 with entry.add_slot("subtitle"):
@@ -1074,7 +1096,7 @@ def train_timeline(
                                     overtaken_id = find_train_id(train_id_dict, overtaken_train)
                                     with ui.label(overtaken_id).classes("cursor-pointer").on(
                                         "click", lambda t=overtaken_train, d=overtaken_id: refresh_train_drawer(
-                                            t, d, train_id_dict, station_lines
+                                            t, start_date, d, train_id_dict, station_lines
                                         )
                                     ):
                                         with ui.tooltip().add_slot("default"):
@@ -1089,6 +1111,8 @@ def train_timeline(
                         ui.label(interval_str)
                     if transfer_str[0] != "":
                         ui.label(transfer_str[0])
+                    if transfer_str[2] is not None and transfer_str[3] is not None:
+                        show_transfer_data(transfer_str[2], transfer_str[3])
                     if transfer_str[1] != "":
                         ui.label(transfer_str[1])
 
@@ -1112,7 +1136,7 @@ def train_timeline(
                                 )
                                 ui.label(train_id).classes("cursor-pointer text-sm font-normal leading-none whitespace-nowrap").on(
                                     "click", lambda t=single_train, tid=train_id: refresh_train_drawer(
-                                        t, tid, train_id_dicts[(t.line.name, t.direction)], station_lines
+                                        t, start_date, tid, train_id_dicts[(t.line.name, t.direction)], station_lines
                                     )
                                 )
                     else:
@@ -1153,7 +1177,7 @@ def right_drawer(
             return
         SELECTED_LINE = None
         SELECTED_STATION = None
-        train_drawer(city, SELECTED_TRAIN[0], SELECTED_TRAIN[1], train_dict)
+        train_drawer(city, SELECTED_TRAIN[0], SELECTED_TRAIN[1], SELECTED_TRAIN[2], train_dict)
 
 
 def refresh_line_drawer(selected_line: Line, lines: dict[str, Line]) -> None:
@@ -1205,14 +1229,14 @@ def have_unavailable_line(selected_train: Train | PathInfo) -> bool:
 
 
 def refresh_train_drawer(
-    selected_train: Train | PathInfo, train_id: str, train_dict: dict[str, Train] | None,
+    selected_train: Train | PathInfo, start_date: date, train_id: str, train_dict: dict[str, Train] | None,
     station_lines: dict[str, set[Line]]
 ) -> None:
     """ Refresh train drawer """
     global RIGHT_DRAWER, SELECTED_TRAIN, AVAILABLE_LINES, AVAILABLE_STATIONS
     assert RIGHT_DRAWER is not None, (RIGHT_DRAWER, SELECTED_TRAIN, selected_train)
     changed = (SELECTED_TRAIN is None or SELECTED_TRAIN != selected_train)
-    SELECTED_TRAIN = (selected_train, train_id)
+    SELECTED_TRAIN = (selected_train, start_date, train_id)
     AVAILABLE_LINES = {l.name: l for ls in station_lines.values() for l in ls}
     AVAILABLE_STATIONS = station_lines
     if have_unavailable_line(selected_train):

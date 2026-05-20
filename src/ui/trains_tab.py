@@ -63,7 +63,8 @@ def trains_tab(city: City, data: TrainsData) -> None:
                 train_list=inner_train_list, route_mode=data.cur_mode
             )
             train_table.refresh(
-                station_lines=data.info_data.station_lines, full_list=inner_train_list, train_list=inner_train_list
+                station_lines=data.info_data.station_lines, start_date=data.cur_date,
+                full_list=inner_train_list, train_list=inner_train_list
             )
 
         async def refresh_trains() -> None:
@@ -225,7 +226,10 @@ def trains_tab(city: City, data: TrainsData) -> None:
                     line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
                     train_list=train_list, route_mode=data.cur_mode
                 )
-                train_table(station_lines=data.info_data.station_lines, full_list=train_list, train_list=train_list)
+                train_table(
+                    station_lines=data.info_data.station_lines, start_date=data.cur_date,
+                    full_list=train_list, train_list=train_list
+                )
 
 
 def get_through(
@@ -564,7 +568,7 @@ def calculate_train_rows(train_list: list[Train]) -> list[dict]:
 
 @ui.refreshable
 def train_table(
-    *, station_lines: dict[str, set[Line]], full_list: list[Train], train_list: list[Train]
+    *, start_date: date, station_lines: dict[str, set[Line]], full_list: list[Train], train_list: list[Train]
 ) -> None:
     """ Create a table for trains """
     with ui.row().classes("w-full items-center justify-between"):
@@ -618,11 +622,11 @@ def train_table(
     )
     train_dict = get_train_id(full_list)
     trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(
-        train_dict[n.args], n.args, train_dict, station_lines
+        train_dict[n.args], start_date, n.args, train_dict, station_lines
     ))
     trains_table.on("stationBadgeClick", lambda n: refresh_station_drawer(n.args, station_lines))
     trains_table.on("row-click", js_handler="(e, row, index) => emit(row['id'])", handler=lambda n: refresh_train_drawer(
-        train_dict[n.args], n.args, train_dict, station_lines
+        train_dict[n.args], start_date, n.args, train_dict, station_lines
     ))
     trains_table.add_slot("body-cell-id", """
 <q-td key="id" :props="props" @click.stop="$parent.$emit('trainBadgeClick', props.value)" class="cursor-pointer">

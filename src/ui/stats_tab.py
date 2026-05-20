@@ -71,7 +71,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             data.chart_cache = None
             data.speed_cache_key = None
             data.speed_cache = None
-            await final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
+            await final_train_radar.refresh(train_dict=data.train_dict, start_date=data.cur_date, save_image=False)
             await display_train_chart.refresh(data=data)
             await display_speed_graph.refresh(data=data)
             loading.set_visibility(False)
@@ -80,7 +80,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             """ Update the train list based on current data """
             key = (data.cur_date, tuple(sorted(data.info_data.lines.keys())))
             if data.train_dict_key == key:
-                final_train_radar.refresh(train_dict=data.train_dict, save_image=False)
+                final_train_radar.refresh(train_dict=data.train_dict, start_date=data.cur_date, save_image=False)
                 display_train_chart.refresh(data=data)
                 display_speed_graph.refresh(data=data)
                 return
@@ -186,7 +186,7 @@ def stats_tab(city: City, data: StatsData) -> None:
                     on_change=lambda e: final_train_radar.refresh(show_station_orbs=e.value, save_image=False)
                 )
                 ui.button("Save image", icon="save", on_click=lambda: final_train_radar.refresh(save_image=True))
-            final_train_radar(city, train_dict=data.train_dict)
+            final_train_radar(city, train_dict=data.train_dict, start_date=data.cur_date)
             on_line_change()
 
 
@@ -646,7 +646,7 @@ def display_speed_graph(city: City, *, data: StatsData | None = None) -> None:
     on_data_change()
 
     ui.separator()
-    display_speed_table(data.info_data.lines, data.info_data.station_lines, train_dict=data.train_dict)
+    display_speed_table(data.info_data.lines, data.info_data.station_lines, data.cur_date, train_dict=data.train_dict)
 
 
 def calculate_train_rows(
@@ -697,7 +697,7 @@ def calculate_train_rows(
 
 @ui.refreshable
 def display_speed_table(
-    lines: dict[str, Line], station_lines: dict[str, set[Line]], *,
+    lines: dict[str, Line], station_lines: dict[str, set[Line]], start_date: date, *,
     train_dict: dict[tuple[str, str], list[Train]] | None = None, full_only: bool = False
 ) -> None:
     """ Display table on trains """
@@ -774,7 +774,7 @@ def display_speed_table(
     trains_table.on("trainBadgeClick", lambda n: (
         None if (n.args[1], n.args[2]) not in train_id_dict or n.args[0] not in train_id_dict[(n.args[1], n.args[2])]
         else refresh_train_drawer(
-            train_id_dict[(n.args[1], n.args[2])][n.args[0]], n.args[0],
+            train_id_dict[(n.args[1], n.args[2])][n.args[0]], start_date, n.args[0],
             train_id_dict[(n.args[1], n.args[2])], station_lines
         )
     ))
@@ -813,7 +813,7 @@ def display_speed_table(
 @ui.refreshable
 def final_train_radar(
     city: City, *, base_line: Line | None = None, base_direction: str | None = None, base_station: str | None = None,
-    train_dict: dict[tuple[str, str], list[Train]],
+    train_dict: dict[tuple[str, str], list[Train]], start_date: date,
     use_first: bool = True, show_all_dir: bool = False, show_ending: bool = False,
     show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False
 ) -> None:
@@ -1042,7 +1042,7 @@ def final_train_radar(
             clicked_train = trains[int(clicked_id[10:].strip())]
             train_id_dict = train_id_dicts[(clicked_train.line.name, clicked_train.direction)]
             train_id = find_train_id(train_id_dict, clicked_train)
-            refresh_train_drawer(clicked_train, train_id, train_id_dict, city.station_lines)
+            refresh_train_drawer(clicked_train, start_date, train_id, train_id_dict, city.station_lines)
         elif clicked_id.startswith("station"):
             clicked_station = station_list[int(clicked_id[8:].strip())]
             refresh_station_drawer(clicked_station, city.station_lines)
