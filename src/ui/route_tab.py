@@ -1211,7 +1211,7 @@ def display_data(
                 "markPoint": {
                     "data": get_mark_point(inner_data_dict),
                     "label": mark_point_label
-                }
+                } if max_switch.value or min_switch.value else None
             } for series_name, inner_data_dict in sorted(dataset.items(), key=lambda x: parse_index(x[0]))
         ]
 
@@ -1258,4 +1258,6 @@ def display_data(
         }]
     }).classes("h-200")
     time_chart.on("chart:legendselectchanged", lambda e: on_chart_select_change(e.args["selected"]))
+    time_chart.on("chart:legendselectall", lambda e: on_chart_select_change(e.args["selected"]))
+    time_chart.on("chart:legendinverseselect", lambda e: on_chart_select_change(e.args["selected"]))
     on_chart_data_change()
