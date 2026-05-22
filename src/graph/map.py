@@ -174,7 +174,7 @@ def parse_coords(
 ) -> Shape:
     """ Parse coordinate specification """
     x, y = spec["x"], spec["y"]
-    single_type = spec.get("type", shape_type)
+    single_type = spec.get("shape_type", shape_type)
     if single_type == "circle":
         default_radius = radius if len(station_lines[station]) == 1 else transfer_radius
         if isinstance(default_radius, int):
@@ -205,7 +205,7 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
         map_dict = pyjson5.decode_io(fp)
 
     path = os.path.join(os.path.dirname(map_file), map_dict["path"])
-    shape_type = map_dict.get("type", "circle")
+    shape_type = map_dict.get("shape_type", "circle")
     radius = map_dict["radius"]
     transfer_radius = map_dict.get("transfer_radius", radius)
     width: int | None = None

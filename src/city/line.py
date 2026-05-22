@@ -261,7 +261,7 @@ class Line:
                     self.timetables_processed[station][direction][date_group] = parse_timetable(
                         station, self.direction_base_route[direction],
                         self.date_groups[date_group], self.train_routes[direction],
-                        elem3["schedule"], elem3["filters"]
+                        elem3["schedule"], elem3.get("filters", [])
                     )
         return self.timetables_processed
 

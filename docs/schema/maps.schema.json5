@@ -1,0 +1,147 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "JSON5 Schema For Subway Maps",
+    "description": "Describes properties for subway maps of a city",
+    "type": "object",
+    "properties": {
+        "name": {
+            "description": "Name of the map",
+            "type": "string"
+        },
+        "path": {
+            "description": "Path to the described map (relative to the JSON5 file)",
+            "type": "string"
+        },
+        "shape_type": {
+            "description": "Shape of station",
+            "type": "string",
+            "enum": ["circle", "rectangle"],
+            "default": "circle"
+        },
+        "radius": {
+            "description": "Radius of regular stations",
+            "type": "integer"
+        },
+        "width": {
+            "description": "Width of regular stations",
+            "type": "integer"
+        },
+        "height": {
+            "description": "Height of regular stations",
+            "type": "integer"
+        },
+        "font_size": {
+            "description": "Font size for regular stations",
+            "type": "integer"
+        },
+        "transfer_radius": {
+            "description": "Radius of transfer stations",
+            "type": "integer"
+        },
+        "transfer_width": {
+            "description": "Width of transfer stations",
+            "type": "integer"
+        },
+        "transfer_height": {
+            "description": "Height of transfer stations",
+            "type": "integer"
+        },
+        "transfer_font_size": {
+            "description": "Font size for transfer stations",
+            "type": "integer"
+        },
+        "coordinates": {
+            "description": "Mapping from station to coordinates",
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [{
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "description": "X coordinate of the station",
+                            "type": "integer"
+                        },
+                        "y": {
+                            "description": "Y coordinate of the station",
+                            "type": "integer"
+                        },
+                        "r": {
+                            "description": "Radius of the station (represents rounded corners for rectangle shape)",
+                            "type": "integer"
+                        },
+                        "rx": {
+                            "description": "X radius of the station (represents ellipse)",
+                            "type": "integer"
+                        },
+                        "ry": {
+                            "description": "Y radius of the station (represents ellipse)",
+                            "type": "integer"
+                        },
+                        "w": {
+                            "description": "Width of the station (overrides width property)",
+                            "type": "integer"
+                        },
+                        "h": {
+                            "description": "Height of the station (overrides height property)",
+                            "type": "integer"
+                        },
+                        "shape_type": {
+                            "description": "Shape of the station (overrides shape_type property)",
+                            "type": "string",
+                            "enum": ["circle", "rectangle"]
+                        },
+                        "path_coords": {
+                            "description": "Alternative coordinates for drawing paths",
+                            "type": "object",
+                            "properties": {
+                                "x": {
+                                    "description": "X coordinate of the station",
+                                    "type": "integer"
+                                },
+                                "y": {
+                                    "description": "Y coordinate of the station",
+                                    "type": "integer"
+                                },
+                                "r": {
+                                    "description": "Radius of the station (represents rounded corners for rectangle shape)",
+                                    "type": "integer"
+                                },
+                                "rx": {
+                                    "description": "X radius of the station (represents ellipse)",
+                                    "type": "integer"
+                                },
+                                "ry": {
+                                    "description": "Y radius of the station (represents ellipse)",
+                                    "type": "integer"
+                                },
+                                "w": {
+                                    "description": "Width of the station (overrides width property)",
+                                    "type": "integer"
+                                },
+                                "h": {
+                                    "description": "Height of the station (overrides height property)",
+                                    "type": "integer"
+                                },
+                                "shape_type": {
+                                    "description": "Shape of the station (overrides shape_type property)",
+                                    "type": "string",
+                                    "enum": ["circle", "rectangle"]
+                                }
+                            },
+                            "required": ["x", "y"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "oneOf": [
+                        {"required": ["x", "y"]},
+                        {"required": ["path_coords"]}
+                    ],
+                    "additionalProperties": false
+                }, {"type": "null"}]
+            },
+            "minProperties": 1
+        }
+    },
+    "required": ["name", "path", "radius"],
+    "additionalProperties": false
+}

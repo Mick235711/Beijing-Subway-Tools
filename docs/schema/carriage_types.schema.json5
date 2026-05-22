@@ -1,0 +1,35 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "JSON5 Schema For Carriage Types",
+    "description": "Describes properties for carriage types",
+    "type": "object",
+    "additionalProperties": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "Name of the carriage type",
+                "type": "string"
+            },
+            "aliases": {
+                "description": "Aliases (English) for the carriage type",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+            },
+            "capacity": {
+                "description": "Capacity for each carriage",
+                "type": "integer"
+            },
+            "head_capacity": {
+                "description": "Capacity for head (driver) carriage",
+                "type": "integer"
+            },
+        },
+        "required": ["name", "capacity"],
+        "additionalProperties": false
+    },
+    "minProperties": 1
+}

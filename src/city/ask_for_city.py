@@ -11,7 +11,7 @@ from typing import cast
 
 from src.city.city import City, get_all_cities
 from src.city.date_group import DateGroup
-from src.city.line import Line
+from src.city.line import Line, station_codes
 from src.city.through_spec import ThroughSpec
 from src.common.common import complete_pinyin, direction_repr, ask_question, parse_time, get_time_str, TimeSpec, \
     to_pinyin, parse_time_seq
@@ -101,8 +101,7 @@ def ask_for_station(
     for station, lines_set in city.station_lines.items():
         if exclude is not None and station in exclude:
             continue
-        station = city.station_full_name(station)
-        meta_information[station] = ", ".join(
+        meta_information[station] = "/".join([x[1] for x in station_codes(station, city.station_lines[station])]) + " " + ", ".join(
             line.full_name() for line in sorted(lines_set, key=lambda x: x.index)
         )
     meta_information = dict(sorted(meta_information.items(), key=lambda x: to_pinyin(x[0])[0]))

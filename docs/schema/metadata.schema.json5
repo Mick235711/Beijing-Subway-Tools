@@ -1,0 +1,244 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "JSON5 Schema For City Metadata",
+    "description": "Describes properties for a city and its transfer stations",
+    "type": "object",
+    "properties": {
+        "city_name": {
+            "description": "Name of the city",
+            "type": "string"
+        },
+        "city_aliases": {
+            "description": "Aliases (English) for the city",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "transfers": {
+            "description": "Data for transfer times for each transfer station",
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "from": {
+                            "description": "Name of the line to transfer from",
+                            "type": "string"
+                        },
+                        "from_direction": {
+                            "description": "Direction of the line to transfer from",
+                            "type": "string"
+                        },
+                        "to": {
+                            "description": "Name of the line to transfer to",
+                            "type": "string"
+                        },
+                        "to_direction": {
+                            "description": "Direction of the line to transfer to",
+                            "type": "string"
+                        },
+                        "minutes": {
+                            "description": "Time (in minutes) needed for transfer",
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "distance": {
+                            "description": "Distance (in meters) needed for transfer",
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "stairs": {
+                            "description": "Number of stairs needed for transfer",
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "apply_time": {
+                            "description": "Specific time that this rule applies",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "date_group": {
+                                        "description": "Date groups that this rule applies to",
+                                        "type": "string"
+                                    },
+                                    "start": {
+                                        "description": "Start of time that this rule applies to (HH:MM)",
+                                        "type": "string",
+                                        "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                    },
+                                    "end": {
+                                        "description": "End of time that this rule applies to (HH:MM)",
+                                        "type": "string",
+                                        "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                    }
+                                },
+                                "additionalProperties": false,
+                            },
+                            "minItems": 1
+                        }
+                    },
+                    "required": ["from", "to", "minutes"],
+                    "dependentRequired": {
+                        "distance": ["stairs"],
+                        "stairs": ["distance"]
+                    },
+                    "additionalProperties": false,
+                },
+                "minItems": 1
+            }
+        },
+        "virtual_transfers": {
+            "description": "Data for transfer times for each virtual transfer station",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "from_station": {
+                        "description": "Name of the station to transfer from",
+                        "type": "string"
+                    },
+                    "to_station": {
+                        "description": "Name of the station to transfer to",
+                        "type": "string"
+                    },
+                    "times": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "from": {
+                                    "description": "Name of the line to transfer from",
+                                    "type": "string"
+                                },
+                                "from_direction": {
+                                    "description": "Direction of the line to transfer from",
+                                    "type": "string"
+                                },
+                                "to": {
+                                    "description": "Name of the line to transfer to",
+                                    "type": "string"
+                                },
+                                "to_direction": {
+                                    "description": "Direction of the line to transfer to",
+                                    "type": "string"
+                                },
+                                "minutes": {
+                                    "description": "Time (in minutes) needed for transfer",
+                                    "type": "number",
+                                    "minimum": 0
+                                },
+                                "distance": {
+                                    "description": "Distance (in meters) needed for transfer",
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "stairs": {
+                                    "description": "Number of stairs needed for transfer",
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "apply_time": {
+                                    "description": "Specific time that this rule applies",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "date_group": {
+                                                "description": "Date groups that this rule applies to",
+                                                "type": "string"
+                                            },
+                                            "start": {
+                                                "description": "Start of time that this rule applies to (HH:MM)",
+                                                "type": "string",
+                                                "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            },
+                                            "end": {
+                                                "description": "End of time that this rule applies to (HH:MM)",
+                                                "type": "string",
+                                                "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                    },
+                                    "minItems": 1
+                                }
+                            },
+                            "required": ["from", "to", "minutes"],
+                            "dependentRequired": {
+                                "distance": ["stairs"],
+                                "stairs": ["distance"]
+                            },
+                            "additionalProperties": false
+                        },
+                        "minItems": 1
+                    }
+                },
+                required: ["from_station", "to_station", "times"],
+                "additionalProperties": false
+            }
+        },
+        "through_trains": {
+            "description": "Data for through trains",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "lines": {
+                        "description": "Name of lines that have through trains",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 2,
+                        "uniqueItems": true
+                    },
+                    "direction": {
+                        "description": "Direction of lines that have through trains",
+                        "type": "string"
+                    },
+                    "directions": {
+                        "description": "Directions of lines that have through trains",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 2,
+                        "uniqueItems": true
+                    },
+                    "route": {
+                        "description": "Route of the through train",
+                        "type": "string"
+                    },
+                    "routes": {
+                        "description": "Routes of the through train",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 2,
+                        "uniqueItems": true
+                    },
+                    "date_group": {
+                        "description": "Date group of the through train",
+                        "type": "string",
+                        "default": "All dates"
+                    },
+                    "date_groups": {
+                        "description": "Date groups of the through train",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 2,
+                        "uniqueItems": true
+                    }
+                },
+                "required": ["lines"],
+                "oneOf": [
+                    {"required": ["route"]},
+                    {"required": ["routes"]},
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": ["city_name"],
+    "additionalProperties": false
+}

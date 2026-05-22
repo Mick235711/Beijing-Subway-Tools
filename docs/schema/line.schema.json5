@@ -1,0 +1,393 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "JSON5 Schema For Line",
+    "description": "Describes properties and timetable of a subway line",
+    "type": "object",
+    "properties": {
+        "name": {
+            "description": "Name of the line",
+            "type": "string"
+        },
+        "color": {
+            "description": "Color of the line, in hex format (i.e. #FF0000)",
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "badge": {
+            "description": "Badge for the line",
+            "type": "string",
+            "default": "color or str(index)"
+        },
+        "badge_icon": {
+            "description": "Icon for the line badge",
+            "type": "string"
+        },
+        "index": {
+            "description": "Number index of the line",
+            "type": "integer"
+        },
+        "aliases": {
+            "description": "Aliases (English) for the line",
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "code": {
+            "description": "Shorthand code for the line",
+            "type": "string"
+        },
+        "code_separator": {
+            "description": "Separation characters between line code and station code",
+            "type": "string",
+            "default": ""
+        },
+        "index_reversed": {
+            "description": "True if the index is reversed (i.e. decrease instead of increase)",
+            "type": "boolean",
+            "default": false
+        },
+        "carriage_num": {
+            "description": "Maximum number of carriages in use",
+            "type": "integer"
+        },
+        "carriage_type": {
+            "description": "Type of carriage in use",
+            "type": "string"
+        },
+        "design_speed": {
+            "description": "Design speed of the line (in km/h)",
+            "type": "integer"
+        },
+        "stations": {
+            "description": "Properties of stations",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Name of the station",
+                        "type": "string"
+                    },
+                    "dist": {
+                        "description": "Distance to last station in meters",
+                        "type": "integer"
+                    },
+                    "aliases": {
+                        "description": "Aliases (English) for the station",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "index": {
+                        "description": "Shorthand station code for this station",
+                        "type": "string"
+                    },
+                    "badge_icon": {
+                        "description": "Icon for the station badge",
+                        "type": "string"
+                    }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+            },
+            "minItems": 2
+        },
+        "must_include": {
+            "description": "Station names that must be included in the routing",
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 1,
+            "uniqueItems": true
+        },
+        "force_start": {
+            "description": "True if only show routes using this line when at least one of starting/ending point is on this line",
+            "type": "boolean",
+            "default": false
+        },
+        "station_names": {
+            "description": "Station names",
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 2,
+            "uniqueItems": true
+        },
+        "station_dists": {
+            "description": "Distance (in meters) between adjacent stations",
+            "type": "array",
+            "items": {"type": "integer"},
+            "minItems": 1,
+            "uniqueItems": false
+        },
+        "station_aliases": {
+            "description": "Aliases (English) for the stations",
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+                "uniqueItems": true
+            },
+            "minProperties": 1
+        },
+        "loop": {
+            "description": "True if this line is a loop line",
+            "type": "boolean",
+            "default": false
+        },
+        "loop_last_segment": {
+            "description": "The minutes required for last segment",
+            "type": "integer"
+        },
+        "train_routes": {
+            "description": "Data on all possible train routing",
+            "type": "object",
+            "additionalProperties": {
+                "description": "Train routing in this direction",
+                "type": "object",
+                "properties": {
+                    "aliases": {
+                        "description": "Aliases (English) for the direction",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "reversed": {
+                        "description": "True if trains runs in the opposite direction to the direction specified in line",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "end_circle": {
+                        "description": "True if this direction ends in itself",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "end_circle_split_dist": {
+                        "description": "The distance of split",
+                        "type": "integer"
+                    },
+                    "end_circle_start": {
+                        "description": "The split station",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                        "starts_with": {
+                            "description": "Trains starts at this station",
+                            "type": "string",
+                            "default": "The first station"
+                        },
+                        "ends_with": {
+                            "description": "Trains ends at this station",
+                            "type": "string",
+                            "default": "The last station"
+                        },
+                        "skip": {
+                            "description": "Those stations will be skipped",
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "minItems": 1,
+                            "uniqueItems": true
+                        },
+                        "skip_timetable": {
+                            "description": "True if skipped station still have passing time entry in the timetable",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "stations": {
+                            "description": "Stations that this route stops at",
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "minItems": 1,
+                            "uniqueItems": true
+                        },
+                        "real_end": {
+                            "description": "This route actually runs (without passenger) to another station",
+                            "type": "string",
+                            "default": "The last station"
+                        },
+                        "carriage_num": {
+                            "description": "Number of carriages in use for this route",
+                            "type": "integer"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "minProperties": 1,
+                "dependentRequired": {
+                    "end_circle": ["end_circle_split_dist", "end_circle_start"]
+                }
+            },
+            "minProperties": 2,
+            "maxProperties": 2
+        },
+        "date_groups": {
+            "description": "Data on all possible date groups for train schedule (i.e. Weekday, Saturday, etc.)",
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "aliases": {
+                        "description": "Aliases (English) for the group",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "weekday": {
+                        "description": "Day of week this group includes",
+                        "type": "array",
+                        "items": {"type": "integer", "minimum": 1, "maximum": 7},
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "default": [1, 2, 3, 4, 5, 6, 7]
+                    },
+                    "dates": {
+                        "description": "The dates (YYYY-MM-DD) this group includes",
+                        "type": "array",
+                        "items": {"type": "string", "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "from": {
+                        "description": "The starting date of this group",
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$",
+                    },
+                    "until": {
+                        "description": "The ending date of this group",
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$",
+                    }
+                },
+                "additionalProperties": false,
+                "minProperties": 1
+            },
+            "minProperties": 1
+        },
+        "timetable": {
+            "description": "Data on the train schedule on this line",
+            "type": "object",
+            "additionalProperties": {
+                "description": "Data on the train schedule for this station",
+                "type": "object",
+                "additionalProperties": {
+                    "description": "Data on the train schedule for this direction",
+                    "type": "object",
+                    "additionalProperties": {
+                        "description": "Data on the train schedule for this date group",
+                        "type": "object",
+                        "properties": {
+                            "schedule": {
+                                "type": "array",
+                                "items": {
+                                    "description": "Train schedule in simple format",
+                                    "type": "object",
+                                    "properties": {
+                                        "trains": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            },
+                                            "minItems": 1,
+                                            "uniqueItems": true
+                                        },
+                                        "first_train": {
+                                            "description": "First train of the day",
+                                            "type": "string",
+                                            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                        },
+                                        "delta": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "integer"
+                                                    },
+                                                    {
+                                                        "type": "array",
+                                                        "minItems": 1,
+                                                        "uniqueItems": false
+                                                    }
+                                                ]
+                                            },
+                                            "minItems": 1,
+                                            "uniqueItems": false
+                                        }
+                                    },
+                                    "oneOf": [
+                                        {"required": ["trains"]},
+                                        {"required": ["first_train", "delta"]}
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                "minItems": 1
+                            },
+                            "filters": {
+                                "description": "Filter to apply routes to trains",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "plan": {
+                                            "description": "Train routing name",
+                                            "type": "string"
+                                        },
+                                        "trains": {
+                                            "description": "Trains leaving time this filter includes",
+                                            "type": "array",
+                                            "items": {"type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$"},
+                                            "minItems": 1,
+                                            "uniqueItems": true
+                                        },
+                                        "first_train": {
+                                            "description": "First leaving time within this filter",
+                                            "type": "string",
+                                            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                        },
+                                        "skip_trains": {
+                                            "description": "Number of trains that should be skipped",
+                                            "type": "integer",
+                                            "default": 0
+                                        },
+                                        "until": {
+                                            "description": "Last leaving time within this filter",
+                                            "type": "string",
+                                            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                        },
+                                        "count": {
+                                            "description": "Number of trains within this filter",
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "required": ["plan"],
+                                    "additionalProperties": false
+                                }
+                            }
+                        },
+                        "required": ["schedule"],
+                        "additionalProperties": false
+                    },
+                    "minProperties": 2,
+                    "maxProperties": 2
+                },
+                "minProperties": 1
+            },
+            "minProperties": 1
+        }
+    },
+    "required": ["name", "carriage_num", "carriage_type", "design_speed", "train_routes", "date_groups", "timetable"],
+    "oneOf": [
+        {"required": ["stations"]},
+        {"required": ["station_names", "station_dists"]}
+    ],
+    "dependentRequired": {
+        "loop": ["loop_last_segment"]
+    },
+    "additionalProperties": false
+}

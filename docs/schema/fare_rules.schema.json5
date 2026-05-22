@@ -1,0 +1,187 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "JSON5 Schema For Fare Rules",
+    "description": "Describes properties for a city's fare rules",
+    "type": "object",
+    "properties": {
+        "currency": {
+            "description": "Currency symbol",
+            "type": "string",
+            "default": ""
+        },
+        "rule_groups": {
+            "description": "Groups of fare rules, each applying to a subset of lines or stations",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Name of this group",
+                        "type": "string"
+                    },
+                    "derive_from": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "description": "Name of the group this group derives from",
+                                "type": "string"
+                            },
+                            "portion": {
+                                "description": "Portion of the fare to charge, between 0 and 1",
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "exclusiveMaximum": 1
+                            }
+                        },
+                        "required": ["name"],
+                        "additionalProperties": false
+                    },
+                    "lines": {
+                        "description": "Lines this group applies to",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "starting_stations": {
+                        "description": "Starting stations this group applies to",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "ending_stations": {
+                        "description": "Ending stations this group applies to",
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "basis": {
+                        "description": "Fare rule basis",
+                        "type": "string",
+                        "enum": ["single", "distance", "station", "manual"]
+                    },
+                    "inner_basis": {
+                        "description": "Whether the apply_time field applies to entries or exits",
+                        "type": "string",
+                        "enum": ["entry", "exit"]
+                    },
+                    "apply_time": {
+                        "description": "Specific time that this rule applies",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "date_group": {
+                                    "description": "Date groups that this rule applies to",
+                                    "type": "string"
+                                },
+                                "start": {
+                                    "description": "Start of time that this rule applies to (HH:MM)",
+                                    "type": "string",
+                                    "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                },
+                                "end": {
+                                    "description": "End of time that this rule applies to (HH:MM)",
+                                    "type": "string",
+                                    "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                }
+                            },
+                            "additionalProperties": false,
+                        },
+                        "minItems": 1
+                    },
+                    "rules": {
+                        "description": "Detailed rules for this fare group",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "fare": {
+                                    "description": "Fare for this rule",
+                                    "type": "number",
+                                    "minimum": 0
+                                },
+                                "start": {
+                                    "oneOf": [
+                                        {
+                                            "description": "Starting distance in meter (inclusive)",
+                                            "type": "integer",
+                                            "default": 0,
+                                        },
+                                        {
+                                            "description": "Starting station name",
+                                            "type": "string"
+                                        }
+                                    ],
+                                },
+                                "end": {
+                                    "oneOf": [
+                                        {
+                                            "description": "Ending distance in meter (inclusive)",
+                                            "type": "integer",
+                                            "default": 0,
+                                        },
+                                        {
+                                            "description": "Ending station name",
+                                            "type": "string"
+                                        }
+                                    ],
+                                },
+                                "basis": {
+                                    "description": "Whether the apply_time field applies to entries or exits",
+                                    "type": "string",
+                                    "enum": ["entry", "exit"]
+                                },
+                                "apply_time": {
+                                    "description": "Specific time that this rule applies",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "date_group": {
+                                                "description": "Date groups that this rule applies to",
+                                                "type": "string"
+                                            },
+                                            "start": {
+                                                "description": "Start of time that this rule applies to (HH:MM)",
+                                                "type": "string",
+                                                "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            },
+                                            "end": {
+                                                "description": "End of time that this rule applies to (HH:MM)",
+                                                "type": "string",
+                                                "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                    },
+                                    "minItems": 1
+                                }
+                            },
+                            "required": ["fare"],
+                            "dependentRequired": {
+                                "apply_time": ["basis"]
+                            },
+                            "additionalProperties": false
+                        },
+                        "minItems": 1
+                    }
+                },
+                "required": ["name"],
+                "oneOf": [
+                    {"required": ["derive_from"]},
+                    {"required": ["basis"]}
+                ],
+                "dependentRequired": {
+                    "apply_time": ["inner_basis"]
+                },
+                "additionalProperties": false
+            },
+            "minItems": 1
+        }
+    },
+    "required": ["rule_groups"],
+    "additionalProperties": false
+}
