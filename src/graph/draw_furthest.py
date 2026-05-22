@@ -15,7 +15,7 @@ from src.dist_graph.shortest_path import all_shortest
 from src.graph.draw_map import draw_all_station, map_args, draw_contour_wrap, get_levels_from_source, get_colormap
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 
 
 def main() -> None:

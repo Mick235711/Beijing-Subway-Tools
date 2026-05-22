@@ -425,7 +425,7 @@ def change_style(
             change_label[0].set_text(new_text)
         else:
             change_label[0].set_text(new_style.apply_text(hour_display, 0, 0))
-        if isinstance(new_style, SuperText) or isinstance(new_style, FormattedText):
+        if isinstance(new_style, (SuperText, FormattedText)):
             change_label[0].style(replace="")
         else:
             change_label[0].style(replace=new_style.apply_style(hour_display, change_label[1]))

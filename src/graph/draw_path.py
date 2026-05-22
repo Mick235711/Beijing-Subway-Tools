@@ -25,7 +25,7 @@ from src.graph.draw_map import map_args, get_colormap, convert_color, find_font_
 from src.graph.map import Map, color_to_hex, is_black
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 
 # Some constants
 DrawDict = list[tuple[float, Path, str]]  # (alpha, path, end_station)

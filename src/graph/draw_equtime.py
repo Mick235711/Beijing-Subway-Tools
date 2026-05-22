@@ -14,7 +14,7 @@ from src.graph.draw_map import draw_all_station, draw_station, map_args, draw_co
     get_map_data, draw_station_filled
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 
 
 def main() -> None:

@@ -15,7 +15,7 @@ from src.city.ask_for_city import ask_for_map
 from src.graph.draw_map import get_colormap, draw_all_station, draw_contour_wrap, map_args, get_levels_from_source
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 
 
 def main() -> None:

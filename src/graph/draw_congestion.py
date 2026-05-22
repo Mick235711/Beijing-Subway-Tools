@@ -32,7 +32,7 @@ from src.routing.train import parse_all_trains, Train
 from src.stats.common import display_first
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 LoadTuple = tuple[float, float, float, float]
 VTSpec2 = tuple[tuple[str, str] | None, tuple[str, str] | None]
 EPS = 1e-5

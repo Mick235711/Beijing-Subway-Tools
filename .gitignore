@@ -164,3 +164,6 @@ cython_debug/
 
 # IDEA
 .idea/
+
+# Remove real-world Beijing map due to copyright
+data/beijing/maps/real-distance.png

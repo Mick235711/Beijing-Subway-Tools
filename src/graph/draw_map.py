@@ -24,7 +24,7 @@ from src.common.common import parse_comma
 from src.graph.map import Map
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 Color = tuple[float, float, float] | tuple[float, float, float, float]
 
 

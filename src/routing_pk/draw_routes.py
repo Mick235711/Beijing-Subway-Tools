@@ -22,7 +22,7 @@ from src.graph.draw_path import draw_paths, DrawDict
 from src.routing_pk.common import RouteData, route_str, Route, select_routes
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 
 
 def draw_routes(

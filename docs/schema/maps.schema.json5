@@ -20,35 +20,35 @@
         },
         "radius": {
             "description": "Radius of regular stations",
-            "type": "integer"
+            "type": "number"
         },
         "width": {
             "description": "Width of regular stations",
-            "type": "integer"
+            "type": "number"
         },
         "height": {
             "description": "Height of regular stations",
-            "type": "integer"
+            "type": "number"
         },
         "font_size": {
             "description": "Font size for regular stations",
-            "type": "integer"
+            "type": "number"
         },
         "transfer_radius": {
             "description": "Radius of transfer stations",
-            "type": "integer"
+            "type": "number"
         },
         "transfer_width": {
             "description": "Width of transfer stations",
-            "type": "integer"
+            "type": "number"
         },
         "transfer_height": {
             "description": "Height of transfer stations",
-            "type": "integer"
+            "type": "number"
         },
         "transfer_font_size": {
             "description": "Font size for transfer stations",
-            "type": "integer"
+            "type": "number"
         },
         "coordinates": {
             "description": "Mapping from station to coordinates",
@@ -59,31 +59,31 @@
                     "properties": {
                         "x": {
                             "description": "X coordinate of the station",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "y": {
                             "description": "Y coordinate of the station",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "r": {
                             "description": "Radius of the station (represents rounded corners for rectangle shape)",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "rx": {
                             "description": "X radius of the station (represents ellipse)",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "ry": {
                             "description": "Y radius of the station (represents ellipse)",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "w": {
                             "description": "Width of the station (overrides width property)",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "h": {
                             "description": "Height of the station (overrides height property)",
-                            "type": "integer"
+                            "type": "number"
                         },
                         "shape_type": {
                             "description": "Shape of the station (overrides shape_type property)",
@@ -96,31 +96,31 @@
                             "properties": {
                                 "x": {
                                     "description": "X coordinate of the station",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "y": {
                                     "description": "Y coordinate of the station",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "r": {
                                     "description": "Radius of the station (represents rounded corners for rectangle shape)",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "rx": {
                                     "description": "X radius of the station (represents ellipse)",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "ry": {
                                     "description": "Y radius of the station (represents ellipse)",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "w": {
                                     "description": "Width of the station (overrides width property)",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "h": {
                                     "description": "Height of the station (overrides height property)",
-                                    "type": "integer"
+                                    "type": "number"
                                 },
                                 "shape_type": {
                                     "description": "Shape of the station (overrides shape_type property)",

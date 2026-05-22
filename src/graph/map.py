@@ -32,12 +32,12 @@ class Shape(ABC):
     """ Represent an abstract shape """
 
     @abstractmethod
-    def center_point(self) -> tuple[int, int]:
+    def center_point(self) -> tuple[float, float]:
         """ Return the center point of the shape """
         pass
 
     @abstractmethod
-    def max_width(self) -> int:
+    def max_width(self) -> float:
         """ Return the max allowed width """
         pass
 
@@ -50,17 +50,17 @@ class Shape(ABC):
 class Circle(Shape):
     """ Represents a circle """
 
-    def __init__(self, x: int, y: int, r: int) -> None:
+    def __init__(self, x: float, y: float, r: float) -> None:
         """ Constructor """
         self.x = x
         self.y = y
         self.r = r
 
-    def center_point(self) -> tuple[int, int]:
+    def center_point(self) -> tuple[float, float]:
         """ Return the center point of the circle """
         return self.x + self.r, self.y + self.r
 
-    def max_width(self) -> int:
+    def max_width(self) -> float:
         """ Return the max allowed width """
         return self.r * 2
 
@@ -77,18 +77,18 @@ class Circle(Shape):
 class Ellipse(Shape):
     """ Represents an ellipse """
 
-    def __init__(self, x: int, y: int, rx: int, ry: int) -> None:
+    def __init__(self, x: float, y: float, rx: float, ry: float) -> None:
         """ Constructor """
         self.x = x
         self.y = y
         self.rx = rx
         self.ry = ry
 
-    def center_point(self) -> tuple[int, int]:
+    def center_point(self) -> tuple[float, float]:
         """ Return the center point of the circle """
         return self.x + self.rx, self.y + self.ry
 
-    def max_width(self) -> int:
+    def max_width(self) -> float:
         """ Return the max allowed width """
         return min(self.rx, self.ry) * 2
 
@@ -105,7 +105,7 @@ class Ellipse(Shape):
 class Rectangle(Shape):
     """ Represents an rectangle """
 
-    def __init__(self, x: int, y: int, w: int, h: int, corner_radius: int = 0) -> None:
+    def __init__(self, x: float, y: float, w: float, h: float, corner_radius: float = 0) -> None:
         """ Constructor """
         self.x = x
         self.y = y
@@ -113,11 +113,11 @@ class Rectangle(Shape):
         self.h = h
         self.corner_radius = corner_radius
 
-    def center_point(self) -> tuple[int, int]:
+    def center_point(self) -> tuple[float, float]:
         """ Return the center point of the circle """
         return self.x + self.w // 2, self.y + self.h // 2
 
-    def max_width(self) -> int:
+    def max_width(self) -> float:
         """ Return the max allowed width """
         return min(self.w, self.h)
 
@@ -141,7 +141,7 @@ class Map:
     """ A class for storing a map """
 
     def __init__(
-        self, map_file: str, name: str, path: str, radius: int, transfer_radius: int,
+        self, map_file: str, name: str, path: str, radius: float, transfer_radius: float,
         coordinates: dict[str, Shape | None], path_coords: dict[str, Shape | None]
     ) -> None:
         """ Constructor """
@@ -152,8 +152,8 @@ class Map:
         self.radius, self.transfer_radius = radius, transfer_radius
         self.coordinates = coordinates
         self.path_coords = path_coords
-        self.font_size: int | None = None
-        self.transfer_font_size: int | None = None
+        self.font_size: float | None = None
+        self.transfer_font_size: float | None = None
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -167,17 +167,17 @@ class Map:
 
 
 def parse_coords(
-    station: str, spec: dict[str, int], station_lines: dict[str, set[Line]], *,
-    shape_type: Literal["circle", "rectangle"] = "circle", radius: int, transfer_radius: int,
-    width: int | None = None, height: int | None = None,
-    transfer_width: int | None = None, transfer_height: int | None = None
+    station: str, spec: dict[str, float], station_lines: dict[str, set[Line]], *,
+    shape_type: Literal["circle", "rectangle"] = "circle", radius: float, transfer_radius: float,
+    width: float | None = None, height: float | None = None,
+    transfer_width: float | None = None, transfer_height: float | None = None
 ) -> Shape:
     """ Parse coordinate specification """
     x, y = spec["x"], spec["y"]
     single_type = spec.get("shape_type", shape_type)
     if single_type == "circle":
         default_radius = radius if len(station_lines[station]) == 1 else transfer_radius
-        if isinstance(default_radius, int):
+        if isinstance(default_radius, (int, float)):
             r = spec.get("r", default_radius)
             return Circle(x, y, r)
         elif isinstance(default_radius, list):
@@ -207,16 +207,11 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
     path = os.path.join(os.path.dirname(map_file), map_dict["path"])
     shape_type = map_dict.get("shape_type", "circle")
     radius = map_dict["radius"]
+    width = map_dict.get("width")
+    height = map_dict.get("height")
     transfer_radius = map_dict.get("transfer_radius", radius)
-    width: int | None = None
-    height: int | None = None
-    transfer_width: int | None = None
-    transfer_height: int | None = None
-    if shape_type == "rectangle":
-        width = map_dict["width"]
-        height = map_dict["height"]
-        transfer_width = map_dict.get("transfer_width", width)
-        transfer_height = map_dict.get("transfer_height", height)
+    transfer_width = map_dict.get("transfer_width", width)
+    transfer_height = map_dict.get("transfer_height", height)
     coords: dict[str, Shape | None] = {}
     path_coords: dict[str, Shape | None] = {}
     for station, spec in map_dict["coordinates"].items():

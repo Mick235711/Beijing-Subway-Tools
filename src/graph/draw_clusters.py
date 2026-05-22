@@ -20,7 +20,7 @@ from src.graph.draw_path import get_path_colormap, draw_path, get_edge_wide, get
 from src.stats.common import display_first
 
 # reset max pixel
-Image.MAX_IMAGE_PIXELS = 300000000
+Image.MAX_IMAGE_PIXELS = 500000000
 
 
 def station_filter(city: City, station: str, *, only_transfer: bool = True, exclude_virtual: bool = False) -> bool:
