@@ -280,7 +280,7 @@ def combine_trains(path1: Path, path2: Path, end_station: str) -> Path:
 
     if end_station in prev_train.arrival_time_virtual(prev_station):
         return path1
-    elif prev_station in next_train.arrival_time and next_station in next_train.arrival_time_virtual(prev_station):
+    elif prev_station in next_train.arrival_time and end_station in next_train.arrival_time_virtual(prev_station):
         return [(prev_station, next_train)]
     else:
         # FIXME: We have a problem; both train cannot reach each other.

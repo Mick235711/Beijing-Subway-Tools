@@ -447,16 +447,17 @@ def parse_load_factor(stations: set[str], file_name: str | None = None) -> dict[
     load_factor: dict[tuple[str, str], float] = {}
     for from_station, spec in load_dict.items():
         # Assume a number to apply to all stations
-        if "entry" in spec:
-            for to_station in stations:
-                if to_station == from_station:
-                    continue
-                load_factor[(from_station, to_station)] = spec["entry"]
-        if "exit" in spec:
-            for to_station in stations:
-                if to_station == from_station:
-                    continue
-                load_factor[(to_station, from_station)] = spec["exit"]
+        for to_station in stations:
+            if to_station == from_station:
+                continue
+            if "entry" in spec:
+                if (from_station, to_station) not in load_factor:
+                    load_factor[(from_station, to_station)] = 1.0
+                load_factor[(from_station, to_station)] *= spec["entry"]
+            if "exit" in spec:
+                if (to_station, from_station) not in load_factor:
+                    load_factor[(to_station, from_station)] = 1.0
+                load_factor[(to_station, from_station)] *= spec["exit"]
 
         for to_station, factor in spec.items():
             if to_station in ["entry", "exit"]:
