@@ -323,7 +323,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
                 "showSymbol": tooltip_value not in ["Hover", "None"],
                 "itemStyle": {"color": city.lines[line_name].color or "#333"},
                 "markPoint": {
-                    "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
+                    "data": [{"type": marker, "id": "_marker", "name": marker.capitalize() + " (" + marker_func(
                         dimensions, key=make_marker_key(line_name)
                     ) + ")"}],
                     "label": mark_point_label
@@ -337,7 +337,7 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
             "showSymbol": tooltip_value not in ["Hover", "None"],
             "itemStyle": {"color": "black"},
             "markPoint": {
-                "data": [{"type": marker, "name": marker.capitalize() + " (" + marker_func(
+                "data": [{"type": marker, "id": "_marker", "name": marker.capitalize() + " (" + marker_func(
                     dimensions, key=lambda t: sum(data_dict.get(t, 0) for data_dict in dataset.values())
                 ) + ")"}],
                 "label": mark_point_label
