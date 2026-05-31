@@ -1173,8 +1173,8 @@ def display_data(
 
         mark_point_label = {
             "show": True,
-            ":formatter": "(params) => params.value.toFixed(2)"
-        } if moving_average > 1 else {}
+            ":formatter": "(params) => params.value.toFixed(2)" if moving_average > 1 else "(params) => params.value"
+        }
         def get_mark_point(inner_data_dict: dict[str, float]) -> list[dict]:
             """ Get specification for mark point array """
             mark_point_array: list[dict] = []

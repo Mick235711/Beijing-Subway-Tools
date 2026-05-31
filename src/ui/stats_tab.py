@@ -305,7 +305,9 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
         mark_point_label = {
             "show": True,
             ":formatter": "(params) => params.value.toFixed(2)"
-        } if per_km or is_ratio or is_full or other_date is not None or other_time is not None or moving_average > 1 else {}
+            if per_km or is_ratio or is_full or other_date is not None or other_time is not None or moving_average > 1
+            else "(params) => params.value"
+        }
         marker = "min" if is_full else "max"
         marker_func = min if is_full else max
         def make_marker_key(name: str) -> Callable[[str], float]:
