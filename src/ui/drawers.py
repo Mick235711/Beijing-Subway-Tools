@@ -662,6 +662,7 @@ def train_drawer(
         speed = segment_speed(distance, duration)
         op_speed = segment_speed(distance, duration - total_outside)
         is_express = any(t.is_express() for _, t in full_train[1] if isinstance(t, Train))
+        num_lines = total_transfer(full_train[1], through_dict=through_dict)
     else:
         skip_stations = list(full_train.skip_stations)
         num_stations = len(stations) - len(full_train.skip_stations)
@@ -670,6 +671,7 @@ def train_drawer(
         speed = full_train.speed()
         total_outside, total_waiting, op_speed = 0, 0, 0
         is_express = full_train.is_express()
+        num_lines = 0
     with ui.tab_panels(tabs, value=info_tab).classes("w-full h-full"):
         with ui.tab_panel(info_tab).classes("p-1"):
             with ui.grid(rows=4, columns=2):
@@ -691,7 +693,6 @@ def train_drawer(
                         ui.label(format_duration(duration)).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     if isinstance(full_train, tuple):
-                        num_lines = total_transfer(full_train[1], through_dict=through_dict)
                         have_dist, _, sum_dist, sum_stairs = total_transfer_duration(
                             start_date, full_train[1], city.transfers, through_dict
                         )
@@ -718,9 +719,10 @@ def train_drawer(
                         ui.label("Average Speed").classes(CARD_CAPTION)
                         ui.label(speed_str(speed)).classes(CARD_TEXT)
                         if isinstance(full_train, tuple):
-                            ui.label(
-                                f"Transfer: {format_duration(total_outside - total_waiting)} / Waiting: {format_duration(total_waiting)}"
-                            ).classes("text-subtitle-1")
+                            transfer_text = f"Waiting: {format_duration(total_waiting)}"
+                            if num_lines > 0:
+                                transfer_text = f"Transfer: {format_duration(total_outside - total_waiting)} / {transfer_text}"
+                            ui.label(transfer_text).classes("text-subtitle-1")
                 if not isinstance(full_train, tuple):
                     line_train_type_card(full_train)
 
