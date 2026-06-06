@@ -5,7 +5,7 @@
 
 # Libraries
 from datetime import date
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 from math import sqrt
 from nicegui import background_tasks, binding, run, ui
@@ -203,6 +203,54 @@ def stats_tab(city: City, data: StatsData) -> None:
                     on_change=lambda e: final_train_radar.refresh(show_station_orbs=e.value, save_image=False)
                 )
                 ui.button("Save image", icon="save", on_click=lambda: final_train_radar.refresh(save_image=True))
+
+            with ui.row().classes("w-full items-center justify-center gap-4"):
+                ui.label("Zoom:").classes("shrink-0")
+                zoom_slider = ui.slider(min=50, max=150, value=100, step=5).classes("w-64")
+                ui.label().classes("w-12 shrink-0").bind_text_from(
+                    zoom_slider, "value", backward=lambda v: f"{v}%"
+                )
+                zoom_slider.on("update:model-value", js_handler="""
+                    (value) => {
+                        // Persist zoom so the MutationObserver can reapply it after re-renders.
+                        window._radarZoom = value;
+
+                        const applyRadarZoom = (svg) => {
+                            const base = 1000;
+                            const z = window._radarZoom / 100;
+                            const visible = base / z;
+                            const pad = (visible - base) / 2;
+                            svg.setAttribute('viewBox', `${-pad} ${-pad} ${visible} ${visible}`);
+                        };
+
+                        // Install the observer exactly once. It watches for the SVG element being
+                        // replaced (which happens on every server-side final_train_radar.refresh())
+                        // and immediately reapplies the stored zoom to the fresh SVG.
+                        if (!window._radarZoomObserver) {
+                            window._radarZoomObserver = new MutationObserver((mutations) => {
+                                if (!window._radarZoom || window._radarZoom === 100) return;
+                                for (const mutation of mutations) {
+                                    for (const node of mutation.addedNodes) {
+                                        if (node.nodeType !== 1) continue;
+                                        // The SVG may be the added node itself or a descendant.
+                                        const svg =
+                                            (node.tagName === 'svg' && node.dataset.radarGraph)
+                                                ? node
+                                                : node.querySelector?.('svg[data-radar-graph]');
+                                        if (svg) { applyRadarZoom(svg); return; }
+                                    }
+                                }
+                            });
+                            window._radarZoomObserver.observe(document.body, {
+                                childList: true, subtree: true
+                            });
+                        }
+
+                        // Also apply immediately to the SVG already in the DOM.
+                        const svg = document.querySelector('svg[data-radar-graph]');
+                        if (svg) applyRadarZoom(svg);
+                    }
+                """)
             final_train_radar(city, train_dict=data.train_dict, start_date=data.cur_date)
             on_line_change()
 
@@ -1124,7 +1172,7 @@ def final_train_radar(
             refresh_line_drawer(clicked_line, city.lines)
 
     svg_html = f"""
-<svg viewBox="0 0 {total_width} {total_width}" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 {total_width} {total_width}" data-radar-graph="true" xmlns="http://www.w3.org/2000/svg">
     <defs>
     """ + "\n".join(defs) + "</defs>" + "\n".join(
         elements
