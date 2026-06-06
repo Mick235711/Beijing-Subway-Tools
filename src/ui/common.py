@@ -37,6 +37,18 @@ ROUTE_TYPES = {
     "Loop": ("teal", "loop"),
     "Through": ("indigo-7", "sync_alt")
 }
+IS_NATIVE = False
+
+
+def set_native(is_native: bool) -> None:
+    """ Set native status """
+    global IS_NATIVE
+    IS_NATIVE = is_native
+
+
+def get_native() -> bool:
+    """ Get native status """
+    return IS_NATIVE
 
 
 def get_line_row(line: Line, *, force_badge: bool = False) -> tuple:
@@ -414,12 +426,12 @@ def draw_text(
     if radial <= 360 / 8 or 360 - radial < 360 / 8:
         text_anchor = "start" if is_inner else "end"
         return f"""
-<text transform="translate({x}, {y}) rotate({radial})" style="writing-mode: tb;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
+<text transform="translate({x}, {y}) rotate({radial})" style="writing-mode: tb; text-orientation: upright; -webkit-text-orientation: upright;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
         """
     if abs(180 - radial) <= 360 / 8:
         text_anchor = "end" if is_inner else "start"
         return f"""
-<text transform="translate({x}, {y}) rotate({radial + 180})" style="writing-mode: tb;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
+<text transform="translate({x}, {y}) rotate({radial + 180})" style="writing-mode: tb; text-orientation: upright; -webkit-text-orientation: upright;" text-anchor="{text_anchor}" {additional_styles}>{text}</text>
         """
     if abs(90 - radial) < 360 / 8:
         text_anchor = "end" if is_inner else "start"

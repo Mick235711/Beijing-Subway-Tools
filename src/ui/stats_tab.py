@@ -20,7 +20,7 @@ from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_time_input, get_default_line, get_default_direction, get_default_station, \
     get_line_selector_options, get_direction_selector_options, get_station_selector_options, get_line_html, \
     get_station_html, find_train_id, draw_arc, draw_text, get_line_row, get_station_row, calculate_moving_average, \
-    get_chart_options
+    get_chart_options, get_native
 from src.ui.drawers import get_line_badge, refresh_train_drawer, refresh_station_drawer, refresh_line_drawer
 from src.ui.info_tab import InfoData
 from src.ui.timetable_tab import get_train_dict, get_train_list
@@ -1047,7 +1047,32 @@ def final_train_radar(
             x1, y1 = to_polar(total_width / 2, total_width / 2, to_radius(start_time)[0] - text_delta, radial)
             x2, y2 = to_polar(total_width / 2, total_width / 2, to_radius(end_time)[0] + text_delta, radial)
             xi, yi = to_polar(total_width / 2, total_width / 2, to_radius(intersect_time)[0], radial)
-            xt, yt = to_polar(total_width / 2, total_width / 2, to_radius(end_time)[0] + 3 * text_delta * (chin_len(end_station) ** 0.75), radial)
+
+            # Compute badge position beyond the actual rendered extent of the terminus text.
+            # draw_text always anchors the text at x2,y2 and extends it radially outward:
+            #   - Near-vertical angles (≤45°, ≥315°, or ~180°±45°): writing-mode: tb is used,
+            #     so each character advances ~font_size × 1.3 (incl. line-height) in the radial direction.
+            #     Extent ≈ len(text) × font_size × 1.3
+            #   - Near-horizontal angles (~90° or ~270°): horizontal text extends radially outward;
+            #     CJK chars are full-width (~font_size each) and ASCII are half-width (~0.6 × font_size).
+            #     chin_len() counts CJK as 2 units and ASCII as 1 unit, so multiplying by 0.6 gives:
+            #       CJK: 2 × 0.6 × font_size ≈ 1.2 × font_size  (slight overestimate is fine)
+            #       ASCII: 1 × 0.6 × font_size ≈ 0.6 × font_size  (close to actual)
+            terminus_font_size = 14  # font-size of the terminus station label
+            is_near_vertical = (
+                radial <= 360 / 8 or 360 - radial < 360 / 8
+                or abs(180 - radial) <= 360 / 8
+            )
+            if is_near_vertical:
+                text_radial_extent = len(end_station) * terminus_font_size * (1.3 if get_native() else 1.15)
+            else:
+                text_radial_extent = chin_len(end_station) * terminus_font_size * 0.52
+            xt, yt = to_polar(
+                total_width / 2, total_width / 2,
+                to_radius(end_time)[0] + text_delta + text_radial_extent + text_delta,
+                radial
+            )
+
             station_coords.append((xi, yi, last_station))
             trains.append(train)
             elements.append(f"""

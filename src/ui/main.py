@@ -15,7 +15,7 @@ from src.city.line import Line
 from src.common.common import suffix_s
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
-from src.ui.common import get_default_line, get_default_direction, get_default_station
+from src.ui.common import get_default_line, get_default_direction, get_default_station, set_native
 from src.ui.drawers import right_drawer, assign_globals
 from src.ui.info_tab import info_tab, InfoData
 from src.ui.route_tab import route_tab
@@ -391,9 +391,11 @@ def main() -> None:
     if args.browser:
         ui.run(dark=dark, title="Beijing Subway Tools - Browser Mode")
     elif args.window_size is None:
+        set_native(True)
         app.native.window_args = {"maximized": True}
         ui.run(native=True, dark=dark, title="Beijing Subway Tools")
     else:
+        set_native(True)
         window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
         ui.run(native=(not args.browser), dark=dark, window_size=(window_w, window_h), title="Beijing Subway Tools")
 
