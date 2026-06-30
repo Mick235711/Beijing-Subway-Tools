@@ -122,19 +122,23 @@ def generate_next(
     direction_stations = line.direction_stations(direction)
     prev_index = direction_stations.index(station)
     if prev_index == len(direction_stations) - 1:
-        assert line.loop, (line, direction, station)
-        next_station = direction_stations[0]
+        next_station = direction_stations[0] if line.loop else station
     else:
         next_station = direction_stations[prev_index + 1]
-    delta = ask_for_int(
-        f"What is the running time (in minutes) from {station} to {next_station}?",
-        with_default=0
-    )
+    if station == next_station:
+        delta = 0
+    else:
+        delta = ask_for_int(
+            f"What is the running time (in minutes) from {station} to {next_station}?",
+            with_default=0
+        )
     new_timetable = add_delta(timetable, next_station, delta, remove_train=remove_train)
 
     # Add prev trains that are skipped to this station
     min_diff: dict[str, int] = {}
     for prev_station in direction_stations[:prev_index]:
+        if station == next_station:
+            break
         prev_timetable = line.timetables()[prev_station][direction][date_group.name]
         for cur_time, cur_train in prev_timetable.trains.items():
             if not without_criteria(
@@ -195,7 +199,7 @@ def main() -> None:
     station = ask_for_station_in_line(line, with_timetable=True, with_direction=direction)
     date_group = ask_for_date_group(line, with_timetabled_sd=(station, direction))
 
-    if line.direction_stations(direction)[-1] == station and not line.loop:
+    if line.direction_stations(direction)[-1] == station and not line.loop and not args.do_not_remove:
         print("End of the route.")
         sys.exit(0)
     timetable = line.timetables()[station][direction][date_group.name]

@@ -328,7 +328,7 @@ def ask_for_date_group(
             station, direction = with_timetabled_sd
             station_index = line.directions[direction].index(station)
             if station_index == len(line.directions[direction]) - 1:
-                # End of route
+                # End of the route
                 viable = []
             else:
                 next_station = line.directions[direction][station_index + 1]

@@ -205,7 +205,7 @@ def draw_contours(
             for f in levels
         ) + f"] (min = {min_value:.2f}, max = {max_value:.2f})")
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {}
     if levels is not None:
         kwargs["levels"] = levels
 
