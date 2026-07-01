@@ -99,7 +99,14 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
                 break
         else:
             loop_dict.append([cur1, cur2])
-    return loop_dict
+
+    # Keep trains that do not link to another working as standalone segments.
+    used_trains = {id(train) for entry in loop_dict for train in entry}
+    for train in all_trains:
+        if id(train) not in used_trains:
+            loop_dict.append([train])
+
+    return sorted(loop_dict, key=lambda segment: segment[0].start_time_str())
 
 
 def total_duration(segments: Segment) -> int:
