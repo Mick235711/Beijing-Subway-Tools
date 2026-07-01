@@ -625,6 +625,18 @@ def show_transfer_data(sum_dist: int, sum_stairs: int) -> None:
         ui.label(str(sum_stairs)).classes("text-subtitle-1")
 
 
+def get_train_id_context(
+    train_dict: dict[str, dict[str, dict[str, list[Train]]]], train: Train
+) -> tuple[str, dict[str, Train]] | None:
+    """ Get a full date-group ID context for a train. """
+    date_group_dict = train_dict.get(train.line.name, {}).get(train.direction, {})
+    train_list = date_group_dict.get(train.date_group)
+    if train_list is None:
+        return None
+    id_dict = get_train_id(train_list)
+    return find_train_id(id_dict, train), id_dict
+
+
 def train_drawer(
     city: City, train: Train | PathInfo, start_date: date, train_id: str, train_id_dict: dict[str, Train] | None = None
 ) -> None:
@@ -752,27 +764,45 @@ def train_drawer(
                     on_change=lambda v: train_timeline.refresh(show_tally=v.value)
                 ).bind_visibility_from(train_select, "value", backward=lambda v: v != "none")
 
-            if first_train is not None and first_train.loop_prev is not None and train_id_dict is not None:
-                prev_id = find_train_id(train_id_dict, first_train.loop_prev)
+            prev_train: Train | None = None
+            if first_train is not None:
+                prev_train = first_train.loop_prev
+            if prev_train is not None:
+                prev_context = get_train_id_context(train_dict, prev_train)
+            else:
+                prev_context = None
+            if prev_context is not None and prev_train is not None:
+                prev_id, prev_id_dict = prev_context
                 ui.button(
                     "Previous: " + prev_id, icon="keyboard_double_arrow_up",
-                    on_click=lambda: refresh_train_drawer(
-                        first_train.loop_prev, start_date, prev_id, train_id_dict, AVAILABLE_STATIONS
+                    on_click=lambda t=prev_train, i=prev_id, d=prev_id_dict: refresh_train_drawer(
+                        t, start_date, i, d, AVAILABLE_STATIONS
                     )
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 
             with ui.scroll_area().classes("flex-grow"):
+                timeline_train_id_dict = train_id_dict
+                if isinstance(full_train, Train):
+                    current_context = get_train_id_context(train_dict, full_train)
+                    timeline_train_id_dict = None if current_context is None else current_context[1]
                 train_timeline(
-                    train_dict, through_dict, train_id_dict, full_train, start_date, city.transfers,
+                    train_dict, through_dict, timeline_train_id_dict, full_train, start_date, city.transfers,
                     show_tally=True, show_station=select_opt_default
                 )
 
-            if last_train is not None and last_train.loop_next is not None and train_id_dict is not None:
-                next_id = find_train_id(train_id_dict, last_train.loop_next)
+            next_train: Train | None = None
+            if last_train is not None:
+                next_train = last_train.loop_next
+            if next_train is not None:
+                next_context = get_train_id_context(train_dict, next_train)
+            else:
+                next_context = None
+            if next_context is not None and next_train is not None:
+                next_id, next_id_dict = next_context
                 ui.button(
                     "Next: " + next_id, icon="keyboard_double_arrow_down",
-                    on_click=lambda: refresh_train_drawer(
-                        last_train.loop_next, start_date, next_id, train_id_dict, AVAILABLE_STATIONS
+                    on_click=lambda t=next_train, i=next_id, d=next_id_dict: refresh_train_drawer(
+                        t, start_date, i, d, AVAILABLE_STATIONS
                     )
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 

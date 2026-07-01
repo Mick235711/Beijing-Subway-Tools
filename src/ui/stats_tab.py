@@ -899,6 +899,8 @@ def display_speed_table(
         train_id_dict, train_rows = calc_result
         if key != table_key:
             return
+        if trains_table.is_deleted:
+            return
         trains_table.rows = train_rows
         trains_table.update()
         trains_table.props(remove="loading")
