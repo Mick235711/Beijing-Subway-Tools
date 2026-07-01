@@ -1111,12 +1111,14 @@ def train_timeline(
                 if i != len(stations) - 1:
                     if interval_str is not None:
                         ui.label(interval_str)
-                    if transfer_str[0] != "":
-                        ui.label(transfer_str[0])
-                    if transfer_str[2] is not None and transfer_str[3] is not None:
-                        show_transfer_data(transfer_str[2], transfer_str[3])
-                    if transfer_str[1] != "":
-                        ui.label(transfer_str[1])
+                    next_tuple = stations[i + 1][1]
+                    if not isinstance(next_tuple, tuple) or not next_tuple[1]:
+                        if transfer_str[0] != "":
+                            ui.label(transfer_str[0])
+                        if transfer_str[2] is not None and transfer_str[3] is not None:
+                            show_transfer_data(transfer_str[2], transfer_str[3])
+                        if transfer_str[1] != "":
+                            ui.label(transfer_str[1])
 
             with entry.add_slot("subtitle"):
                 ui.label(subtitle).classes("whitespace-pre-line")
