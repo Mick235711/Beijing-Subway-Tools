@@ -192,10 +192,13 @@ def ask_for_station_in_line(
                         if station in line.timetables() and with_direction in line.timetables()[station]]
     else:
         stations = line.stations
-    for station in stations:
-        if exclude is not None and station in exclude:
+
+    backtrack: dict[str, str] = {}
+    for station_name in stations:
+        if exclude is not None and station_name in exclude:
             continue
-        station = line.station_full_name(station)
+        station = line.station_full_name(station_name)
+        backtrack[station] = station_name
         meta_information[station] = line.full_name()
         if station in line.station_aliases:
             aliases[station] = line.station_aliases[station]
@@ -221,7 +224,7 @@ def ask_for_station_in_line(
         )
         if answer == "" and have_default:
             return viable[-1]
-    return answer
+    return backtrack[answer]
 
 
 def ask_for_station_pair_in_line(
