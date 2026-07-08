@@ -16,6 +16,7 @@ from nicegui import run, ui
 from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
+from nicegui.elements.switch import Switch
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
 from src.bfs.bfs import path_distance, expand_path, total_transfer, total_transfer_duration
@@ -1076,7 +1077,7 @@ def display_data(
                              }"""},
         {"name": "transferSort", "label": "Transfers Sort", "field": "transfer_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "walking", "label": "Walking", "field": "walking",
+        {"name": "walking", "label": "Walking", "field": "walking", "align": "center",
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["walking_sort"]) - parseFloat(rowB["walking_sort"]);
                              }"""},
@@ -1113,6 +1114,7 @@ def display_data(
         {"name": "targetArrivalSort", "label": "Arrival Sort", "field": "target_arrival_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
     ]
+
     with ui.column():
         with ui.row().classes("w-full items-center"):
             next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
@@ -1129,6 +1131,8 @@ def display_data(
             ).classes("min-w-25")
             time_input = get_time_input(lambda _: on_switch_change(), label="Departure").classes("w-30")
             ui.button("Reassign Indexes", on_click=on_reassign_click)
+
+    switches: dict[str, Switch] = {}
     with ui.column():
         with ui.row().classes("w-full items-center justify-between"):
             ui.label("Route Basic Data").classes("text-xl font-semibold mt-6 mb-2")
@@ -1137,8 +1141,8 @@ def display_data(
                     for column in data_table_columns:
                         if "classes" in column and column["classes"] == "hidden":
                             continue
-                        assert isinstance(column["label"], str), column
-                        ui.switch(
+                        assert isinstance(column["name"], str) and isinstance(column["label"], str), column
+                        switches[column["name"]] = ui.switch(
                             column["label"], value=True,
                             on_change=lambda e, n=column["name"]: on_table_column_toggle(n, e.value)
                         )
@@ -1152,6 +1156,7 @@ def display_data(
             selection="multiple",
             on_select=lambda e: on_select_change(e.selection)
         )
+
     data_table.selected = data_rows[:]
     line_indexes = {line.index: line for line in city.lines.values()}
     data_table.on("lineBadgeClick", lambda n: None if n.args is None else refresh_line_drawer(line_indexes[n.args], city.lines))
@@ -1203,6 +1208,9 @@ def display_data(
         target["classes"] = "" if visible else "hidden"
         target["headerClasses"] = "" if visible else "hidden"
         data_table.update()
+    if all(c["walking"] is None for c in data_rows):
+        on_table_column_toggle("walking", False)
+        switches["walking"].set_value(False)
 
     def on_chart_data_change() -> None:
         """ Handle data switch changes """

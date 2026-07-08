@@ -629,7 +629,7 @@ def get_walking_html(key: str) -> str:
     """ Get the HTML for the walking distance + stair field """
     return f"""
 <q-td key="{key}" :props="props">
-    <div class="row items-center gap-0 no-wrap" v-if="props.value !== null">
+    <div class="row items-center justify-center gap-0 no-wrap" v-if="props.value !== null">
         <q-icon name="directions_walk" />
         <div>{{{{ props.value[0] }}}}</div>
         <q-icon name="stairs" class="mx-[2px]" />
