@@ -616,13 +616,27 @@ def get_train_repr(
         None if isinstance(train, tuple) else first_train, None if isinstance(train, tuple) else last_train, lines
 
 
-def show_transfer_data(sum_dist: int, sum_stairs: int) -> None:
+def show_transfer_data(sum_walking: int, sum_stairs: int) -> None:
     """ Display transfer data neatly """
     with ui.row().classes("items-center gap-0 no-wrap"):
         ui.icon("directions_walk")
-        ui.label(f"{sum_dist}m").classes("text-subtitle-1")
+        ui.label(f"{sum_walking}m").classes("text-subtitle-1")
         ui.icon("stairs").classes("mx-[2px]")
         ui.label(str(sum_stairs)).classes("text-subtitle-1")
+
+
+def get_walking_html(key: str) -> str:
+    """ Get the HTML for the walking distance + stair field """
+    return f"""
+<q-td key="{key}" :props="props">
+    <div class="row items-center gap-0 no-wrap" v-if="props.value !== null">
+        <q-icon name="directions_walk" />
+        <div>{{{{ props.value[0] }}}}</div>
+        <q-icon name="stairs" class="mx-[2px]" />
+        <div>{{{{ props.value[1] }}}}</div>
+    </div>
+</q-td>
+    """
 
 
 def get_train_id_context(
@@ -705,7 +719,7 @@ def train_drawer(
                         ui.label(format_duration(duration)).classes(CARD_TEXT)
                 with ui.card().classes("q-pa-sm"):
                     if isinstance(full_train, tuple):
-                        have_dist, _, sum_dist, sum_stairs = total_transfer_duration(
+                        have_dist, _, sum_walking, sum_stairs = total_transfer_duration(
                             start_date, full_train[1], city.transfers, through_dict
                         )
                         num_virtual = len([1 for _, t in full_train[1] if not isinstance(t, Train)])
@@ -715,7 +729,7 @@ def train_drawer(
                             ui.label("Transfers").classes(CARD_CAPTION)
                             ui.label(str(num_lines)).classes(CARD_TEXT)
                             if have_dist:
-                                show_transfer_data(sum_dist, sum_stairs)
+                                show_transfer_data(sum_walking, sum_stairs)
                     else:
                         avg_dist = zero_div(distance, (num_stations - (
                             1 if last_train is not None and last_train.loop_next is None else 0

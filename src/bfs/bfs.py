@@ -357,13 +357,13 @@ def total_transfer_duration(
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> tuple[bool, float, int, int]:
     """ Get the sum of all transfer times """
-    have_dist = False
+    have_dist = True
     sum_duration = 0.0
     sum_distance = 0
     sum_stairs = 0
     for i, (station, train) in enumerate(path):
         if not isinstance(train, Train):
-            have_dist = have_dist or (train[3][1] is not None and train[3][2] is not None)
+            have_dist = have_dist and (train[3][1] is not None and train[3][2] is not None)
             sum_duration += train[3][0]
             sum_distance += train[3][1] or 0
             sum_stairs += train[3][2] or 0
@@ -389,7 +389,7 @@ def total_transfer_duration(
             next_train.line, next_train.direction,
             start_date, next_time, next_day
         )
-        have_dist = have_dist or (transfer_time[1] is not None and transfer_time[2] is not None)
+        have_dist = have_dist and (transfer_time[1] is not None and transfer_time[2] is not None)
         sum_duration += transfer_time[0]
         sum_distance += transfer_time[1] or 0
         sum_stairs += transfer_time[2] or 0

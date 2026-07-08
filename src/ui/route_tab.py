@@ -18,7 +18,7 @@ from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
-from src.bfs.bfs import path_distance, expand_path, total_transfer
+from src.bfs.bfs import path_distance, expand_path, total_transfer, total_transfer_duration
 from src.bfs.k_shortest_path import k_shortest_path
 from src.city.city import City
 from src.city.line import Line
@@ -37,7 +37,7 @@ from src.routing_pk.common import Route, route_str, RouteData, reverse_route
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
     get_station_row, calculate_moving_average, get_time_input, get_chart_options
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
-    refresh_train_drawer
+    refresh_train_drawer, get_walking_html
 
 
 def is_necessary(city: City, route: Route, index: int) -> bool:
@@ -796,9 +796,10 @@ async def analyze_routes(
 
 def calculate_data_rows(
     city: City, best_dict: dict[str, set[int]], data_list: list[RouteData],
-    *, cur_time: time, percentage_field: Literal["best", "one", "tie", "other"] = "best",
+    *, start_date: date, cur_time: time, percentage_field: Literal["best", "one", "tie", "other"] = "best",
     insert_transfer: Literal["none", "necessary", "all"] = "necessary",
-    baseline: int | None = None
+    baseline: int | None = None,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> list[dict]:
     """ Calculate rows for the data table """
     data_dict = {value[0]: value for value in data_list}
@@ -838,8 +839,11 @@ def calculate_data_rows(
         path, end_station = min_info[1], route[1]
         num_station = len(expand_path(path, end_station))
         transfer = total_transfer(path)
+        have_dist, _, sum_walking, sum_stairs = total_transfer_duration(
+            start_date, path, city.transfers, through_dict
+        )
         distance = path_distance(path, end_station)
-        speed_display = "Avg speed: " + speed_str(segment_speed(distance, avg_min))
+        speed_display = speed_str(segment_speed(distance, avg_min))
         arrival_start, arrival_str, arrival_sort = get_target_arrival(info_dict, cur_time)
         if baseline is None:
             avg_min_str = format_duration(avg_min)
@@ -847,20 +851,27 @@ def calculate_data_rows(
             max_str = format_duration(max_info[0])
             station_str = str(num_station)
             transfer_str = str(transfer)
+            walking_str = f"{sum_walking}m"
+            stairs_str = str(sum_stairs)
             dist_str = distance_str(distance)
             dist_display = str(distance) + "m"
+            diff_speed_str = speed_display
         elif index == baseline:
             avg_min_str = "[" + format_duration(avg_min) + "]"
             min_str = "[" + format_duration(min_info[0]) + "]"
             max_str = "[" + format_duration(max_info[0]) + "]"
             station_str = "[" + str(num_station) + "]"
             transfer_str = "[" + str(transfer) + "]"
+            walking_str = f"[{sum_walking}m]"
+            stairs_str = f"[{sum_stairs}]"
             dist_str = "[" + distance_str(distance) + "]"
             dist_display = str(distance) + "m"
+            diff_speed_str = "[" + speed_display + "]"
             if arrival_str is not None:
                 arrival_str = "[" + arrival_str + "]"
         else:
-            diff_avg_min = avg_min - average(x[0] for x in data_dict[baseline][2].values())
+            other_avg_min = average(x[0] for x in data_dict[baseline][2].values())
+            diff_avg_min = avg_min - other_avg_min
             diff_min = min_info[0] - min(list(data_dict[baseline][2].values()), key=lambda x: x[0])[0]
             diff_max = max_info[0] - max(list(data_dict[baseline][2].values()), key=lambda x: x[0])[0]
             other_path = data_dict[baseline][-1][1]
@@ -869,7 +880,18 @@ def calculate_data_rows(
             other_end = other_route[1]
             diff_station = num_station - len(expand_path(other_path, other_end))
             diff_transfer = transfer - total_transfer(other_path)
-            diff_dist = distance - path_distance(other_path, other_end)
+            other_have_dist, _, other_walking, other_stairs = total_transfer_duration(
+                start_date, other_path, city.transfers, through_dict
+            )
+            if other_have_dist:
+                diff_walking = sum_walking - other_walking
+                diff_stairs = sum_stairs - other_stairs
+            else:
+                diff_walking = sum_walking
+                diff_stairs = sum_stairs
+            other_dist = path_distance(other_path, other_end)
+            diff_dist = distance - other_dist
+            diff_speed = segment_speed(distance, avg_min) - segment_speed(other_dist, other_avg_min)
             _, other_arr, other_sort = get_target_arrival(data_dict[baseline][2], cur_time)
             if arrival_str is not None and other_arr is not None:
                 diff_arr = arrival_sort - other_sort
@@ -882,8 +904,11 @@ def calculate_data_rows(
             max_str = format_duration(diff_max)
             station_str = str(diff_station)
             transfer_str = str(diff_transfer)
+            walking_str = f"{diff_walking}m"
+            stairs_str = str(diff_stairs)
             dist_str = distance_str(diff_dist)
             dist_display = str(diff_dist) + "m"
+            diff_speed_str = speed_str(diff_speed)
             if diff_avg_min > 0:
                 avg_min_str = "+" + avg_min_str
             if diff_min > 0:
@@ -894,9 +919,15 @@ def calculate_data_rows(
                 station_str = "+" + station_str
             if diff_transfer > 0:
                 transfer_str = "+" + transfer_str
+            if diff_walking > 0:
+                walking_str = "+" + walking_str
+            if diff_stairs > 0:
+                stairs_str = "+" + stairs_str
             if diff_dist > 0:
                 dist_str = "+" + dist_str
                 dist_display = "+" + dist_display
+            if diff_speed > 0:
+                diff_speed_str = "+" + diff_speed_str
 
         rows.append({
             "index": index + 1,
@@ -914,8 +945,11 @@ def calculate_data_rows(
             "num_stations_sort": num_station,
             "transfer": transfer_str,
             "transfer_sort": transfer,
-            "avg_time": (avg_min_str, speed_display),
+            "walking": (walking_str, stairs_str) if have_dist else None,
+            "walking_sort": (sum_walking / 80 + sum_stairs / 120) if have_dist else 0,
+            "avg_time": (avg_min_str, "Avg speed: " + speed_display),
             "avg_time_sort": avg_min,
+            "avg_speed": diff_speed_str,
             "min_time": (min_str, (index, min_key)),
             "min_time_sort": min_info[0],
             "max_time": (max_str, (index, max_key)),
@@ -968,9 +1002,10 @@ def display_data(
         )
         data_dict = {value[0]: value for value in data_list}
         data_table.rows = calculate_data_rows(
-            city, best_dict, data_list, cur_time=cur_time[0],
+            city, best_dict, data_list, start_date=start_date, cur_time=cur_time[0],
             percentage_field=percentage_select.value, insert_transfer=transfer_select.value.lower(),
-            baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value))
+            baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value)),
+            through_dict=through_dict
         )
         data_table.selected = data_table.rows[:]
         on_chart_data_change()
@@ -984,7 +1019,100 @@ def display_data(
             path_list=reassign_index(sorted(path_list, key=lambda x: indexes.index(x[0])))
         )
 
-    data_rows = calculate_data_rows(city, best_dict, data_list, cur_time=datetime.now().time())
+    data_rows = calculate_data_rows(
+        city, best_dict, data_list,
+        start_date=start_date, cur_time=datetime.now().time(), through_dict=through_dict
+    )
+    data_table_columns: list[dict[str, str | bool]] = [
+        {"name": "index", "label": "Index", "field": "index"},
+        {"name": "percentage", "label": "Best", "field": "percentage", "align": "center",
+         ":sort": """(a, b, rowA, rowB) => {
+                                return rowA["percentage_sort"] - rowB["percentage_sort"];
+                             }"""},
+        {"name": "percentageSort", "label": "Percentage Sort", "field": "percentage_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "start", "label": "Start", "field": "start_station",
+         ":sort": """(a, b, rowA, rowB) => {
+                                return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
+                             }"""},
+        {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "route", "label": "Via", "field": "route", "align": "center",
+         ":sort": """(a, b, rowA, rowB) => {
+                                const route_a = JSON.parse(rowA["route_sort"]);
+                                const route_b = JSON.parse(rowB["route_sort"]);
+                                const len = Math.min(route_a.length, route_b.length);
+                                for (let i = 0; i < len; i++) {
+                                    if (route_a[i] < route_b[i]) return -1;
+                                    if (route_a[i] > route_b[i]) return 1;
+                                }
+                                if (route_a.length < route_b.length) return -1;
+                                if (route_a.length > route_b.length) return 1;
+                                return 0;
+                             }"""},
+        {"name": "routeSort", "label": "Route Sort", "field": "route_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "end", "label": "End", "field": "end_station",
+         ":sort": """(a, b, rowA, rowB) => {
+                                return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
+                             }"""},
+        {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "align": "left", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "distance", "label": "Distance", "field": "distance",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["distance_sort"]) - parseFloat(rowB["distance_sort"]);
+                             }"""},
+        {"name": "distanceSort", "label": "Distance Sort", "field": "distance_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "stationNum", "label": "Stations", "field": "num_stations",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["num_stations_sort"]) - parseFloat(rowB["num_stations_sort"]);
+                             }"""},
+        {"name": "stationNumSort", "label": "Stations Sort", "field": "num_stations_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "transfer", "label": "Transfers", "field": "transfer",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["transfer_sort"]) - parseFloat(rowB["transfer_sort"]);
+                             }"""},
+        {"name": "transferSort", "label": "Transfers Sort", "field": "transfer_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "walking", "label": "Walking", "field": "walking",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["walking_sort"]) - parseFloat(rowB["walking_sort"]);
+                             }"""},
+        {"name": "walkingSort", "label": "Walking Sort", "field": "walking_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "avgTime", "label": "Avg Time", "field": "avg_time",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["avg_time_sort"]) - parseFloat(rowB["avg_time_sort"]);
+                             }"""},
+        {"name": "avgTimeSort", "label": "Avg Time Sort", "field": "avg_time_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "avgSpeed", "label": "Avg Speed", "field": "avg_speed",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(a) - parseFloat(b);
+                             }"""},
+        {"name": "minTime", "label": "Min Time", "field": "min_time",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["min_time_sort"]) - parseFloat(rowB["min_time_sort"]);
+                             }"""},
+        {"name": "minTimeSort", "label": "Min Time Sort", "field": "min_time_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "maxTime", "label": "Max Time", "field": "max_time",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return parseFloat(rowA["max_time_sort"]) - parseFloat(rowB["max_time_sort"]);
+                             }"""},
+        {"name": "maxTimeSort", "label": "Max Time Sort", "field": "max_time_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+        {"name": "depTime", "label": "Departure Range", "field": "dep_time", "align": "center"},
+        {"name": "arrTime", "label": "Arrival Range", "field": "arr_time", "align": "center"},
+        {"name": "targetArrival", "label": "Arrival", "field": "target_arrival", "align": "center",
+         ":sort": """(a, b, rowA, rowB) => {
+                        return rowA["target_arrival_sort"] - rowB["target_arrival_sort"];
+                             }"""},
+        {"name": "targetArrivalSort", "label": "Arrival Sort", "field": "target_arrival_sort", "sortable": False,
+         "classes": "hidden", "headerClasses": "hidden"},
+    ]
     with ui.column():
         with ui.row().classes("w-full items-center"):
             next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
@@ -1001,90 +1129,22 @@ def display_data(
             ).classes("min-w-25")
             time_input = get_time_input(lambda _: on_switch_change(), label="Departure").classes("w-30")
             ui.button("Reassign Indexes", on_click=on_reassign_click)
+    with ui.column():
         with ui.row().classes("w-full items-center justify-between"):
             ui.label("Route Basic Data").classes("text-xl font-semibold mt-6 mb-2")
+            with ui.button(icon="menu"):
+                with ui.menu(), ui.column().classes("gap-0 p-2"):
+                    for column in data_table_columns:
+                        if "classes" in column and column["classes"] == "hidden":
+                            continue
+                        assert isinstance(column["label"], str), column
+                        ui.switch(
+                            column["label"], value=True,
+                            on_change=lambda e, n=column["name"]: on_table_column_toggle(n, e.value)
+                        )
             data_search = ui.input("Search data...")
         data_table = ui.table(
-            columns=[
-                {"name": "index", "label": "Index", "field": "index"},
-                {"name": "percentage", "label": "Best", "field": "percentage", "align": "center",
-                 ":sort": """(a, b, rowA, rowB) => {
-                                return rowA["percentage_sort"] - rowB["percentage_sort"];
-                             }"""},
-                {"name": "percentageSort", "label": "Percentage Sort", "field": "percentage_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "start", "label": "Start", "field": "start_station",
-                 ":sort": """(a, b, rowA, rowB) => {
-                                return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
-                             }"""},
-                {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "route", "label": "Via", "field": "route", "align": "center",
-                 ":sort": """(a, b, rowA, rowB) => {
-                                const route_a = JSON.parse(rowA["route_sort"]);
-                                const route_b = JSON.parse(rowB["route_sort"]);
-                                const len = Math.min(route_a.length, route_b.length);
-                                for (let i = 0; i < len; i++) {
-                                    if (route_a[i] < route_b[i]) return -1;
-                                    if (route_a[i] > route_b[i]) return 1;
-                                }
-                                if (route_a.length < route_b.length) return -1;
-                                if (route_a.length > route_b.length) return 1;
-                                return 0;
-                             }"""},
-                {"name": "routeSort", "label": "Route Sort", "field": "route_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "end", "label": "End", "field": "end_station",
-                 ":sort": """(a, b, rowA, rowB) => {
-                                return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
-                             }"""},
-                {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "align": "left", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "distance", "label": "Distance", "field": "distance",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return parseFloat(rowA["distance_sort"]) - parseFloat(rowB["distance_sort"]);
-                             }"""},
-                {"name": "distanceSort", "label": "Distance Sort", "field": "distance_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "stationNum", "label": "Stations", "field": "num_stations",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return parseFloat(rowA["num_stations_sort"]) - parseFloat(rowB["num_stations_sort"]);
-                             }"""},
-                {"name": "stationNumSort", "label": "Stations Sort", "field": "num_stations_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "transfer", "label": "Transfers", "field": "transfer",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return parseFloat(rowA["transfer_sort"]) - parseFloat(rowB["transfer_sort"]);
-                             }"""},
-                {"name": "transferSort", "label": "Transfers Sort", "field": "transfer_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "avgTime", "label": "Avg Time", "field": "avg_time",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return parseFloat(rowA["avg_time_sort"]) - parseFloat(rowB["avg_time_sort"]);
-                             }"""},
-                {"name": "avgTimeSort", "label": "Avg Time Sort", "field": "avg_time_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "minTime", "label": "Min Time", "field": "min_time",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return parseFloat(rowA["min_time_sort"]) - parseFloat(rowB["min_time_sort"]);
-                             }"""},
-                {"name": "minTimeSort", "label": "Min Time Sort", "field": "min_time_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "maxTime", "label": "Max Time", "field": "max_time",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return parseFloat(rowA["max_time_sort"]) - parseFloat(rowB["max_time_sort"]);
-                             }"""},
-                {"name": "maxTimeSort", "label": "Max Time Sort", "field": "max_time_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-                {"name": "depTime", "label": "Departure Range", "field": "dep_time", "align": "center"},
-                {"name": "arrTime", "label": "Arrival Range", "field": "arr_time", "align": "center"},
-                {"name": "targetArrival", "label": "Arrival", "field": "target_arrival", "align": "center",
-                 ":sort": """(a, b, rowA, rowB) => {
-                        return rowA["target_arrival_sort"] - rowB["target_arrival_sort"];
-                             }"""},
-                {"name": "targetArrivalSort", "label": "Arrival Sort", "field": "target_arrival_sort", "sortable": False,
-                 "classes": "hidden", "headerClasses": "hidden"},
-            ],
+            columns=data_table_columns[:],
             column_defaults={"align": "right", "required": True, "sortable": True},
             rows=data_rows,
             row_key="index",
@@ -1116,10 +1176,14 @@ def display_data(
         with data_table.cell("distance"):
             ui.label().props(":innerHTML=\"props.value[0]\"")
             ui.tooltip().props(":innerHTML=\"props.value[1]\"")
+    data_table.add_slot("body-cell-walking", get_walking_html("walking"))
     with data_table.add_slot("body-cell-avgTime"):
         with data_table.cell("avgTime"):
             ui.label().props(":innerHTML=\"props.value[0]\"")
-            ui.tooltip().props(":innerHTML=\"props.value[1]\"")
+            ui.tooltip().props(":innerHTML=\"props.value[1]\"").bind_visibility_from(
+                data_table, "columns",
+                lambda cols: [c for c in cols if c["name"] == "avgSpeed"][0].get("classes", "") == "hidden"
+            )
     data_table.add_slot("body-cell-minTime", get_signal_html("minTime", "depTimeClick"))
     data_table.add_slot("body-cell-maxTime", get_signal_html("maxTime", "depTimeClick"))
     data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))
@@ -1132,6 +1196,13 @@ def display_data(
 </q-td>
     """)
     data_search.bind_value(data_table, "filter")
+
+    def on_table_column_toggle(column_name: str, visible: bool) -> None:
+        """ Handle column toggle changes """
+        target = [c for c in data_table.columns if c["name"] == column_name][0]
+        target["classes"] = "" if visible else "hidden"
+        target["headerClasses"] = "" if visible else "hidden"
+        data_table.update()
 
     def on_chart_data_change() -> None:
         """ Handle data switch changes """
