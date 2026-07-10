@@ -148,6 +148,8 @@ def route_tab(city: City) -> None:
         with ui.row().classes("w-full items-center"):
             ui.label("Current Routes").classes("text-xl font-semibold mt-6 mb-2")
             with ui.row().classes("flex-1 justify-center items-center gap-x-2"):
+                route_invert = ui.button(icon="flip", color="secondary").props("round")
+                route_invert.set_enabled(False)
                 route_delete = ui.button(icon="delete", color="red").props("round")
                 route_delete.set_enabled(False)
                 route_swap = ui.button(icon="swap_horiz").props("round")
@@ -215,7 +217,7 @@ def route_tab(city: City) -> None:
         for single_route in route_list:
             route_repr = route_str(city.lines, single_route)
             if route_repr in current_route_strs:
-                return
+                continue
             current_routes.append(single_route)
             current_route_strs.add(route_repr)
         route_table.rows = calculate_route_rows(city, current_routes)
@@ -224,11 +226,22 @@ def route_tab(city: City) -> None:
     def on_select_change(selection: list[dict]) -> None:
         """ Handle selection changes """
         if len(selection) == 0:
+            route_invert.set_enabled(False)
             route_delete.set_enabled(False)
             route_swap.set_enabled(False)
         else:
+            route_invert.set_enabled(True)
             route_delete.set_enabled(True)
             route_swap.set_enabled(True)
+
+    def on_route_invert() -> None:
+        """ Handle route selection inversion """
+        route_table.selected = [
+            r for r in route_table.rows
+            if all(r["route_str"] != x["route_str"] for x in route_table.selected)
+        ]
+        on_select_change(route_table.selected)
+    route_invert.on_click(on_route_invert)
 
     def on_route_delete() -> None:
         """ Handle route deletion """
