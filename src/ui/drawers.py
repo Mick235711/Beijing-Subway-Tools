@@ -821,6 +821,11 @@ def train_drawer(
                 ).props("no-caps outline").classes("gap-y-0 w-full")
 
 
+def in_display(station_list: list[tuple[str, str | None]], station_key: tuple[str, str | None]) -> bool:
+    """ Determine if station element is in display list """
+    return any(1 for s, ln in station_list if s == station_key[0] and ln == station_key[1])
+
+
 @ui.refreshable
 def train_timeline(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
@@ -837,14 +842,15 @@ def train_timeline(
         first_train = first_t if isinstance(first_t, Train) else None
         last_t = train[1][-1][1]
         last_train = last_t if isinstance(last_t, Train) else None
-        stations: list[tuple[str, tuple[str, bool, Line, Train] | str | None]] = []  # station, (first station, is through, line, train)
+
+        # station, (first station, is through, line, train), arrival time
+        stations: list[tuple[str, tuple[str, bool, Line, Train] | str | None, TimeSpec]] = []
         prev_line_name: str | None = None
         prev_train: Train | None = None
         last_station = train[1][0][0]
         is_first = True
-        for inner_station, inner_train in (
-            train[1] if show_station == "none" else expand_path(train[1], train[2].station, expand_all=True)
-        ):
+        expanded = (train[1] if show_station == "none" else expand_path(train[1], train[2].station, expand_all=True))
+        for i, (inner_station, inner_train) in enumerate(expanded):
             if isinstance(inner_train, Train):
                 is_through = False
                 if inner_train.line.name != prev_line_name:
@@ -853,35 +859,49 @@ def train_timeline(
                     if query_result is not None:
                         query_prev = query_result[1].prev_train(inner_train)
                         is_through = False if query_prev is None else query_prev == prev_train
-                stations.append((inner_station, (last_station, is_through, inner_train.line, inner_train)))
+                stations.append((
+                    inner_station,
+                    (last_station, is_through, inner_train.line, inner_train),
+                    inner_train.arrival_time[inner_station]
+                ))
                 prev_line_name = inner_train.line.name
                 prev_train = inner_train
             else:
-                stations.append((inner_station, train[2].initial_time_repr() if is_first else None))
+                if is_first:
+                    stations.append((
+                        inner_station, train[2].initial_time_repr(), (train[2].initial_time, train[2].initial_day)
+                    ))
+                else:
+                    prev_entry = expanded[i - 1][1]
+                    assert isinstance(prev_entry, Train), (expanded, i)
+                    stations.append((
+                        inner_station, None, prev_entry.arrival_time_virtual(expanded[i - 1][0])[inner_train[0]]
+                    ))
                 prev_line_name = None
                 prev_train = None
             if is_first:
                 is_first = False
-        stations.append((
-            train[2].station, train[2].arrival_time_repr() if last_train is None else (
-                train[1][-1][0], False, last_train.line, last_train
-            )
-        ))
+        if last_train is None:
+            stations.append((
+                train[2].station, train[2].arrival_time_repr(), (train[2].arrival_time, train[2].arrival_day)
+            ))
+        else:
+            stations.append((
+                train[2].station, (train[1][-1][0], False, last_train.line, last_train),
+                (train[2].arrival_time, train[2].arrival_day)
+            ))
         overtaken: list[tuple[str, str, Train]] = []
         train_id_dicts = {}
-        arrival_times: dict[tuple[str, str | None], TimeSpec] = {}  # (station, line) -> time
+        station_list: list[tuple[str, str | None]] = []  # (station, line), None if virtual
         if first_train is None:
-            arrival_times[(train[1][0][0], None)] = (train[2].initial_time, train[2].initial_day)
+            station_list.append((train[1][0][0], None))
         if last_train is None:
-            arrival_times[(train[2].station, None)] = (train[2].arrival_time, train[2].arrival_day or train[2].force_next_day)
+            station_list.append((train[2].station, None))
         force_next_day = False
         for i, (inner_station, inner_train) in enumerate(train[1]):
             if not isinstance(inner_train, Train):
                 if i > 0:
-                    prev_entry = train[1][i - 1][1]
-                    arrival_times[(inner_station, None)] = arrival_times[(
-                        inner_station, prev_entry.line.name if isinstance(prev_entry, Train) else None
-                    )]
+                    station_list.append((inner_station, None))
                 continue
 
             if i > 0:
@@ -911,10 +931,10 @@ def train_timeline(
                 transfer_time_dict[(inner_station, inner_train.line.name)] = (transfer_time, waiting_time)
 
             next_station = train[2].station if i == len(train[1]) - 1 else train[1][i + 1][0]
-            arrival_times.update({
-                (s, inner_train.line.name): (t[0], t[1] or force_next_day)
-                for s, t in inner_train.arrival_time_two_station(inner_station, next_station, inclusive=True).items()
-            })
+            station_list.extend([
+                (s, inner_train.line.name)
+                for s in inner_train.arrival_time_two_station(inner_station, next_station, inclusive=True).keys()
+            ])
             train_id_dicts[(inner_train.line.name, inner_train.direction)] = get_train_id(
                 train_dict[inner_train.line.name][inner_train.direction][inner_train.date_group]
             )
@@ -931,19 +951,19 @@ def train_timeline(
             transfer_time_dict[(train[2].station, None)] = (last_train_tuple[3], None)
         skip_stations = {ss for _, t in train[1] if isinstance(t, Train) for ss in t.skip_stations}
     elif isinstance(train, Train):
-        stations = [(s, (train.stations[0], False, train.line, train)) for s in train.stations]
+        stations = [(s, (train.stations[0], False, train.line, train), train.arrival_time[s]) for s in train.stations]
         first_train = train
         last_train = train
         overtaken = []
         if train.is_express():
             overtaken = find_overtaken(train, train_dict[train.line.name][train.direction][train.date_group])
-        arrival_times = dict(train.arrival_times().items())
+        station_list = [(st, train.line.name) for st in train.stations]
         skip_stations = train.skip_stations
     else:
         station_lines_temp = train.station_lines(prev_on_transfer=False)
         stations = [(s, (
             station_lines_temp[s][2].stations[0], True, station_lines_temp[s][0], station_lines_temp[s][2]
-        )) for s in train.stations]
+        ), t) for s, _, t in train.arrival_times()]
         first_train = train.first_train()
         last_train = train.last_train()
         overtaken = []
@@ -952,7 +972,7 @@ def train_timeline(
                 overtaken += find_overtaken(
                     inner_train, train_dict[inner_line][inner_train.direction][inner_train.date_group]
                 )
-        arrival_times = dict(train.arrival_times().items())
+        station_list = [(st, ln) for st, ln, _ in train.arrival_times()]
         skip_stations = train.skip_stations
     overtaken_dict: dict[str, list[tuple[str, Train]]] = {}
     for station1, station2, overtaken_train in overtaken:
@@ -964,7 +984,7 @@ def train_timeline(
     if not isinstance(train, tuple) and last_train is not None and last_train.loop_next is not None:
         stations.append((last_train.loop_next.stations[0], (
             last_train.loop_next.stations[0], False, last_train.loop_next.line, last_train.loop_next
-        )))
+        ), last_train.loop_next.arrival_time[last_train.loop_next.stations[0]]))
 
     tally_num_sta = 0
     interval_num_sta: int | None = 0
@@ -975,39 +995,33 @@ def train_timeline(
     interval_dist: int | None = 0
     next_station = ""
     with ui.timeline(side="right", layout="comfortable"):
-        for i, (station, line_train) in enumerate(stations):
+        for i, (station, line_train, arrival_time) in enumerate(stations):
             station_key = (station, line_train[2].name if isinstance(line_train, tuple) else None)
             if station in skip_stations and show_station != "all":
                 continue
-            if i == len(stations) - 1 and isinstance(line_train, tuple) and (
-                last_train is not None and last_train.loop_next is not None and line_train[3] is last_train.loop_next
-            ):
-                arrival_time: TimeSpec | None = last_train.loop_next.arrival_time[station]
-            else:
-                arrival_time = arrival_times.get(station_key)
 
             transfer_str: tuple[str, str, int | None, int | None] = ("", "", None, None)
             if i < len(stations) - 1:
                 next_station = stations[i + 1][0]
                 next_key_lt = stations[i + 1][1]
+                next_time = stations[i + 1][2]
                 next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
                 interval_num_sta = 1
                 if i == len(stations) - 2 and isinstance(next_key_lt, tuple) and (
                     last_train is not None and last_train.loop_next is not None and next_key_lt[3] is last_train.loop_next
                 ):
-                    next_time: TimeSpec | None = last_train.loop_next.arrival_time[next_station]
                     transfer_time_value: tuple[TransferData, float | None] | None = None
                 else:
-                    if show_station != "all" or (station_key in arrival_times and next_key not in arrival_times):
-                        j = i + 2
+                    j = min(i + 2, len(stations))
+                    if show_station != "all" or (in_display(station_list, station_key) and not in_display(station_list, next_key)):
                         while next_station in skip_stations and j < len(stations):
                             next_station = stations[j][0]
                             next_key_lt = stations[j][1]
+                            next_time = stations[j][2]
                             next_key = (next_station, next_key_lt[2].name if isinstance(next_key_lt, tuple) else None)
                             j += 1
                             interval_num_sta += 1
                         assert next_station not in skip_stations, (train, stations, next_station)
-                    next_time = arrival_times.get(next_key)
                     transfer_time_value = transfer_time_dict.get(next_key)
                 if next_time is None or arrival_time is None:
                     interval_num_sta = None
@@ -1119,8 +1133,8 @@ def train_timeline(
                 ) else "replay")
             ) as entry:
                 if (
-                    i == len(stations) - 1 or station_key not in arrival_times or
-                    len(stations) == 1 or next_key not in arrival_times
+                    i == len(stations) - 1 or not in_display(station_list, station_key) or
+                    len(stations) == 1 or not in_display(station_list, next_key)
                 ):
                     between_stations: list[str] = []
                 elif station not in single_train.arrival_time:

@@ -62,12 +62,13 @@ class ThroughTrain:
             return None
         return self.trains[line_names[line_index - 1]]
 
-    def arrival_times(self) -> dict[tuple[str, str], TimeSpec]:
-        """ Return the cumulative arrival times (station, line) -> time """
-        arrival_times: dict[tuple[str, str], TimeSpec] = {}
-        for line, _, _, _ in self.spec.spec:
+    def arrival_times(self) -> list[tuple[str, str, TimeSpec]]:
+        """ Return the cumulative arrival times, list of (station, line, time) """
+        arrival_times: list[tuple[str, str, TimeSpec]] = []
+        for i, (line, _, _, _) in enumerate(self.spec.spec):
             train = self.trains[line.name]
-            arrival_times.update({(k, train.line.name): v for k, v in train.arrival_time.items()})
+            end_index = len(train.stations) - (0 if i == len(self.spec.spec) - 1 else 1)
+            arrival_times.extend([(st, train.line.name, train.arrival_time[st]) for st in train.stations[:end_index]])
         return arrival_times
 
     def arrival_time_stations(self) -> list[str]:

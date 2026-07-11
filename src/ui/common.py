@@ -364,9 +364,9 @@ def find_train_id(train_dict: dict[str, Train], train: Train) -> str:
 def find_first_train(train_list: list[Train | ThroughTrain], station: str, reverse: bool = False) -> tuple[Train, str]:
     """ Find first/last train passing through a station """
     if reverse:
-        train_full = max(train_list, key=lambda t: get_time_str(*{k[0]: v for k, v in t.arrival_times().items()}[station]))
+        train_full = max(train_list, key=lambda t: get_time_str(*{k: v for k, _, v in t.arrival_times()}[station]))
     else:
-        train_full = min(train_list, key=lambda t: get_time_str(*{k[0]: v for k, v in t.arrival_times().items()}[station]))
+        train_full = min(train_list, key=lambda t: get_time_str(*{k: v for k, _, v in t.arrival_times()}[station]))
     if isinstance(train_full, Train):
         train = train_full
     else:

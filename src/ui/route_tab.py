@@ -17,6 +17,7 @@ from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 from nicegui.elements.switch import Switch
+from webview.guilib import forced_gui_
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
 from src.bfs.bfs import path_distance, expand_path, total_transfer, total_transfer_duration
@@ -988,10 +989,25 @@ def display_data(
     """ Display analysis data """
     if start_date is None or path_list is None or through_dict is None:
         return
+
+    # FIXME: Correctly handle path that goes into +2 days
+    path_list = [x for x in path_list if len(x[-1]) > 0]
+    if len(path_list) == 0:
+        ui.notify("No available starting time found for any of the paths!", type="negative")
+        return
+    stripped = strip_routes(path_list, strip_first=True)
     _, best_dict, data_list = calculate_data(
-        strip_routes(path_list, strip_first=True), city.transfers, through_dict,
+        stripped, city.transfers, through_dict,
         time_only_mode=True, exclude_next_day=True
     )
+    if len(data_list) == 0:
+        _, best_dict, data_list = calculate_data(
+            stripped, city.transfers, through_dict, time_only_mode=True
+        )
+        forced_next = True
+        assert len(data_list) > 0, (stripped, path_list)
+    else:
+        forced_next = False
     data_dict = {value[0]: value for value in data_list}
     best_options = {"best": "Best", "one": "One of Best", "tie": "Tie", "other": "Other"}
 
@@ -1007,12 +1023,12 @@ def display_data(
             return
         [col for col in data_table.columns if col["name"] == "percentage"][0]["label"] = best_options[percentage_select.value]
         if strip_first_switch.value:
-            path_list2 = strip_routes(path_list, strip_first=True)
+            path_list2 = stripped[:]
         else:
             path_list2 = path_list[:]
         _, best_dict, data_list = calculate_data(
             path_list2, city.transfers, through_dict,
-            time_only_mode=True, exclude_next_day=next_day_switch.value
+            time_only_mode=True, exclude_next_day=(not forced_next and next_day_switch.value)
         )
         data_dict = {value[0]: value for value in data_list}
         data_table.rows = calculate_data_rows(
@@ -1130,7 +1146,9 @@ def display_data(
 
     with ui.column():
         with ui.row().classes("w-full items-center"):
-            next_day_switch = ui.switch("Exclude next day", value=True, on_change=on_switch_change)
+            next_day_switch = ui.switch("Exclude next day", value=(not forced_next), on_change=on_switch_change)
+            if forced_next:
+                next_day_switch.set_enabled(False)
             strip_first_switch = ui.switch("Strip first", value=True, on_change=on_switch_change)
             percentage_select = ui.select(
                 best_options, label="Percentage", value="best", on_change=on_switch_change

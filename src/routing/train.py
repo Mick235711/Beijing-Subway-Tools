@@ -194,9 +194,9 @@ class Train:
             return "(" + self.show_with(station, reverse) + ") " + self.direction_repr(reverse)
         return self.direction_repr(reverse) + " (" + self.show_with(station, reverse) + ")"
 
-    def arrival_times(self) -> dict[tuple[str, str], TimeSpec]:
+    def arrival_times(self) -> list[tuple[str, str, TimeSpec]]:
         """ Return the arrival times for uniformity with ThroughTrain """
-        return {(s, self.line.name): t for s, t in self.arrival_time.items()}
+        return [(st, self.line.name, self.arrival_time[st]) for st in self.stations]
 
     def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """

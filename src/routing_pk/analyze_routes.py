@@ -44,8 +44,12 @@ def calculate_data(
             if path_info[2].force_next_day and exclude_next_day:
                 continue
             path_dict[path_info[2].initial_time_str()] = path_info
+        if len(path_dict) == 0:
+            continue
         temp_list.append((index, route, path_dict))
     temp_dict = {x[0]: x for x in temp_list}
+    if len(temp_dict) == 0:
+        return {}, {}, []
 
     # Calculate percentage
     # Best dict: start_time_str -> set of indexes of path_list/temp_list that gives the best time
@@ -379,7 +383,7 @@ def show_extreme(
     print_routes_with_data(city, data_list, time_only_mode=time_only_mode, aux_data=aux_data)
 
 
-def get_first_cutoff(info_list: list[PathInfo]) -> TimeSpec:
+def get_first_cutoff(info_list: list[PathInfo]) -> TimeSpec | None:
     """ Get the minimum cutoff time to filter real first trains """
     # Real first train: the last departure time that achieves the same arrival time as the first
     first_info = min(info_list, key=lambda info: info[2].initial_time_str())
@@ -388,7 +392,9 @@ def get_first_cutoff(info_list: list[PathInfo]) -> TimeSpec:
         info for info in info_list
         if info[2].arrival_time == first_arrival[0] and info[2].arrival_day == first_arrival[1]
            and not info[2].force_next_day
-    ], key=lambda info: info[2].initial_time_str())
+    ], key=lambda info: info[2].initial_time_str(), default=None)
+    if last_info is None:
+        return None
     return last_info[2].initial_time, last_info[2].initial_day
 
 
