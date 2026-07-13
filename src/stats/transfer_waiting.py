@@ -32,9 +32,20 @@ def key_list_str(
     return base
 
 
+def in_set(
+    result_key: tuple[str, str, TransferSpec] | str, stations_set: set[str]
+) -> bool:
+    """ Check if the result key is in the stations set """
+    if isinstance(result_key, str):
+        return result_key in stations_set
+    else:
+        return result_key[0] in stations_set or result_key[1] in stations_set
+
+
 def avg_waiting_time(
     all_trains: dict[str, list[tuple[str, Train]]], city: City,
-    *, limit_num: int = 5, min_waiting: int | None = None, max_waiting: int | None = None,
+    *, limit_num: int = 5, include_stations: str | None = None,
+    min_waiting: int | None = None, max_waiting: int | None = None,
     exclude_edge: bool = False, exclude_virtual: bool = False,
     data_source: Literal["pair", "station", "station_entry", "station_exit"] = "pair", show_all: bool = False
 ) -> None:
@@ -75,6 +86,8 @@ def avg_waiting_time(
                     continue
                 if not lines[to_l].loop and station2 == lines[to_l].direction_stations(to_d)[-1]:
                     continue
+            if (from_l, from_d) not in full_dict[station1] or (to_l, to_d) not in full_dict[station2]:
+                continue
             train_list1 = full_dict[station1][(from_l, from_d)]
             train_list2 = full_dict[station2][(to_l, to_d)]
             cur_index = 0  # Index into train_list2
@@ -113,9 +126,15 @@ def avg_waiting_time(
         criteria = [(k, v, len([
             x for x in v if (min_waiting is None or min_waiting <= x) and (max_waiting is None or max_waiting >= x)
         ]) / len(v), 0.0) for k, v in results.items()]
+    if include_stations is not None:
+        stations_set = {x.strip() for x in include_stations.split(",")}
+    else:
+        stations_set = set()
     display_first(
         sorted(criteria, key=lambda x: x[2], reverse=satisfied),
-        lambda key_list: key_list_str(city.lines, *key_list, satisfied), limit_num=limit_num
+        lambda key_list: key_list_str(city.lines, *key_list, satisfied),
+        limit_num=(limit_num if include_stations is None else None),
+        only_display=lambda x: (True if include_stations is None else in_set(x[0], stations_set))
     )
 
 
@@ -131,9 +150,12 @@ def main() -> None:
             "pair", "station", "station_entry", "station_exit"
         ], default="pair", help="Transfer time data source")
         parser.add_argument("--show-all", action="store_true", help="Show all results (including impossible cases)")
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
+        group.add_argument("--include-stations", help="Include only these stations")
 
-    all_trains, args, city, _ = parse_args(append_arg)
-    avg_waiting_time(all_trains, city, limit_num=args.limit_num,
+    all_trains, args, city, _ = parse_args(append_arg, include_limit=False)
+    avg_waiting_time(all_trains, city, limit_num=args.limit_num, include_stations=args.include_stations,
                      min_waiting=args.min, max_waiting=args.max,
                      exclude_edge=args.exclude_edge, exclude_virtual=args.exclude_virtual,
                      data_source=args.data_source, show_all=args.show_all)

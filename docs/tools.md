@@ -1606,30 +1606,32 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`transfer_waiting.py`](/src/stats/max_train_station.py): Average waiting time for each transfer station
 ```
-usage: transfer_waiting.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--exclude-edge] [--exclude-virtual]
-                           [-d {pair,station,station_entry,station_exit}] [--show-all]
+usage: transfer_waiting.py [-h] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--exclude-edge] [--exclude-virtual]
+                           [-d {pair,station,station_entry,station_exit}] [--show-all] [-n LIMIT_NUM | --include-stations INCLUDE_STATIONS]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
-                        Limit number of output
   -a, --all             Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -s LIMIT_START, --limit-start LIMIT_START
+  -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit latest passing time of the trains
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   --min MIN             Minimum waiting time
   --max MAX             Maximum waiting time
   --exclude-edge        Exclude edge case in transfer
   --exclude-virtual     Exclude virtual transfers
-  -d {pair,station,station_entry,station_exit}, --data-source {pair,station,station_entry,station_exit}
+  -d, --data-source {pair,station,station_entry,station_exit}
                         Transfer time data source
   --show-all            Show all results (including impossible cases)
+  -n, --limit-num LIMIT_NUM
+                        Limit number of output
+  --include-stations INCLUDE_STATIONS
+                        Include only these stations
 ```
 
 Show the average waiting time after you finish transfer.
@@ -1639,6 +1641,8 @@ If you want to see all results, use `--show-all`.
 
 `--data-source` can be used to change the output format.
 If `station` or `station_*` is specified, the output will be per station instead of per pair.
+
+You can also specify `--include-stations` to specify a comma-separated list of stations to be displayed.
 
 Example Usage:
 <pre>

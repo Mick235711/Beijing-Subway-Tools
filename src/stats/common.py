@@ -180,13 +180,15 @@ def divide_by_line(
 
 def display_first(
     data: Collection[T], data_str: Callable[[T], str],
-    *, limit_num: int | None = None, show_cardinal: bool = True
+    *, limit_num: int | None = None, only_display: Callable[[T], bool] | None = None, show_cardinal: bool = True
 ) -> None:
     """ Print first/last N elements """
     for i, element in enumerate(data):
         if limit_num is not None and limit_num <= i < len(data) - limit_num:
             if i == limit_num:
                 print("...")
+            continue
+        if only_display is not None and not only_display(element):
             continue
         if show_cardinal:
             print(f"#{i + 1}: ", end="")
