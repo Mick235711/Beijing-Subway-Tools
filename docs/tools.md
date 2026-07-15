@@ -2765,9 +2765,348 @@ Minimum time path:
 Drawing done! Saving...
 </pre>
 
+### [`draw_shortest.py`](/src/graph/draw_shortest.py): Draw the shortest path tree from a station on the map
+```
+usage: draw_shortest.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [-s LIMIT_START] [-e LIMIT_END]
+                        [-d {time,stddev,transfer,station,distance,fare,max,min}] [-v | -p] [-n LIMIT_NUM | -t TO_STATION] [--only-best-path]
+
+options:
+  -h, --help            show this help message and exit
+  -c, --color-map COLOR_MAP
+                        Override default colormap
+  -o, --output OUTPUT   Output path
+  --dpi DPI             DPI of output image
+  -i, --include-lines INCLUDE_LINES
+                        Include lines
+  -x, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  --exclude-virtual     Exclude virtual transfers
+  --exclude-edge        Exclude edge case in transfer
+  --include-express     Include non-essential use of express lines
+  -s, --limit-start LIMIT_START
+                        Limit start time of the search
+  -e, --limit-end LIMIT_END
+                        Limit end time of the search
+  -d, --data-source {time,stddev,transfer,station,distance,fare,max,min}
+                        Station sort criteria
+  -v, --verbose         Increase verbosity
+  -p, --show-path       Show detailed path
+  -n, --limit-num LIMIT_NUM
+                        Limit number of output
+  -t, --to-station TO_STATION
+                        Only show average time to specified stations
+  --only-best-path      Only consider best path
+```
+Draw the shortest path tree formed by all the shortest path from a station to every other station on the map.
+Common shortest path and map arguments are accepted; pass `--only-best-path` to only consider the best path overall to each station; otherwise every potential best path will be considered.
+
+Example Usage:
+<pre>
+$ python3 src/graph/draw_shortest.py -o test.png
+? Please select a city: <i>北京</i>
+? Please select a station: <i>苹果园</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2026-07-15</i>
+Calculating 苹果园 at 00:13 (+1): 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 785/785 [00:50<00:00, 15.59it/s]
+#1: 金安桥, 3.87 minutes (stddev = 1.83) (min 2 - max 13) (avg: transfer = 0.00, station = 1.00, distance = 1.43km, fare = CN¥3.00)
+Percentage of each path:
+    80.00% 苹果园 --- 6号线 (西行) --> 金安桥 [Example: 04:59 -> 05:01]
+    20.00% 苹果园 --- S1线 (出城) --> 金安桥 [Example: 05:46 -> 05:54]
+
+Maximum time path:
+    00:02 (+1) -> 00:15 (+1)
+    Total time: 13min, total distance: 1.44km, 1 station, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 Waiting time: 11 minutes
+       |    6号线 西行 普通 [8B] 苹果园 00:13 (+1) -> 金安桥 00:15 (+1) (1 station, 2min, 1.44km)
+
+Minimum time path:
+    04:59 -> 05:01
+    Total time: 2min, total distance: 1.44km, 1 station, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 6号线 西行 海淀五路居出库车 [8B] 苹果园 04:59 -> 金安桥 05:01 (1 station, 2min, 1.44km)
+
+#2: 杨庄, 4.25 minutes (stddev = 1.93) (min 2 - max 11) (avg: transfer = 0.00, station = 1.00, distance = 839.00m, fare = CN¥3.00)
+Percentage of each path:
+    100.00% 苹果园 --- 6号线 (东行) --> 杨庄 [Example: 04:59 -> 05:10]
+
+Maximum time path:
+    04:59 -> 05:10
+    Total time: 11min, total distance: 839m, 1 station, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 Waiting time: 9 minutes
+       |    6号线 东行 普通 [8B] 苹果园 05:08 -> 杨庄 05:10 (1 station, 2min, 839m)
+
+Minimum time path:
+    05:08 -> 05:10
+    Total time: 2min, total distance: 839m, 1 station, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 6号线 东行 普通 [8B] 苹果园 05:08 -> 杨庄 05:10 (1 station, 2min, 839m)
+
+#3: 古城, 6.59 minutes (stddev = 1.96) (min 4 - max 14) (avg: transfer = 0.00, station = 1.00, distance = 2.57km, fare = CN¥3.00)
+Percentage of each path:
+    100.00% 苹果园 --- 1号线 (东行) --> 古城 [Example: 04:59 -> 05:13]
+
+Maximum time path:
+    04:59 -> 05:13
+    Total time: 14min, total distance: 2.57km, 1 station, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 Waiting time: 10 minutes
+       |    1号线 东行 全程车 [6B-] 苹果园 05:09 -> 古城 05:13 (1 station, 4min, 2.57km)
+
+Minimum time path:
+    05:09 -> 05:13
+    Total time: 4min, total distance: 2.57km, 1 station, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 1号线 东行 全程车 [6B-] 苹果园 05:09 -> 古城 05:13 (1 station, 4min, 2.57km)
+
+#4: 西黄村, 7.13 minutes (stddev = 1.98) (min 4 - max 14) (avg: transfer = 0.00, station = 2.00, distance = 2.63km, fare = CN¥3.00)
+Percentage of each path:
+    100.00% 苹果园 --- 6号线 (东行) --> 西黄村 [Example: 04:59 -> 05:13]
+
+Maximum time path:
+    04:59 -> 05:13
+    Total time: 14min, total distance: 2.63km, 2 stations, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 Waiting time: 9 minutes
+       |    6号线 东行 普通 [8B] 苹果园 05:08 -> 西黄村 05:13 (2 stations, 5min, 2.63km)
+
+Minimum time path:
+    05:55 -> 05:59
+    Total time: 4min, total distance: 2.63km, 2 stations, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 6号线 东行 普通 [8B] 苹果园 05:55 -> 西黄村 05:59 (2 stations, 4min, 2.63km)
+
+#5: 廖公庄, 9.52 minutes (stddev = 1.99) (min 7 - max 17) (avg: transfer = 0.00, station = 3.00, distance = 4.42km, fare = CN¥3.00)
+Percentage of each path:
+    100.00% 苹果园 --- 6号线 (东行) --> 廖公庄 [Example: 04:59 -> 05:16]
+
+Maximum time path:
+    04:59 -> 05:16
+    Total time: 17min, total distance: 4.42km, 3 stations, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 Waiting time: 9 minutes
+       |    6号线 东行 普通 [8B] 苹果园 05:08 -> 廖公庄 05:16 (3 stations, 8min, 4.42km)
+
+Minimum time path:
+    05:17 -> 05:24
+    Total time: 7min, total distance: 4.42km, 3 stations, 0 transfers, fare = CN¥3.00.
+
+    CN¥3.00 6号线 东行 普通 [8B] 苹果园 05:17 -> 廖公庄 05:24 (3 stations, 7min, 4.42km)
+
+...
+#420: 四海庄, 115.65 minutes (stddev = 6.06) (min 104 - max 133) (avg: transfer = 3.00, station = 33.56, distance = 49.02km, fare = CN¥7.02)
+Percentage of each path:
+    68.13% 苹果园 --- 6号线 (东行) --> 慈寿寺 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 四海庄 [Example: 04:59 -> 07:03]
+    23.17% 苹果园 --- 1号线 (东行) --> 公主坟 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 四海庄 [Example: 05:09 -> 07:03]
+     5.35% 苹果园 --- 1号线 (东行) --> 东单 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 四海庄 [Example: 10:18 -> 12:24]
+     1.78% 苹果园 --- 6号线 (东行) --> 东大桥 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 四海庄 [Example: 09:34 -> 11:27]
+     1.15% 苹果园 --- 6号线 (东行) --> 东四 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 四海庄 [Example: 10:21 -> 12:24]
+     0.42% 苹果园 --- 1号线 (东行) --> 永安里 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 四海庄 [Example: 10:51 -> 12:54]
+
+Maximum time path:
+    10:41 -> 12:54
+    Total time: 2h13min, total distance: 48.30km, 36 stations, 3 transfers (total 370m + 346 stairs), fare = CN¥7.00.
+
+    ------- Waiting time: 1 minute
+       |    6号线 东行 普通 [8B] 苹果园 10:42 -> 东四 11:19 (15 stations, 37min, 21.55km)
+       |    Transfer at 东四: 6号线 -> 5号线, 4.5 minutes (140m, 203 stairs)
+       |    Waiting time: 3.5 minutes
+       |    5号线 南行 全程车 [6B] 东四 11:27 -> 宋家庄 11:45 (8 stations, 18min, 9.15km)
+    CN¥7.00 Transfer at 宋家庄: 5号线 -> 亦庄线, 1 minute (80m, 0 stairs)
+       |    Waiting time: 9 minutes
+       |    亦庄线 出城 全程车 [6B] 宋家庄 11:55 -> 荣昌东街 12:16 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 13 minutes
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 12:32 -> 四海庄 12:54 (5 stations, 22min, 4.18km)
+
+Minimum time path:
+    06:35 -> 08:19
+    Total time: 1h44min, total distance: 49.22km, 34 stations, 3 transfers (total 280m + 259 stairs), fare = CN¥7.00.
+
+    ------- 6号线 东行 普通 [8B] 苹果园 06:35 -> 慈寿寺 06:51 (6 stations, 16min, 10.35km)
+       |    Transfer at 慈寿寺: 6号线 -> 10号线, 1 minute (30m, 48 stairs) (special time)
+       |    10号线 外环 巴沟出库车 [6B] 慈寿寺 06:52 -> 宋家庄 07:30 (15 stations, 38min, 21.27km)
+    CN¥7.00 Transfer at 宋家庄: 10号线 -> 亦庄线, 2 minutes (100m, 68 stairs)
+       |    亦庄线 出城 全程车 [6B] 宋家庄 07:32 -> 荣昌东街 07:53 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 1 minute
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 07:57 -> 四海庄 08:19 (5 stations, 22min, 4.18km)
+
+#421: 太和桥北, 118.65 minutes (stddev = 6.06) (min 107 - max 136) (avg: transfer = 3.00, station = 34.56, distance = 49.66km, fare = CN¥7.02)
+Percentage of each path:
+    68.13% 苹果园 --- 6号线 (东行) --> 慈寿寺 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 太和桥北 [Example: 04:59 -> 07:06]
+    23.17% 苹果园 --- 1号线 (东行) --> 公主坟 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 太和桥北 [Example: 05:09 -> 07:06]
+     5.35% 苹果园 --- 1号线 (东行) --> 东单 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 太和桥北 [Example: 10:18 -> 12:27]
+     1.78% 苹果园 --- 6号线 (东行) --> 东大桥 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 太和桥北 [Example: 09:34 -> 11:30]
+     1.15% 苹果园 --- 6号线 (东行) --> 东四 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 太和桥北 [Example: 10:21 -> 12:27]
+     0.42% 苹果园 --- 1号线 (东行) --> 永安里 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 太和桥北 [Example: 10:51 -> 12:57]
+
+Maximum time path:
+    10:41 -> 12:57
+    Total time: 2h16min, total distance: 48.95km, 37 stations, 3 transfers (total 370m + 346 stairs), fare = CN¥7.00.
+
+    ------- Waiting time: 1 minute
+       |    6号线 东行 普通 [8B] 苹果园 10:42 -> 东四 11:19 (15 stations, 37min, 21.55km)
+       |    Transfer at 东四: 6号线 -> 5号线, 4.5 minutes (140m, 203 stairs)
+       |    Waiting time: 3.5 minutes
+       |    5号线 南行 全程车 [6B] 东四 11:27 -> 宋家庄 11:45 (8 stations, 18min, 9.15km)
+    CN¥7.00 Transfer at 宋家庄: 5号线 -> 亦庄线, 1 minute (80m, 0 stairs)
+       |    Waiting time: 9 minutes
+       |    亦庄线 出城 全程车 [6B] 宋家庄 11:55 -> 荣昌东街 12:16 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 13 minutes
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 12:32 -> 太和桥北 12:57 (6 stations, 25min, 4.83km)
+
+Minimum time path:
+    06:35 -> 08:22
+    Total time: 1h47min, total distance: 49.87km, 35 stations, 3 transfers (total 280m + 259 stairs), fare = CN¥7.00.
+
+    ------- 6号线 东行 普通 [8B] 苹果园 06:35 -> 慈寿寺 06:51 (6 stations, 16min, 10.35km)
+       |    Transfer at 慈寿寺: 6号线 -> 10号线, 1 minute (30m, 48 stairs) (special time)
+       |    10号线 外环 巴沟出库车 [6B] 慈寿寺 06:52 -> 宋家庄 07:30 (15 stations, 38min, 21.27km)
+    CN¥7.00 Transfer at 宋家庄: 10号线 -> 亦庄线, 2 minutes (100m, 68 stairs)
+       |    亦庄线 出城 全程车 [6B] 宋家庄 07:32 -> 荣昌东街 07:53 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 1 minute
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 07:57 -> 太和桥北 08:22 (6 stations, 25min, 4.83km)
+
+#422: 瑞合庄, 124.65 minutes (stddev = 6.06) (min 113 - max 142) (avg: transfer = 3.00, station = 35.56, distance = 50.86km, fare = CN¥7.02)
+Percentage of each path:
+    68.13% 苹果园 --- 6号线 (东行) --> 慈寿寺 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 瑞合庄 [Example: 04:59 -> 07:12]
+    23.17% 苹果园 --- 1号线 (东行) --> 公主坟 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 瑞合庄 [Example: 05:09 -> 07:12]
+     5.35% 苹果园 --- 1号线 (东行) --> 东单 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 瑞合庄 [Example: 10:18 -> 12:33]
+     1.78% 苹果园 --- 6号线 (东行) --> 东大桥 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 瑞合庄 [Example: 09:34 -> 11:36]
+     1.15% 苹果园 --- 6号线 (东行) --> 东四 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 瑞合庄 [Example: 10:21 -> 12:33]
+     0.42% 苹果园 --- 1号线 (东行) --> 永安里 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 瑞合庄 [Example: 10:51 -> 13:03]
+
+Maximum time path:
+    10:41 -> 13:03
+    Total time: 2h22min, total distance: 50.14km, 38 stations, 3 transfers (total 370m + 346 stairs), fare = CN¥7.00.
+
+    ------- Waiting time: 1 minute
+       |    6号线 东行 普通 [8B] 苹果园 10:42 -> 东四 11:19 (15 stations, 37min, 21.55km)
+       |    Transfer at 东四: 6号线 -> 5号线, 4.5 minutes (140m, 203 stairs)
+       |    Waiting time: 3.5 minutes
+       |    5号线 南行 全程车 [6B] 东四 11:27 -> 宋家庄 11:45 (8 stations, 18min, 9.15km)
+    CN¥7.00 Transfer at 宋家庄: 5号线 -> 亦庄线, 1 minute (80m, 0 stairs)
+       |    Waiting time: 9 minutes
+       |    亦庄线 出城 全程车 [6B] 宋家庄 11:55 -> 荣昌东街 12:16 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 13 minutes
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 12:32 -> 瑞合庄 13:03 (7 stations, 31min, 6.02km)
+
+Minimum time path:
+    06:35 -> 08:28
+    Total time: 1h53min, total distance: 51.06km, 36 stations, 3 transfers (total 280m + 259 stairs), fare = CN¥7.00.
+
+    ------- 6号线 东行 普通 [8B] 苹果园 06:35 -> 慈寿寺 06:51 (6 stations, 16min, 10.35km)
+       |    Transfer at 慈寿寺: 6号线 -> 10号线, 1 minute (30m, 48 stairs) (special time)
+       |    10号线 外环 巴沟出库车 [6B] 慈寿寺 06:52 -> 宋家庄 07:30 (15 stations, 38min, 21.27km)
+    CN¥7.00 Transfer at 宋家庄: 10号线 -> 亦庄线, 2 minutes (100m, 68 stairs)
+       |    亦庄线 出城 全程车 [6B] 宋家庄 07:32 -> 荣昌东街 07:53 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 1 minute
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 07:57 -> 瑞合庄 08:28 (7 stations, 31min, 6.02km)
+
+#423: 融兴街, 127.65 minutes (stddev = 6.06) (min 116 - max 145) (avg: transfer = 3.00, station = 36.56, distance = 51.66km, fare = CN¥7.02)
+Percentage of each path:
+    68.13% 苹果园 --- 6号线 (东行) --> 慈寿寺 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 融兴街 [Example: 04:59 -> 07:15]
+    23.17% 苹果园 --- 1号线 (东行) --> 公主坟 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 融兴街 [Example: 05:09 -> 07:15]
+     5.35% 苹果园 --- 1号线 (东行) --> 东单 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 融兴街 [Example: 10:18 -> 12:36]
+     1.78% 苹果园 --- 6号线 (东行) --> 东大桥 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 融兴街 [Example: 09:34 -> 11:39]
+     1.15% 苹果园 --- 6号线 (东行) --> 东四 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 融兴街 [Example: 10:21 -> 12:36]
+     0.42% 苹果园 --- 1号线 (东行) --> 永安里 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 融兴街 [Example: 10:51 -> 13:06]
+
+Maximum time path:
+    10:41 -> 13:06
+    Total time: 2h25min, total distance: 50.94km, 39 stations, 3 transfers (total 370m + 346 stairs), fare = CN¥7.00.
+
+    ------- Waiting time: 1 minute
+       |    6号线 东行 普通 [8B] 苹果园 10:42 -> 东四 11:19 (15 stations, 37min, 21.55km)
+       |    Transfer at 东四: 6号线 -> 5号线, 4.5 minutes (140m, 203 stairs)
+       |    Waiting time: 3.5 minutes
+       |    5号线 南行 全程车 [6B] 东四 11:27 -> 宋家庄 11:45 (8 stations, 18min, 9.15km)
+    CN¥7.00 Transfer at 宋家庄: 5号线 -> 亦庄线, 1 minute (80m, 0 stairs)
+       |    Waiting time: 9 minutes
+       |    亦庄线 出城 全程车 [6B] 宋家庄 11:55 -> 荣昌东街 12:16 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 13 minutes
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 12:32 -> 融兴街 13:06 (8 stations, 34min, 6.82km)
+
+Minimum time path:
+    06:35 -> 08:31
+    Total time: 1h56min, total distance: 51.86km, 37 stations, 3 transfers (total 280m + 259 stairs), fare = CN¥7.00.
+
+    ------- 6号线 东行 普通 [8B] 苹果园 06:35 -> 慈寿寺 06:51 (6 stations, 16min, 10.35km)
+       |    Transfer at 慈寿寺: 6号线 -> 10号线, 1 minute (30m, 48 stairs) (special time)
+       |    10号线 外环 巴沟出库车 [6B] 慈寿寺 06:52 -> 宋家庄 07:30 (15 stations, 38min, 21.27km)
+    CN¥7.00 Transfer at 宋家庄: 10号线 -> 亦庄线, 2 minutes (100m, 68 stairs)
+       |    亦庄线 出城 全程车 [6B] 宋家庄 07:32 -> 荣昌东街 07:53 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 1 minute
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 07:57 -> 融兴街 08:31 (8 stations, 34min, 6.82km)
+
+#424: 屈庄, 131.65 minutes (stddev = 6.06) (min 120 - max 149) (avg: transfer = 3.00, station = 37.56, distance = 52.44km, fare = CN¥7.70)
+Percentage of each path:
+    68.13% 苹果园 --- 6号线 (东行) --> 慈寿寺 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 屈庄 [Example: 04:59 -> 07:19]
+    23.17% 苹果园 --- 1号线 (东行) --> 公主坟 --- 10号线 (外环) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 屈庄 [Example: 05:09 -> 07:19]
+     5.35% 苹果园 --- 1号线 (东行) --> 东单 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 屈庄 [Example: 10:18 -> 12:40]
+     1.78% 苹果园 --- 6号线 (东行) --> 东大桥 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 屈庄 [Example: 09:34 -> 11:43]
+     1.15% 苹果园 --- 6号线 (东行) --> 东四 --- 5号线 (南行) --> 宋家庄 --- 亦庄线 (出城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 屈庄 [Example: 10:21 -> 12:40]
+     0.42% 苹果园 --- 1号线 (东行) --> 永安里 --- 17号线 (南行) --> 次渠 --- 亦庄线 (进城) --> 荣昌东街 --- 亦庄T1线 (西南行) --> 屈庄 [Example: 10:51 -> 13:10]
+
+Maximum time path:
+    10:41 -> 13:10
+    Total time: 2h29min, total distance: 51.73km, 40 stations, 3 transfers (total 370m + 346 stairs), fare = CN¥7.00.
+
+    ------- Waiting time: 1 minute
+       |    6号线 东行 普通 [8B] 苹果园 10:42 -> 东四 11:19 (15 stations, 37min, 21.55km)
+       |    Transfer at 东四: 6号线 -> 5号线, 4.5 minutes (140m, 203 stairs)
+       |    Waiting time: 3.5 minutes
+       |    5号线 南行 全程车 [6B] 东四 11:27 -> 宋家庄 11:45 (8 stations, 18min, 9.15km)
+    CN¥7.00 Transfer at 宋家庄: 5号线 -> 亦庄线, 1 minute (80m, 0 stairs)
+       |    Waiting time: 9 minutes
+       |    亦庄线 出城 全程车 [6B] 宋家庄 11:55 -> 荣昌东街 12:16 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 13 minutes
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 12:32 -> 屈庄 13:10 (9 stations, 38min, 7.61km)
+
+Minimum time path:
+    06:35 -> 08:35
+    Total time: 2h, total distance: 52.65km, 38 stations, 3 transfers (total 280m + 259 stairs), fare = CN¥8.00.
+
+    ------- 6号线 东行 普通 [8B] 苹果园 06:35 -> 慈寿寺 06:51 (6 stations, 16min, 10.35km)
+       |    Transfer at 慈寿寺: 6号线 -> 10号线, 1 minute (30m, 48 stairs) (special time)
+       |    10号线 外环 巴沟出库车 [6B] 慈寿寺 06:52 -> 宋家庄 07:30 (15 stations, 38min, 21.27km)
+    CN¥8.00 Transfer at 宋家庄: 10号线 -> 亦庄线, 2 minutes (100m, 68 stairs)
+       |    亦庄线 出城 全程车 [6B] 宋家庄 07:32 -> 荣昌东街 07:53 (8 stations, 21min, 13.42km)
+       |    Transfer at 荣昌东街: 亦庄线 -> 亦庄T1线, 3 minutes (150m, 143 stairs)
+       |    Waiting time: 1 minute
+    ------- 亦庄T1线 西南行 全程车 [5LRT] 荣昌东街 07:57 -> 屈庄 08:35 (9 stations, 38min, 7.61km)
+
+
+Weight calculation done! Max/min 5 weights (max possible = 424):
+#1: 苹果园 - 杨庄: 327.11
+#2: 西黄村 - 杨庄: 326.11
+#3: 廖公庄 - 西黄村: 325.11
+#4: 廖公庄 - 田村: 324.11
+#5: 海淀五路居 - 田村: 323.11
+...
+#510: 东四十条 - 工人体育场: 0.09
+#511: 北工大西门 - 十里河: 0.07
+#512: 北苑 - 立水桥: 0.05
+#513: 广安门内 - 牛街: 0.01
+#514: 北新桥 - 东直门: 0.01
+? Please select a map: <i>Official Map</i>
+Warning: cannot draw path between 大钟寺(12号线) and 大钟寺(13号线) as their coordinates are the same!
+Warning: cannot draw path between 木樨地(1号线) and 木樨地(16号线) as their coordinates are the same!
+Drawing done! Saving to ../test.png...
+</pre>
+
 ### [`draw_clusters.py`](/src/graph/draw_clusters.py): Draw transfer station clusters on map
 ```
 usage: draw_clusters.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [-n LIMIT_NUM] [-d {station,distance}] [--exclude-transfer] [--limit-same-line]
+                        [--max-colors MAX_COLORS]
 
 options:
   -h, --help            show this help message and exit
@@ -2786,6 +3125,8 @@ options:
                         Cluster size criteria
   --exclude-transfer    Exclude transfer stations
   --limit-same-line     Limit to station on same line
+  --max-colors MAX_COLORS
+                        Maximum number of colors allowed
 ```
 Draw all the clusters formed by interconnected transfer/regular stations on the map.
 By default, clusters are ordered by number of stations; passing `-d distance` can change to order by total sum of edge lengths.
@@ -2793,7 +3134,7 @@ By default, clusters are ordered by number of stations; passing `-d distance` ca
 
 Example Usage:
 <pre>
-$ python3 src/graph/draw_floodfill.py -n 20 -o test.png
+$ python3 src/graph/draw_clusters.py -n 20 -o test.png
 ? Please select a city: <i>北京</i>
 Largest/Smallest Transfer Station Clusters:
 #1: 36 stations: 巴沟, 北京南站, 北京西站, 北太平庄, 菜市口, 草桥, 长春桥, 车公庄, 达官营, 大钟寺(12号线), 大钟寺(13号线), 复兴门, 公主坟, 广安门内, 鼓楼大街, 海淀黄庄, 角门西, 蓟门桥, 景风门, 积水潭, 军事博物馆, 牡丹园, 木樨地(16号线), 木樨地(1号线), 牛街, 平安里, 人民大学, 苏州街, 苏州桥, 太平桥, 西单, 西土城, 西直门, 宣武门, 永定门外, 知春路

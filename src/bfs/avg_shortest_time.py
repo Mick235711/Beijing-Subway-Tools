@@ -361,6 +361,21 @@ def shortest_path_args(
         parser.add_argument("--exclude-single", action="store_true", help="Exclude single-direction lines")
 
 
+def avg_shortest_args(parser: argparse.ArgumentParser, *, include_limits: bool = True) -> None:
+    """ Add the average shortest path arguments """
+    if include_limits:
+        parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
+        parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
+    parser.add_argument("-d", "--data-source", choices=data_criteria,
+                        default="time", help="Station sort criteria")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
+    group.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
+    group2 = parser.add_mutually_exclusive_group()
+    group2.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
+    group2.add_argument("-t", "--to-station", help="Only show average time to specified stations")
+
+
 def print_station_info(
     city: City, station: str,
     avg_info: tuple[float, float, float, float, float, float | None],
@@ -404,7 +419,7 @@ def print_station_info(
 
 
 def find_avg_paths(
-    args: argparse.Namespace, *, city_station: tuple[City, str, date] | None = None
+    args: argparse.Namespace, *, city_station: tuple[City, str, date] | None = None, full_result: bool = False
 ) -> list[tuple[str, list[tuple[float, AbstractPath, list[PathInfo]]]]]:
     """ Find average paths with the given parameters """
     stations = parse_comma(args.to_station)
@@ -418,6 +433,8 @@ def find_avg_paths(
 
     result: list[tuple[str, list[tuple[float, AbstractPath, list[PathInfo]]]]] = []
     for i, (station, data) in enumerate(result_dict.items()):
+        if full_result:
+            result.append((station, data[-1]))
         if len(stations) > 0 and station not in stations:
             continue
         if len(stations) == 0 and args.limit_num <= i < len(result_dict) - args.limit_num:
@@ -430,23 +447,15 @@ def find_avg_paths(
             show_path_transfers=(city.transfers if args.show_path else args.verbose),
             through_dict=through_dict
         )
-        result.append((station, data[-1]))
+        if not full_result:
+            result.append((station, data[-1]))
     return result
 
 
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--limit-start", help="Limit start time of the search")
-    parser.add_argument("-e", "--limit-end", help="Limit end time of the search")
-    parser.add_argument("-d", "--data-source", choices=data_criteria,
-                        default="time", help="Station sort criteria")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-v", "--verbose", action="store_true", help="Increase verbosity")
-    group.add_argument("-p", "--show-path", action="store_true", help="Show detailed path")
-    group2 = parser.add_mutually_exclusive_group()
-    group2.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
-    group2.add_argument("-t", "--to-station", help="Only show average time to specified stations")
+    avg_shortest_args(parser)
     shortest_path_args(parser)
     args = parser.parse_args()
     find_avg_paths(args)

@@ -40,9 +40,17 @@ def get_ordinal_alpha(index: int, max_index: int) -> float:
     return 1 - index / (max_index - 1)
 
 
-def get_percent_alpha(percentage: float) -> float:
-    """ Get percentage (0-100) alpha value """
-    return percentage
+def get_color_from_cmap(
+    cmap: list[tuple[float, float, float]] | Colormap, index: int
+) -> tuple[float, float, float] | Colormap:
+    """ Get a single color from color map """
+    if isinstance(cmap, list):
+        if index < len(cmap):
+            return cmap[index]
+        else:
+            return 0, 0, 0
+    else:
+        return cmap
 
 
 def fetch_kth_path_result(args: argparse.Namespace) -> tuple[City, DrawDict]:
@@ -186,15 +194,10 @@ def draw_paths(
         if is_ordinal:
             color_alpha = get_ordinal_alpha(int(alpha), max(int(x[0]) for x in draw_dict) + 1)
         else:
-            color_alpha = get_percent_alpha(alpha)
-        if isinstance(cmap, Colormap):
-            color: tuple[float, float, float] | Colormap = cmap
-        else:
-            assert is_ordinal, draw_dict
-            color = cmap[int(alpha)]
+            color_alpha = alpha
         draw_path(
             draw_new, map_obj, station, next_station,
-            color, alpha, color_alpha, edge_wide,
+            get_color_from_cmap(cmap, int(alpha)), alpha, color_alpha, edge_wide,
             is_ordinal
         )
     img.paste(img_new, mask=img_new)

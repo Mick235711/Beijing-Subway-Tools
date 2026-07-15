@@ -7,7 +7,6 @@
 import argparse
 
 from PIL import Image, ImageDraw
-from matplotlib.colors import Colormap
 
 from src.city.ask_for_city import ask_for_city, ask_for_map
 from src.city.city import City
@@ -16,7 +15,7 @@ from src.common.common import suffix_s, distance_str, to_pinyin
 from src.dist_graph.adaptor import get_dist_graph
 from src.dist_graph.shortest_path import Graph
 from src.graph.draw_map import map_args
-from src.graph.draw_path import get_path_colormap, draw_path, get_edge_wide, get_ordinal_alpha
+from src.graph.draw_path import get_path_colormap, draw_path, get_edge_wide, get_ordinal_alpha, get_color_from_cmap
 from src.stats.common import display_first
 
 # reset max pixel
@@ -84,6 +83,7 @@ def main() -> None:
                             default="station", help="Cluster size criteria")
         parser.add_argument("--exclude-transfer", action="store_true", help="Exclude transfer stations")
         parser.add_argument("--limit-same-line", action="store_true", help="Limit to station on same line")
+        parser.add_argument("--max-colors", type=int, default=10, help="Maximum number of colors allowed")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, include_limits=False,
                     have_express=False, have_edge=False)
@@ -152,16 +152,10 @@ def main() -> None:
             for next_station, _ in graph[station].keys():
                 if next_station not in cluster or next_station in drawn:
                     continue
-                if isinstance(cmap, list):
-                    if i < len(cmap):
-                        color: tuple[float, float, float] | Colormap = cmap[i]
-                    else:
-                        color = (0, 0, 0)
-                else:
-                    color = cmap
                 draw_path(
-                    draw_new, map_obj, station, next_station, color, i,
-                    get_ordinal_alpha(9 - min(i, 9), 10), edge_wide, is_index=True
+                    draw_new, map_obj, station, next_station, get_color_from_cmap(cmap, i), i,
+                    get_ordinal_alpha(args.max_colors - 1 - min(i, args.max_colors - 1), args.max_colors),
+                    edge_wide, is_index=True
                 )
                 carried_any = True
             if not carried_any:
