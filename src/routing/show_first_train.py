@@ -13,7 +13,6 @@ from src.city.line import Line
 from src.common.common import get_time_str, chin_len, pad_to
 from src.routing.train import parse_trains, Train
 
-
 FullMode = Literal["direction", "true_full"]
 
 

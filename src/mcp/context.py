@@ -5,9 +5,9 @@
 
 # Libraries
 from src.city.city import get_all_cities, City
-from src.routing.train import parse_all_trains, Train
 from src.city.through_spec import ThroughSpec
 from src.routing.through_train import parse_through_train, ThroughTrain
+from src.routing.train import parse_all_trains, Train
 
 # Global state
 _city: City | None = None

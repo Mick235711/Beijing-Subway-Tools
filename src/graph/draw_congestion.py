@@ -5,9 +5,9 @@
 
 # Libraries
 import argparse
-from collections import Counter
 import csv
 import os
+from collections import Counter
 from typing import Literal
 
 import pyjson5

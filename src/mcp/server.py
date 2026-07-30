@@ -8,9 +8,9 @@ import argparse
 
 from fastmcp import FastMCP
 
+from src.mcp.tools.journey import get_transfer_metrics, plan_journey
 from src.mcp.tools.metadata import get_lines, get_stations, get_directions
 from src.mcp.tools.timetable import get_station_timetable, get_train_detailed_info
-from src.mcp.tools.journey import get_transfer_metrics, plan_journey
 
 
 def main() -> None:

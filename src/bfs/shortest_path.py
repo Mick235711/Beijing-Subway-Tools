@@ -16,7 +16,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
-from src.common.common import get_time_str, get_time_repr, TimeSpec, suffix_s, average, stddev
+from src.common.common import get_time_str, TimeSpec, suffix_s, average, stddev
 from src.dist_graph.adaptor import get_dist_graph, to_trains, all_time_path
 from src.dist_graph.shortest_path import shortest_path
 from src.routing.through_train import ThroughTrain, parse_through_train

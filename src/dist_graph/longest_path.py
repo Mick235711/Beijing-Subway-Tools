@@ -9,8 +9,8 @@ import sys
 from collections.abc import Generator
 from datetime import time
 
-from graphillion import GraphSet  # type: ignore
 import networkx as nx
+from graphillion import GraphSet  # type: ignore
 from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import shortest_path_args
@@ -88,7 +88,7 @@ def dfs(graph: Graph, source: str) -> Generator[tuple[str, str, Line | None]]:
                 (v, l) for v, l in graph[current_vertex].keys() if cons_line and l and l.name == cons_line.name
             ]
             if len(candidates) == 0:
-                next_vertex = nx.utils.arbitrary_element(graph[current_vertex].keys())
+                next_vertex = next(iter(graph[current_vertex].keys()))
             else:
                 next_vertex = candidates[0]
             vertex_stack.append(next_vertex)
@@ -100,7 +100,7 @@ def euler_route(graph: Graph, start_station: str | None, end_station: str | None
     """ Hierholzer's algorithm for Euler route or circuit (when stations are None) """
     if start_station is None:
         assert end_station is None, (start_station, end_station)
-        start_station = end_station = nx.utils.arbitrary_element(graph.keys())
+        start_station = end_station = next(iter(graph.keys()))
     res = list(reversed([(v, u, l) for u, v, l in dfs(copy_graph(graph), start_station)]))
     if len(res) == 0 or res[-1][1] != end_station:
         print("No such route possible!")
@@ -353,7 +353,7 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             assert len(candidates) == 2, (candidates, best_path)
             start_from = candidates[0]
         else:
-            start_from = nx.utils.arbitrary_element(all_stations) if start is None else start[0]
+            start_from = next(iter(all_stations)) if start is None else start[0]
         dist, route, end_station = path_from_pairs(
             graph, lines, best_path, start_from=start_from, is_circular=args.circuit
         )

@@ -4,16 +4,16 @@
 """ MCP journey-related tools """
 
 # Libraries
+import io
 from contextlib import redirect_stdout
 from datetime import datetime, time
-import io
 from typing import Any, Literal
 
-from src.mcp.context import get_city, get_train_dict, get_through_dict
-from src.mcp.utils import fuzzy_match
+from src.bfs.k_shortest_path import k_shortest_path
 from src.dist_graph.adaptor import get_dist_graph, to_trains
 from src.dist_graph.shortest_path import shortest_path
-from src.bfs.k_shortest_path import k_shortest_path
+from src.mcp.context import get_city, get_train_dict, get_through_dict
+from src.mcp.utils import fuzzy_match
 
 
 def get_transfer_metrics(

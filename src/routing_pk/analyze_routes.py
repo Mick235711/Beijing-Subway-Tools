@@ -27,7 +27,6 @@ from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, MixedRoutes, route_str, RouteData, select_routes
 from src.routing_pk.draw_routes import draw_selected, draw_line_chart
 
-
 PathData = tuple[int, Route | MixedRoutes, list[PathInfo]]
 
 

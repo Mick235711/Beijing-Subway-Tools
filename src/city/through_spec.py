@@ -12,7 +12,6 @@ from src.city.date_group import DateGroup
 from src.city.line import Line
 from src.city.train_route import TrainRoute
 
-
 ThroughSpecEntry = tuple[Line, str, DateGroup, TrainRoute]
 
 

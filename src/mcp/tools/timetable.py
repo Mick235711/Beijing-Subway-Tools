@@ -4,15 +4,15 @@
 """ MCP timetable-related tools """
 
 # Libraries
+import io
 from contextlib import redirect_stdout
 from datetime import datetime
-import io
 from typing import Any
 
 from src.city.city import City
+from src.common.common import get_time_str
 from src.mcp.context import get_city, get_train_dict
 from src.mcp.utils import fuzzy_match
-from src.common.common import get_time_str
 from src.timetable.print_timetable import in_route
 
 

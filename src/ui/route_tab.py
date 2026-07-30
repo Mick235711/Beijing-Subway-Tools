@@ -17,7 +17,6 @@ from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 from nicegui.elements.switch import Switch
-from webview.guilib import forced_gui_
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
 from src.bfs.bfs import path_distance, expand_path, total_transfer, total_transfer_duration

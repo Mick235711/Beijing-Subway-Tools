@@ -45,7 +45,10 @@ def export_graph(graph: nx.Graph, output_file: str, output_format: str = "auto",
         case "graphml": nx.write_graphml(graph, output_file)
         case "graph6": nx.write_graph6(graph, output_file)
         case "pajek" | "net": nx.write_pajek(graph, output_file)
-        case "network_text": nx.write_network_text(graph, output_file)
+        case "network_text":
+            with open(output_file, "w") as file:
+                for line in nx.generate_network_text(graph):
+                    file.write(line + "\n")
         case _: print(f"Error: Unknown format: {output_format}")
 
 

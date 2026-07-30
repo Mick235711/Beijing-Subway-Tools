@@ -5,9 +5,9 @@
 
 # Libraries
 from datetime import date
-from typing import Any, Callable, Literal
-
 from math import sqrt
+from typing import Callable, Literal
+
 from nicegui import background_tasks, binding, run, ui
 
 from src.city.city import City

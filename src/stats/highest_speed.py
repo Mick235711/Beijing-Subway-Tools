@@ -17,7 +17,6 @@ from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
 from src.stats.common import display_first, parse_args_through
 
-
 DATA_STRINGS = {
     "speed": ("Fastest/Slowest", lambda t: t.speed(), lambda t: speed_str(t)),
     "duration": ("Shortest/Longest", lambda t: t.duration(), lambda t: format_duration(t)),

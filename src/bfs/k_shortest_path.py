@@ -4,10 +4,9 @@
 """ Implement the k-shortest path algorithm """
 
 # Libraries
-from datetime import date, time
-from typing import Callable
-
+from datetime import date
 from math import floor, ceil
+from typing import Callable
 
 from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index, get_result, combine_trains
 from src.city.line import Line

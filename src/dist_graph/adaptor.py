@@ -5,8 +5,8 @@
 
 # Libraries
 import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import date, time, timedelta
 from functools import partial
 from math import floor, ceil

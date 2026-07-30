@@ -5,9 +5,9 @@
 
 # Libraries
 import argparse
-from datetime import date
 import json
 import sys
+from datetime import date
 from typing import Any
 
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date

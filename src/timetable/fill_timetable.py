@@ -6,9 +6,9 @@
 
 # Libraries
 import argparse
-from copy import copy
 import sys
 import traceback
+from copy import copy
 
 import questionary
 

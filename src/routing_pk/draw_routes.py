@@ -8,9 +8,9 @@ import os
 import sys
 from datetime import datetime, date, timedelta
 
+import matplotlib.pyplot as plt
 import questionary
 from PIL import Image
-import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
 from matplotlib.dates import DateFormatter
 
