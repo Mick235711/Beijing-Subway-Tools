@@ -88,7 +88,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             data.chart_cache = None
             data.speed_cache_key = None
             data.speed_cache = None
-            await final_train_radar.refresh(train_dict=data.train_dict, start_date=data.cur_date, save_image=False)
+            await final_train_radar.refresh(**radar_kwargs())
             await display_train_chart.refresh(data=data)
             await display_speed_graph.refresh(data=data)
             loading.set_visibility(False)
@@ -97,7 +97,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             """ Update the train list based on current data """
             key = (data.cur_date, tuple(sorted(data.info_data.lines.keys())))
             if data.train_dict_key == key:
-                final_train_radar.refresh(train_dict=data.train_dict, start_date=data.cur_date, save_image=False)
+                final_train_radar.refresh(**radar_kwargs())
                 display_train_chart.refresh(data=data)
                 display_speed_graph.refresh(data=data)
                 return
@@ -113,7 +113,6 @@ def stats_tab(city: City, data: StatsData) -> None:
         get_date_input(on_date_change, label=None)
         loading = ui.spinner(size="lg").classes("ml-2")
         loading.set_visibility(False)
-        on_any_change()
 
     with ui.tabs().classes("w-full") as tabs:
         train_tab = ui.tab("Train")
@@ -130,7 +129,7 @@ def stats_tab(city: City, data: StatsData) -> None:
             """ Update the data based on selection states """
             if len(data.info_data.lines) == 0:
                 radar_base_line.clear()
-                final_train_radar.refresh(base_line=None, base_direction=None, base_station=None, save_image=False)
+                refresh_radar()
                 return
 
             line_temp = line or radar_base_line.value
@@ -160,49 +159,75 @@ def stats_tab(city: City, data: StatsData) -> None:
                 select_station.set_value(station)
                 select_station.clear()
 
-            final_train_radar.refresh(
-                base_line=city.lines[line_temp], base_direction=direction, base_station=station, save_image=False
-            )
+            refresh_radar()
 
         with ui.tab_panel(radar_tab).classes("pt-0"):
             with ui.row().classes("w-full items-center justify-center"):
+                radar_layout = ui.toggle(
+                    ["Circular", "Parallel"], value="Circular",
+                    on_change=lambda _: refresh_radar()
+                )
                 ui.label("Base line: ")
                 radar_base_line = ui.select([]).props("use-chips options-html").on_value_change(on_line_change)
                 ui.label("Base direction: ")
                 select_direction = ui.select(
-                    [], on_change=lambda e: final_train_radar.refresh(base_direction=e.value, save_image=False)
+                    [], on_change=lambda _: refresh_radar()
                 ).props(add="options-html", remove="fill-input hide-selected")
                 ui.label("Base station: ").bind_visibility_from(
                     radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
                 )
                 select_station = ui.select(
                     [], with_input=True,
-                    on_change=lambda e: final_train_radar.refresh(base_station=e.value, save_image=False)
+                    on_change=lambda _: refresh_radar()
                 ).props(add="options-html", remove="fill-input hide-selected").bind_visibility_from(
                     radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
                 )
             with ui.row().classes("w-full items-center justify-center"):
-                ui.toggle(
+                radar_train_kind = ui.toggle(
                     ["First Train", "Last Train"], value="First Train",
-                    on_change=lambda e: final_train_radar.refresh(use_first=(e.value == "First Train"), save_image=False)
+                    on_change=lambda _: refresh_radar()
                 )
-                ui.switch(
+                radar_show_all_dir = ui.switch(
                     "Show all directions",
-                    on_change=lambda e: final_train_radar.refresh(show_all_dir=e.value, save_image=False)
+                    on_change=lambda _: refresh_radar()
                 )
-                ui.switch(
+                radar_show_ending = ui.switch(
                     "Show ending trains",
-                    on_change=lambda e: final_train_radar.refresh(show_ending=e.value, save_image=False)
+                    on_change=lambda _: refresh_radar()
                 )
-                ui.switch(
+                radar_show_inner_text = ui.switch(
                     "Show inner text", value=True,
-                    on_change=lambda e: final_train_radar.refresh(show_inner_text=e.value, save_image=False)
-                )
-                ui.switch(
+                    on_change=lambda _: refresh_radar()
+                ).bind_visibility_from(radar_layout, "value", backward=lambda layout: layout == "Circular")
+                radar_show_station_orbs = ui.switch(
                     "Show station orbs", value=True,
-                    on_change=lambda e: final_train_radar.refresh(show_station_orbs=e.value, save_image=False)
+                    on_change=lambda _: refresh_radar()
                 )
-                ui.button("Save image", icon="save", on_click=lambda: final_train_radar.refresh(save_image=True))
+                ui.button(
+                    "Save image", icon="save",
+                    on_click=lambda: refresh_radar(save_image=True)
+                )
+
+            def radar_kwargs(*, save_image: bool = False) -> dict:
+                """ Build a complete radar render request from the current controls. """
+                return {
+                    "base_line": city.lines.get(radar_base_line.value),
+                    "base_direction": select_direction.value,
+                    "base_station": select_station.value,
+                    "train_dict": data.train_dict,
+                    "start_date": data.cur_date,
+                    "use_first": radar_train_kind.value == "First Train",
+                    "show_all_dir": radar_show_all_dir.value,
+                    "show_ending": radar_show_ending.value,
+                    "show_inner_text": radar_show_inner_text.value,
+                    "show_station_orbs": radar_show_station_orbs.value,
+                    "layout_mode": radar_layout.value,
+                    "save_image": save_image,
+                }
+
+            def refresh_radar(*, save_image: bool = False) -> None:
+                """ Render the radar without resetting the other radar controls. """
+                final_train_radar.refresh(**radar_kwargs(save_image=save_image))
 
             with ui.row().classes("w-full items-center justify-center gap-4"):
                 ui.label("Zoom:").classes("shrink-0")
@@ -216,11 +241,14 @@ def stats_tab(city: City, data: StatsData) -> None:
                         window._radarZoom = value;
 
                         const applyRadarZoom = (svg) => {
-                            const base = 1000;
+                            const baseWidth = Number(svg.dataset.radarWidth || 1000);
+                            const baseHeight = Number(svg.dataset.radarHeight || 1000);
                             const z = window._radarZoom / 100;
-                            const visible = base / z;
-                            const pad = (visible - base) / 2;
-                            svg.setAttribute('viewBox', `${-pad} ${-pad} ${visible} ${visible}`);
+                            const visibleWidth = baseWidth / z;
+                            const visibleHeight = baseHeight / z;
+                            const x = (baseWidth - visibleWidth) / 2;
+                            const y = (baseHeight - visibleHeight) / 2;
+                            svg.setAttribute('viewBox', `${x} ${y} ${visibleWidth} ${visibleHeight}`);
                         };
 
                         // Install the observer exactly once. It watches for the SVG element being
@@ -251,8 +279,9 @@ def stats_tab(city: City, data: StatsData) -> None:
                         if (svg) applyRadarZoom(svg);
                     }
                 """)
-            final_train_radar(city, train_dict=data.train_dict, start_date=data.cur_date)
+            final_train_radar(city, **radar_kwargs())
             on_line_change()
+            on_any_change()
 
 
 def train_chart_data(
@@ -908,14 +937,224 @@ def display_speed_table(
     background_tasks.create_lazy(load_rows(table_key), name="stats_speed_table")
 
 
+# Total hour duration: 3h, every 10min one circle => 19 circles, 0.05-0.95 every 0.05 is exactly 19
+TOTAL_WIDTH = 1000
+MAX_RADIUS = 0.475
+CORE_RADIUS = 0.025
+DELTA_PORTION = 0.025
+SPLIT_MIN = 10
+SPLIT_TOTAL = 3 * 60
+BOLD_LINE = 3
+STATION_RADIUS = DELTA_PORTION / 10 * TOTAL_WIDTH
+CIRCULAR_RADIUS = 3
+assert SPLIT_TOTAL // SPLIT_MIN == round((MAX_RADIUS - CORE_RADIUS) / DELTA_PORTION)
+
+# The parallel view uses the same three-hour range, but expands each train into
+# a horizontal rectangle. This avoids the visually narrower wedges near the center.
+PLOT_LEFT, PLOT_RIGHT, BADGE_X = 130, 700, 750
+PLOT_WIDTH = PLOT_RIGHT - PLOT_LEFT
+
+# The circular wedges are ~8 px wide at the outer edge (475 px radius,
+# one degree), so use the same visual weight for the horizontal blocks.
+ROW_HEIGHT, ROW_GAP, ROW_TOP = 8, 16, 62
+row_stride = ROW_HEIGHT + ROW_GAP
+
+
+def to_radius(time_spec: TimeSpec, first_time: TimeSpec, *, use_first: bool) -> tuple[float, bool]:
+    """ Convert from time to radius (return true if adjusted """
+    adjusted = False
+    if (use_first and diff_time_tuple(time_spec, first_time) > 0) or (
+        not use_first and diff_time_tuple(time_spec, first_time) < 0
+    ):
+        time_spec = first_time
+        adjusted = True
+    return (abs(
+        to_minutes(*time_spec) - to_minutes(*first_time)
+    ) / SPLIT_TOTAL * (MAX_RADIUS - CORE_RADIUS) + CORE_RADIUS) * TOTAL_WIDTH, adjusted
+
+
+def to_x(time_spec: TimeSpec, first_time: TimeSpec, *, use_first: bool) -> float:
+    """ Convert a time to the horizontal position used by the parallel layout. """
+    radius, _ = to_radius(time_spec, first_time, use_first=use_first)
+    time_portion = (radius / TOTAL_WIDTH - CORE_RADIUS) / (MAX_RADIUS - CORE_RADIUS)
+    if use_first:
+        time_portion = 1 - time_portion
+    return PLOT_LEFT + time_portion * PLOT_WIDTH
+
+
+def draw_circular_radar(
+    ordered_trains: list[tuple[str, list[Train]]], first_time: TimeSpec, total_length: int, station_mapping: dict[str, int],
+    *, use_first: bool, show_inner_text: bool
+) -> tuple[list[str], list[tuple[float, float, str]], list[Train]]:
+    """ Draw circular radar chart """
+    elements: list[str] = []
+    station_coords: list[tuple[float, float, str]] = []
+    trains: list[Train] = []
+    circle_spine_degree = 10
+    text_delta = DELTA_PORTION / 5 * TOTAL_WIDTH
+
+    # Insert radials and the time circles behind the train arcs.
+    for radial_index in range(0, 360 // circle_spine_degree):
+        x1, y1 = to_polar(
+            TOTAL_WIDTH / 2, TOTAL_WIDTH / 2, CORE_RADIUS * TOTAL_WIDTH, radial_index * circle_spine_degree
+        )
+        x2, y2 = to_polar(
+            TOTAL_WIDTH / 2, TOTAL_WIDTH / 2, MAX_RADIUS * TOTAL_WIDTH, radial_index * circle_spine_degree
+        )
+        elements.append(f"""
+<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#333" stroke-width="1" />
+            """)
+    for circle_index in range(SPLIT_TOTAL // SPLIT_MIN + 1):
+        portion = CORE_RADIUS + DELTA_PORTION * circle_index
+        portion_radius = portion * TOTAL_WIDTH
+        portion_time = add_min_tuple(first_time, (-SPLIT_MIN if use_first else SPLIT_MIN) * circle_index)
+        stroke_width = 2 if circle_index % BOLD_LINE == 0 else 1
+        fill = "#333" if circle_index == 0 else "none"
+        elements.append(f"""
+<circle cx="{TOTAL_WIDTH / 2}" cy="{TOTAL_WIDTH / 2}" r="{portion_radius}" fill="{fill}" stroke="#333" stroke-width="{stroke_width}" />
+            """)
+        if circle_index == 0:
+            time_text = get_time_repr(portion_time[0]) + "~" if use_first else "~" + get_time_repr(portion_time[0])
+            elements.append(f"""
+<text x="{TOTAL_WIDTH / 2}" y="{TOTAL_WIDTH / 2}" dominant-baseline="middle" text-anchor="middle" fill="#666" font-family="monospace" font-size="12">{time_text}</text>
+                """)
+        elif circle_index % BOLD_LINE == 0:
+            elements.append(f"""
+<text x="{TOTAL_WIDTH / 2}" y="{TOTAL_WIDTH / 2 - portion_radius}" dominant-baseline="middle" text-anchor="middle" fill="#666" font-family="monospace" font-size="12">{get_time_repr(portion_time[0])}</text>
+                """)
+
+    # Populate lines, divide equally and leave one space in between.
+    cur_index = 1
+    for last_station, train_list in ordered_trains:
+        for train in train_list:
+            start_time, end_time = train.start_time(), train.last_time()
+            start_station, end_station = train.stations[0], train.last_station()
+            if use_first:
+                start_time, end_time = end_time, start_time
+                start_station, end_station = end_station, start_station
+            intersect_time = train.arrival_time[last_station]
+            radial = 360 * cur_index / total_length
+            arc = draw_arc(
+                TOTAL_WIDTH / 2, TOTAL_WIDTH / 2,
+                to_radius(start_time, first_time, use_first=use_first)[0],
+                to_radius(end_time, first_time, use_first=use_first)[0],
+                radial - 0.5, radial + 0.5
+            )
+            color = train.line.color or "#333"
+            x1, y1 = to_polar(TOTAL_WIDTH / 2, TOTAL_WIDTH / 2, to_radius(start_time, first_time, use_first=use_first)[0] - text_delta, radial)
+            x2, y2 = to_polar(TOTAL_WIDTH / 2, TOTAL_WIDTH / 2, to_radius(end_time, first_time, use_first=use_first)[0] + text_delta, radial)
+            xi, yi = to_polar(TOTAL_WIDTH / 2, TOTAL_WIDTH / 2, to_radius(intersect_time, first_time, use_first=use_first)[0], radial)
+
+            # Place the line badge beyond the terminus label's rendered extent.
+            terminus_font_size = 14
+            is_near_vertical = (
+                radial <= 360 / 8 or 360 - radial < 360 / 8 or abs(180 - radial) <= 360 / 8
+            )
+            if is_near_vertical:
+                text_radial_extent = len(end_station) * terminus_font_size * (1.3 if get_native() else 1.15)
+            else:
+                text_radial_extent = chin_len(end_station) * terminus_font_size * 0.52
+            xt, yt = to_polar(
+                TOTAL_WIDTH / 2, TOTAL_WIDTH / 2,
+                to_radius(end_time, first_time, use_first=use_first)[0] + text_delta + text_radial_extent + text_delta, radial
+            )
+
+            station_coords.append((xi, yi, last_station))
+            trains.append(train)
+            elements.append(f"""
+<path d="{arc}" fill="{color}" stroke="none" class="cursor-pointer" id="train-arc-{len(trains) - 1}" />
+                """)
+            if show_inner_text and not to_radius(start_time, first_time, use_first=use_first)[1]:
+                elements.append(draw_text(
+                    x1, y1, radial, start_station,
+                    f"fill=\"#333\" font-family=\"monospace\" font-size=\"10\" class=\"cursor-pointer\" id=\"station-{station_mapping[start_station]}\"", is_inner=True
+                ))
+            elements.append(draw_text(
+                x2, y2, radial, end_station,
+                f"fill=\"white\" font-family=\"monospace\" font-size=\"14\" class=\"cursor-pointer\" id=\"station-{station_mapping[end_station]}\""
+            ))
+            filter_id = "line2" if len(train.line.get_badge()) < 2 else "line"
+            elements.append(draw_text(
+                xt, yt, radial, train.line.get_badge(),
+                f"filter=\"url(#{filter_id}-{train.line.index})\" fill=\"{get_text_color(color)}\" font-family=\"monospace\" font-size=\"12\" class=\"cursor-pointer\" id=\"line-{train.line.index}\"",
+                force_upright=True
+            ))
+            cur_index += 1
+        cur_index += 1
+    return elements, station_coords, trains
+
+
+def draw_parallel_radar(
+    ordered_trains: list[tuple[str, list[Train]]], first_time: TimeSpec, total_length: int, station_mapping: dict[str, int],
+    *, use_first: bool
+) -> tuple[list[str], list[tuple[float, float, str]], list[Train], int]:
+    """ Draw parallel radar chart """
+    elements: list[str] = []
+    station_coords: list[tuple[float, float, str]] = []
+    trains: list[Train] = []
+    svg_height = max(160, ROW_TOP + total_length * row_stride + 34)
+
+    # Vertical grid lines retain the circular view's ten-minute cadence.
+    for time_index in range(SPLIT_TOTAL // SPLIT_MIN + 1):
+        grid_portion = time_index / (SPLIT_TOTAL // SPLIT_MIN)
+        if use_first:
+            grid_portion = 1 - grid_portion
+        grid_x = PLOT_LEFT + grid_portion * PLOT_WIDTH
+        portion_time = add_min_tuple(first_time, (-SPLIT_MIN if use_first else SPLIT_MIN) * time_index)
+        stroke_width = 2 if time_index % BOLD_LINE == 0 else 1
+        elements.append(f"""
+<line x1="{grid_x}" y1="38" x2="{grid_x}" y2="{svg_height - 20}" stroke="#333" stroke-width="{stroke_width}" stroke-opacity="0.45" />
+            """)
+        if time_index % BOLD_LINE == 0:
+            elements.append(f"""
+<text x="{grid_x}" y="22" text-anchor="middle" fill="#666" font-family="monospace" font-size="12">{get_time_repr(portion_time[0])}</text>
+                """)
+
+    cur_index = 1
+    for last_station, train_list in ordered_trains:
+        for train in train_list:
+            start_time, end_time = train.start_time(), train.last_time()
+            start_station, end_station = train.stations[0], train.last_station()
+            if use_first:
+                start_time, end_time = end_time, start_time
+                start_station, end_station = end_station, start_station
+            intersect_time = train.arrival_time[last_station]
+            start_x = to_x(start_time, first_time, use_first=use_first)
+            end_x = to_x(end_time, first_time, use_first=use_first)
+            intersect_x = to_x(intersect_time, first_time, use_first=use_first)
+            y = ROW_TOP + (cur_index - 1) * row_stride
+            block_x = min(start_x, end_x)
+            block_width = max(2, abs(end_x - start_x))
+            color = train.line.color or "#333"
+
+            station_coords.append((intersect_x, y + ROW_HEIGHT / 2, last_station))
+            trains.append(train)
+            elements.append(f"""
+<rect x="{block_x}" y="{y}" width="{block_width}" height="{ROW_HEIGHT}" rx="2" fill="{color}" class="cursor-pointer" id="train-arc-{len(trains) - 1}" />
+                """)
+            start_on_left = start_x <= end_x
+            elements.append(f"""
+<text x="{start_x + (-7 if start_on_left else 7)}" y="{y + ROW_HEIGHT / 2}" dominant-baseline="middle" text-anchor="{'end' if start_on_left else 'start'}" fill="white" font-family="monospace" font-size="14" class="cursor-pointer" id="station-{station_mapping[start_station]}">{start_station}</text>
+                """)
+            end_on_right = end_x >= start_x
+            elements.append(f"""
+<text x="{end_x + (7 if end_on_right else -7)}" y="{y + ROW_HEIGHT / 2}" dominant-baseline="middle" text-anchor="{'start' if end_on_right else 'end'}" fill="white" font-family="monospace" font-size="14" class="cursor-pointer" id="station-{station_mapping[end_station]}">{end_station}</text>
+<text x="{BADGE_X}" y="{y + ROW_HEIGHT / 2}" dominant-baseline="middle" text-anchor="middle" filter="url(#{'line2' if len(train.line.get_badge()) < 2 else 'line'}-{train.line.index})" fill="{get_text_color(color)}" font-family="monospace" font-size="12" class="cursor-pointer" id="line-{train.line.index}">{train.line.get_badge()}</text>
+                """)
+            cur_index += 1
+        cur_index += 1
+    return elements, station_coords, trains, svg_height
+
+
 @ui.refreshable
 def final_train_radar(
     city: City, *, base_line: Line | None = None, base_direction: str | None = None, base_station: str | None = None,
     train_dict: dict[tuple[str, str], list[Train]], start_date: date,
     use_first: bool = True, show_all_dir: bool = False, show_ending: bool = False,
-    show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False
+    show_inner_text: bool = True, show_station_orbs: bool = True,
+    layout_mode: Literal["Circular", "Parallel"] = "Circular", save_image: bool = False
 ) -> None:
-    """ Display a radar graph for final trains """
+    """ Display a radar graph for final trains in a circular or parallel layout """
     if base_line is None or len(train_dict) == 0 or (
         base_direction is not None and base_direction not in base_line.directions
     ) or (
@@ -998,19 +1237,6 @@ def final_train_radar(
             if last_full != last_train and ((use_first and diff > 0) or (not use_first and diff < 0)):
                 last_dict[last_station].append(last_full)
 
-    # Total hour duration: 3h, every 10min one circle => 19 circles, 0.05-0.95 every 0.05 is exactly 19
-    total_width = 1000
-    max_radius = 0.475
-    core_radius = 0.025
-    delta_portion = 0.025
-    split_min = 10
-    split_total = 3 * 60
-    bold_line = 3
-    circle_spine_degree = 10
-    text_delta = delta_portion / 5 * total_width
-    station_radius = delta_portion / 10 * total_width
-    assert split_total // split_min == round((max_radius - core_radius) / delta_portion)
-
     # Prepare station <-> id mapping
     station_list = list(city.station_lines.keys())
     station_mapping = {s: i for i, s in enumerate(station_list)}
@@ -1022,141 +1248,43 @@ def final_train_radar(
         key=lambda x: get_time_str(*x)
     )
     real_last = from_minutes(
-        (to_minutes(*last_time) // (bold_line * split_min) + (0 if use_first else 1)) * (bold_line * split_min)
+        (to_minutes(*last_time) // (BOLD_LINE * SPLIT_MIN) + (0 if use_first else 1)) * (BOLD_LINE * SPLIT_MIN)
     )
-    first_time = add_min_tuple(real_last, split_total if use_first else -split_total)
+    first_time = add_min_tuple(real_last, SPLIT_TOTAL if use_first else -SPLIT_TOTAL)
 
-    # Insert radials
-    elements: list[str] = []
-    for radial_index in range(0, 360 // circle_spine_degree):
-        x1, y1 = to_polar(total_width / 2, total_width / 2, core_radius * total_width, radial_index * circle_spine_degree)
-        x2, y2 = to_polar(total_width / 2, total_width / 2, max_radius * total_width, radial_index * circle_spine_degree)
-        elements.append(f"""
-<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#333" stroke-width="1" />
-        """)
-
-    # Populate circles
-    for circle_index in range(split_total // split_min + 1):
-        portion = core_radius + delta_portion * circle_index
-        portion_radius = portion * total_width
-        portion_time = add_min_tuple(first_time, (-split_min if use_first else split_min) * circle_index)
-        if circle_index % bold_line == 0:
-            stroke_width = 2
-        else:
-            stroke_width = 1
-        fill = "#333" if circle_index == 0 else "none"
-        elements.append(f"""
-<circle cx="{total_width / 2}" cy="{total_width / 2}" r="{portion_radius}" fill="{fill}" stroke="#333" stroke-width="{stroke_width}" />
-        """)
-        if circle_index == 0:
-            time_text = get_time_repr(portion_time[0]) + "~" if use_first else "~" + get_time_repr(portion_time[0])
-            elements.append(f"""
-<text x="{total_width / 2}" y="{total_width / 2}" dominant-baseline="middle" text-anchor="middle" fill="#666" font-family="monospace" font-size="12">{time_text}</text>
-            """)
-        elif circle_index % bold_line == 0:
-            elements.append(f"""
-<text x="{total_width / 2}" y="{total_width / 2 - portion_radius}" dominant-baseline="middle" text-anchor="middle" fill="#666" font-family="monospace" font-size="12">{get_time_repr(portion_time[0])}</text>
-            """)
-
-    def to_radius(time_spec: TimeSpec) -> tuple[float, bool]:
-        """ Convert from time to radius (return true if adjusted """
-        adjusted = False
-        if (use_first and diff_time_tuple(time_spec, first_time) > 0) or (
-            not use_first and diff_time_tuple(time_spec, first_time) < 0
-        ):
-            time_spec = first_time
-            adjusted = True
-        return (abs(
-            to_minutes(*time_spec) - to_minutes(*first_time)
-        ) / split_total * (max_radius - core_radius) + core_radius) * total_width, adjusted
-
-    # Populate lines, divide equally and leave one space in between
-    total_length = sum(len(x) for x in last_dict.values()) + len(last_dict)
-    cur_index = 1
+    # Determine base station and color
     base_color = base_line.color or "#333"
-    station_coords: list[tuple[float, float, str]] = []
-    trains = []
+    total_length = sum(len(x) for x in last_dict.values()) + len(last_dict)
     base_stations = base_line.direction_stations(base_direction)
     base_index = 0 if base_station is None else base_stations.index(base_station)
-    for last_station, train_list in sorted(
+    ordered_trains = sorted(
         last_dict.items(), key=lambda x: shift_max(base_stations.index(x[0]), base_index, len(base_stations))
-    ):
-        for train in train_list:
-            start_time, end_time = train.start_time(), train.last_time()
-            start_station, end_station = train.stations[0], train.last_station()
-            if use_first:
-                start_time, end_time = end_time, start_time
-                start_station, end_station = end_station, start_station
-            intersect_time = train.arrival_time[last_station]
-            radial = 360 * cur_index / total_length
-            arc = draw_arc(
-                total_width / 2, total_width / 2,
-                to_radius(start_time)[0], to_radius(end_time)[0], radial - 0.5, radial + 0.5
-            )
-            color = train.line.color or "#333"
-            x1, y1 = to_polar(total_width / 2, total_width / 2, to_radius(start_time)[0] - text_delta, radial)
-            x2, y2 = to_polar(total_width / 2, total_width / 2, to_radius(end_time)[0] + text_delta, radial)
-            xi, yi = to_polar(total_width / 2, total_width / 2, to_radius(intersect_time)[0], radial)
+    )
 
-            # Compute badge position beyond the actual rendered extent of the terminus text.
-            # draw_text always anchors the text at x2,y2 and extends it radially outward:
-            #   - Near-vertical angles (≤45°, ≥315°, or ~180°±45°): writing-mode: tb is used,
-            #     so each character advances ~font_size × 1.3 (incl. line-height) in the radial direction.
-            #     Extent ≈ len(text) × font_size × 1.3
-            #   - Near-horizontal angles (~90° or ~270°): horizontal text extends radially outward;
-            #     CJK chars are full-width (~font_size each) and ASCII are half-width (~0.6 × font_size).
-            #     chin_len() counts CJK as 2 units and ASCII as 1 unit, so multiplying by 0.6 gives:
-            #       CJK: 2 × 0.6 × font_size ≈ 1.2 × font_size  (slight overestimate is fine)
-            #       ASCII: 1 × 0.6 × font_size ≈ 0.6 × font_size  (close to actual)
-            terminus_font_size = 14  # font-size of the terminus station label
-            is_near_vertical = (
-                radial <= 360 / 8 or 360 - radial < 360 / 8
-                or abs(180 - radial) <= 360 / 8
-            )
-            if is_near_vertical:
-                text_radial_extent = len(end_station) * terminus_font_size * (1.3 if get_native() else 1.15)
-            else:
-                text_radial_extent = chin_len(end_station) * terminus_font_size * 0.52
-            xt, yt = to_polar(
-                total_width / 2, total_width / 2,
-                to_radius(end_time)[0] + text_delta + text_radial_extent + text_delta,
-                radial
-            )
+    if layout_mode == "Circular":
+        elements, station_coords, trains = draw_circular_radar(
+            ordered_trains, first_time, total_length, station_mapping,
+            use_first=use_first, show_inner_text=show_inner_text
+        )
+        svg_height = TOTAL_WIDTH
+    else:
+        elements, station_coords, trains, svg_height = draw_parallel_radar(
+            ordered_trains, first_time, total_length, station_mapping,
+            use_first=use_first
+        )
 
-            station_coords.append((xi, yi, last_station))
-            trains.append(train)
-            elements.append(f"""
-<path d="{arc}" fill="{color}" stroke="none" class="cursor-pointer" id="train-arc-{len(trains) - 1}" />
-            """)
-            if show_inner_text and not to_radius(start_time)[1]:
-                elements.append(draw_text(
-                    x1, y1, radial, start_station,
-                    f"fill=\"#333\" font-family=\"monospace\" font-size=\"10\" class=\"cursor-pointer\" id=\"station-{station_mapping[start_station]}\"", is_inner=True
-                ))
-            elements.append(draw_text(
-                x2, y2, radial, end_station,
-                f"fill=\"white\" font-family=\"monospace\" font-size=\"14\" class=\"cursor-pointer\" id=\"station-{station_mapping[end_station]}\""
-            ))
-            filter_id = "line2" if len(train.line.get_badge()) < 2 else "line"
-            elements.append(draw_text(
-                xt, yt, radial, train.line.get_badge(),
-                f"filter=\"url(#{filter_id}-{train.line.index})\" fill=\"{get_text_color(color)}\" font-family=\"monospace\" font-size=\"12\" class=\"cursor-pointer\" id=\"line-{train.line.index}\"",
-                force_upright=True
-            ))
-            cur_index += 1
-        cur_index += 1
-
-    # Link all the station coords
+    # Link all the station intersections in their base-line order.
     if show_station_orbs:
-        if base_line.loop:
+        if base_line.loop and layout_mode == "Circular":
             station_coords.append(station_coords[0])
         for (x1, y1, _), (x2, y2, _) in zip(station_coords, station_coords[1:]):
             elements.append(f"""
 <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{base_color}" stroke-width="1" stroke-opacity="0.3" />
             """)
+        element_radius = STATION_RADIUS if layout_mode == "Circular" else CIRCULAR_RADIUS
         for xi, yi, s in station_coords:
             elements.append(f"""
-<circle cx="{xi}" cy="{yi}" r="{station_radius}" fill="white" stroke="{base_color}" stroke-width="1" class="cursor-pointer" id="station-{station_mapping[s]}" />
+<circle cx="{xi}" cy="{yi}" r="{element_radius}" fill="white" stroke="{base_color}" stroke-width="1" class="cursor-pointer" id="station-{station_mapping[s]}" />
             """)
 
     def handle_click(clicked_id: str) -> None:
@@ -1174,7 +1302,7 @@ def final_train_radar(
             refresh_line_drawer(clicked_line, city.lines)
 
     svg_html = f"""
-<svg viewBox="0 0 {total_width} {total_width}" data-radar-graph="true" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 {TOTAL_WIDTH} {svg_height}" data-radar-graph="true" data-radar-width="{TOTAL_WIDTH}" data-radar-height="{svg_height}" xmlns="http://www.w3.org/2000/svg">
     <defs>
     """ + "\n".join(defs) + "</defs>" + "\n".join(
         elements
