@@ -84,7 +84,7 @@ Then, you need to fill out the basic metadata for this line, like follows:
     timetable: {},
 }
 ```
-For loop lines, you need to add `loop: true`, append `loop_last_segment`
+For loop lines, you need to add `loop: true`, specify a clockwise direction, append `loop_last_segment`
 (lower-bound estimation of the minutes required from last station to first station), and also add a `dist` to the first
 station to represent the distance in meters between the last and the first station.
 
@@ -299,7 +299,7 @@ to validate the direction's timetable. Please enter a few trains to see if there
 
 ### 3.4. Special Cases
 #### 3.4.1. Loop Lines
-As mentioned before, for loop lines, you need to add `loop: true`, and append `loop_last_segment` and `dist` fields.
+As mentioned before, for loop lines, you need to add `loop: true`, specify a clockwise direction, and append `loop_last_segment` and `dist` fields.
 After doing this, specify as normal, and the trains will be automatically ended at the start station to complete the loop.
 
 However, a small detail is that you will need to choose a split. In other words, even if it is a loop line, you still need

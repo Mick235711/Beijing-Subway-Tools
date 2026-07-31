@@ -9,6 +9,7 @@
     design_speed: 80,
     loop: true,
     loop_last_segment: 3,
+    clockwise_direction: "内环",
     stations: [
         {name: "西直门", dist: 1899}, // 京港官网
         {name: "车公庄", dist: 910},

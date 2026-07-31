@@ -9,6 +9,7 @@
     design_speed: 80,
     loop: true,
     loop_last_segment: 2,
+    clockwise_direction: "内环",
     stations: [
         {name: "丰台站", dist: 1717, aliases: ["Fengtai Railway Station"], badge_icon: "train"},
         {name: "泥洼", dist: 954},

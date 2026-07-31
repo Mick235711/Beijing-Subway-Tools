@@ -62,17 +62,21 @@ class ThroughTrain:
             return None
         return self.trains[line_names[line_index - 1]]
 
-    def arrival_times(self) -> list[tuple[str, str, TimeSpec]]:
+    def arrival_times(self, *, with_passing: bool = False) -> list[tuple[str, str, TimeSpec | None]]:
         """ Return the cumulative arrival times, list of (station, line, time) """
-        arrival_times: list[tuple[str, str, TimeSpec]] = []
+        arrival_times: list[tuple[str, str, TimeSpec | None]] = []
         for i, (line, _, _, _) in enumerate(self.spec.spec):
             train = self.trains[line.name]
             end_index = len(train.stations) - (0 if i == len(self.spec.spec) - 1 else 1)
-            arrival_times.extend([(st, train.line.name, train.arrival_time[st]) for st in train.stations[:end_index]])
+            arrival_times.extend([
+                (st, train.line.name, train.arrival_time.get(st))
+                for st in train.stations[:end_index]
+                if (with_passing or st not in train.skip_stations)
+            ])
         return arrival_times
 
-    def arrival_time_stations(self) -> list[str]:
-        """ Return the stations that have arrival times """
+    def all_stations(self) -> list[str]:
+        """ Return all the stations in each trains """
         arrival_stations: list[str] = []
         first = True
         for line, _, _, _ in self.spec.spec:
@@ -267,7 +271,7 @@ def parse_through_train(
             assert last_line is not None, last_line
             for through_train in result[through_spec]:
                 through_train.trains[line.name] = time_dict[through_train.trains[last_line.name].end_time_str()]
-                through_train.stations = through_train.arrival_time_stations()
+                through_train.stations = through_train.all_stations()
 
             last_line = line
     return train_dict, result

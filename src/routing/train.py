@@ -194,9 +194,12 @@ class Train:
             return "(" + self.show_with(station, reverse) + ") " + self.direction_repr(reverse)
         return self.direction_repr(reverse) + " (" + self.show_with(station, reverse) + ")"
 
-    def arrival_times(self) -> list[tuple[str, str, TimeSpec]]:
+    def arrival_times(self, *, with_passing: bool = False) -> list[tuple[str, str, TimeSpec | None]]:
         """ Return the arrival times for uniformity with ThroughTrain """
-        return [(st, self.line.name, self.arrival_time[st]) for st in self.stations]
+        return [
+            (st, self.line.name, self.arrival_time.get(st))
+            for st in self.stations if (with_passing or st not in self.skip_stations)
+        ]
 
     def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
         """ Display the arrival_time dict start from start_station, considering loop """

@@ -121,20 +121,20 @@ def get_station_badge(
             )
 
 
-def get_line_direction_repr(line: Line, direction_stations: list[str] | None = None) -> None:
+def get_line_direction_repr(line: Line, direction: str | None = None) -> None:
     """ Display line directions """
     with ui.element("div").classes(
         "inline-flex flex-wrap items-center leading-tight gap-x-1"
     ):
-        stations = direction_stations or line.stations
+        stations = line.stations if direction is None else line.direction_stations(direction)
         get_station_badge(
             stations[0], line,
             show_badges=False, show_line_badges=False, add_line_click=False
         )
-        if direction_stations is None and not line.loop:
+        if direction is None and not line.loop:
             ui.label("—")
         else:
-            ui.icon("autorenew" if line.loop else "arrow_right_alt")
+            ui.icon(line.get_direction_icon(direction))
         get_station_badge(
             stations[0] if line.loop else stations[-1], line,
             show_badges=False, show_line_badges=False, add_line_click=False
@@ -195,7 +195,7 @@ def line_drawer(city: City, line: Line, switch_to_trains: Callable[[Line, str], 
                         for direction, direction_stations in line.directions.items():
                             with ui.item().classes("mb-2").props("dense").style("padding: 0"):
                                 with ui.item_section():
-                                    get_line_direction_repr(line, direction_stations)
+                                    get_line_direction_repr(line, direction)
                                 with ui.item_section().props("side"):
                                     ui.label(direction)
 
@@ -284,7 +284,7 @@ def line_timeline(city: City, line: Line, direction: str, *, show_tally: bool, s
             with ui.timeline_entry(
                 subtitle=(None if not show_tally or i == 0 else distance_str(tally)),
                 side="right",
-                icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else "replay")
+                icon=(express_icon if (i != 0 and i != len(stations) - 1) or not line.loop else line.get_direction_icon(direction))
             ) as entry:
                 if station in virtual_dict:
                     with ui.card().classes("q-pa-sm mb-2"):
@@ -598,7 +598,7 @@ def get_train_repr(
                 ui.label(inner_train.start_time_repr())
 
         ui.icon(
-            "replay" if not isinstance(train, tuple) and
+            last_train.line.get_direction_icon(last_train.direction) if not isinstance(train, tuple) and
             last_train is not None and last_train.loop_next is not None
             else "arrow_right_alt"
         )
@@ -823,7 +823,7 @@ def train_drawer(
 
 def in_display(station_list: list[tuple[str, str | None]], station_key: tuple[str, str | None]) -> bool:
     """ Determine if station element is in display list """
-    return any(1 for s, ln in station_list if s == station_key[0] and ln == station_key[1])
+    return any(True for s, ln in station_list if s == station_key[0] and ln == station_key[1])
 
 
 @ui.refreshable
@@ -844,7 +844,7 @@ def train_timeline(
         last_train = last_t if isinstance(last_t, Train) else None
 
         # station, (first station, is through, line, train), arrival time
-        stations: list[tuple[str, tuple[str, bool, Line, Train] | str | None, TimeSpec]] = []
+        stations: list[tuple[str, tuple[str, bool, Line, Train] | str | None, TimeSpec | None]] = []
         prev_line_name: str | None = None
         prev_train: Train | None = None
         last_station = train[1][0][0]
@@ -862,7 +862,7 @@ def train_timeline(
                 stations.append((
                     inner_station,
                     (last_station, is_through, inner_train.line, inner_train),
-                    inner_train.arrival_time[inner_station]
+                    inner_train.arrival_time.get(inner_station)
                 ))
                 prev_line_name = inner_train.line.name
                 prev_train = inner_train
@@ -875,7 +875,7 @@ def train_timeline(
                     prev_entry = expanded[i - 1][1]
                     assert isinstance(prev_entry, Train), (expanded, i)
                     stations.append((
-                        inner_station, None, prev_entry.arrival_time_virtual(expanded[i - 1][0])[inner_train[0]]
+                        inner_station, None, prev_entry.arrival_time_virtual(expanded[i - 1][0]).get(inner_train[0])
                     ))
                 prev_line_name = None
                 prev_train = None
@@ -951,19 +951,19 @@ def train_timeline(
             transfer_time_dict[(train[2].station, None)] = (last_train_tuple[3], None)
         skip_stations = {ss for _, t in train[1] if isinstance(t, Train) for ss in t.skip_stations}
     elif isinstance(train, Train):
-        stations = [(s, (train.stations[0], False, train.line, train), train.arrival_time[s]) for s in train.stations]
+        stations = [(s, (train.stations[0], False, train.line, train), train.arrival_time.get(s)) for s in train.stations]
         first_train = train
         last_train = train
         overtaken = []
         if train.is_express():
             overtaken = find_overtaken(train, train_dict[train.line.name][train.direction][train.date_group])
-        station_list = [(st, train.line.name) for st in train.stations]
+        station_list = [(st, train.line.name) for st in train.stations if st in train.arrival_time.keys()]
         skip_stations = train.skip_stations
     else:
         station_lines_temp = train.station_lines(prev_on_transfer=False)
         stations = [(s, (
             station_lines_temp[s][2].stations[0], True, station_lines_temp[s][0], station_lines_temp[s][2]
-        ), t) for s, _, t in train.arrival_times()]
+        ), t) for s, _, t in train.arrival_times(with_passing=True)]
         first_train = train.first_train()
         last_train = train.last_train()
         overtaken = []
@@ -984,7 +984,7 @@ def train_timeline(
     if not isinstance(train, tuple) and last_train is not None and last_train.loop_next is not None:
         stations.append((last_train.loop_next.stations[0], (
             last_train.loop_next.stations[0], False, last_train.loop_next.line, last_train.loop_next
-        ), last_train.loop_next.arrival_time[last_train.loop_next.stations[0]]))
+        ), last_train.loop_next.arrival_time.get(last_train.loop_next.stations[0])))
 
     tally_num_sta = 0
     interval_num_sta: int | None = 0
@@ -1125,12 +1125,16 @@ def train_timeline(
             elif station in skip_stations:
                 express_icon = "keyboard_double_arrow_down"
 
+            if isinstance(train, tuple):
+                display_icon = express_icon
+            elif i == 0 and first_train is not None and first_train.loop_prev is not None:
+                display_icon = first_train.line.get_direction_icon(first_train.direction)
+            elif i == len(stations) - 1 and last_train is not None and last_train.loop_next is not None:
+                display_icon = last_train.line.get_direction_icon(last_train.direction)
+            else:
+                display_icon = express_icon
             with ui.timeline_entry(
-                subtitle=subtitle, side="right", color=f"line-{line.index}",
-                icon=(express_icon if isinstance(train, tuple) or (
-                    (i != 0 or first_train is None or first_train.loop_prev is None) and
-                    (i != len(stations) - 1 or last_train is None or last_train.loop_next is None)
-                ) else "replay")
+                subtitle=subtitle, side="right", color=f"line-{line.index}", icon=display_icon
             ) as entry:
                 if (
                     i == len(stations) - 1 or not in_display(station_list, station_key) or

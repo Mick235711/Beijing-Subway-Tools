@@ -54,6 +54,7 @@ class Line:
         self.loop = False
         self.loop_last_segment = 0
         self.loop_start_route: dict[str, TrainRoute] = {}
+        self.clockwise_direction = ""
         self.end_circle_start: str | None = None
         self.end_circle_spec: dict[str, int] = {}  # Store end_circle split dists
 
@@ -97,6 +98,15 @@ class Line:
         if self.code is not None:
             return self.code
         return str(self.index)
+
+    def get_direction_icon(self, direction: str | None) -> str:
+        """ Get icon for this direction """
+        if self.loop:
+            if direction is None:
+                return "autorenew"
+            return "rotate_right" if self.clockwise_direction == direction else "rotate_left"
+        else:
+            return "arrow_right_alt"
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -343,6 +353,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
         line.loop = line_dict["loop"]
         if line.loop:
             line.loop_last_segment = line_dict["loop_last_segment"]
+            line.clockwise_direction = line_dict["clockwise_direction"]
 
     # populate stations
     index_reversed = False

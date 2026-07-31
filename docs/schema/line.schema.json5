@@ -140,6 +140,10 @@
             "description": "The minutes required for last segment",
             "type": "integer"
         },
+        "clockwise_direction": {
+            "description": "The direction of clockwise trains (only required if loop is true)",
+            "type": "string"
+        },
         "train_routes": {
             "description": "Data on all possible train routing",
             "type": "object",
@@ -387,7 +391,7 @@
         {"required": ["station_names", "station_dists"]}
     ],
     "dependentRequired": {
-        "loop": ["loop_last_segment"]
+        "loop": ["loop_last_segment", "clockwise_direction"]
     },
     "additionalProperties": false
 }

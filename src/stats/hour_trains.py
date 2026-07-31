@@ -28,8 +28,9 @@ def hour_trains(
 
     for _, train in get_train_set(date_group_dict, through_dict):
         arrival_times = train.arrival_times()
-        for _, _, (arrival_time, arrival_day) in arrival_times:
-            hour = arrival_time.hour + (24 if arrival_day else 0)
+        for _, _, arrival_tuple in arrival_times:
+            assert arrival_tuple is not None, arrival_times
+            hour = arrival_tuple[0].hour + (24 if arrival_tuple[1] else 0)
             if hour not in hour_dict:
                 hour_dict[hour] = set()
             hour_dict[hour].add(train)

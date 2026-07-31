@@ -173,7 +173,7 @@ def get_direction_selector_options(line: Line) -> dict[str, str]:
             ),
             direction,
             stations[0], get_badge_html(line, line.station_code(stations[0])) if line.code else "",
-            "autorenew" if line.loop else "arrow_right_alt",
+            line.get_direction_icon(direction),
             stations[0] if line.loop else stations[-1],
             get_badge_html(line, line.station_code(stations[0] if line.loop else stations[-1])) if line.code else ""
         ) for direction, stations in sorted(line.directions.items(), key=lambda x: to_pinyin(x[0])[0])
@@ -363,10 +363,16 @@ def find_train_id(train_dict: dict[str, Train], train: Train) -> str:
 
 def find_first_train(train_list: list[Train | ThroughTrain], station: str, reverse: bool = False) -> tuple[Train, str]:
     """ Find first/last train passing through a station """
+    def get_arrival_time(inner_train: Train | ThroughTrain) -> TimeSpec:
+        """ Get arrival time for a train in the given station """
+        result = {k: v for k, _, v in inner_train.arrival_times()}[station]
+        assert result is not None, (inner_train, station)
+        return result
+
     if reverse:
-        train_full = max(train_list, key=lambda t: get_time_str(*{k: v for k, _, v in t.arrival_times()}[station]))
+        train_full = max(train_list, key=lambda t: get_time_str(*get_arrival_time(t)))
     else:
-        train_full = min(train_list, key=lambda t: get_time_str(*{k: v for k, _, v in t.arrival_times()}[station]))
+        train_full = min(train_list, key=lambda t: get_time_str(*get_arrival_time(t)))
     if isinstance(train_full, Train):
         train = train_full
     else:

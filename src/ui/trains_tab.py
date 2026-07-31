@@ -318,7 +318,7 @@ def route_timeline(
                 train_tally -= len([t for t in train_list if t.stations[-1] == station])
                 express_icon = line.station_badges[line.stations.index(station)]
                 if line.loop and (i == 0 or i == len(stations) - 1):
-                    express_icon = "replay"
+                    express_icon = line.get_direction_icon(direction)
                 elif (i == 0 and entry_before is not None) or (i == len(stations) - 1 and entry_after is not None):
                     express_icon = "sync_alt"
                 with ui.timeline_entry(icon=express_icon) as entry:
@@ -357,7 +357,7 @@ def route_timeline(
                         (i == 0 and orig_stations[0] == stations[0]) or
                         (i == len(inner_stations) - 1 and (orig_stations[-1] == stations[-1] and is_loop))
                     ):
-                        express_icon = "replay"
+                        express_icon = line.get_direction_icon(direction)
                     elif (i == start_index and entry_before is not None) or (
                         i == len(inner_stations) - 1 and entry_after is not None
                     ):

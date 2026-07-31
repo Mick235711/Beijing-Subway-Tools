@@ -244,7 +244,7 @@ def show_line_direction(line: Line, direction: str) -> None:
     with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
         get_line_badge(line, add_click=True)
         ui.label(direction)
-        get_line_direction_repr(line, line.direction_stations(direction))
+        get_line_direction_repr(line, direction)
 
 
 @ui.refreshable
