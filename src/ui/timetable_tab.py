@@ -177,19 +177,22 @@ def timetable_tab(city: City, data: TimetableData) -> None:
 
 def get_train_list(
     line: Line, direction: str | None, station: str | None, train_dict: dict[tuple[str, str], list[Train]],
-    *, show_skipped: bool = False
+    *, show_skipped: bool = False, full_only: bool = False
 ) -> list[Train]:
     """ Get train list from train dict """
     if direction is None:
-        return [
+        result = [
             t for direction in line.directions.keys() for t in train_dict[(line.name, direction)]
             if station is None or (station in t.arrival_time and (show_skipped or station not in t.skip_stations))
         ]
     else:
-        return [
+        result = [
             t for t in train_dict[(line.name, direction)]
             if station is None or (station in t.arrival_time and (show_skipped or station not in t.skip_stations))
         ]
+    if full_only:
+        result = [t for t in result if t.is_full()]
+    return result
 
 
 def timetable_expansion(

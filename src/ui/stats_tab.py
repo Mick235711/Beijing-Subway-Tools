@@ -136,41 +136,52 @@ def stats_tab(city: City, data: StatsData) -> None:
             if line_temp is None:
                 line_temp = get_default_line(data.info_data.lines).name
 
-            radar_base_line.set_options(get_line_selector_options(data.info_data.lines))
+            radar_base_line.set_options(get_line_selector_options(
+                data.info_data.lines, append_options={"Every Line"}
+            ))
             radar_base_line.set_value(line_temp)
             with radar_base_line.add_slot("selected"):
-                get_line_badge(city.lines[line_temp])
+                if line_temp == "Every Line":
+                    ui.label("Every Line")
+                else:
+                    get_line_badge(city.lines[line_temp])
             radar_base_line.update()
 
-            radar_select_direction.set_options(get_direction_selector_options(city.lines[line_temp]))
-            direction = get_default_direction(city.lines[line_temp])
-            radar_select_direction.set_value(direction)
-            radar_select_direction.update()
+            if line_temp in city.lines:
+                radar_select_direction.set_options(get_direction_selector_options(city.lines[line_temp]))
+                direction = get_default_direction(city.lines[line_temp])
+                radar_select_direction.set_value(direction)
+                radar_select_direction.update()
 
-            if city.lines[line_temp].loop:
-                station_lines = {s: city.station_lines[s] for s in city.lines[line_temp].stations}
-                radar_select_station.set_options(get_station_selector_options(station_lines))
-                station = get_default_station(set(station_lines.keys()))
-                radar_select_station.set_value(station)
-                radar_select_station.update()
-            else:
-                radar_select_station.set_options([])
-                station = None
-                radar_select_station.set_value(station)
-                radar_select_station.clear()
+                if city.lines[line_temp].loop:
+                    station_lines = {s: city.station_lines[s] for s in city.lines[line_temp].stations}
+                    radar_select_station.set_options(get_station_selector_options(station_lines))
+                    station = get_default_station(set(station_lines.keys()))
+                    radar_select_station.set_value(station)
+                    radar_select_station.update()
+                else:
+                    radar_select_station.set_options([])
+                    station = None
+                    radar_select_station.set_value(station)
+                    radar_select_station.clear()
 
             refresh_radar()
 
         def radar_kwargs(*, save_image: bool = False) -> dict:
             """ Build a complete radar render request from the current controls. """
+            if radar_base_line.value is None or radar_select_direction.value is None:
+                base_info: tuple[Line | None, str | None, str | None] | None = None
+            elif radar_base_line.value == "Every Line":
+                base_info = (None, None, None)
+            else:
+                base_info = (city.lines[radar_base_line.value], radar_select_direction.value, radar_select_station.value)
             return {
-                "base_line_direction": None if radar_base_line.value is None or radar_select_direction.value is None else
-                (city.lines[radar_base_line.value], radar_select_direction.value),
-                "base_station": radar_select_station.value,
+                "base_info": base_info,
                 "train_dict": data.train_dict,
                 "start_date": data.cur_date,
                 "use_first": radar_train_kind.value == "First Train",
                 "show_all_dir": radar_show_all_dir.value,
+                "full_only": radar_full_only.value,
                 "show_ending": radar_show_ending.value,
                 "show_inner_text": radar_show_inner_text.value,
                 "show_station_orbs": radar_show_station_orbs.value,
@@ -179,10 +190,20 @@ def stats_tab(city: City, data: StatsData) -> None:
                 "sort_trains": radar_sort_trains.value,
             }
 
+        radar_sort_options = ["None", "Intersect", "Start", "End"]
         def refresh_radar(*, save_image: bool = False) -> None:
             """ Render the radar without resetting the other radar controls. """
+            if radar_base_line.value == "Every Line":
+                if radar_sort_trains.value == "None":
+                    radar_sort_trains._change_handlers = []
+                    radar_sort_trains.set_value("Start")
+                    radar_sort_trains.on_value_change(refresh_radar)
+                radar_sort_trains.set_options(radar_sort_options[2:])
+            else:
+                radar_sort_trains.set_options(radar_sort_options)
+
             base_visible = False
-            if radar_base_line.value is not None and radar_sort_trains.value == "None":
+            if radar_base_line.value is not None and radar_base_line.value != "Every Line" and radar_sort_trains.value == "None":
                 base_line = city.lines[radar_base_line.value]
                 if base_line.loop:
                     base_visible = True
@@ -210,20 +231,25 @@ def stats_tab(city: City, data: StatsData) -> None:
                 ).props(add="options-html", remove="fill-input hide-selected")
                 ui.label("Sort trains by ")
                 radar_sort_trains = ui.toggle(
-                    ["None", "Intersect", "Start", "End"], value="None", on_change=refresh_radar
+                    radar_sort_options, value="None", on_change=refresh_radar
                 )
             with ui.row().classes("w-full items-center justify-center"):
                 radar_train_kind = ui.toggle(
                     ["First Train", "Last Train"], value="First Train", on_change=refresh_radar
                 )
-                radar_show_all_dir = ui.switch("Show all directions", on_change=refresh_radar)
-                radar_show_ending = ui.switch("Show ending trains", on_change=refresh_radar)
+                radar_show_all_dir = ui.switch(
+                    "Show all directions", on_change=refresh_radar
+                ).bind_visibility_from(radar_base_line, "value", backward=lambda l: l != "Every Line")
+                radar_full_only = ui.switch("Full-Distance only", on_change=refresh_radar)
+                radar_show_ending = ui.switch(
+                    "Show ending trains", on_change=refresh_radar
+                ).bind_visibility_from(radar_base_line, "value", backward=lambda l: l != "Every Line")
                 radar_show_inner_text = ui.switch(
                     "Show inner text", value=True, on_change=refresh_radar
                 ).bind_visibility_from(radar_layout, "value", backward=lambda layout: layout == "Circular")
                 radar_show_station_orbs = ui.switch(
                     "Show station orbs", value=True, on_change=refresh_radar
-                )
+                ).bind_visibility_from(radar_base_line, "value", backward=lambda l: l != "Every Line")
                 ui.button(
                     "Save image", icon="save", on_click=lambda: refresh_radar(save_image=True)
                 )
@@ -1149,21 +1175,23 @@ def draw_parallel_radar(
 
 @ui.refreshable
 def final_train_radar(
-    city: City, *, base_line_direction: tuple[Line, str] | None = None, base_station: str | None = None,
+    city: City, *, base_info: tuple[Line | None, str | None, str | None] | None = None,
     train_dict: dict[tuple[str, str], list[Train]], start_date: date,
-    use_first: bool = True, show_all_dir: bool = False, show_ending: bool = False,
+    use_first: bool = True, show_all_dir: bool = False, full_only: bool = False, show_ending: bool = False,
     show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False,
     layout_mode: Literal["Circular", "Parallel"] = "Circular",
     sort_trains: Literal["None", "Intersect", "Start", "End"] = "None"
 ) -> None:
     """ Display a radar graph for final trains in a circular or parallel layout """
-    if base_line_direction is None or len(train_dict) == 0 or (
-        base_line_direction[1] not in base_line_direction[0].directions
-    ) or (
-        base_station is not None and base_station not in base_line_direction[0].stations
+    if base_info is None or len(train_dict) == 0:
+        return
+    base_line, base_direction, base_station = base_info
+    if base_line is None:
+        assert base_direction is None and base_station is None, (base_line, base_direction, base_station)
+    elif base_direction not in base_line.directions or (
+        base_station is not None and base_station not in base_line.stations
     ):
         return
-    base_line, base_direction = base_line_direction
 
     # First, gather the desired last train for each line+direction
     # Format: intersect_station -> list of train, list length = 1 or 2 each line
@@ -1196,12 +1224,12 @@ def final_train_radar(
     </filter>
         """)
     for (line_name, direction), train_list in train_dict.items():
-        if line_name == base_line.name:
+        if base_line is not None and line_name == base_line.name:
             continue
         line = city.lines[line_name]
         stations = line.direction_stations(direction)
         intersections = [s for s in line.stations if base_line in city.station_lines[s]]
-        if len(intersections) == 0:
+        if len(intersections) == 0 and base_line is not None:
             continue
         elif len(intersections) == 1 and not line.loop:
             if use_first and intersections[0] == stations[0] and not show_all_dir:
@@ -1211,17 +1239,19 @@ def final_train_radar(
 
         if show_all_dir:
             candidates = intersections[:]
+        elif base_line is None:
+            candidates = list({t.stations[0] for t in train_list} | {t.stations[-1] for t in train_list})
         else:
             def intersection_key(station: str, *, ln: str = line_name, d: str = direction) -> int:
                 """ Return the direction station index for sorting intersections """
                 return city.lines[ln].direction_stations(d).index(station)
             candidates = [(min if use_first else max)(intersections, key=intersection_key)]
         for last_station in candidates:
-            train_list = get_train_list(line, direction, last_station, train_dict)
+            train_list = get_train_list(line, direction, last_station, train_dict, full_only=full_only)
             train_id_dicts[(line_name, direction)] = get_train_id(train_list)
             filtered_list = [
                 t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations and
-                is_possible_to_board(t, last_station, show_ending=show_ending, reverse=use_first)
+                (base_line is None or is_possible_to_board(t, last_station, show_ending=show_ending, reverse=use_first))
             ]
             if len(filtered_list) == 0:
                 continue
@@ -1256,15 +1286,17 @@ def final_train_radar(
     first_time = add_min_tuple(real_last, SPLIT_TOTAL if use_first else -SPLIT_TOTAL)
 
     # Determine base station and color
-    base_color = base_line.color or "#333"
-    base_stations = base_line.direction_stations(base_direction)
-    base_index = 0 if base_station is None else base_stations.index(base_station)
+    base_color = base_line.color if base_line is not None and base_line.color is not None else "#333"
+    base_stations = [] if base_line is None else base_line.direction_stations(base_direction)
+    base_index = 0 if base_station is None or len(base_stations) == 0 else base_stations.index(base_station)
     if sort_trains == "None":
+        assert base_line is not None, base_line
         ordered_trains = sorted(
             last_dict.items(),
             key=lambda x: shift_max(base_stations.index(x[0]), base_index, len(base_stations))
         )
     elif sort_trains == "Intersect":
+        assert base_line is not None, base_line
         ordered_trains = sorted(
             unique_on([(s, [t]) for s, tl in last_dict.items() for t in tl], lambda x: repr(x[1][0])),
             key=lambda x: get_time_str(*x[1][0].arrival_time[x[0]])
@@ -1292,7 +1324,7 @@ def final_train_radar(
         )
 
     # Link all the station intersections in their base-line order.
-    if show_station_orbs:
+    if show_station_orbs and base_line is not None:
         if base_line.loop and layout_mode == "Circular":
             station_coords.append(station_coords[0])
         for (x1, y1, _), (x2, y2, _) in zip(station_coords, station_coords[1:]):

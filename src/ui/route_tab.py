@@ -325,7 +325,7 @@ def route_tab(city: City) -> None:
 
 def parse_line_direction(ld_str: str) -> tuple[str | None, str | None]:
     """ Parse line[direction] specs """
-    if ld_str == "(virtual)":
+    if ld_str == "Virtual Transfer":
         return None, None
     if not ld_str.endswith("]"):
         return ld_str, None
@@ -382,7 +382,7 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
             last_line, last_dir = parse_line_direction(line_selects[-1].value)
             with line_selects[-1].add_slot("selected"):
                 if last_line is None:
-                    ui.label("Virtual transfer")
+                    ui.label("Virtual Transfer")
                 else:
                     get_line_badge(city.lines[last_line], force_icon_dir=last_dir)
         else:
@@ -418,10 +418,10 @@ def add_route_guided(city: City, on_route_change: Callable[[Route], None]) -> No
                 get_line_selector_options(
                     {l.name: l for l in city.station_lines[last_station] if last_line is None or l.name != last_line},
                     force_direction={l.name for l in city.station_lines[last_station] if l.loop},
-                    add_virtual=(
+                    append_options=None if not (
                         (len(line_selects) == 0 or last_line is not None) and
                         any(s1 == last_station or s2 == last_station for s1, s2 in city.virtual_transfers.keys())
-                    )
+                    ) else {"Virtual Transfer"}
                 )
             ).props("use-chips options-html").on_value_change(lambda l=len(line_selects): on_line_select_change(l))
             line_selects.append(line_select)

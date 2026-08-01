@@ -106,7 +106,7 @@ def get_badge_html(line: Line, station_code: str) -> str:
 
 def get_line_selector_options(
     lines: dict[str, Line],
-    *, force_direction: set[str] | None = None, add_virtual: bool = False
+    *, force_direction: set[str] | None = None, append_options: set[str] | None = None
 ) -> dict[str, str]:
     """ Get options for the line selector """
     result_dict: dict[str, str] = {}
@@ -147,12 +147,13 @@ def get_line_selector_options(
             get_badge_html(line, line_name),
             line.stations[0], line_icon, line.stations[0] if line.loop else line.stations[-1]
         )
-    if add_virtual:
-        result_dict["(virtual)"] = """
-<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="(virtual)">
-    Virtual transfer
+    if append_options is not None:
+        for option in append_options:
+            result_dict[option] = f"""
+<div class="flex items-center justify-between w-full gap-x-2" data-autocomplete="{option}">
+    {option}
 </div>
-        """
+            """
     return result_dict
 
 def get_direction_selector_options(line: Line) -> dict[str, str]:
