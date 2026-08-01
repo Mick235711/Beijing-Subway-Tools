@@ -14,7 +14,7 @@ from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, add_min_tuple, get_time_repr, to_minutes, from_minutes, diff_time_tuple, \
     TimeSpec, get_text_color, chin_len, shift_max, valid_positive, to_polar, zero_div, average, suffix_s, to_pinyin, \
-    speed_str, format_duration, distance_str, parse_time
+    speed_str, format_duration, distance_str, parse_time, unique_on
 from src.routing.train import Train, get_train_id
 from src.stats.common import is_possible_to_board
 from src.ui.common import get_date_input, get_time_input, get_default_line, get_default_direction, get_default_station, \
@@ -142,92 +142,91 @@ def stats_tab(city: City, data: StatsData) -> None:
                 get_line_badge(city.lines[line_temp])
             radar_base_line.update()
 
-            select_direction.set_options(get_direction_selector_options(city.lines[line_temp]))
+            radar_select_direction.set_options(get_direction_selector_options(city.lines[line_temp]))
             direction = get_default_direction(city.lines[line_temp])
-            select_direction.set_value(direction)
-            select_direction.update()
+            radar_select_direction.set_value(direction)
+            radar_select_direction.update()
 
             if city.lines[line_temp].loop:
                 station_lines = {s: city.station_lines[s] for s in city.lines[line_temp].stations}
-                select_station.set_options(get_station_selector_options(station_lines))
+                radar_select_station.set_options(get_station_selector_options(station_lines))
                 station = get_default_station(set(station_lines.keys()))
-                select_station.set_value(station)
-                select_station.update()
+                radar_select_station.set_value(station)
+                radar_select_station.update()
             else:
-                select_station.set_options([])
+                radar_select_station.set_options([])
                 station = None
-                select_station.set_value(station)
-                select_station.clear()
+                radar_select_station.set_value(station)
+                radar_select_station.clear()
 
             refresh_radar()
+
+        def radar_kwargs(*, save_image: bool = False) -> dict:
+            """ Build a complete radar render request from the current controls. """
+            return {
+                "base_line_direction": None if radar_base_line.value is None or radar_select_direction.value is None else
+                (city.lines[radar_base_line.value], radar_select_direction.value),
+                "base_station": radar_select_station.value,
+                "train_dict": data.train_dict,
+                "start_date": data.cur_date,
+                "use_first": radar_train_kind.value == "First Train",
+                "show_all_dir": radar_show_all_dir.value,
+                "show_ending": radar_show_ending.value,
+                "show_inner_text": radar_show_inner_text.value,
+                "show_station_orbs": radar_show_station_orbs.value,
+                "save_image": save_image,
+                "layout_mode": radar_layout.value,
+                "sort_trains": radar_sort_trains.value,
+            }
+
+        def refresh_radar(*, save_image: bool = False) -> None:
+            """ Render the radar without resetting the other radar controls. """
+            base_visible = False
+            if radar_base_line.value is not None and radar_sort_trains.value == "None":
+                base_line = city.lines[radar_base_line.value]
+                if base_line.loop:
+                    base_visible = True
+
+            radar_direction_label.set_visibility(base_visible)
+            radar_select_direction.set_visibility(base_visible)
+            radar_base_label.set_visibility(base_visible)
+            radar_select_station.set_visibility(base_visible)
+            final_train_radar.refresh(**radar_kwargs(save_image=save_image))
 
         with ui.tab_panel(radar_tab).classes("pt-0"):
             with ui.row().classes("w-full items-center justify-center"):
                 radar_layout = ui.toggle(
-                    ["Circular", "Parallel"], value="Circular",
-                    on_change=lambda _: refresh_radar()
+                    ["Circular", "Parallel"], value="Circular", on_change=refresh_radar
                 )
                 ui.label("Base line: ")
                 radar_base_line = ui.select([]).props("use-chips options-html").on_value_change(on_line_change)
-                ui.label("Base direction: ")
-                select_direction = ui.select(
-                    [], on_change=lambda _: refresh_radar()
+                radar_direction_label = ui.label("Base direction: ")
+                radar_select_direction = ui.select(
+                    [], on_change=refresh_radar
                 ).props(add="options-html", remove="fill-input hide-selected")
-                ui.label("Base station: ").bind_visibility_from(
-                    radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
-                )
-                select_station = ui.select(
-                    [], with_input=True,
-                    on_change=lambda _: refresh_radar()
-                ).props(add="options-html", remove="fill-input hide-selected").bind_visibility_from(
-                    radar_base_line, "value", backward=lambda l: l and city.lines[l].loop
+                radar_base_label = ui.label("Base station: ")
+                radar_select_station = ui.select(
+                    [], with_input=True, on_change=refresh_radar
+                ).props(add="options-html", remove="fill-input hide-selected")
+                ui.label("Sort trains by ")
+                radar_sort_trains = ui.toggle(
+                    ["None", "Intersect", "Start", "End"], value="None", on_change=refresh_radar
                 )
             with ui.row().classes("w-full items-center justify-center"):
                 radar_train_kind = ui.toggle(
-                    ["First Train", "Last Train"], value="First Train",
-                    on_change=lambda _: refresh_radar()
+                    ["First Train", "Last Train"], value="First Train", on_change=refresh_radar
                 )
-                radar_show_all_dir = ui.switch(
-                    "Show all directions",
-                    on_change=lambda _: refresh_radar()
-                )
-                radar_show_ending = ui.switch(
-                    "Show ending trains",
-                    on_change=lambda _: refresh_radar()
-                )
+                radar_show_all_dir = ui.switch("Show all directions", on_change=refresh_radar)
+                radar_show_ending = ui.switch("Show ending trains", on_change=refresh_radar)
                 radar_show_inner_text = ui.switch(
-                    "Show inner text", value=True,
-                    on_change=lambda _: refresh_radar()
+                    "Show inner text", value=True, on_change=refresh_radar
                 ).bind_visibility_from(radar_layout, "value", backward=lambda layout: layout == "Circular")
                 radar_show_station_orbs = ui.switch(
-                    "Show station orbs", value=True,
-                    on_change=lambda _: refresh_radar()
+                    "Show station orbs", value=True, on_change=refresh_radar
                 )
                 ui.button(
-                    "Save image", icon="save",
-                    on_click=lambda: refresh_radar(save_image=True)
+                    "Save image", icon="save", on_click=lambda: refresh_radar(save_image=True)
                 )
-
-            def radar_kwargs(*, save_image: bool = False) -> dict:
-                """ Build a complete radar render request from the current controls. """
-                return {
-                    "base_line": city.lines.get(radar_base_line.value),
-                    "base_direction": select_direction.value,
-                    "base_station": select_station.value,
-                    "train_dict": data.train_dict,
-                    "start_date": data.cur_date,
-                    "use_first": radar_train_kind.value == "First Train",
-                    "show_all_dir": radar_show_all_dir.value,
-                    "show_ending": radar_show_ending.value,
-                    "show_inner_text": radar_show_inner_text.value,
-                    "show_station_orbs": radar_show_station_orbs.value,
-                    "layout_mode": radar_layout.value,
-                    "save_image": save_image,
-                }
-
-            def refresh_radar(*, save_image: bool = False) -> None:
-                """ Render the radar without resetting the other radar controls. """
-                final_train_radar.refresh(**radar_kwargs(save_image=save_image))
 
             with ui.row().classes("w-full items-center justify-center gap-4"):
                 ui.label("Zoom:").classes("shrink-0")
@@ -961,7 +960,7 @@ row_stride = ROW_HEIGHT + ROW_GAP
 
 
 def to_radius(time_spec: TimeSpec, first_time: TimeSpec, *, use_first: bool) -> tuple[float, bool]:
-    """ Convert from time to radius (return true if adjusted """
+    """ Convert from time to radius (return true if adjusted) """
     adjusted = False
     if (use_first and diff_time_tuple(time_spec, first_time) > 0) or (
         not use_first and diff_time_tuple(time_spec, first_time) < 0
@@ -984,7 +983,7 @@ def to_x(time_spec: TimeSpec, first_time: TimeSpec, *, use_first: bool) -> float
 
 def draw_circular_radar(
     ordered_trains: list[tuple[str, list[Train]]], first_time: TimeSpec, total_length: int, station_mapping: dict[str, int],
-    *, use_first: bool, show_inner_text: bool
+    *, use_first: bool, show_inner_text: bool, include_gap: bool
 ) -> tuple[list[str], list[tuple[float, float, str]], list[Train]]:
     """ Draw circular radar chart """
     elements: list[str] = []
@@ -1080,13 +1079,14 @@ def draw_circular_radar(
                 force_upright=True
             ))
             cur_index += 1
-        cur_index += 1
+        if include_gap:
+            cur_index += 1
     return elements, station_coords, trains
 
 
 def draw_parallel_radar(
     ordered_trains: list[tuple[str, list[Train]]], first_time: TimeSpec, total_length: int, station_mapping: dict[str, int],
-    *, use_first: bool
+    *, use_first: bool, include_gap: bool
 ) -> tuple[list[str], list[tuple[float, float, str]], list[Train], int]:
     """ Draw parallel radar chart """
     elements: list[str] = []
@@ -1142,25 +1142,28 @@ def draw_parallel_radar(
 <text x="{BADGE_X}" y="{y + ROW_HEIGHT / 2}" dominant-baseline="middle" text-anchor="middle" filter="url(#{'line2' if len(train.line.get_badge()) < 2 else 'line'}-{train.line.index})" fill="{get_text_color(color)}" font-family="monospace" font-size="12" class="cursor-pointer" id="line-{train.line.index}">{train.line.get_badge()}</text>
                 """)
             cur_index += 1
-        cur_index += 1
+        if include_gap:
+            cur_index += 1
     return elements, station_coords, trains, svg_height
 
 
 @ui.refreshable
 def final_train_radar(
-    city: City, *, base_line: Line | None = None, base_direction: str | None = None, base_station: str | None = None,
+    city: City, *, base_line_direction: tuple[Line, str] | None = None, base_station: str | None = None,
     train_dict: dict[tuple[str, str], list[Train]], start_date: date,
     use_first: bool = True, show_all_dir: bool = False, show_ending: bool = False,
-    show_inner_text: bool = True, show_station_orbs: bool = True,
-    layout_mode: Literal["Circular", "Parallel"] = "Circular", save_image: bool = False
+    show_inner_text: bool = True, show_station_orbs: bool = True, save_image: bool = False,
+    layout_mode: Literal["Circular", "Parallel"] = "Circular",
+    sort_trains: Literal["None", "Intersect", "Start", "End"] = "None"
 ) -> None:
     """ Display a radar graph for final trains in a circular or parallel layout """
-    if base_line is None or len(train_dict) == 0 or (
-        base_direction is not None and base_direction not in base_line.directions
+    if base_line_direction is None or len(train_dict) == 0 or (
+        base_line_direction[1] not in base_line_direction[0].directions
     ) or (
-        base_station is not None and base_station not in base_line.stations
+        base_station is not None and base_station not in base_line_direction[0].stations
     ):
         return
+    base_line, base_direction = base_line_direction
 
     # First, gather the desired last train for each line+direction
     # Format: intersect_station -> list of train, list length = 1 or 2 each line
@@ -1254,23 +1257,38 @@ def final_train_radar(
 
     # Determine base station and color
     base_color = base_line.color or "#333"
-    total_length = sum(len(x) for x in last_dict.values()) + len(last_dict)
     base_stations = base_line.direction_stations(base_direction)
     base_index = 0 if base_station is None else base_stations.index(base_station)
-    ordered_trains = sorted(
-        last_dict.items(), key=lambda x: shift_max(base_stations.index(x[0]), base_index, len(base_stations))
-    )
+    if sort_trains == "None":
+        ordered_trains = sorted(
+            last_dict.items(),
+            key=lambda x: shift_max(base_stations.index(x[0]), base_index, len(base_stations))
+        )
+    elif sort_trains == "Intersect":
+        ordered_trains = sorted(
+            unique_on([(s, [t]) for s, tl in last_dict.items() for t in tl], lambda x: repr(x[1][0])),
+            key=lambda x: get_time_str(*x[1][0].arrival_time[x[0]])
+        )
+    else:
+        assert sort_trains in ["Start", "End"], sort_trains
+        ordered_trains = sorted(
+            unique_on([(s, [t]) for s, tl in last_dict.items() for t in tl], lambda x: repr(x[1][0])),
+            key=lambda x: (x[1][0].start_time_str() if sort_trains == "Start" else x[1][0].last_time_str())
+        )
+    total_length = sum(len(x) for _, x in ordered_trains) + (
+        0 if sort_trains != "None" else len({x[0] for x in ordered_trains}) - 1
+    ) + (1 if layout_mode == "Circular" else 0)
 
     if layout_mode == "Circular":
         elements, station_coords, trains = draw_circular_radar(
             ordered_trains, first_time, total_length, station_mapping,
-            use_first=use_first, show_inner_text=show_inner_text
+            use_first=use_first, show_inner_text=show_inner_text, include_gap=(sort_trains == "None")
         )
         svg_height = TOTAL_WIDTH
     else:
         elements, station_coords, trains, svg_height = draw_parallel_radar(
             ordered_trains, first_time, total_length, station_mapping,
-            use_first=use_first
+            use_first=use_first, include_gap=(sort_trains == "None")
         )
 
     # Link all the station intersections in their base-line order.

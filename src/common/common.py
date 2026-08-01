@@ -580,6 +580,18 @@ def shift_max(orig: int, clamp: int, n: int) -> int:
     return orig
 
 
+def unique_on(orig: Iterable[T], key: Callable[[T], Any]) -> list[T]:
+    """ Unique a list based on key """
+    seen = set()
+    result: list[T] = []
+    for x in orig:
+        k = key(x)
+        if k not in seen:
+            seen.add(k)
+            result.append(x)
+    return result
+
+
 def to_polar(x: float, y: float, r: float, deg: float) -> tuple[float, float]:
     """ Convert from polar (r, deg) to cartesian (x, y), top is 0 degree """
     rad = radians(deg)
