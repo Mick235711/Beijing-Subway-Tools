@@ -1247,7 +1247,10 @@ def final_train_radar(
                 return city.lines[ln].direction_stations(d).index(station)
             candidates = [(min if use_first else max)(intersections, key=intersection_key)]
         for last_station in candidates:
-            train_list = get_train_list(line, direction, last_station, train_dict, full_only=full_only)
+            train_list = get_train_list(
+                line, direction, None if base_line is None else last_station, train_dict,
+                full_only=full_only
+            )
             train_id_dicts[(line_name, direction)] = get_train_id(train_list)
             filtered_list = [
                 t for t in train_list if last_station in t.arrival_time and last_station not in t.skip_stations and
