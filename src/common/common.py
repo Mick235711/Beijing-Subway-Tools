@@ -73,19 +73,14 @@ class WordCompleter(Completer):
 
 def to_pinyin(text: str) -> list[str]:
     """ Change Chinese characters into pinyin (return all possible pinyin), capitalize the first letter """
-    result = pinyin(text, heteronym=True, style=Style.NORMAL)
-    i, j = 0, 0
-    while i < len(result) and j < len(text):
-        entry = result[i]
-        if not is_chinese(text[j]):
-            assert len(entry) == 1, (entry, result, text)
-            i += 1
-            j += len(entry[0])
+    result: list[list[str]] = []
+    for ch in text:
+        if not is_chinese(ch):
+            result.append([ch])
             continue
-        if text[j] in PINYIN_DICT:
-            result[i].append(PINYIN_DICT[text[j]])
-        i += 1
-        j += 1
+        result.append(pinyin(ch, heteronym=True, style=Style.NORMAL)[0])
+        if ch in PINYIN_DICT:
+            result[-1].append(PINYIN_DICT[ch])
 
     # Avoid O(k^n) algorithm for large text, use O(kn) instead
     if len(text) > 6:
