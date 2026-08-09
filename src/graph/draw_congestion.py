@@ -25,7 +25,7 @@ from src.city.transfer import TransferSpec
 from src.common.common import suffix_s, TimeSpec, from_minutes, get_time_seq_repr, to_pinyin, percentage_str
 from src.dist_graph.adaptor import get_dist_graph
 from src.dist_graph.exotic_path import all_station_bfs
-from src.graph.draw_map import map_args, get_colormap
+from src.graph.draw_map import draw_station, map_args, get_colormap
 from src.graph.draw_path import get_edge_wide, draw_path
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains, Train
@@ -40,7 +40,8 @@ LineMetric = Literal[
     "total_passenger", "entry_passenger", "exit_passenger", "transfer_passenger", "density_distance", "density_station"
 ]
 LoadMetric = Literal["passenger", "congestion"]
-TransferSource = Literal["station", "direction", "line"]
+TransferSource = Literal["passing", "transfer", "line", "station_line"]
+StationPassingStats = tuple[dict[str, float], dict[str, dict[tuple[str, str], float]]]
 
 
 def add_tuple(tuple1: LoadTuple, tuple2: tuple[float, ...]) -> LoadTuple:
@@ -236,12 +237,52 @@ def get_congestion_stats(
     return line_stats, all_stats, load_dict, transfer_stats, virtual_stats, train_set
 
 
+def get_path_count(paths: dict[str, dict[str, dict[int, PathInfo]]]) -> int:
+    """ Get the number of passenger entries represented by paths """
+    return sum(len(time_dict) for to_dict in paths.values() for time_dict in to_dict.values())
+
+
+def get_station_passing_stats(
+    paths: dict[str, dict[str, dict[int, PathInfo]]],
+    load_factor: dict[tuple[str, str], float] | None = None
+) -> StationPassingStats:
+    """ Get total and per-line passenger counts for stations used by paths """
+    station_stats: dict[str, float] = {}
+    station_line_stats: dict[str, dict[tuple[str, str], float]] = {}
+    for from_station, to_dict in paths.items():
+        for to_station, time_dict in to_dict.items():
+            load = 1.0 if load_factor is None else load_factor.get((from_station, to_station), 1.0)
+            for _, path, _ in time_dict.values():
+                stations = {station for station, _ in expand_path(path, to_station, expand_all=True)}
+                stations.update((from_station, to_station))
+                for station in stations:
+                    station_stats[station] = station_stats.get(station, 0.0) + load
+                station_lines: set[tuple[str, tuple[str, str]]] = set()
+                transfer_stations = {path[i + 1][0] for i in range(len(path) - 1)}
+                for i, (station, train) in enumerate(path):
+                    if not isinstance(train, Train):
+                        continue
+                    next_station = to_station if i == len(path) - 1 else path[i + 1][0]
+                    for line_station in train.two_station_interval(station, next_station, expand_all=True):
+                        if line_station not in transfer_stations:
+                            station_lines.add((line_station, (train.line.name, train.direction)))
+                    if next_station not in transfer_stations:
+                        station_lines.add((next_station, (train.line.name, train.direction)))
+                for station, line_direction in station_lines:
+                    if station not in station_line_stats:
+                        station_line_stats[station] = {}
+                    station_line_stats[station][line_direction] = \
+                        station_line_stats[station].get(line_direction, 0.0) + load
+    return station_stats, station_line_stats
+
+
 def print_congestion(
     paths: dict[str, dict[str, dict[int, PathInfo]]], lines: dict[str, Line],
     load_factor: dict[tuple[str, str], float] | None = None,
     *, limit_num: int = 5, have_direction: bool = True,
     line_metric: LineMetric = "total_passenger", load_metric: LoadMetric = "passenger",
-    transfer_source: TransferSource = "station"
+    transfer_source: TransferSource = "transfer", use_percentage: bool = False,
+    passing_stats: StationPassingStats | None = None
 ) -> None:
     """ Print congestion stats """
     line_stats, all_stats, load_dict, transfer_stats, virtual_stats, train_set = get_congestion_stats(
@@ -251,6 +292,34 @@ def print_congestion(
         format_func = lambda x: str(int(x))
     else:
         format_func = lambda x: f"{x:.1f}"
+    path_count = get_path_count(paths)
+
+    def people_label(target: float, divisor: float) -> str:
+        """ Format a passenger count, optionally including its percentage """
+        label = suffix_s("people", format_func(target))
+        if use_percentage:
+            label += f" ({percentage_str(target / divisor if divisor else 0)})"
+        return label
+
+    def line_stats_label(data: tuple[str, LoadTuple]) -> str:
+        """ Format data for line stats """
+        metric = line_metric_func(lines, *data, line_metric=line_metric)
+        label = line_metric_unit(metric)
+        if line_metric.endswith("_passenger"):
+            return label
+        if use_percentage:
+            label += f" (total: {people_label(data[1][0], all_stats[0])})"
+        return label
+
+    def load_stats_label(data: tuple[tuple[str, str, str | None], tuple[float, set[TimeSpec], set[Train | VTSpec]]]) -> str:
+        """ Format label for load stats """
+        metric = load_metric_func(*data, load_metric=load_metric)
+        label = load_metric_unit(metric)
+        if load_metric == "passenger":
+            return label
+        if use_percentage:
+            label += f" (load: {people_label(data[1][0], path_count)})"
+        return label
 
     # Print total and line stats
     print("\n=====> Simulation Results <=====")
@@ -260,7 +329,7 @@ def print_congestion(
     print(f"Transfer coefficient: {all_stats[0] / all_stats[1]:.4f}")
     print("\n=====> Line Stats <=====")
     if line_metric.endswith("_passenger"):
-        line_metric_unit = lambda x: suffix_s("people", format_func(x))
+        line_metric_unit = lambda x: people_label(x, all_stats[0])
     elif line_metric == "density_distance":
         line_metric_unit = lambda x: f"{x:.2f} ppl / km"
     elif line_metric == "density_station":
@@ -269,14 +338,12 @@ def print_congestion(
         assert False, line_metric
     display_first(sorted(line_stats.items(), key=lambda x: (
         -line_metric_func(lines, *x, line_metric=line_metric), lines[x[0]].index
-    )), lambda x: line_metric_unit(
-        line_metric_func(lines, *x, line_metric=line_metric)
-    ) + f": {lines[x[0]]}", limit_num=limit_num)
+    )), lambda x: line_stats_label(x) + f": {lines[x[0]]}", limit_num=limit_num)
     
     # Print section with the highest load
     print("\n=====> Load Stats <=====")
     if load_metric == "passenger":
-        load_metric_unit = lambda x: suffix_s("people", format_func(x))
+        load_metric_unit = lambda x: people_label(x, path_count)
     elif load_metric == "congestion":
         load_metric_unit = lambda x: percentage_str(x)
     else:
@@ -284,28 +351,46 @@ def print_congestion(
     display_first(sorted(load_dict.items(), key=lambda x: (
         -load_metric_func(*x, load_metric=load_metric),
         to_pinyin(x[0][0])[0], to_pinyin(x[0][1])[0], None if x[0][2] is None else lines[x[0][2]].index
-    )), lambda x: load_metric_unit(load_metric_func(*x, load_metric=load_metric)) + ": " + load_metric_suffix(
+    )), lambda x: load_stats_label(x) + ": " + load_metric_suffix(
         lines, *x, have_direction=have_direction
     ), limit_num=limit_num)
 
-    # Print transfer stats
-    print("\n=====> Transfer Stats <=====")
+    # Print station or transfer stats
+    print("\n=====> " + ("Station" if transfer_source == "passing" else "Transfer") + " Stats <=====")
     transfer_data: list[tuple[float, str]] = []
-    if transfer_source == "station":
-        for station, (people, inner_dict) in transfer_stats.items():
+    if transfer_source in ["passing", "transfer"]:
+        if transfer_source == "passing" and passing_stats is None:
+            passing_stats = get_station_passing_stats(paths, load_factor)
+        all_station_stats = {} if passing_stats is None else passing_stats[0]
+        station_line_stats = {} if passing_stats is None else passing_stats[1]
+        station_names = all_station_stats.keys() if transfer_source == "passing" else transfer_stats.keys()
+        for station in station_names:
+            transfer_people, inner_dict = transfer_stats.get(station, (0.0, {}))
+            people = all_station_stats[station] if transfer_source == "passing" else transfer_people
             basis = station_full_name(station, lines) + " ("
-            first = True
-            for (inner_from, inner_to), inner_people in sorted(dedup_inner(
-                lines, inner_dict, have_direction=have_direction
-            ), key=lambda x: -x[1]):
-                if first:
-                    first = False
+            station_list = dedup_inner(lines, inner_dict, have_direction=have_direction)
+            station_count = people if transfer_source == "passing" else sum(x[1] for x in station_list)
+            breakdown: list[tuple[float, str]] = []
+            if transfer_source == "passing":
+                passing_lines: dict[tuple[str, str], float] = station_line_stats.get(station, {})
+                if have_direction:
+                    for (line_name, direction), line_people in passing_lines.items():
+                        breakdown.append((line_people, f"{lines[line_name].full_name()}[{direction}] passing " +
+                                          people_label(line_people, station_count)))
                 else:
-                    basis += ", "
-                basis += inner_repr(lines, inner_from, inner_to, have_direction=have_direction)
-                basis += f" {format_func(inner_people)}"
+                    undirected_passing: dict[str, float] = {}
+                    for (line_name, _), line_people in passing_lines.items():
+                        undirected_passing[line_name] = undirected_passing.get(line_name, 0.0) + line_people
+                    for line_name, line_people in undirected_passing.items():
+                        breakdown.append((line_people, f"{lines[line_name].full_name()} passing " +
+                                          people_label(line_people, station_count)))
+            for (inner_from, inner_to), inner_people in station_list:
+                breakdown.append((inner_people, inner_repr(
+                    lines, inner_from, inner_to, have_direction=have_direction
+                ) + f" {people_label(inner_people, station_count)}"))
+            basis += ", ".join(item[1] for item in sorted(breakdown, key=lambda x: -x[0]))
             transfer_data.append((people, basis + ")"))
-    elif transfer_source == "direction":
+    elif transfer_source == "station_line":
         # (station, line1, direction1, line2, direction2) -> people
         direction_dict: dict[tuple[str, VTSpec2], float] = {}
         for station, (_, inner_dict) in transfer_stats.items():
@@ -357,6 +442,7 @@ def print_congestion(
             basis += lines[to_l].full_name() + " ("
             first = True
             people_total = 0.0
+            line_count = sum(line_inner.values())
             for (from_station, to_station), people in sorted(line_inner.items(), key=lambda x: -x[1]):
                 people_total += people
                 if first:
@@ -365,21 +451,23 @@ def print_congestion(
                     basis += ", "
                 basis += station_full_name(from_station, lines)
                 if from_station == to_station:
-                    basis += f" {format_func(people)}"
+                    basis += f" {people_label(people, line_count)}"
                 else:
                     basis += " -> " if have_direction else " - "
-                    basis += f"{station_full_name(to_station, lines)} (virtual) {format_func(people)}"
+                    basis += f"{station_full_name(to_station, lines)} (virtual) {people_label(people, line_count)}"
             transfer_data.append((people_total, basis + ")"))
     else:
         assert False, transfer_source
     display_first(sorted(transfer_data, key=lambda x: -x[0]),
-                  lambda x: suffix_s("people", format_func(x[0])) + f": {x[1]}", limit_num=limit_num)
+                  lambda x: people_label(x[0], path_count) + f": {x[1]}", limit_num=limit_num)
 
 
 def draw_congestion(
     load_dict: dict[tuple[str, str, str | None], tuple[float, set[TimeSpec], set[Train | VTSpec]]],
     city: City, cmap: Colormap,
-    *, output: str, dpi: int = 100, baseline: str | None = None, baseline_threshold: float = 0.01
+    *, output: str, dpi: int = 100, baseline: str | None = None, baseline_threshold: float = 0.01,
+    use_percentage: bool = False, path_count: int = 0,
+    fill_station: bool = False, station_stats: dict[str, float] | None = None
 ) -> None:
     """ Draw congestion on a given map """
     # Ask for a map
@@ -409,11 +497,12 @@ def draw_congestion(
     max_people = max([x[0] for x in load_dict.values()])
     print(f"Drawing paths... (min = {min_people / 1000:.2f}, max = {max_people / 1000:.2f})")
     for (from_station, to_station, _), (people, _, _) in load_dict.items():
+        edge_label = percentage_str(people / path_count) if use_percentage and path_count else f"{people / 1000:.2f}"
         if baseline_dict is None:
             alpha = (people - min_people) / (max_people - min_people)
             draw_path(
                 draw_new, map_obj, from_station, to_station,
-                cmap, f"{people / 1000:.2f}", alpha, edge_wide
+                cmap, edge_label, alpha, edge_wide
             )
         else:
             if (from_station, to_station) not in baseline_dict:
@@ -429,8 +518,16 @@ def draw_congestion(
             alpha = max(min(5.5 - people * 5, 1.0), 0.0)
             draw_path(
                 draw_new, map_obj, from_station, to_station,
-                cmap, ("+" if people > 1.0 else "-") + percentage_str(abs(people - 1.0)), alpha, edge_wide
+                cmap,
+                edge_label if use_percentage else ("+" if people > 1.0 else "-") + percentage_str(abs(people - 1.0)),
+                alpha, edge_wide
             )
+
+    if fill_station:
+        assert station_stats is not None
+        for station, people in station_stats.items():
+            label = percentage_str(people / path_count) if use_percentage and path_count else f"{people / 1000:.2f}"
+            draw_station(draw_new, station, (0.0, 0.0, 0.0), map_obj, label)
     img.paste(img_new, mask=img_new)
     print(f"Drawing done! Saving to {output}...")
     img.save(output, dpi=(dpi, dpi))
@@ -484,7 +581,7 @@ def main() -> None:
         """ Append more arguments """
         parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
         parser.add_argument("-l", "--load-factor", help="Load factor for each path")
-        parser.add_argument("--have-no-direction", action="store_true",
+        parser.add_argument("--all-direction", action="store_true",
                             help="Specify whether load & transfer stats source have direction")
         parser.add_argument("-d", "--data-source", choices=["time", "station", "distance", "fare"],
                             default="time", help="Path criteria")
@@ -494,11 +591,15 @@ def main() -> None:
         ], default="total_passenger", help="Line sort criteria")
         parser.add_argument("--load-metric", choices=["passenger", "congestion"],
                             default="passenger", help="Load sort criteria")
-        parser.add_argument("--transfer-source", choices=["station", "line", "direction"],
-                            default="station", help="Specify transfer stats source")
+        parser.add_argument("--transfer-source", choices=["passing", "transfer", "line", "station_line"],
+                            default="transfer", help="Specify station or transfer stats source")
         parser.add_argument("--data-output", help="Data output path")
         parser.add_argument("--baseline", help="Comparison baseline")
         parser.add_argument("--baseline-threshold", help="Baseline threshold", type=float, default=0.01)
+        parser.add_argument("--use-percentage", action="store_true",
+                            help="Show passenger counts as percentages of all path entries")
+        parser.add_argument("--fill-station", action="store_true",
+                            help="Fill stations with passing counts in passing mode, otherwise transfer counts")
 
     args = map_args(append_arg, contour_args=False, multi_source=False, include_limits=False, have_single=True)
     city = ask_for_city()
@@ -520,18 +621,30 @@ def main() -> None:
         {} if args.exclude_virtual else city.virtual_transfers, start_date, time_set,
         data_source=args.data_source, exclude_edge=args.exclude_edge, include_express=args.include_express, graph=graph
     )
+    passing_stats = None
+    if args.transfer_source == "passing":
+        passing_stats = get_station_passing_stats(paths, load_factor)
     print_congestion(paths, city.lines, load_factor,
-                     limit_num=args.limit_num, have_direction=(not args.have_no_direction),
+                     limit_num=args.limit_num, have_direction=args.all_direction,
                      line_metric=args.line_metric, load_metric=args.load_metric,
-                     transfer_source=args.transfer_source)
+                     transfer_source=args.transfer_source, use_percentage=args.use_percentage,
+                     passing_stats=passing_stats)
     print()
     cmap = get_colormap(args.color_map)
 
-    _, _, load_dict, _, _, _ = get_congestion_stats(
+    _, _, load_dict, transfer_stats, _, _ = get_congestion_stats(
         paths, city.lines, load_factor, have_direction=False
     )
+    station_stats = None
+    if args.fill_station and args.transfer_source == "passing":
+        assert passing_stats is not None
+        station_stats = passing_stats[0]
+    elif args.fill_station:
+        station_stats = {station: stats[0] for station, stats in transfer_stats.items()}
     draw_congestion(load_dict, city, cmap, output=args.output, dpi=args.dpi,
-                    baseline=args.baseline, baseline_threshold=args.baseline_threshold)
+                    baseline=args.baseline, baseline_threshold=args.baseline_threshold,
+                    use_percentage=args.use_percentage, path_count=get_path_count(paths),
+                    fill_station=args.fill_station, station_stats=station_stats)
     if args.data_output is not None:
         save_congestion_data(load_dict, args.data_output)
 

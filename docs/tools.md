@@ -3171,9 +3171,9 @@ Drawing done! Saving to ../test.png...
 ### [`draw_congestion.py`](/src/graph/draw_congestion.py): Draw and tally congestion stats for a network
 ```
 usage: draw_congestion.py [-h] [-c COLOR_MAP] [-o OUTPUT] [--dpi DPI] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-edge] [--include-express] [--exclude-single] [-n LIMIT_NUM]
-                          [-l LOAD_FACTOR] [--have-no-direction] [-d {time,station,distance,fare}]
-                          [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}] [--load-metric {passenger,congestion}]
-                          [--transfer-source {station,line,direction}] [--data-output DATA_OUTPUT] [--baseline BASELINE] [--baseline-threshold BASELINE_THRESHOLD]
+                          [-l LOAD_FACTOR] [--all-direction] [-d {time,station,distance,fare}] [--line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}]
+                          [--load-metric {passenger,congestion}] [--transfer-source {passing,transfer,line,station_line}] [--data-output DATA_OUTPUT] [--baseline BASELINE]
+                          [--baseline-threshold BASELINE_THRESHOLD] [--use-percentage] [--fill-station]
 
 options:
   -h, --help            show this help message and exit
@@ -3193,24 +3193,26 @@ options:
                         Limit number of output
   -l, --load-factor LOAD_FACTOR
                         Load factor for each path
-  --have-no-direction   Specify whether load & transfer stats source have direction
+  --all-direction       Specify whether load & transfer stats source have direction
   -d, --data-source {time,station,distance,fare}
                         Path criteria
   --line-metric {total_passenger,entry_passenger,exit_passenger,transfer_passenger,density_distance,density_station}
                         Line sort criteria
   --load-metric {passenger,congestion}
                         Load sort criteria
-  --transfer-source {station,line,direction}
-                        Specify transfer stats source
+  --transfer-source {passing,transfer,line,station_line}
+                        Specify station or transfer stats source
   --data-output DATA_OUTPUT
                         Data output path
   --baseline BASELINE   Comparison baseline
   --baseline-threshold BASELINE_THRESHOLD
                         Baseline threshold
+  --use-percentage      Show passenger counts as percentages of all path entries
+  --fill-station        Fill stations with passing counts in passing mode, otherwise transfer counts
 ```
 Simulate passenger flow on a network. By default, the model used is that every pair of stations has one passenger.
 Many stats will be outputted, including the passenger number for each line/station, maximum passenger interval, ...
-These stats can be controlled by `--have-no-direction`, `--line-metric`, `--load-metric`, and `--transfer-source`.
+These stats can be controlled by `--all-direction`, `--line-metric`, `--load-metric`, and `--transfer-source`.
 All other parameters are the usual drawing parameters.
 
 In addition, `--load-factor filename.json5` can be used to specify a load factor dict to adjust the accuracy
@@ -3226,7 +3228,7 @@ drawn. You can change the threshold through the `--baseline-threshold` parameter
 
 Example Usage:
 <pre>
-$ python3 src/graph/draw_congestion.py -n 10 --have-no-direction -o ../test.png
+$ python3 src/graph/draw_congestion.py -n 10 -o ../test.png
 ? Please select a city: <i>北京</i>
 ? Please enter the travel date (yyyy-mm-dd): <i>2025-01-17</i>
 ? Please enter the travel time (hh:mm or hh:mm-hh:mm): <i>08:00</i>

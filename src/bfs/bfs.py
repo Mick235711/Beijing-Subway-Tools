@@ -357,7 +357,10 @@ def total_transfer_duration(
     through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
 ) -> tuple[bool, float, int, int]:
     """ Get the sum of all transfer times """
-    have_dist = len(path) > 1
+    assert len(path) > 0, path
+    if len(path) == 1:
+        return True, 0.0, 0, 0
+    have_dist = True
     sum_duration = 0.0
     sum_distance = 0
     sum_stairs = 0
