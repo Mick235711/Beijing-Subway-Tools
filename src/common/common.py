@@ -326,7 +326,7 @@ def get_time_seq_repr(time_set: set[TimeSpec]) -> str:
     return get_time_repr(*min_time) + " - " + get_time_repr(*max_time)
 
 
-def format_duration(duration: timedelta | int | float) -> str:
+def format_duration(duration: timedelta | int | float, *, consider_zero: bool = False) -> str:
     """ Get string representation of duration """
     if not isinstance(duration, timedelta):
         if duration < 0:
@@ -342,7 +342,9 @@ def format_duration(duration: timedelta | int | float) -> str:
         result += f"{minutes + seconds / 60 + duration.microseconds / 60 / 1000 / 1000:.2f}min"
     elif minutes > 0:
         result += f"{minutes}min"
-    return "<1min" if result == "" else result
+    if result == "":
+        return "<1min" if consider_zero else "0min"
+    return result
 
 
 def direction_repr(stations: list[str], loop: bool = False) -> str:

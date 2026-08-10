@@ -960,7 +960,7 @@ def calculate_data_rows(
             "transfer": transfer_str,
             "transfer_sort": transfer,
             "walking": (walking_str, stairs_str) if have_dist else None,
-            "walking_sort": (sum_walking / 80 + sum_stairs / 120) if have_dist else 0,
+            "walking_sort": (sum_walking / 80 + sum_stairs / 120) if have_dist else float("inf"),
             "avg_time": (avg_min_str, "Avg speed: " + speed_display),
             "avg_time_sort": avg_min,
             "avg_speed": diff_speed_str,

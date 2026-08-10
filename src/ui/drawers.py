@@ -1064,7 +1064,9 @@ def train_timeline(
                     (not isinstance(line_train, tuple) or show_station != "none") and interval_num_sta == 1
                 ) else suffix_s("station", interval_num_sta)
             elif interval_metric == "duration":
-                interval_str = None if real_interval_duration is None else format_duration(real_interval_duration)
+                interval_str = None if real_interval_duration is None else format_duration(
+                    real_interval_duration, consider_zero=True
+                )
             elif interval_metric == "distance":
                 interval_str = None if interval_dist is None else distance_str(interval_dist)
             elif interval_metric == "speed":
