@@ -236,6 +236,14 @@ def filter_lines(
     return all_trains, lines
 
 
+def add_train_ctrl_args(parser: argparse.ArgumentParser) -> None:
+    """ Add parser arguments for train filtering """
+    parser.add_argument("-a", "--all-dates", action="store_true", help="Show combined data for all date groups")
+    parser.add_argument("-f", "--full-only", action="store_true",
+                        help="Only include train that runs the full journey")
+    parser.add_argument("--exclude-express", action="store_true", help="Exclude express trains")
+
+
 def parse_args(
     more_args: Callable[[argparse.ArgumentParser], Any] | None = None, *,
     include_limit: bool = True, include_passing_limit: bool = True, include_train_ctrl: bool = True
@@ -245,9 +253,7 @@ def parse_args(
     if include_limit:
         parser.add_argument("-n", "--limit-num", type=int, help="Limit number of output", default=5)
     if include_train_ctrl:
-        parser.add_argument("-a", "--all", action="store_true", help="Show combined data for all date groups")
-        parser.add_argument("-f", "--full-only", action="store_true",
-                            help="Only include train that runs the full journey")
+        add_train_ctrl_args(parser)
     if include_passing_limit:
         parser.add_argument("-s", "--limit-start", help="Limit earliest passing time of the trains")
         parser.add_argument("-e", "--limit-end", help="Limit latest passing time of the trains")
@@ -262,9 +268,7 @@ def parse_args(
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
 
-    if vars(args).get("all", True):
-        if "all" in vars(args):
-            print("All Dates:")
+    if vars(args).get("all_dates", True):
         all_trains = get_all_trains(lines, train_dict)
     else:
         travel_date = ask_for_date()
@@ -272,6 +276,8 @@ def parse_args(
 
     if vars(args).get("full_only", False):
         all_trains = {k: [e for e in v if e[1].is_full()] for k, v in all_trains.items()}
+    if vars(args).get("exclude_express", False):
+        all_trains = {k: [e for e in v if not e[1].is_express()] for k, v in all_trains.items()}
 
     # Parse include/exclude lines
     all_trains_temp, lines = filter_lines(all_trains, lines, args.include_lines, args.exclude_lines)

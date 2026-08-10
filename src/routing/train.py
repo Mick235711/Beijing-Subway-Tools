@@ -385,7 +385,7 @@ class Train:
                 last_time, last_next_day = self.arrival_time[last_station]
                 duration = diff_time(arrival_time, last_time, next_day, last_next_day)
                 dist = stations_dist(stations, station_dists, last_station, station)
-                print(f"({format_duration(duration)}, {distance_str(dist)}", end="")
+                print(f"({format_duration(duration, consider_zero=True)}, {distance_str(dist)}", end="")
                 if with_speed:
                     print(f", {speed_str(segment_speed(dist, duration))}", end="")
                 print(")")

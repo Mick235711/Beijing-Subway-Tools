@@ -579,17 +579,25 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`show_station_time.py`](/src/routing/show_station_time.py): Show time needed for trains to travel between two stations on a line
 ```
-usage: show_station_time.py [-h] [--exclude-express] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES] [--staircase {time,accurate_time,station,distance,fare,max,min}]
+usage: show_station_time.py [-h] [-a] [-f] [--exclude-express] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES] [--staircase {time,accurate_time,station,distance,fare,max,min} |
+                            --equal-on {time,station,distance,fare,max,min}] [-b {min,max,range}] [--all-stations]
 
 options:
   -h, --help            show this help message and exit
+  -a, --all-dates       Show combined data for all date groups
+  -f, --full-only       Only include train that runs the full journey
   --exclude-express     Exclude express trains
-  -i INCLUDE_ROUTES, --include-routes INCLUDE_ROUTES
+  -i, --include-routes INCLUDE_ROUTES
                         Include routes
-  -x EXCLUDE_ROUTES, --exclude-routes EXCLUDE_ROUTES
+  -x, --exclude-routes EXCLUDE_ROUTES
                         Exclude routes
   --staircase {time,accurate_time,station,distance,fare,max,min}
                         Staircase mode
+  --equal-on {time,station,distance,fare,max,min}
+                        Show top equal-time stations
+  -b, --sort-by {min,max,range}
+                        Sort by this column
+  --all-stations        Consider all stations instead of just furthest ones
 ```
 
 Show the time needed between two stations in a line. This is intended to show the different time needed to travel
@@ -600,6 +608,8 @@ See [`print_timetable.py`](#print_timetablepy-print-any-stations-timetable) for 
 
 In addition, there is a `--staircase` option that allows outputting staircase-like information between every pair
 of stations in a line. Information that can be displayed includes average time, distance, fare, and more.
+You can also use `--equal-on` to show the metrics of each station to the edge stations (pass `--all-stations` to measure metrics to all stations).
+In case of loop line, this will become the metrics of each station to its opposite station in the loop.
 
 Example Usage:
 <pre>
@@ -1321,6 +1331,7 @@ In all the programs in this section (except those that accept no arguments), the
 - `-n N`: Limit number of output (only show the min/max N stations/trains/...)
 - `-a`: Show combined data for all date groups
 - `-f`: Only include train that runs the full journey
+- `--exclude-express`: Exclude express trains (trains that skip stations)
 - `-s hh:mm` and `-e hh:mm`: Limit the passing time of the trains
 - `-i L1,L2,L3`: Only include those lines
 - `-e L1,L2,L3`: Exclude those lines from the result
@@ -1533,14 +1544,15 @@ Max/Min 15 transfer times:
 
 ### [`max_train_station.py`](/src/stats/max_train_station.py): Trains count for each station
 ```
-usage: max_train_station.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-c] [--show-all]
+usage: max_train_station.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-c] [--show-all]
 
 options:
   -h, --help            show this help message and exit
   -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
+  --exclude-express     Exclude express trains
   -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
   -e, --limit-end LIMIT_END
@@ -1606,13 +1618,14 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`transfer_waiting.py`](/src/stats/max_train_station.py): Average waiting time for each transfer station
 ```
-usage: transfer_waiting.py [-h] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--exclude-edge] [--exclude-virtual]
+usage: transfer_waiting.py [-h] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--min MIN] [--max MAX] [--exclude-edge] [--exclude-virtual]
                            [-d {pair,station,station_entry,station_exit}] [--show-all] [-n LIMIT_NUM | --include-stations INCLUDE_STATIONS]
 
 options:
   -h, --help            show this help message and exit
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
+  --exclude-express     Exclude express trains
   -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
   -e, --limit-end LIMIT_END
@@ -1694,23 +1707,23 @@ City default: &lt;北京: 24 lines&gt;
 
 ### [`hour_trains.py`](/src/stats/hour_trains.py): Trains count for each hour
 ```
-usage: hour_trains.py [-h] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-m] [-o OUTPUT | --dump DUMP] [-c]
+usage: hour_trains.py [-h] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-m] [-o OUTPUT | --dump DUMP] [-c]
 
 options:
   -h, --help            show this help message and exit
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -s LIMIT_START, --limit-start LIMIT_START
+  --exclude-express     Exclude express trains
+  -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit latest passing time of the trains
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
   -m, --by-minutes      Output data by minutes
-  -o OUTPUT, --output OUTPUT
-                        Output path
+  -o, --output OUTPUT   Output path
   --dump DUMP           Output path (dump everything)
   -c, --capacity        Output capacity data
 ```
@@ -1751,17 +1764,18 @@ Train Count by Hour:
 
 ### [`first_last_time.py`](/src/stats/first_last_time.py): Earliest/Latest first/last trains
 ```
-usage: first_last_time.py [-h] [-n LIMIT_NUM] [-a] [-f] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
+usage: first_last_time.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-i INCLUDE_LINES | -x EXCLUDE_LINES]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  --exclude-express     Exclude express trains
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
 ```
 
@@ -2057,37 +2071,37 @@ Nearest/Furthest Stations:
 
 ### [`per_line.py`](/src/stats/per_line.py): Statistics of each line
 ```
-usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r [REVERSE]] [-t TABLE_FORMAT] [--split {none,direction,route,all}]
-                   [--show SHOW | --hide HIDE] [-d {speed,duration,capacity,segment_distance,segment_duration,segment_count}] [-o OUTPUT]
+usage: per_line.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r [REVERSE]] [-t TABLE_FORMAT]
+                   [--split {none,direction,route,all}] [--show SHOW | --hide HIDE] [-d {speed,duration,capacity,segment_distance,segment_duration,segment_count}] [-o OUTPUT]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -s LIMIT_START, --limit-start LIMIT_START
+  --exclude-express     Exclude express trains
+  -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit latest passing time of the trains
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
-  -b SORT_BY, --sort-by SORT_BY
+  -b, --sort-by SORT_BY
                         Sort by these column(s)
-  -r [REVERSE], --reverse [REVERSE]
+  -r, --reverse [REVERSE]
                         Reverse sorting
-  -t TABLE_FORMAT, --table-format TABLE_FORMAT
+  -t, --table-format TABLE_FORMAT
                         Table format
   --split {none,direction,route,all}
                         Split mode
   --show SHOW           Only show these column(s)
   --hide HIDE           Hide these column(s)
-  -d {speed,duration,capacity,segment_distance,segment_duration,segment_count}, --data-from {speed,duration,capacity,segment_distance,segment_duration,segment_count}
+  -d, --data-from {speed,duration,capacity,segment_distance,segment_duration,segment_count}
                         Choose data source
-  -o OUTPUT, --output OUTPUT
-                        Output CSV file
+  -o, --output OUTPUT   Output CSV file
 ```
 
 Show per-line statistics in a formatted table.
@@ -2136,41 +2150,41 @@ Calculating 大兴机场线: 100%|███████████████�
 
 ### [`moving_average.py`](/src/stats/moving_average.py): Moving average statistics of trains
 ```
-usage: moving_average.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r [REVERSE]] [-t TABLE_FORMAT] [--split {none,direction,route,all}]
-                         [--show SHOW | --hide HIDE] (-m MOVING_AVERAGE | --section SECTION) [--show-example [{newline,oneline}]] [--include-edge] [-o OUTPUT]
+usage: moving_average.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-b SORT_BY] [-r [REVERSE]] [-t TABLE_FORMAT]
+                         [--split {none,direction,route,all}] [--show SHOW | --hide HIDE] (-m MOVING_AVERAGE | --section SECTION) [--show-example [{newline,oneline}]] [--include-edge] [-o OUTPUT]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -s LIMIT_START, --limit-start LIMIT_START
+  --exclude-express     Exclude express trains
+  -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit latest passing time of the trains
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
-  -b SORT_BY, --sort-by SORT_BY
+  -b, --sort-by SORT_BY
                         Sort by these column(s)
-  -r [REVERSE], --reverse [REVERSE]
+  -r, --reverse [REVERSE]
                         Reverse sorting
-  -t TABLE_FORMAT, --table-format TABLE_FORMAT
+  -t, --table-format TABLE_FORMAT
                         Table format
   --split {none,direction,route,all}
                         Split mode
   --show SHOW           Only show these column(s)
   --hide HIDE           Hide these column(s)
-  -m MOVING_AVERAGE, --moving-average MOVING_AVERAGE
+  -m, --moving-average MOVING_AVERAGE
                         Calculate moving average capacity
   --section SECTION     Show cross-sectional (station-wise) capacity data
   --show-example [{newline,oneline}]
                         Show example
   --include-edge        Include edge in moving average
-  -o OUTPUT, --output OUTPUT
-                        Output CSV file
+  -o, --output OUTPUT   Output CSV file
 ```
 
 Show the moving average statistics. (Statistics averaged over a moving window)
@@ -2217,23 +2231,24 @@ Calculating 大兴机场线: 100%|███████████████�
 
 ### [`longest_trains.py`](/src/stats/longest_trains.py): Show train segments with the longest distance
 ```
-usage: longest_trains.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-d {distance,duration,count}]
+usage: longest_trains.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-d {distance,duration,count}]
 
 options:
   -h, --help            show this help message and exit
-  -n LIMIT_NUM, --limit-num LIMIT_NUM
+  -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
-  -s LIMIT_START, --limit-start LIMIT_START
+  --exclude-express     Exclude express trains
+  -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
-  -e LIMIT_END, --limit-end LIMIT_END
+  -e, --limit-end LIMIT_END
                         Limit latest passing time of the trains
-  -i INCLUDE_LINES, --include-lines INCLUDE_LINES
+  -i, --include-lines INCLUDE_LINES
                         Include lines
-  -x EXCLUDE_LINES, --exclude-lines EXCLUDE_LINES
+  -x, --exclude-lines EXCLUDE_LINES
                         Exclude lines
-  -d {distance,duration,count}, --data-source {distance,duration,count}
+  -d, --data-source {distance,duration,count}
                         Sort by distance/duration/count
 ```
 
@@ -2290,15 +2305,16 @@ Longest/Shortest Train Segments:
 
 ### [`highest_speed.py`](/src/stats/longest_trains.py): Show train with the highest speed
 ```
-usage: highest_speed.py [-h] [-n LIMIT_NUM] [-a] [-f] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-d {speed,duration,distance}] [--split {none,line,direction}] [--single-segment]
-                        [--exclude-express]
+usage: highest_speed.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-d {speed,duration,distance}] [--split {none,line,direction}]
+                        [--single-segment]
 
 options:
   -h, --help            show this help message and exit
   -n, --limit-num LIMIT_NUM
                         Limit number of output
-  -a, --all             Show combined data for all date groups
+  -a, --all-dates       Show combined data for all date groups
   -f, --full-only       Only include train that runs the full journey
+  --exclude-express     Exclude express trains
   -s, --limit-start LIMIT_START
                         Limit earliest passing time of the trains
   -e, --limit-end LIMIT_END
@@ -2312,7 +2328,6 @@ options:
   --split {none,line,direction}
                         Split mode
   --single-segment      Show single segment only
-  --exclude-express     Exclude express trains
 ```
 
 Show trains with the fastest/slowest speed, or longest/shortest duration/distance.
