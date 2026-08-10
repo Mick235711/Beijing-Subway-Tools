@@ -125,6 +125,10 @@ class Line:
         """ Return the base direction of this line """
         return [x for x, stations in self.directions.items() if stations == self.stations][0]
 
+    def other_direction(self, direction: str) -> str:
+        """ Return the other direction of this line """
+        return [x for x in self.directions.keys() if x != direction][0]
+
     def direction_dists(self, direction: str | None) -> list[int]:
         """ Return the distance of this direction """
         if direction is None or self.direction_stations(direction) == self.stations:

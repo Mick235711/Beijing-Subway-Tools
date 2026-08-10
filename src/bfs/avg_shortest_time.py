@@ -285,9 +285,7 @@ def reverse_path(
                 line.in_end_circle(station, direction) or line.in_end_circle(next_station, direction)
             ):
                 return None
-            new_direction_candidates = [d for d in line.directions.keys() if d != direction]
-            assert len(new_direction_candidates) == 1, line
-            new_ld = (line_direction[0], new_direction_candidates[0])
+            new_ld = (line_direction[0], line.other_direction(direction))
         new_path = [(next_station, new_ld)] + new_path
     return new_path
 

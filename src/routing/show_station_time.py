@@ -91,8 +91,6 @@ PossibleDateGroup = tuple[date, TimeSpec] | DateGroup | None
 def get_date_group(line: Line, specific_time: bool = False, *, all_dates: bool = False) -> PossibleDateGroup:
     """ Get date group or specific time based on requirements """
     if specific_time:
-        if all_dates:
-            print("Warning: --all-dates ignored in fare mode!")
         cur_date = ask_for_date()
         cur_time, cur_day = ask_for_time()
         return cur_date, (cur_time, cur_day)
@@ -103,12 +101,18 @@ def get_date_group(line: Line, specific_time: bool = False, *, all_dates: bool =
 
 
 def viable_train(
-    train: Train, station_set: set[str], cur_time: tuple[str, TimeSpec] | None = None,
+    train: Train, station1: str, station2: str, cur_time: tuple[str, TimeSpec] | None = None,
     *, include_routes: set[str] | None = None, exclude_routes: set[str] | None = None,
     full_only: bool = False, exclude_express: bool = False
 ) -> bool:
     """ Determine whether train is viable in staircase/equal calculations """
-    if any(station not in train.stations or station in train.skip_stations for station in station_set):
+    if station1 not in train.stations or station1 in train.skip_stations:
+        return False
+    if station2 not in train.arrival_time_virtual(station1):
+        return False
+    if station2 in train.skip_stations and (
+        train.loop_next is None or station2 not in train.loop_next.stations or station2 in train.loop_next.skip_stations
+    ):
         return False
     if not in_route(train.routes, include_routes=include_routes, exclude_routes=exclude_routes):
         return False
@@ -138,7 +142,7 @@ def fare_between(
         for train in sorted([
             train for train in train_list
             if viable_train(
-                train, {station1, station2}, (station1, cur_time),
+                train, station1, station2, (station1, cur_time),
                 include_routes=include_routes, exclude_routes=exclude_routes,
                 full_only=full_only, exclude_express=exclude_express
             )
@@ -249,6 +253,8 @@ def print_equal_on(
     for i, station1 in enumerate(stations):
         if station1 not in data_dict:
             data_dict[station1] = {}
+
+        other_dict: dict[str, float] = {}
         for j, station2 in enumerate(stations):
             if station1 == station2:
                 if not line.loop and station1 in [line.stations[0], line.stations[-1]]:
@@ -257,12 +263,19 @@ def print_equal_on(
             if not all_stations and not line.loop and station2 not in [line.stations[0], line.stations[-1]]:
                 continue
 
-            direction = line.determine_direction(station1, station2)
-            other_direction = [x for x in line.directions.keys() if x != direction][0]
+            if not all_stations and line.loop:
+                direction = line.base_direction()
+            else:
+                direction = line.determine_direction(station1, station2)
+            other_direction = line.other_direction(direction)
             if data_source == "station":
                 data_dict[station1][station2] = abs(i - j)
+                if line.loop:
+                    other_dict[station2] = len(line.stations) - abs(i - j)
             elif data_source == "distance":
                 data_dict[station1][station2] = line.two_station_dist(direction, station1, station2)
+                if line.loop:
+                    other_dict[station2] = line.two_station_dist(other_direction, station1, station2)
             elif data_source == "fare":
                 assert isinstance(date_group, tuple), date_group
                 data_dict[station1][station2] = fare_between(
@@ -270,6 +283,12 @@ def print_equal_on(
                     include_routes=include_routes, exclude_routes=exclude_routes,
                     full_only=full_only, exclude_express=exclude_express
                 )
+                if line.loop:
+                    other_dict[station2] = fare_between(
+                        city, line, station1, station2, train_dict[other_direction], date_group,
+                        include_routes=include_routes, exclude_routes=exclude_routes,
+                        full_only=full_only, exclude_express=exclude_express
+                    )
             else:
                 assert date_group is None or isinstance(date_group, DateGroup), date_group
                 _, time_dict = get_time_between(
@@ -277,30 +296,43 @@ def print_equal_on(
                     with_direction=direction, include_routes=include_routes, exclude_routes=exclude_routes,
                     full_only=full_only, exclude_express=exclude_express, with_train_dict=train_dict[direction]
                 )
-                values = list(time_dict.values())
-                avg_time = average(x for x in time_dict.values() if x is not None)
 
                 if line.loop:
                     _, other_time_dict = get_time_between(
                         line, date_group, station1, station2,
                         with_direction=other_direction, include_routes=include_routes, exclude_routes=exclude_routes,
-                        full_only=full_only, exclude_express=exclude_express, with_train_dict=train_dict[direction]
+                        full_only=full_only, exclude_express=exclude_express, with_train_dict=train_dict[other_direction]
                     )
-                    values += other_time_dict.values()
-                    other_avg_time = average(x for x in other_time_dict.values() if x is not None)
-                    avg_time = min(avg_time, other_avg_time)
+                else:
+                    other_time_dict = {}
 
                 if data_source == "time":
-                    data_dict[station1][station2] = avg_time
+                    data_dict[station1][station2] = average(x for x in time_dict.values() if x is not None)
+                    if line.loop:
+                        other_dict[station2] = average(x for x in other_time_dict.values() if x is not None)
                 elif data_source == "max":
-                    data_dict[station1][station2] = max(x for x in values if x is not None)
+                    data_dict[station1][station2] = max(x for x in time_dict.values() if x is not None)
+                    if line.loop:
+                        other_dict[station2] = max(x for x in other_time_dict.values() if x is not None)
                 elif data_source == "min":
-                    data_dict[station1][station2] = min(x for x in values if x is not None)
+                    data_dict[station1][station2] = min(x for x in time_dict.values() if x is not None)
+                    if line.loop:
+                        other_dict[station2] = min(x for x in other_time_dict.values() if x is not None)
                 else:
                     assert False, data_source
 
         if not all_stations and line.loop:
-            data_dict[station1] = dict(sorted(data_dict[station1].items(), key=lambda x: x[1])[-2:])
+            # Find the opposing station (station with least range in the batch)
+            opposing = min(other_dict.keys(), key=lambda s: abs(data_dict[station1][s] - other_dict[s]))
+            direction = line.base_direction()
+            other_direction = line.other_direction(direction)
+            value1, value2 = data_dict[station1][opposing], other_dict[opposing]
+            if value2 < value1:
+                direction, other_direction = other_direction, direction
+                value1, value2 = value2, value1
+            data_dict[station1] = {
+                f"{opposing} {direction}": value1, other_direction: value2
+            }
 
     # Print the lowest -> highest max - min value of each station
     _, _, formatter = FORMATTERS(city)[data_source]
@@ -359,14 +391,18 @@ def main() -> None:
     elif args.staircase is not None:
         assert with_direction is not None, with_direction
         print_staircase(
-            city, line, with_direction, get_date_group(line, args.staircase == "fare", all_dates=args.all_dates),
+            city, line, with_direction, get_date_group(
+                line, args.staircase == "fare", all_dates=(args.all_dates or args.staircase in ["station", "distance", "fare"])
+            ),
             data_source=args.staircase, include_routes=include_routes, exclude_routes=exclude_routes,
             full_only=args.full_only, exclude_express=args.exclude_express
         )
         return
     elif args.equal_on is not None:
         print_equal_on(
-            city, line, get_date_group(line, args.equal_on == "fare", all_dates=args.all_dates),
+            city, line, get_date_group(
+                line, args.equal_on == "fare", all_dates=(args.all_dates or args.equal_on in ["station", "distance", "fare"])
+            ),
             data_source=args.equal_on, sort_by=args.sort_by, all_stations=args.all_stations,
             include_routes=include_routes, exclude_routes=exclude_routes,
             full_only=args.full_only, exclude_express=args.exclude_express
