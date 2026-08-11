@@ -160,10 +160,9 @@ def get_longest_route(
     return euler_route(small_graph, start_station, end_station)
 
 
-def filter_line_once(
-    paths: GraphSet, path_len: int,
+def get_segments(
     station_lines: dict[str, set[Line]], virtual_dict: dict[str, dict[str, set[Line]]], line: Line
-) -> list[GraphSet]:
+) -> tuple[list[str], list[tuple[int, str, str]]]:
     """ Filter line such that it is included exactly once """
     stations = line.stations[:]
     if line.end_circle_start is not None:
@@ -178,10 +177,20 @@ def filter_line_once(
         stations.append(line.stations[-1])
     if line.loop:
         stations.append(stations[0])
-    bad_list: list[GraphSet] = []
+    result: list[tuple[int, str, str]] = []
     for start in range(1, len(stations) - (1 if line.loop else 2)):
-        start_station = stations[start]
-        end_station = stations[start + 1]
+        result.append((start, stations[start], stations[start + 1]))
+    return stations, result
+
+
+def filter_line_once(
+    bar: tqdm, paths: GraphSet, path_len: int, stations: list[str], segments: list[tuple[int, str, str]], line: Line
+) -> list[GraphSet]:
+    """ Filter line such that it is included exactly once """
+    bad_list: list[GraphSet] = []
+    for start, start_station, end_station in segments:
+        bar_desc = f"Line {line.full_name()} [{line.station_full_name(start_station)} - {line.station_full_name(end_station)}]"
+        bar.set_description(bar_desc)
         preserve_segments: list[list[tuple[str, str]]] = [line.two_station_intervals(start_station, end_station)]
         discard_segments: list[list[tuple[str, str]]] = []
         indexes = list(range(start + 1, len(stations) - (2 if line.loop and start == 1 else 1)))
@@ -202,8 +211,8 @@ def filter_line_once(
             bad_paths = bad_paths - additional
         bad_len = bad_paths.len()
         percentage = bad_len / path_len * 100
-        tqdm.write(f"Line {line.full_name()} [{line.station_full_name(start_station)} - {line.station_full_name(end_station)}]" +
-                   f": Bad length = {bad_len} ({percentage:.2f}%)")
+        bar.update()
+        tqdm.write(f"{bar_desc}: Bad length = {bad_len} ({percentage:.2f}%)")
         if bad_len != 0:
             bad_list.append(bad_paths)
     return bad_list
@@ -264,9 +273,6 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
         graph = get_dist_graph(
             city, include_lines=args.include_lines, include_circle=False, ignore_dists=args.ignore_dists
         )
-        if GraphSet is None:
-            print("Non-repeating path finding requires graphillion library!")
-            sys.exit(1)
         GraphSet.set_universe(to_universe(graph))
 
         print("Graph creation done. The calculation for set of all paths will now begin, please wait patiently...",
@@ -320,8 +326,12 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
             virtual_dict = {} if args.exclude_virtual else get_virtual_dict(city, lines)
             bad_list: list[GraphSet] = []
             print("Creating line-based filters...")
-            for line_name in tqdm(sorted(lines.keys(), key=lambda x: lines[x].index)):
-                bad_list += filter_line_once(paths, path_len, station_lines, virtual_dict, lines[line_name])
+            segment_list: list[tuple[str, list[str], list[tuple[int, str, str]]]] = []
+            for line_name in sorted(lines.keys(), key=lambda x: lines[x].index):
+                segment_list.append((line_name,) + get_segments(station_lines, virtual_dict, lines[line_name]))
+            with tqdm(desc="Creating Filters", total=sum(len(x[2]) for x in segment_list)) as bar:
+                for line_name, stations, segments in segment_list:
+                    bad_list += filter_line_once(bar, paths, path_len, stations, segments, lines[line_name])
             print(f"Applying {len(bad_list)} filters...")
             for bad_paths in tqdm(bad_list):
                 paths = paths - bad_paths
@@ -382,13 +392,15 @@ def find_longest(args: argparse.Namespace, *, existing_city: City | None = None)
                     possible_pairs.append((point, ending_points[j]))
 
         small_tuple: tuple[int, Path, str] | None = None
-        for start_station_inner, end_station_inner in (bar := tqdm(possible_pairs)):
-            if start_station_inner is not None and end_station_inner is not None:
-                bar.set_description(f"Calculating {city.station_full_name(start_station_inner)} " +
-                                    f"<-> {city.station_full_name(end_station_inner)}")
-            dist, route = get_longest_route(graph, city, start_station_inner, end_station_inner, not args.all)
-            if small_tuple is None or small_tuple[0] < dist:
-                small_tuple = (dist, route, end_station_inner or route[0][0])
+        with tqdm(desc="Calculating Pairs", total=len(possible_pairs)) as bar:
+            for start_station_inner, end_station_inner in possible_pairs:
+                if start_station_inner is not None and end_station_inner is not None:
+                    bar.set_description(f"Calculating {city.station_full_name(start_station_inner)} " +
+                                        f"<-> {city.station_full_name(end_station_inner)}")
+                dist, route = get_longest_route(graph, city, start_station_inner, end_station_inner, not args.all)
+                bar.update()
+                if small_tuple is None or small_tuple[0] < dist:
+                    small_tuple = (dist, route, end_station_inner or route[0][0])
         assert small_tuple is not None
         dist, route, end_station = small_tuple
 

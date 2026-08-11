@@ -222,6 +222,8 @@ class Train:
     ) -> dict[str, TimeSpec]:
         """ Display arrival_time dict between two stations """
         virtual = self.arrival_time_virtual(start_station)
+        if start_station == end_station and self.loop_next is not None:
+            return virtual
         return dict(list(virtual.items())[:list(virtual.keys()).index(end_station) + (1 if inclusive else 0)])
 
     def two_station_dist(self, start_station: str, end_station: str) -> int:
@@ -275,6 +277,8 @@ class Train:
                 stations = stations[index1:] + stations[:index1]
                 index1 = 0
             index2 = stations.index(end_station)
+            if start_station == end_station and self.loop_next is not None:
+                return stations
             assert index2 >= index1, (self, start_station, end_station)
             return stations[index1:index2]
         return list(self.arrival_time_two_station(start_station, end_station).keys())
