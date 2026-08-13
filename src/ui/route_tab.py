@@ -13,6 +13,8 @@ from multiprocessing.connection import Connection
 from typing import Literal, TypeVar, ParamSpec, Concatenate, Awaitable
 
 from nicegui import run, ui
+from nicegui.element import Element
+from nicegui.events import GenericEventArguments
 from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
@@ -38,7 +40,8 @@ from src.routing_pk.common import Route, route_str, RouteData, reverse_route
 from src.ui.common import get_station_html, get_station_selector_options, get_line_selector_options, get_date_input, \
     get_station_row, calculate_moving_average, get_time_input, get_chart_options
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
-    refresh_train_drawer, get_walking_html
+    refresh_train_drawer
+from src.ui.route_map import add_route_map, add_route_map_viewer
 
 
 def is_necessary(city: City, route: Route, index: int) -> bool:
@@ -305,6 +308,7 @@ def route_tab(city: City) -> None:
         guided_tab = ui.tab("Guided")
         shorthand_tab = ui.tab("Shorthand")
         top_tab = ui.tab("Top")
+        map_tab = ui.tab("Map")
     with ui.tab_panels(add_route_tabs, value=guided_tab).classes('w-full'):
         with ui.tab_panel(guided_tab):
             add_route_guided(city, on_route_change)
@@ -312,6 +316,8 @@ def route_tab(city: City) -> None:
             add_route_shorthand(city, on_route_change)
         with ui.tab_panel(top_tab):
             add_route_top(city, on_route_change)
+        with ui.tab_panel(map_tab):
+            add_route_map(city, on_route_change, lambda route: display_route(city.lines, route))
     with ui.row().classes("items-center w-full flex-nowrap"):
         date_input = get_date_input(label="Riding date")
         analyze_button = ui.button("Start Analyze", on_click=on_start_click)
@@ -732,29 +738,6 @@ async def handle_progress(
     return result
 
 
-def get_signal_html(key: str, signal: str) -> str:
-    """ Get the HTML for the field that can emit a signal """
-    return f"""
-<q-td key="{key}" :props="props" class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[1])">
-    {{{{ props.value[0] }}}}
-</q-td>
-    """
-
-
-def get_time_pair_html(key: str, signal: str, *, have_aux: bool = False) -> str:
-    """ Get the HTML for the time pair field """
-    index1 = 2 if have_aux else 0
-    index2 = 3 if have_aux else 1
-    aux_str = "" if have_aux else "[1]"
-    return f"""
-<q-td key="{key}" :props="props">
-    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index1}])">{{{{ props.value[0]{aux_str} }}}}</span>
-    &mdash;
-    <span class="cursor-pointer" @click.stop="$parent.$emit('{signal}', props.value[{index2}])">{{{{ props.value[1]{aux_str} }}}}</span>
-</q-td>
-    """
-
-
 def index_name(index: int) -> str:
     """ String representation for each index """
     return f"Path #{index + 1}"
@@ -945,38 +928,169 @@ def calculate_data_rows(
 
         rows.append({
             "index": index + 1,
+            "map_route_index": index,
             "percentage": (per_str, (index, per_time)),
+            "percentage_display": per_str,
             "percentage_sort": per_raw,
             "start_station": get_station_row(route[0][0][0]),
+            "start_station_display": route[0][0][0],
             "start_station_sort": to_pinyin(route[0][0][0])[0],
             "route": get_route_row(city, route, insert_transfer=insert_transfer),
+            "route_display": route_str(city.lines, route),
             "route_sort": "[" + ",".join("0" if ld is None else str(city.lines[ld[0]].index) for _, ld in route[0]) + "]",
             "end_station": get_station_row(route[1]),
+            "end_station_display": route[1],
             "end_station_sort": to_pinyin(route[1])[0],
             "distance": (dist_str, dist_display),
+            "distance_display": dist_str,
             "distance_sort": distance,
             "num_stations": station_str,
             "num_stations_sort": num_station,
             "transfer": transfer_str,
             "transfer_sort": transfer,
             "walking": (walking_str, stairs_str) if have_dist else None,
+            "walking_display": "" if not have_dist else f"{walking_str} / {stairs_str}",
             "walking_sort": (sum_walking / 80 + sum_stairs / 120) if have_dist else float("inf"),
             "avg_time": (avg_min_str, "Avg speed: " + speed_display),
+            "avg_time_display": avg_min_str,
             "avg_time_sort": avg_min,
             "avg_speed": diff_speed_str,
             "min_time": (min_str, (index, min_key)),
+            "min_time_display": min_str,
             "min_time_sort": min_info[0],
             "max_time": (max_str, (index, max_key)),
+            "max_time_display": max_str,
             "max_time_sort": max_info[0],
             "dep_time": ((index, min_time), (index, max_time)),
+            "dep_time_display": f"{min_time} — {max_time}",
             "arr_time": (
                 min_arrive[1][2].arrival_time_str(), max_arrive[1][2].arrival_time_str(),
                 (index, min_arrive[0]), (index, max_arrive[0])
             ),
+            "arr_time_display": (
+                f"{min_arrive[1][2].arrival_time_str()} — {max_arrive[1][2].arrival_time_str()}"
+            ),
             "target_arrival": (arrival_str, (index, arrival_start)),
+            "target_arrival_display": arrival_str or "",
             "target_arrival_sort": arrival_sort,
         })
     return rows
+
+
+def get_expandable_data_body_html() -> str:
+    """ Render analysis rows with an expandable route-map area """
+    return r'''
+<q-tr :props="props" :key="'route-data-' + props.row.index" class="cursor-pointer"
+      @click="props.expand
+          ? ($parent.setExpanded([]), $parent.$emit('routeMapCollapse'))
+          : ($parent.setExpanded([props.row.index]), $parent.$emit('routeMapExpand', props.row.map_route_index))">
+    <q-td auto-width @click.stop>
+        <q-checkbox v-model="props.selected" @click.stop />
+    </q-td>
+    <q-td v-for="col in props.cols" :key="col.name" :props="props">
+        <template v-if="col.name === 'percentage'">
+            <span v-if="props.row.percentage[1][1] !== ''"
+                  @click.stop="$parent.$emit('depTimeClick', props.row.percentage[1])"
+                  class="cursor-pointer">{{ props.row.percentage[0] }}</span>
+            <span v-else>{{ props.row.percentage[0] }}</span>
+        </template>
+
+        <template v-else-if="col.name === 'start' || col.name === 'end'">
+            <span @click.stop="$parent.$emit('stationBadgeClick', props.row[col.name + '_station'][0])"
+                  class="cursor-pointer">
+                {{ props.row[col.name + '_station'][0] }}
+            </span>
+            <q-badge v-for="[index, name, color, textColor, icon] in (props.row[col.name + '_station'][1] || [])"
+                     :style="{ background: color }" :text-color="textColor"
+                     @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+                {{ name }}
+                <q-icon v-if="icon !== ''" :name="icon" class="q-ml-xs" />
+            </q-badge>
+        </template>
+
+        <template v-else-if="col.name === 'route'">
+            <span v-for="[index, name, color, textColor, icon, dirIcon, text] in props.row.route">
+                <span v-if="text !== ''" @click.stop="$parent.$emit('stationBadgeClick', text)"
+                      class="cursor-pointer px-[2px]">{{ text }}</span>
+                <q-badge v-else :style="{ background: color }" :text-color="textColor"
+                         @click.stop="$parent.$emit('lineBadgeClick', index)" class="cursor-pointer">
+                    <span v-if="name !== ''">
+                        {{ name }}
+                        <q-icon v-if="icon !== ''" :name="icon" class="mt-[-1px]" />
+                        <q-icon v-if="dirIcon !== ''" :name="dirIcon" class="mt-[-1px]" />
+                    </span>
+                    <span v-else>
+                        <q-icon v-if="icon !== ''" :name="icon" class="mt-[-1px]" />
+                        <q-icon v-if="dirIcon !== ''" :name="dirIcon" class="mt-[-1px]" />
+                    </span>
+                </q-badge>
+            </span>
+        </template>
+
+        <template v-else-if="col.name === 'distance'">
+            <span v-html="props.row.distance[0]" />
+            <q-tooltip v-html="props.row.distance[1]" />
+        </template>
+
+        <template v-else-if="col.name === 'walking'">
+            <div v-if="props.row.walking !== null" class="row items-center justify-center gap-0 no-wrap">
+                <q-icon name="directions_walk" />
+                <div>{{ props.row.walking[0] }}</div>
+                <q-icon name="stairs" class="mx-[2px]" />
+                <div>{{ props.row.walking[1] }}</div>
+            </div>
+        </template>
+
+        <template v-else-if="col.name === 'avgTime'">
+            <span v-html="props.row.avg_time[0]" />
+            <q-tooltip v-html="props.row.avg_time[1]" />
+        </template>
+
+        <template v-else-if="col.name === 'minTime' || col.name === 'maxTime'">
+            <span @click.stop="$parent.$emit('depTimeClick', props.row[col.name === 'minTime' ? 'min_time' : 'max_time'][1])"
+                  class="cursor-pointer">
+                {{ props.row[col.name === 'minTime' ? 'min_time' : 'max_time'][0] }}
+            </span>
+        </template>
+
+        <template v-else-if="col.name === 'depTime'">
+            <span @click.stop="$parent.$emit('depTimeClick', props.row.dep_time[0])" class="cursor-pointer">
+                {{ props.row.dep_time[0][1] }}
+            </span>
+            &mdash;
+            <span @click.stop="$parent.$emit('depTimeClick', props.row.dep_time[1])" class="cursor-pointer">
+                {{ props.row.dep_time[1][1] }}
+            </span>
+        </template>
+
+        <template v-else-if="col.name === 'arrTime'">
+            <span @click.stop="$parent.$emit('depTimeClick', props.row.arr_time[2])" class="cursor-pointer">
+                {{ props.row.arr_time[0] }}
+            </span>
+            &mdash;
+            <span @click.stop="$parent.$emit('depTimeClick', props.row.arr_time[3])" class="cursor-pointer">
+                {{ props.row.arr_time[1] }}
+            </span>
+        </template>
+
+        <template v-else-if="col.name === 'targetArrival'">
+            <span v-if="props.row.target_arrival[1][1] !== ''"
+                  @click.stop="$parent.$emit('depTimeClick', props.row.target_arrival[1])"
+                  class="cursor-pointer">{{ props.row.target_arrival[0] }}</span>
+        </template>
+
+        <template v-else>{{ col.value }}</template>
+    </q-td>
+</q-tr>
+<q-tr v-show="props.expand" :props="props" :key="'route-map-' + props.row.index"
+      v-memo="[props.expand, props.row.map_route_index]">
+    <q-td colspan="100%" class="q-pa-none">
+        <div :id="'route-map-result-' + props.row.map_route_index"
+             class="q-pa-md sticky left-0"
+             style="width: min(1200px, calc(100vw - 96px)); min-height: 64px;"></div>
+    </q-td>
+</q-tr>
+'''
 
 
 @ui.refreshable
@@ -1054,19 +1168,19 @@ def display_data(
     )
     data_table_columns: list[dict[str, str | bool]] = [
         {"name": "index", "label": "Index", "field": "index"},
-        {"name": "percentage", "label": "Best", "field": "percentage", "align": "center",
+        {"name": "percentage", "label": "Best", "field": "percentage_display", "align": "center",
          ":sort": """(a, b, rowA, rowB) => {
                                 return rowA["percentage_sort"] - rowB["percentage_sort"];
                              }"""},
         {"name": "percentageSort", "label": "Percentage Sort", "field": "percentage_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "start", "label": "Start", "field": "start_station",
+        {"name": "start", "label": "Start", "field": "start_station_display",
          ":sort": """(a, b, rowA, rowB) => {
                                 return rowA["start_station_sort"].localeCompare(rowB["start_station_sort"]);
                              }"""},
         {"name": "startSort", "label": "Start Sort", "field": "start_station_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "route", "label": "Via", "field": "route", "align": "center",
+        {"name": "route", "label": "Via", "field": "route_display", "align": "center",
          ":sort": """(a, b, rowA, rowB) => {
                                 const route_a = JSON.parse(rowA["route_sort"]);
                                 const route_b = JSON.parse(rowB["route_sort"]);
@@ -1081,13 +1195,13 @@ def display_data(
                              }"""},
         {"name": "routeSort", "label": "Route Sort", "field": "route_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "end", "label": "End", "field": "end_station",
+        {"name": "end", "label": "End", "field": "end_station_display",
          ":sort": """(a, b, rowA, rowB) => {
                                 return rowA["end_station_sort"].localeCompare(rowB["end_station_sort"]);
                              }"""},
         {"name": "endSort", "label": "End Sort", "field": "end_station_sort", "align": "left", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "distance", "label": "Distance", "field": "distance",
+        {"name": "distance", "label": "Distance", "field": "distance_display",
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["distance_sort"]) - parseFloat(rowB["distance_sort"]);
                              }"""},
@@ -1105,13 +1219,13 @@ def display_data(
                              }"""},
         {"name": "transferSort", "label": "Transfers Sort", "field": "transfer_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "walking", "label": "Walking", "field": "walking", "align": "center",
+        {"name": "walking", "label": "Walking", "field": "walking_display", "align": "center",
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["walking_sort"]) - parseFloat(rowB["walking_sort"]);
                              }"""},
         {"name": "walkingSort", "label": "Walking Sort", "field": "walking_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "avgTime", "label": "Avg Time", "field": "avg_time",
+        {"name": "avgTime", "label": "Avg Time", "field": "avg_time_display",
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["avg_time_sort"]) - parseFloat(rowB["avg_time_sort"]);
                              }"""},
@@ -1121,21 +1235,21 @@ def display_data(
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(a) - parseFloat(b);
                              }"""},
-        {"name": "minTime", "label": "Min Time", "field": "min_time",
+        {"name": "minTime", "label": "Min Time", "field": "min_time_display",
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["min_time_sort"]) - parseFloat(rowB["min_time_sort"]);
                              }"""},
         {"name": "minTimeSort", "label": "Min Time Sort", "field": "min_time_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "maxTime", "label": "Max Time", "field": "max_time",
+        {"name": "maxTime", "label": "Max Time", "field": "max_time_display",
          ":sort": """(a, b, rowA, rowB) => {
                         return parseFloat(rowA["max_time_sort"]) - parseFloat(rowB["max_time_sort"]);
                              }"""},
         {"name": "maxTimeSort", "label": "Max Time Sort", "field": "max_time_sort", "sortable": False,
          "classes": "hidden", "headerClasses": "hidden"},
-        {"name": "depTime", "label": "Departure Range", "field": "dep_time", "align": "center"},
-        {"name": "arrTime", "label": "Arrival Range", "field": "arr_time", "align": "center"},
-        {"name": "targetArrival", "label": "Arrival", "field": "target_arrival", "align": "center",
+        {"name": "depTime", "label": "Departure Range", "field": "dep_time_display", "align": "center"},
+        {"name": "arrTime", "label": "Arrival Range", "field": "arr_time_display", "align": "center"},
+        {"name": "targetArrival", "label": "Arrival", "field": "target_arrival_display", "align": "center",
          ":sort": """(a, b, rowA, rowB) => {
                         return rowA["target_arrival_sort"] - rowB["target_arrival_sort"];
                              }"""},
@@ -1186,6 +1300,35 @@ def display_data(
             selection="multiple",
             on_select=lambda e: on_select_change(e.selection)
         )
+        data_table.add_slot("body", get_expandable_data_body_html())
+
+    expanded_map_viewers: dict[int, Element] = {}
+    attachment_key = "route-map-result-expanded"
+    with ui.element("div").classes("hidden") as map_viewer_host:
+        pass
+
+    def clear_expanded_route_map() -> None:
+        """ Remove the current fixed-route viewer """
+        ui.run_javascript(f"window.routeMapStopAttachment?.('{attachment_key}')")
+        for viewer in expanded_map_viewers.values():
+            viewer.delete()
+        expanded_map_viewers.clear()
+
+    def on_route_map_expand(event: GenericEventArguments) -> None:
+        """ Lazily create the fixed-route map for an expanded analysis row """
+        route_index = int(event.args)
+        clear_expanded_route_map()
+        route = data_dict[route_index][1]
+        assert isinstance(route, tuple), route
+        with map_viewer_host:
+            viewer = ui.element("div").classes("w-full")
+            with viewer:
+                add_route_map_viewer(city, route)
+        expanded_map_viewers[route_index] = viewer
+        ui.run_javascript(
+            f"window.routeMapAttach?.("
+            f"'{attachment_key}', 'route-map-result-{route_index}', '{viewer.html_id}')"
+        )
 
     data_table.selected = data_rows[:]
     line_indexes = {line.index: line for line in city.lines.values()}
@@ -1194,42 +1337,8 @@ def display_data(
     data_table.on("depTimeClick", lambda n: refresh_train_drawer(
         data_dict[n.args[0]][2][n.args[1]], start_date, index_name(n.args[0]), None, city.station_lines
     ))
-    data_table.add_slot("body-cell-percentage", """
-<q-td key="percentage" :props="props">
-    <span v-if="props.value[1][1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
-        {{ props.value[0] }}
-    </span>
-    <span v-if="props.value[1][1] === ''">
-        {{ props.value[0] }}
-    </span>
-</q-td>
-    """)
-    data_table.add_slot("body-cell-start", get_station_html("start"))
-    data_table.add_slot("body-cell-route", get_route_html("route"))
-    data_table.add_slot("body-cell-end", get_station_html("end"))
-    with data_table.add_slot("body-cell-distance"):
-        with data_table.cell("distance"):
-            ui.label().props(":innerHTML=\"props.value[0]\"")
-            ui.tooltip().props(":innerHTML=\"props.value[1]\"")
-    data_table.add_slot("body-cell-walking", get_walking_html("walking"))
-    with data_table.add_slot("body-cell-avgTime"):
-        with data_table.cell("avgTime"):
-            ui.label().props(":innerHTML=\"props.value[0]\"")
-            ui.tooltip().props(":innerHTML=\"props.value[1]\"").bind_visibility_from(
-                data_table, "columns",
-                lambda cols: [c for c in cols if c["name"] == "avgSpeed"][0].get("classes", "") == "hidden"
-            )
-    data_table.add_slot("body-cell-minTime", get_signal_html("minTime", "depTimeClick"))
-    data_table.add_slot("body-cell-maxTime", get_signal_html("maxTime", "depTimeClick"))
-    data_table.add_slot("body-cell-depTime", get_time_pair_html("depTime", "depTimeClick"))
-    data_table.add_slot("body-cell-arrTime", get_time_pair_html("arrTime", "depTimeClick", have_aux=True))
-    data_table.add_slot("body-cell-targetArrival", """
-<q-td key="targetArrival" :props="props">
-    <span v-if="props.value[1][1] !== ''" @click.stop="$parent.$emit('depTimeClick', props.value[1])" class="cursor-pointer">
-        {{ props.value[0] }}
-    </span>
-</q-td>
-    """)
+    data_table.on("routeMapExpand", on_route_map_expand)
+    data_table.on("routeMapCollapse", lambda _: clear_expanded_route_map())
     data_search.bind_value(data_table, "filter")
 
     def on_table_column_toggle(column_name: str, visible: bool) -> None:
