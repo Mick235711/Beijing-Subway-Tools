@@ -389,17 +389,17 @@ def main() -> None:
         dark = None
 
     if args.browser:
-        ui.run(dark=dark, title="Beijing Subway Tools - Browser Mode")
-    elif args.window_size is None:
-        set_native(True)
-        app.native.window_args = {"maximized": True}
-        app.native.settings['ALLOW_DOWNLOADS'] = True
-        ui.run(native=True, dark=dark, title="Beijing Subway Tools")
+        ui.run(dark=dark, show=False, title="Beijing Subway Tools - Browser Mode")
     else:
         set_native(True)
         app.native.settings['ALLOW_DOWNLOADS'] = True
-        window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
-        ui.run(native=(not args.browser), dark=dark, window_size=(window_w, window_h), title="Beijing Subway Tools")
+        if args.window_size is None:
+            app.native.window_args = {"maximized": True}
+            window_size: tuple[int, int] | None = None
+        else:
+            window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
+            window_size = (window_w, window_h)
+        ui.run(native=True, dark=dark, window_size=window_size, title="Beijing Subway Tools")
 
 
 # Call main
