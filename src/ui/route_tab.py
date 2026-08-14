@@ -543,7 +543,7 @@ def add_route_shorthand(city: City, on_route_change: Callable[[Route], None]) ->
 async def get_kth_routes(
     progress_callback: Callable[[int, int], None], city: City, start_station: str, end_station: str,
     start_date: date, start_time: TimeSpec | None, k: int,
-    *, metric: PathMetric, exclude_virtual: bool = False
+    *, metric: PathMetric, exclude_virtual: bool = False, include_express: bool = False
 ) -> list[PathInfo] | tuple[int, Path, str] | None:
     """ Analyze selected routes """
     lines = city.lines
@@ -557,7 +557,7 @@ async def get_kth_routes(
             city.lines, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
             start_station, end_station, start_date, start_time,
-            k=k, progress_callback=progress_callback
+            k=k, include_express=include_express, progress_callback=progress_callback
         )
         if results is None or len(results) == 0:
             return None
@@ -566,7 +566,8 @@ async def get_kth_routes(
     graph = get_dist_graph(city, include_virtual=(not exclude_virtual))
     progress_callback(0, 1)
     path_dict = shortest_path(
-        graph, start_station, ignore_dists=(metric == "station"), fare_mode=(metric == "fare")
+        graph, start_station, ignore_dists=(metric == "station"), fare_mode=(metric == "fare"),
+        include_express=include_express, target_station=end_station
     )
     progress_callback(1, 1)
     if end_station not in path_dict:
@@ -611,13 +612,16 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
         results = await handle_progress(
             progress, get_kth_routes, city, start_station.value, end_station.value,
             start_date, start_time, int(kth_select.value),
-            metric=metric_select.value, exclude_virtual=(not virtual_switch.value)
+            metric=metric_select.value, exclude_virtual=(not virtual_switch.value),
+            include_express=express_switch.value
         )
         calc_button.set_enabled(True)
         await kth_table.refresh(start_date=start_date, results=results)
 
     with ui.column().classes("w-full"):
-        virtual_switch = ui.switch("Allow virtual transfers", value=False, on_change=on_input_change)
+        with ui.row().classes("w-full items-center gap-x-2"):
+            virtual_switch = ui.switch("Allow virtual transfers", value=False, on_change=on_input_change)
+            express_switch = ui.switch("Include express lines", value=False, on_change=on_input_change)
         with ui.row().classes("items-center route-tab-top-selection w-full flex-nowrap"):
             metric_select = ui.select({
                 "time": "Fastest", "distance": "Shortest", "station": "Fewest station"

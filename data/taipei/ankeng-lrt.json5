@@ -21,7 +21,6 @@
         {name: "新和國小", dist: 1421, aliases: ["Xinhe Elementary School"]},
         {name: "十四張", dist: 1011}
     ],
-    force_start: true,
     train_routes: {
         "北行": {
             aliases: ["Northbound"],

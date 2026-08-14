@@ -51,7 +51,8 @@ def path_index(path: Path) -> tuple[int, int]:
 
 
 def shortest_path(
-    graph: Graph, from_station: str, *, ignore_dists: bool = False, fare_mode: bool = False
+    graph: Graph, from_station: str, *,
+    ignore_dists: bool = False, fare_mode: bool = False, include_express: bool = True, target_station: str | None = None
 ) -> dict[str, tuple[int, Path]]:
     """ Dijkstra's algorithm for the single-source shortest paths """
     # Initialize arrays
@@ -77,6 +78,15 @@ def shortest_path(
         # Update the distances
         next_tuples = [(to_station, line, edge_dist) for (to_station, line), edge_dist in graph[station].items()]
         to_add: list[tuple[str, Line | None, int]] = []
+        if fare_mode or not include_express:
+            # A targeted search can enforce must_include against the actual journey endpoints.
+            next_tuples = [
+                (to_station, line, edge_dist)
+                for to_station, line, edge_dist in next_tuples
+                if line is None or len(line.must_include) == 0 or
+                from_station in line.must_include or target_station in line.must_include
+            ]
+
         if fare_mode:
             # Skip to the next available station if line has must_include
             skip_indexes: set[int] = set()

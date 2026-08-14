@@ -67,12 +67,13 @@ class MapRouteState:
     def __init__(self, city: City) -> None:
         self.city = city
         self.allow_virtual = False
+        self.include_express = False
         self.fewest_stations = False
         self.waypoints: list[str] = []
         self.segments: list[Path] = []
         self.segment_line_overrides: list[dict[tuple[str, str], str]] = []
         self._graphs: dict[bool, Graph] = {}
-        self._path_cache: dict[tuple[bool, bool, str], dict[str, tuple[int, Path]]] = {}
+        self._path_cache: dict[tuple[bool, bool, bool, str, str], dict[str, tuple[int, Path]]] = {}
 
     def _graph(self, allow_virtual: bool) -> Graph:
         """ Get a cached distance graph """
@@ -81,24 +82,28 @@ class MapRouteState:
         return self._graphs[allow_virtual]
 
     def _paths_from(
-        self, station: str, allow_virtual: bool, fewest_stations: bool
+        self, station: str, target_station: str, allow_virtual: bool,
+        fewest_stations: bool, include_express: bool
     ) -> dict[str, tuple[int, Path]]:
         """ Get the cached shortest paths originating at a station """
-        key = allow_virtual, fewest_stations, station
+        key = allow_virtual, fewest_stations, include_express, station, target_station
         if key not in self._path_cache:
             self._path_cache[key] = shortest_path(
-                self._graph(allow_virtual), station, ignore_dists=fewest_stations
+                self._graph(allow_virtual), station,
+                ignore_dists=fewest_stations, include_express=include_express,
+                target_station=target_station
             )
         return self._path_cache[key]
 
     def find_segment(
         self, start: str, end: str, *, allow_virtual: bool | None = None,
-        fewest_stations: bool | None = None
+        fewest_stations: bool | None = None, include_express: bool | None = None
     ) -> Path | None:
         """ Find a shortest-distance or fewest-station segment between two stations """
         use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
         use_fewest = self.fewest_stations if fewest_stations is None else fewest_stations
-        result = self._paths_from(start, use_virtual, use_fewest).get(end)
+        use_express = self.include_express if include_express is None else include_express
+        result = self._paths_from(start, end, use_virtual, use_fewest, use_express).get(end)
         return None if result is None else result[1][:]
 
     def direct_line_options(
@@ -178,15 +183,18 @@ class MapRouteState:
         return True
 
     def recompute(
-        self, *, allow_virtual: bool | None = None, fewest_stations: bool | None = None
+        self, *, allow_virtual: bool | None = None, fewest_stations: bool | None = None,
+        include_express: bool | None = None
     ) -> bool:
         """ Recompute all segments for different pathfinding settings """
         use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
         use_fewest = self.fewest_stations if fewest_stations is None else fewest_stations
+        use_express = self.include_express if include_express is None else include_express
         new_segments: list[Path] = []
         for index, (start, end) in enumerate(zip(self.waypoints, self.waypoints[1:])):
             segment = self.find_segment(
-                start, end, allow_virtual=use_virtual, fewest_stations=use_fewest
+                start, end, allow_virtual=use_virtual, fewest_stations=use_fewest,
+                include_express=use_express
             )
             if segment is None:
                 return False
@@ -198,6 +206,7 @@ class MapRouteState:
             new_segments.append(overridden)
         self.allow_virtual = use_virtual
         self.fewest_stations = use_fewest
+        self.include_express = use_express
         self.segments = new_segments
         return True
 
@@ -846,6 +855,17 @@ def add_route_map(
             return
         refresh_controls()
 
+    def on_express_change(include_express: bool) -> None:
+        """ Recompute the current route with or without non-essential express-line use """
+        previous = state.include_express
+        if include_express == previous:
+            return
+        if not state.recompute(include_express=include_express):
+            ui.notify("The selected waypoints cannot be connected with this express setting.", type="negative")
+            express_switch.set_value(previous)
+            return
+        refresh_controls()
+
     def on_edge_line_change(edge: AmbiguousPathEdge, value: object) -> None:
         """ Apply an explicit line choice to an ambiguous edge in the selected path """
         if not state.set_edge_line(edge.segment_index, edge.start, edge.end, str(value)):
@@ -873,6 +893,10 @@ def add_route_map(
             virtual_switch = ui.switch(
                 "Allow virtual transfers", value=False,
                 on_change=lambda event: on_virtual_change(bool(event.value))
+            )
+            express_switch = ui.switch(
+                "Include express lines", value=False,
+                on_change=lambda event: on_express_change(bool(event.value))
             )
             show_order_switch = ui.switch("Show path order", value=False, on_change=refresh_overlay)
             station_name_select = ui.select(
