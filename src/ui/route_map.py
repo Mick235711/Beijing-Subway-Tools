@@ -16,11 +16,12 @@ from PIL import Image
 
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import get_text_color
+from src.common.common import distance_str, get_text_color
 from src.dist_graph.adaptor import get_dist_graph, reduce_abstract_path, simplify_path
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.graph.map import Circle, Ellipse, Map, Rectangle, Shape, get_all_maps
 from src.routing_pk.common import Route
+from src.ui.common import get_badge_html
 
 
 Image.MAX_IMAGE_PIXELS = 500000000
@@ -50,6 +51,16 @@ class MapViewport:
         return x + self.offset_x, y + self.offset_y
 
 
+@dataclass(frozen=True)
+class AmbiguousPathEdge:
+    """ One selected physical edge which can be traversed on multiple lines """
+    segment_index: int
+    start: str
+    end: str
+    line: Line
+    choices: list[tuple[Line, int]]
+
+
 class MapRouteState:
     """ Mutable route selection independent of its visual representation """
 
@@ -58,6 +69,7 @@ class MapRouteState:
         self.allow_virtual = False
         self.waypoints: list[str] = []
         self.segments: list[Path] = []
+        self.segment_line_overrides: list[dict[tuple[str, str], str]] = []
         self._graphs: dict[bool, Graph] = {}
         self._path_cache: dict[tuple[bool, str], dict[str, tuple[int, Path]]] = {}
 
@@ -68,7 +80,7 @@ class MapRouteState:
         return self._graphs[allow_virtual]
 
     def _paths_from(self, station: str, allow_virtual: bool) -> dict[str, tuple[int, Path]]:
-        """ Get cached shortest paths originating at a station """
+        """ Get the cached shortest paths originating at a station """
         key = allow_virtual, station
         if key not in self._path_cache:
             self._path_cache[key] = shortest_path(self._graph(allow_virtual), station)
@@ -79,6 +91,67 @@ class MapRouteState:
         use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
         result = self._paths_from(start, use_virtual).get(end)
         return None if result is None else result[1][:]
+
+    def direct_line_options(
+        self, start: str, end: str, *, allow_virtual: bool | None = None,
+    ) -> list[tuple[Line, int]]:
+        """ Return physical lines which directly connect two stations and their edge distances """
+        use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
+        options = [
+            (line, distance)
+            for (next_station, line), distance in self._graph(use_virtual).get(start, {}).items()
+            if next_station == end and line is not None
+        ]
+        return sorted(options, key=lambda option: (option[0].index, option[0].name))
+
+    def _apply_segment_overrides(
+        self, index: int, segment: Path, end_station: str, *, allow_virtual: bool,
+    ) -> Path | None:
+        """ Apply explicit parallel-line choices to a freshly computed waypoint segment """
+        result = segment[:]
+        for entry_index, (station, _) in enumerate(result):
+            next_station = end_station if entry_index == len(result) - 1 else result[entry_index + 1][0]
+            line_name = self.segment_line_overrides[index].get((station, next_station))
+            if line_name is None:
+                continue
+            line = self.city.lines.get(line_name)
+            if line is None or (next_station, line) not in self._graph(allow_virtual).get(station, {}):
+                return None
+            result[entry_index] = station, line
+        return result
+
+    def set_edge_line(self, segment_index: int, start: str, end: str, line_name: str) -> bool:
+        """ Select a physical line for one ambiguous edge in the computed path """
+        if segment_index < 0 or segment_index >= len(self.segments):
+            return False
+        line = self.city.lines.get(line_name)
+        if line is None or (end, line) not in self._graph(self.allow_virtual).get(start, {}):
+            return False
+        segment = self.segments[segment_index]
+        segment_end = self.waypoints[segment_index + 1]
+        for entry_index, (station, _) in enumerate(segment):
+            next_station = segment_end if entry_index == len(segment) - 1 else segment[entry_index + 1][0]
+            if (station, next_station) != (start, end):
+                continue
+            segment[entry_index] = station, line
+            self.segment_line_overrides[segment_index][(start, end)] = line_name
+            return True
+        return False
+
+    def ambiguous_edges(self) -> list[AmbiguousPathEdge]:
+        """ Return every selected edge for which multiple physical lines are available """
+        result: list[AmbiguousPathEdge] = []
+        for segment_index, (segment, end_station) in enumerate(zip(self.segments, self.waypoints[1:])):
+            for entry_index, (station, line) in enumerate(segment):
+                if line is None:
+                    continue
+                next_station = end_station if entry_index == len(segment) - 1 else segment[entry_index + 1][0]
+                choices = self.direct_line_options(station, next_station)
+                if len(choices) > 1:
+                    result.append(AmbiguousPathEdge(
+                        segment_index, station, next_station, line, choices,
+                    ))
+        return result
 
     def append(self, station: str) -> bool:
         """ Append a waypoint and its shortest segment, returning whether it changed the route """
@@ -91,17 +164,23 @@ class MapRouteState:
         if segment is None:
             return False
         self.segments.append(segment)
+        self.segment_line_overrides.append({})
         self.waypoints.append(station)
         return True
 
     def recompute(self, allow_virtual: bool) -> bool:
         """ Recompute all segments for a different virtual-transfer policy """
         new_segments: list[Path] = []
-        for start, end in zip(self.waypoints, self.waypoints[1:]):
+        for index, (start, end) in enumerate(zip(self.waypoints, self.waypoints[1:])):
             segment = self.find_segment(start, end, allow_virtual=allow_virtual)
             if segment is None:
                 return False
-            new_segments.append(segment)
+            overridden = self._apply_segment_overrides(
+                index, segment, end, allow_virtual=allow_virtual,
+            )
+            if overridden is None:
+                return False
+            new_segments.append(overridden)
         self.allow_virtual = allow_virtual
         self.segments = new_segments
         return True
@@ -113,11 +192,13 @@ class MapRouteState:
         self.waypoints.pop()
         if len(self.segments) > 0:
             self.segments.pop()
+            self.segment_line_overrides.pop()
 
     def clear(self) -> None:
         """ Clear the route selection """
         self.waypoints.clear()
         self.segments.clear()
+        self.segment_line_overrides.clear()
 
     def route(self) -> Route | None:
         """ Convert the selected segments into a routing-pk route """
@@ -312,15 +393,7 @@ def station_label_placements(
             (center_x + half_width + gap, center_y - half_height - gap, "start"),
             (center_x - half_width - gap, center_y - half_height - gap, "end"),
             (center_x + half_width + gap, center_y + half_height + gap, "start"),
-            (center_x - half_width - gap, center_y + half_height + gap, "end"),
-            (center_x + half_width + far_gap, center_y, "start"),
-            (center_x - half_width - far_gap, center_y, "end"),
-            (center_x, center_y - half_height - far_gap - label_height / 2, "middle"),
-            (center_x, center_y + half_height + far_gap + label_height / 2, "middle"),
-            (center_x + half_width + far_gap, center_y - half_height - far_gap, "start"),
-            (center_x - half_width - far_gap, center_y - half_height - far_gap, "end"),
-            (center_x + half_width + far_gap, center_y + half_height + far_gap, "start"),
-            (center_x - half_width - far_gap, center_y + half_height + far_gap, "end"),
+            (center_x - half_width - gap, center_y + half_height + gap, "end")
         ]
 
         best: tuple[float, float, str] | None = None
@@ -729,6 +802,17 @@ def add_route_map(
             return
         refresh_controls()
 
+    def on_edge_line_change(edge: AmbiguousPathEdge, value: object) -> None:
+        """ Apply an explicit line choice to an ambiguous edge in the selected path """
+        if not state.set_edge_line(edge.segment_index, edge.start, edge.end, str(value)):
+            ui.notify(
+                "That line no longer directly connects the selected stations.",
+                type="negative",
+            )
+            route_summary.refresh()
+            return
+        refresh_controls()
+
     def on_view_change() -> None:
         """ Recreate the interactive image for a new map or display mode """
         station_name_select.set_visibility(mode_toggle.value == "Sketch")
@@ -762,18 +846,45 @@ def add_route_map(
         def route_summary() -> None:
             """ Display the currently computed route """
             route = state.route()
-            with ui.row().classes("w-full items-center gap-x-1 min-h-10"):
-                if route is None:
-                    if len(state.waypoints) == 0:
-                        ui.label("Click a station to choose the route start.").classes("text-grey")
-                    else:
-                        ui.label("Selected start:")
-                        ui.label(state.waypoints[0]).classes("font-semibold")
-                        ui.label("— click another station to compute a route.").classes("text-grey")
+            with ui.column().classes("w-full gap-y-1"):
+                with ui.row().classes("w-full items-center gap-x-1 min-h-10"):
+                    if route is None:
+                        if len(state.waypoints) == 0:
+                            ui.label("Click a station to choose the route start.").classes("text-grey")
+                        else:
+                            ui.label("Selected start:")
+                            ui.label(state.waypoints[0]).classes("font-semibold")
+                            ui.label("— click another station to compute a route.").classes("text-grey")
+                        return
+                    ui.label("Computed route:")
+                    render_route(route)
+                    ui.button(
+                        "Add to current routes", on_click=lambda r=route: on_route_change(r),
+                    ).classes("ml-1")
+
+                ambiguous_edges = state.ambiguous_edges()
+                if len(ambiguous_edges) == 0:
                     return
-                ui.label("Computed route:")
-                render_route(route)
-                ui.button("Add to current routes", on_click=lambda r=route: on_route_change(r)).classes("ml-1")
+                with ui.row().classes("w-full items-center gap-x-2 gap-y-1 flex-wrap"):
+                    ui.label("Shared segment line:").classes("text-sm text-grey")
+                    for edge in ambiguous_edges:
+                        options = {
+                            line.name: (
+                                '<div class="flex items-center justify-between w-full gap-x-3">'
+                                f'{get_badge_html(line, line.name)}'
+                                f'<span class="text-grey">{distance_str(distance)}</span>'
+                                '</div>'
+                            )
+                            for line, distance in edge.choices
+                        }
+                        line_select = ui.select(
+                            options,
+                            value=edge.line.name,
+                            label=f"{edge.start} → {edge.end}",
+                            on_change=lambda event, e=edge: on_edge_line_change(e, event.value),
+                        ).props("dense outlined options-dense options-html").classes("min-w-40")
+                        with line_select.add_slot("selected"):
+                            ui.html(get_badge_html(edge.line, edge.line.name), sanitize=False)
 
         route_summary()
 
