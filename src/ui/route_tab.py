@@ -611,16 +611,16 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
         results = await handle_progress(
             progress, get_kth_routes, city, start_station.value, end_station.value,
             start_date, start_time, int(kth_select.value),
-            metric=metric_select.value, exclude_virtual=virtual_switch.value
+            metric=metric_select.value, exclude_virtual=(not virtual_switch.value)
         )
         calc_button.set_enabled(True)
         await kth_table.refresh(start_date=start_date, results=results)
 
     with ui.column().classes("w-full"):
-        virtual_switch = ui.switch("Exclude virtual transfers", value=False, on_change=on_input_change)
+        virtual_switch = ui.switch("Allow virtual transfers", value=False, on_change=on_input_change)
         with ui.row().classes("items-center route-tab-top-selection w-full flex-nowrap"):
             metric_select = ui.select({
-                "time": "Fastest", "station": "Fewest station", "distance": "Shortest"
+                "time": "Fastest", "distance": "Shortest", "station": "Fewest station"
             }, label="Metric", value="time").on_value_change(on_input_change)
             kth_select = ui.input(
                 value="5", label="Kth", validation=valid_positive

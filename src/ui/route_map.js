@@ -26,7 +26,7 @@ window.routeMapSetup = window.routeMapSetup || function(id) {
         y: 0,
         pointers: new Map(),
         moved: false,
-        frame: null,
+        frame: null
     };
     const tooltip = document.createElement('div');
     tooltip.className = 'route-map-tooltip';
@@ -94,7 +94,7 @@ window.routeMapSetup = window.routeMapSetup || function(id) {
             x: event.clientX,
             y: event.clientY,
             startX: event.clientX,
-            startY: event.clientY,
+            startY: event.clientY
         });
         state.moved = false;
         if (state.pointers.size === 2) {
@@ -114,7 +114,7 @@ window.routeMapSetup = window.routeMapSetup || function(id) {
             x: event.clientX,
             y: event.clientY,
             startX: previous.startX,
-            startY: previous.startY,
+            startY: previous.startY
         });
         if (state.pointers.size === 1 && state.scale > 1 && state.moved) {
             state.x += event.clientX - previous.x;

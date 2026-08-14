@@ -67,11 +67,12 @@ class MapRouteState:
     def __init__(self, city: City) -> None:
         self.city = city
         self.allow_virtual = False
+        self.fewest_stations = False
         self.waypoints: list[str] = []
         self.segments: list[Path] = []
         self.segment_line_overrides: list[dict[tuple[str, str], str]] = []
         self._graphs: dict[bool, Graph] = {}
-        self._path_cache: dict[tuple[bool, str], dict[str, tuple[int, Path]]] = {}
+        self._path_cache: dict[tuple[bool, bool, str], dict[str, tuple[int, Path]]] = {}
 
     def _graph(self, allow_virtual: bool) -> Graph:
         """ Get a cached distance graph """
@@ -79,21 +80,29 @@ class MapRouteState:
             self._graphs[allow_virtual] = get_dist_graph(self.city, include_virtual=allow_virtual)
         return self._graphs[allow_virtual]
 
-    def _paths_from(self, station: str, allow_virtual: bool) -> dict[str, tuple[int, Path]]:
+    def _paths_from(
+        self, station: str, allow_virtual: bool, fewest_stations: bool
+    ) -> dict[str, tuple[int, Path]]:
         """ Get the cached shortest paths originating at a station """
-        key = allow_virtual, station
+        key = allow_virtual, fewest_stations, station
         if key not in self._path_cache:
-            self._path_cache[key] = shortest_path(self._graph(allow_virtual), station)
+            self._path_cache[key] = shortest_path(
+                self._graph(allow_virtual), station, ignore_dists=fewest_stations
+            )
         return self._path_cache[key]
 
-    def find_segment(self, start: str, end: str, *, allow_virtual: bool | None = None) -> Path | None:
-        """ Find the shortest-distance segment between two stations """
+    def find_segment(
+        self, start: str, end: str, *, allow_virtual: bool | None = None,
+        fewest_stations: bool | None = None
+    ) -> Path | None:
+        """ Find a shortest-distance or fewest-station segment between two stations """
         use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
-        result = self._paths_from(start, use_virtual).get(end)
+        use_fewest = self.fewest_stations if fewest_stations is None else fewest_stations
+        result = self._paths_from(start, use_virtual, use_fewest).get(end)
         return None if result is None else result[1][:]
 
     def direct_line_options(
-        self, start: str, end: str, *, allow_virtual: bool | None = None,
+        self, start: str, end: str, *, allow_virtual: bool | None = None
     ) -> list[tuple[Line, int]]:
         """ Return physical lines which directly connect two stations and their edge distances """
         use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
@@ -105,7 +114,7 @@ class MapRouteState:
         return sorted(options, key=lambda option: (option[0].index, option[0].name))
 
     def _apply_segment_overrides(
-        self, index: int, segment: Path, end_station: str, *, allow_virtual: bool,
+        self, index: int, segment: Path, end_station: str, *, allow_virtual: bool
     ) -> Path | None:
         """ Apply explicit parallel-line choices to a freshly computed waypoint segment """
         result = segment[:]
@@ -149,7 +158,7 @@ class MapRouteState:
                 choices = self.direct_line_options(station, next_station)
                 if len(choices) > 1:
                     result.append(AmbiguousPathEdge(
-                        segment_index, station, next_station, line, choices,
+                        segment_index, station, next_station, line, choices
                     ))
         return result
 
@@ -168,20 +177,27 @@ class MapRouteState:
         self.waypoints.append(station)
         return True
 
-    def recompute(self, allow_virtual: bool) -> bool:
-        """ Recompute all segments for a different virtual-transfer policy """
+    def recompute(
+        self, *, allow_virtual: bool | None = None, fewest_stations: bool | None = None
+    ) -> bool:
+        """ Recompute all segments for different pathfinding settings """
+        use_virtual = self.allow_virtual if allow_virtual is None else allow_virtual
+        use_fewest = self.fewest_stations if fewest_stations is None else fewest_stations
         new_segments: list[Path] = []
         for index, (start, end) in enumerate(zip(self.waypoints, self.waypoints[1:])):
-            segment = self.find_segment(start, end, allow_virtual=allow_virtual)
+            segment = self.find_segment(
+                start, end, allow_virtual=use_virtual, fewest_stations=use_fewest
+            )
             if segment is None:
                 return False
             overridden = self._apply_segment_overrides(
-                index, segment, end, allow_virtual=allow_virtual,
+                index, segment, end, allow_virtual=use_virtual
             )
             if overridden is None:
                 return False
             new_segments.append(overridden)
-        self.allow_virtual = allow_virtual
+        self.allow_virtual = use_virtual
+        self.fewest_stations = use_fewest
         self.segments = new_segments
         return True
 
@@ -204,23 +220,39 @@ class MapRouteState:
         """ Convert the selected segments into a routing-pk route """
         if len(self.waypoints) < 2:
             return None
-        path = [entry for segment in self.segments for entry in segment]
+        edges = self.selected_edges()
+        if len(edges) == 0:
+            return None
+        path = [(start, line) for start, _, line in edges]
         return simplify_path(path, self.waypoints[-1]), self.waypoints[-1]
 
     def selected_stations(self) -> set[str]:
         """ Return every station traversed by the selected path """
-        stations = {station for segment in self.segments for station, _ in segment}
-        if len(self.waypoints) > 0:
-            stations.add(self.waypoints[-1])
+        edges = self.selected_edges()
+        stations = {station for start, end, _ in edges for station in (start, end)}
+        if len(edges) == 0 and len(self.waypoints) > 0:
+            stations.add(self.waypoints[0])
         return stations
 
-    def selected_edges(self) -> list[tuple[str, str, Line | None]]:
-        """ Return every edge traversed by the selected path """
+    def raw_edges(self) -> list[tuple[str, str, Line | None]]:
+        """ Return every edge traversed by the unmodified waypoint segments """
         edges: list[tuple[str, str, Line | None]] = []
         for segment, end_station in zip(self.segments, self.waypoints[1:]):
             for index, (station, line) in enumerate(segment):
                 next_station = end_station if index == len(segment) - 1 else segment[index + 1][0]
                 edges.append((station, next_station, line))
+        return edges
+
+    def selected_edges(self) -> list[tuple[str, str, Line | None]]:
+        """ Return traversed edges after cancelling same-line immediate switchbacks """
+        edges: list[tuple[str, str, Line | None]] = []
+        for start, end, line in self.raw_edges():
+            if len(edges) > 0:
+                previous_start, previous_end, previous_line = edges[-1]
+                if (previous_start, previous_end, previous_line) == (end, start, line):
+                    edges.pop()
+                    continue
+            edges.append((start, end, line))
         return edges
 
     def selected_station_sequence(self) -> list[str]:
@@ -261,7 +293,7 @@ def get_viewport(map_obj: Map, *, sketch: bool) -> MapViewport:
         max_x - min_x + padding * 2,
         max_y - min_y + padding * 2,
         -min_x + padding,
-        -min_y + padding,
+        -min_y + padding
     )
 
 
@@ -295,7 +327,7 @@ def map_line(
     end_x, end_y = viewport.point(*end_shape.center_point())
     return (
         f'<line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" {attributes} />',
-        True,
+        True
     )
 
 
@@ -310,7 +342,7 @@ def rectangle_overlap(
 
 def segment_intersects_rectangle(
     segment: tuple[tuple[float, float], tuple[float, float]],
-    rectangle: tuple[float, float, float, float],
+    rectangle: tuple[float, float, float, float]
 ) -> bool:
     """ Return whether a line segment crosses a rectangle """
     (start_x, start_y), (end_x, end_y) = segment
@@ -321,7 +353,7 @@ def segment_intersects_rectangle(
         (-delta_x, start_x - left),
         (delta_x, right - start_x),
         (-delta_y, start_y - top),
-        (delta_y, bottom - start_y),
+        (delta_y, bottom - start_y)
     ):
         if direction == 0:
             if distance < 0:
@@ -340,7 +372,7 @@ def segment_intersects_rectangle(
 def station_label_placements(
     map_obj: Map, viewport: MapViewport, font_sizes: dict[str, float], priority_stations: set[str],
     network_segments: list[tuple[tuple[float, float], tuple[float, float]]],
-    selected_segments: list[tuple[tuple[float, float], tuple[float, float]]],
+    selected_segments: list[tuple[tuple[float, float], tuple[float, float]]]
 ) -> dict[str, tuple[float, float, str]]:
     """ Place labels while minimizing station, label, and network-line collisions """
     station_boxes: dict[str, tuple[float, float, float, float]] = {}
@@ -352,7 +384,7 @@ def station_label_placements(
             left + viewport.offset_x,
             top + viewport.offset_y,
             right + viewport.offset_x,
-            bottom + viewport.offset_y,
+            bottom + viewport.offset_y
         )
 
     canvas = (0.0, 0.0, viewport.width, viewport.height)
@@ -375,7 +407,7 @@ def station_label_placements(
             center_x - half_width - label_width - far_gap,
             center_y - half_height - label_height - far_gap,
             center_x + half_width + label_width + far_gap,
-            center_y + half_height + label_height + far_gap,
+            center_y + half_height + label_height + far_gap
         )
         nearby_segments = [
             segment for segment in network_segments
@@ -412,7 +444,7 @@ def station_label_placements(
                 box[0] - line_clearance,
                 box[1] - line_clearance,
                 box[2] + line_clearance,
-                box[3] + line_clearance,
+                box[3] + line_clearance
             )
             station_overlap = sum(
                 rectangle_overlap(box, other_box)
@@ -454,7 +486,7 @@ def station_label_placements(
 def build_map_svg(
     city: City, map_obj: Map, viewport: MapViewport, state: MapRouteState, station_ids: dict[str, str], *,
     sketch: bool, show_path_order: bool = False, station_name_mode: str = "All",
-    station_clickable: bool = True,
+    station_clickable: bool = True
 ) -> tuple[str, set[str]]:
     """ Build the SVG overlay and return stations missing from selected-path drawing """
     svg: list[str] = []
@@ -473,7 +505,7 @@ def build_map_svg(
         if start_shape is not None and end_shape is not None:
             selected_segments.append((
                 viewport.point(*start_shape.center_point()),
-                viewport.point(*end_shape.center_point()),
+                viewport.point(*end_shape.center_point())
             ))
 
     if sketch:
@@ -490,14 +522,14 @@ def build_map_svg(
                 if start_shape is not None and end_shape is not None and key not in selected_edge_keys:
                     network_segments.append((
                         viewport.point(*start_shape.center_point()),
-                        viewport.point(*end_shape.center_point()),
+                        viewport.point(*end_shape.center_point())
                     ))
                 color = SKETCH_EDGE if line is not None else SKETCH_VIRTUAL_EDGE
                 dash = "" if line is not None else ' stroke-dasharray="6 6"'
                 segment, _ = map_line(
                     map_obj, viewport, station, next_station,
                     f'stroke="{color}" stroke-width="1.5" vector-effect="non-scaling-stroke" '
-                    f'pointer-events="none"{dash}',
+                    f'pointer-events="none"{dash}'
                 )
                 svg.append(segment)
 
@@ -511,7 +543,7 @@ def build_map_svg(
         segment, drawn = map_line(
             map_obj, viewport, start, end,
             f'class="route-map-selected-path" stroke="{color}" stroke-width="5" stroke-linecap="round" '
-            f'vector-effect="non-scaling-stroke" pointer-events="none"{dash}',
+            f'vector-effect="non-scaling-stroke" pointer-events="none"{dash}'
         )
         svg.append(segment)
         if not drawn:
@@ -530,7 +562,7 @@ def build_map_svg(
             svg.append(shape_svg(
                 shape, viewport,
                 f'fill="{SKETCH_BACKGROUND}" stroke="{fill}" stroke-width="2" '
-                'vector-effect="non-scaling-stroke" pointer-events="none"',
+                'vector-effect="non-scaling-stroke" pointer-events="none"'
             ))
 
         waypoint_stations = set(state.waypoints)
@@ -556,7 +588,7 @@ def build_map_svg(
             if shape is not None and station in label_stations
         }
         label_placements = station_label_placements(
-            map_obj, viewport, label_font_sizes, overview_labels, network_segments, selected_segments,
+            map_obj, viewport, label_font_sizes, overview_labels, network_segments, selected_segments
         )
         for station in sorted(label_placements):
             x, y, anchor = label_placements[station]
@@ -615,12 +647,12 @@ def build_map_svg(
             f'{"" if station_clickable else " route-map-hover-only"}" '
             f'fill="transparent" stroke="transparent" '
             f'stroke-width="{HIT_STROKE_WIDTH}" vector-effect="non-scaling-stroke" pointer-events="all" '
-            f'data-station="{escape(station, quote=True)}" data-lines="{escape(line_data, quote=True)}"',
+            f'data-station="{escape(station, quote=True)}" data-lines="{escape(line_data, quote=True)}"'
         ))
         svg.append(shape_svg(
             shape, viewport,
             'class="route-map-hover" fill="white" stroke="white" stroke-width="3" '
-            'vector-effect="non-scaling-stroke" pointer-events="none"',
+            'vector-effect="non-scaling-stroke" pointer-events="none"'
         ))
 
     return "".join(svg), missing_path_stations
@@ -740,7 +772,7 @@ def add_route_map(
         ui.notify(
             "Cannot draw part of the route on this map because coordinates are missing for: " +
             ", ".join(sorted(missing)),
-            type="warning",
+            type="warning"
         )
 
     def current_render() -> tuple[Map, MapViewport, bool, str, set[str]]:
@@ -751,7 +783,7 @@ def add_route_map(
         content, missing = build_map_svg(
             city, map_obj, viewport, state, station_ids,
             sketch=sketch, show_path_order=show_order_switch.value,
-            station_name_mode=station_name_select.value,
+            station_name_mode=station_name_select.value
         )
         return map_obj, viewport, sketch, content, missing
 
@@ -796,9 +828,21 @@ def add_route_map(
         previous = state.allow_virtual
         if allow_virtual == previous:
             return
-        if not state.recompute(allow_virtual):
+        if not state.recompute(allow_virtual=allow_virtual):
             ui.notify("The selected waypoints cannot be connected with this transfer setting.", type="negative")
             virtual_switch.set_value(previous)
+            return
+        refresh_controls()
+
+    def on_path_metric_change(value: object) -> None:
+        """ Recompute the current route using distance or station count """
+        fewest_stations = value == "Fewest stations"
+        previous = state.fewest_stations
+        if fewest_stations == previous:
+            return
+        if not state.recompute(fewest_stations=fewest_stations):
+            ui.notify("The selected waypoints cannot be connected with this path metric.", type="negative")
+            path_metric_select.set_value("Fewest stations" if previous else "Shortest")
             return
         refresh_controls()
 
@@ -807,7 +851,7 @@ def add_route_map(
         if not state.set_edge_line(edge.segment_index, edge.start, edge.end, str(value)):
             ui.notify(
                 "That line no longer directly connects the selected stations.",
-                type="negative",
+                type="negative"
             )
             route_summary.refresh()
             return
@@ -828,13 +872,17 @@ def add_route_map(
             mode_toggle = ui.toggle(["Regular", "Sketch"], value="Regular").on_value_change(on_view_change)
             virtual_switch = ui.switch(
                 "Allow virtual transfers", value=False,
-                on_change=lambda event: on_virtual_change(bool(event.value)),
+                on_change=lambda event: on_virtual_change(bool(event.value))
             )
             show_order_switch = ui.switch("Show path order", value=False, on_change=refresh_overlay)
             station_name_select = ui.select(
-                STATION_NAME_MODES, value="All", label="Station name",
+                STATION_NAME_MODES, value="All", label="Station name"
             ).classes("w-30").on_value_change(refresh_overlay)
             station_name_select.set_visibility(False)
+            path_metric_select = ui.select(
+                ["Shortest", "Fewest stations"], value="Shortest", label="Path metric",
+                on_change=lambda event: on_path_metric_change(event.value)
+            ).classes("w-35")
             undo_button = ui.button("Undo last station", on_click=on_undo).props("outline")
             clear_button = ui.button("Clear", on_click=on_clear).props("outline color=negative")
             undo_button.set_enabled(False)
@@ -859,7 +907,7 @@ def add_route_map(
                     ui.label("Computed route:")
                     render_route(route)
                     ui.button(
-                        "Add to current routes", on_click=lambda r=route: on_route_change(r),
+                        "Add to current routes", on_click=lambda r=route: on_route_change(r)
                     ).classes("ml-1")
 
                 ambiguous_edges = state.ambiguous_edges()
@@ -881,7 +929,7 @@ def add_route_map(
                             options,
                             value=edge.line.name,
                             label=f"{edge.start} → {edge.end}",
-                            on_change=lambda event, e=edge: on_edge_line_change(e, event.value),
+                            on_change=lambda event, e=edge: on_edge_line_change(e, event.value)
                         ).props("dense outlined options-dense options-html").classes("min-w-40")
                         with line_select.add_slot("selected"):
                             ui.html(get_badge_html(edge.line, edge.line.name), sanitize=False)
@@ -895,7 +943,7 @@ def add_route_map(
             map_obj, viewport, sketch, content, missing = current_render()
             if sketch:
                 image = ui.interactive_image(
-                    content=content, size=(viewport.width, viewport.height), sanitize=False,
+                    content=content, size=(viewport.width, viewport.height), sanitize=False
                 )
             else:
                 image = ui.interactive_image(map_obj.path, content=content, sanitize=False)
@@ -913,19 +961,19 @@ def add_route_map_zoom_controls(container_id: str) -> None:
         ui.label("Scroll or pinch to zoom; drag to pan").classes("text-caption text-grey mr-2")
         for icon, factor, tooltip in (
             ("remove", 0.8, "Zoom out"),
-            ("add", 1.25, "Zoom in"),
+            ("add", 1.25, "Zoom in")
         ):
             ui.button(icon=icon).props("round flat dense").on(
                 "click", js_handler=f"""() => {{
                     const map = document.getElementById({selector})?.querySelector('.route-map-image');
                     if (map) window.routeMapZoom?.(map.id, {factor});
-                }}""",
+                }}"""
             ).tooltip(tooltip)
         ui.button(icon="center_focus_strong").props("round flat dense").on(
             "click", js_handler=f"""() => {{
                 const map = document.getElementById({selector})?.querySelector('.route-map-image');
                 if (map) window.routeMapReset?.(map.id);
-            }}""",
+            }}"""
         ).tooltip("Reset view")
 
 
@@ -964,7 +1012,7 @@ def add_route_map_viewer(city: City, route: Route) -> None:
         ui.notify(
             "Cannot draw part of the route on this map because coordinates are missing for: " +
             ", ".join(sorted(missing)),
-            type="warning",
+            type="warning"
         )
 
     def current_render() -> tuple[Map, MapViewport, bool, str, set[str]]:
@@ -975,7 +1023,7 @@ def add_route_map_viewer(city: City, route: Route) -> None:
         content, missing = build_map_svg(
             city, map_obj, viewport, state, station_ids,
             sketch=sketch, show_path_order=show_order_switch.value,
-            station_name_mode=station_name_select.value, station_clickable=False,
+            station_name_mode=station_name_select.value, station_clickable=False
         )
         return map_obj, viewport, sketch, content, missing
 
@@ -998,7 +1046,7 @@ def add_route_map_viewer(city: City, route: Route) -> None:
             mode_toggle = ui.toggle(["Regular", "Sketch"], value="Regular").on_value_change(on_view_change)
             show_order_switch = ui.switch("Show path order", value=False, on_change=refresh_overlay)
             station_name_select = ui.select(
-                STATION_NAME_MODES, value="Path", label="Station name",
+                STATION_NAME_MODES, value="Path", label="Station name"
             ).classes("w-30").on_value_change(refresh_overlay)
             station_name_select.set_visibility(False)
 
@@ -1011,7 +1059,7 @@ def add_route_map_viewer(city: City, route: Route) -> None:
             map_obj, viewport, sketch, content, missing = current_render()
             if sketch:
                 image = ui.interactive_image(
-                    content=content, size=(viewport.width, viewport.height), sanitize=False,
+                    content=content, size=(viewport.width, viewport.height), sanitize=False
                 )
             else:
                 image = ui.interactive_image(map_obj.path, content=content, sanitize=False)
