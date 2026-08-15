@@ -191,7 +191,7 @@ class Fare:
                     assert 0 <= fetch_index < len(path), (path, fetch_index, orig_delta, i, end_station, station)
                 old_train = path[fetch_index][1]
                 assert isinstance(old_train, Train), (path, old_index, i)
-                end_time, end_day = old_train.arrival_time_virtual(path[fetch_index][0])[end_station]
+                end_time, end_day = old_train.arrival_time_after(path[fetch_index][0], end_station)
                 last_train = path[last_index][1]
                 assert isinstance(last_train, Train), (path, last_index, i)
                 splits.append((path[last_index][0], last_train.line.name, last_train.direction, station,

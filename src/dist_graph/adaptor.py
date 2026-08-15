@@ -173,10 +173,7 @@ def to_trains(
         next_candidates: list[Train] = []
         for date_group, train_list in train_dict[line_name][direction].items():
             trains = sorted(
-                [train for train in train_list if station in train.arrival_time.keys()
-                 and next_station in train.arrival_time_virtual(station).keys()
-                 and station not in train.skip_stations and next_station not in train.skip_stations
-                 and (station != next_station or train.loop_next is not None)],
+                [train for train in train_list if train.can_reach(station, next_station)],
                 key=lambda train: get_time_str(*train.arrival_time[station])
             )
             if line.date_groups[date_group].covers(next_date):
@@ -199,11 +196,7 @@ def to_trains(
         final_new_path.append((station, candidate))
 
         # Try to find a transfer time
-        if station == next_station:
-            assert candidate.loop_next is not None, (candidate, station)
-            cur_tuple = candidate.loop_next.arrival_time[next_station]
-        else:
-            cur_tuple = candidate.arrival_time_virtual(station)[next_station]
+        cur_tuple = candidate.arrival_time_after(station, next_station)
         if i == len(new_path) - 1 or new_path[i + 1][1] is None:
             continue
         transfer = transfer_dict[next_station]

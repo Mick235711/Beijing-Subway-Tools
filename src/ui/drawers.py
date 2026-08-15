@@ -849,7 +849,28 @@ def train_timeline(
         prev_train: Train | None = None
         last_station = train[1][0][0]
         is_first = True
-        expanded = (train[1] if show_station == "none" else expand_path(train[1], train[2].station, expand_all=True))
+        expanded_times: list[TimeSpec | None]
+        if show_station == "none":
+            expanded = train[1]
+            expanded_times = [
+                inner_train.arrival_time.get(inner_station) if isinstance(inner_train, Train) else None
+                for inner_station, inner_train in expanded
+            ]
+        else:
+            expanded = []
+            expanded_times = []
+            for path_index, (path_station, path_train) in enumerate(train[1]):
+                if not isinstance(path_train, Train):
+                    expanded.append((path_train[0], path_train))
+                    expanded_times.append(None)
+                    continue
+                path_end = train[2].station if path_index == len(train[1]) - 1 else train[1][path_index + 1][0]
+                path_times = path_train.arrival_time_virtual(path_station)
+                for expanded_station in path_train.two_station_interval(
+                    path_station, path_end, expand_all=True
+                ):
+                    expanded.append((expanded_station, path_train))
+                    expanded_times.append(path_times.get(expanded_station))
         for i, (inner_station, inner_train) in enumerate(expanded):
             if isinstance(inner_train, Train):
                 is_through = False
@@ -862,7 +883,7 @@ def train_timeline(
                 stations.append((
                     inner_station,
                     (last_station, is_through, inner_train.line, inner_train),
-                    inner_train.arrival_time.get(inner_station)
+                    expanded_times[i]
                 ))
                 prev_line_name = inner_train.line.name
                 prev_train = inner_train
@@ -875,7 +896,7 @@ def train_timeline(
                     prev_entry = expanded[i - 1][1]
                     assert isinstance(prev_entry, Train), (expanded, i)
                     stations.append((
-                        inner_station, None, prev_entry.arrival_time_virtual(expanded[i - 1][0]).get(inner_train[0])
+                        inner_station, None, prev_entry.arrival_time_after(expanded[i - 1][0], inner_train[0])
                     ))
                 prev_line_name = None
                 prev_train = None
@@ -907,7 +928,7 @@ def train_timeline(
             if i > 0:
                 prev_station, prev_train_tuple = train[1][i - 1]
                 if isinstance(prev_train_tuple, Train):
-                    prev_time = prev_train_tuple.arrival_time_virtual(prev_station)[inner_station]
+                    prev_time = prev_train_tuple.arrival_time_after(prev_station, inner_station)
                     transfer_time, _ = transfer_dict[inner_station].get_transfer_time(
                         prev_train_tuple.line, prev_train_tuple.direction, inner_train.line, inner_train.direction,
                         prev_train_tuple.line.date_groups[prev_train_tuple.date_group], *prev_time
@@ -918,7 +939,7 @@ def train_timeline(
                     else:
                         prev_prev = train[1][i - 2][1]
                         assert isinstance(prev_prev, Train), (train, i)
-                        prev_time = prev_prev.arrival_time_virtual(train[1][i - 2][0])[prev_station]
+                        prev_time = prev_prev.arrival_time_after(train[1][i - 2][0], prev_station)
                     transfer_time = prev_train_tuple[3]
                 prev_time = (prev_time[0], prev_time[1] or force_next_day)
                 if diff_time_tuple(inner_train.arrival_time[inner_station], prev_time) < 0:
@@ -938,7 +959,7 @@ def train_timeline(
             train_id_dicts[(inner_train.line.name, inner_train.direction)] = get_train_id(
                 train_dict[inner_train.line.name][inner_train.direction][inner_train.date_group]
             )
-            force_next_day = force_next_day or inner_train.arrival_time_virtual(inner_station)[next_station][1]
+            force_next_day = force_next_day or inner_train.arrival_time_after(inner_station, next_station)[1]
             if not inner_train.is_express():
                 continue
             overtaken += find_overtaken(
@@ -1122,7 +1143,7 @@ def train_timeline(
 
             last_station, is_through, line, single_train = line_train
             express_icon = line.station_badges[line.stations.index(station)]
-            if i > 0 and station == last_station:
+            if 0 < i < len(stations) - 1 and station == last_station:
                 express_icon = "south" if is_through else "sync"
             elif station in skip_stations:
                 express_icon = "keyboard_double_arrow_down"

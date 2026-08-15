@@ -330,7 +330,7 @@ def get_waiting_time(
 
         next_time = train.arrival_time[station]
         total_waiting += diff_time_tuple(next_time, cur_time)
-        cur_time = train.arrival_time_virtual(station)[next_station]
+        cur_time = train.arrival_time_after(station, next_station)
         if exclude_transfer and i < len(path_info[1]) - 1:
             next_train = path_info[1][i + 1][1]
             if not isinstance(next_train, tuple):

@@ -217,12 +217,40 @@ class Train:
             cur_list += next_list
         return dict(cur_list)
 
+    def can_reach(self, start_station: str, end_station: str) -> bool:
+        """ Determine whether this service stops at end_station after start_station """
+        if start_station not in self.arrival_time or start_station in self.skip_stations:
+            return False
+
+        arrival_stations = list(self.arrival_time)
+        start_index = arrival_stations.index(start_station)
+        if end_station != start_station and end_station in self.arrival_time:
+            end_index = arrival_stations.index(end_station)
+            if end_index > start_index:
+                return end_station not in self.skip_stations
+
+        return (
+            self.loop_next is not None and end_station in self.loop_next.arrival_time and
+            end_station not in self.loop_next.skip_stations
+        )
+
+    def arrival_time_after(self, start_station: str, end_station: str) -> TimeSpec:
+        """ Get the arrival time at end_station after departing from start_station """
+        assert self.can_reach(start_station, end_station), (self, start_station, end_station)
+        if end_station != start_station and end_station in self.arrival_time:
+            arrival_stations = list(self.arrival_time)
+            if arrival_stations.index(end_station) > arrival_stations.index(start_station):
+                return self.arrival_time[end_station]
+        assert self.loop_next is not None
+        return self.loop_next.arrival_time[end_station]
+
     def arrival_time_two_station(
         self, start_station: str, end_station: str, *, inclusive: bool = False
     ) -> dict[str, TimeSpec]:
         """ Display arrival_time dict between two stations """
+        assert self.can_reach(start_station, end_station), (self, start_station, end_station)
         virtual = self.arrival_time_virtual(start_station)
-        if start_station == end_station and self.loop_next is not None:
+        if start_station == end_station:
             return virtual
         return dict(list(virtual.items())[:list(virtual.keys()).index(end_station) + (1 if inclusive else 0)])
 
@@ -245,11 +273,10 @@ class Train:
         start_time, start_day = virtual[start_station]
         start_index = arrival_keys.index(start_station)
         if end_station == start_station:
-            assert self.loop_next is not None, (self, start_station)
-            end_time, end_day = self.loop_next.arrival_time[end_station]
+            end_time, end_day = self.arrival_time_after(start_station, end_station)
             end_index = len(arrival_keys)
         else:
-            end_time, end_day = virtual[end_station]
+            end_time, end_day = self.arrival_time_after(start_station, end_station)
             end_index = arrival_keys.index(end_station)
         duration = diff_time(end_time, start_time, end_day, start_day)
         return suffix_s("station", end_index - start_index) + \
@@ -259,8 +286,7 @@ class Train:
         """ Get string representation for two stations """
         arrival_keys = self.arrival_time_virtual(start_station)
         if start_station == end_station:
-            assert self.loop_next is not None, (self, start_station)
-            arrival_keys[end_station] = self.loop_next.arrival_time[end_station]
+            arrival_keys[end_station] = self.arrival_time_after(start_station, end_station)
         assert end_station in arrival_keys, (end_station, arrival_keys)
         return (f"{self.direction_repr()} {self.line.station_full_name(start_station)} " +
                 f"{self.stop_time_repr(start_station)} -> {self.line.station_full_name(end_station)} " +
