@@ -141,8 +141,8 @@
             }
         ],
         "国家图书馆": [
-            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "南行", minutes: 0, distance: 0, stairs: 0},
-            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "北行", minutes: 0, distance: 0, stairs: 0},
+            {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "南行", minutes: 0, distance: 10, stairs: 0},
+            {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "北行", minutes: 0, distance: 10, stairs: 0},
             {from: "4号线", from_direction: "南行", to: "9号线", to_direction: "北行", minutes: 1, distance: 30, stairs: 68},
             {from: "4号线", from_direction: "北行", to: "9号线", to_direction: "南行", minutes: 1, distance: 30, stairs: 68},
             // 同向同台
@@ -159,8 +159,8 @@
             }
         ],
         "北京西站": [
-            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "南行", minutes: 0, distance: 0, stairs: 0},
-            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "北行", minutes: 0, distance: 0, stairs: 0},
+            {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "南行", minutes: 0, distance: 10, stairs: 0},
+            {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "北行", minutes: 0, distance: 10, stairs: 0},
             {from: "7号线", from_direction: "东行", to: "9号线", to_direction: "北行", minutes: 1, distance: 20, stairs: 92},
             {from: "7号线", from_direction: "西行", to: "9号线", to_direction: "南行", minutes: 1, distance: 20, stairs: 92}
             // 同向同台
@@ -231,8 +231,8 @@
             {from: "11号线", to: "S1线", minutes: 4, distance: 170, stairs: 211}
         ],
         "东坝北": [
-            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "东行", minutes: 0, distance: 0, stairs: 0},
-            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "西行", minutes: 0, distance: 0, stairs: 0},
+            {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "东行", minutes: 0, distance: 10, stairs: 0},
+            {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "西行", minutes: 0, distance: 10, stairs: 0},
             {from: "3号线", from_direction: "东行", to: "12号线", to_direction: "西行", minutes: 1, distance: 30, stairs: 72},
             {from: "3号线", from_direction: "西行", to: "12号线", to_direction: "东行", minutes: 1, distance: 30, stairs: 72}
             // 同向同台
@@ -481,8 +481,8 @@
         "郭公庄": [
             {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "进城", minutes: 1, distance: 30, stairs: 68},
             {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "出城", minutes: 1, distance: 30, stairs: 68},
-            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "出城", minutes: 0, distance: 0, stairs: 0},
-            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "进城", minutes: 0, distance: 0, stairs: 0}
+            {from: "9号线", from_direction: "南行", to: "房山线", to_direction: "出城", minutes: 0, distance: 10, stairs: 0},
+            {from: "9号线", from_direction: "北行", to: "房山线", to_direction: "进城", minutes: 0, distance: 10, stairs: 0}
             // 同向同台
         ],
         "首经贸": [
@@ -498,15 +498,15 @@
             {from: "16号线", to: "房山线", minutes: 2, distance: 60, stairs: 127}
         ],
         "阎村东": [
-            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "进城", minutes: 0, distance: 0, stairs: 0},
-            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "出城", minutes: 0, distance: 0, stairs: 0},
+            {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "进城", minutes: 0, distance: 10, stairs: 0},
+            {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "出城", minutes: 0, distance: 10, stairs: 0},
             {from: "房山线", from_direction: "进城", to: "燕房线", to_direction: "出城", minutes: 1, distance: 30, stairs: 68},
             {from: "房山线", from_direction: "出城", to: "燕房线", to_direction: "进城", minutes: 1, distance: 30, stairs: 68}
             // 同向同台
         ],
         "朱辛庄": [
-            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "进城", minutes: 0, distance: 0, stairs: 0},
-            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "出城", minutes: 0, distance: 0, stairs: 0},
+            {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "进城", minutes: 0, distance: 10, stairs: 0},
+            {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "出城", minutes: 0, distance: 10, stairs: 0},
             {from: "8号线", from_direction: "南行", to: "昌平线", to_direction: "出城", minutes: 1, distance: 30, stairs: 104},
             {from: "8号线", from_direction: "北行", to: "昌平线", to_direction: "进城", minutes: 1, distance: 30, stairs: 104}
             // 同向同台

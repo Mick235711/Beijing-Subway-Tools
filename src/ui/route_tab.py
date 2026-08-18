@@ -1047,7 +1047,10 @@ def get_expandable_data_body_html() -> str:
 
         <template v-else-if="col.name === 'avgTime'">
             <span v-html="props.row.avg_time[0]" />
-            <q-tooltip v-html="props.row.avg_time[1]" />
+            <q-tooltip
+                v-if="props.cols.some(innerCol => innerCol.name === 'avgSpeed' && innerCol.classes === 'hidden')"
+                v-html="props.row.avg_time[1]"
+            />
         </template>
 
         <template v-else-if="col.name === 'minTime' || col.name === 'maxTime'">
