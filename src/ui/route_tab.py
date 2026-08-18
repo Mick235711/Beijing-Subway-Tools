@@ -152,7 +152,6 @@ def route_tab(city: City) -> None:
             ui.label("Current Routes").classes("text-xl font-semibold mt-6 mb-2")
             with ui.row().classes("flex-1 justify-center items-center gap-x-2"):
                 route_invert = ui.button(icon="flip", color="secondary").props("round")
-                route_invert.set_enabled(False)
                 route_delete = ui.button(icon="delete", color="red").props("round")
                 route_delete.set_enabled(False)
                 route_swap = ui.button(icon="swap_horiz").props("round")
@@ -229,11 +228,9 @@ def route_tab(city: City) -> None:
     def on_select_change(selection: list[dict]) -> None:
         """ Handle selection changes """
         if len(selection) == 0:
-            route_invert.set_enabled(False)
             route_delete.set_enabled(False)
             route_swap.set_enabled(False)
         else:
-            route_invert.set_enabled(True)
             route_delete.set_enabled(True)
             route_swap.set_enabled(True)
 
