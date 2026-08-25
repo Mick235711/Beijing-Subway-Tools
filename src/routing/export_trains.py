@@ -167,9 +167,9 @@ def format_pyetrc(
     # Create circuit (line) information
     cur_dist = 0
     station_list: list = []
-    for station, dist in zip(line.stations + (
+    for station, dist in zip(([line.stations[-1] + loop_suffix] if line.loop else []) + line.stations + (
         [line.stations[0] + loop_suffix] if line.loop else []
-    ), [0] + line.station_dists):
+    ), [0] + ([line.station_dists[-1]] if line.loop else []) + line.station_dists):
         cur_dist += dist
         station_list.append({
             "zhanming": station, "licheng": cur_dist / 1000, "dengji": 0,
@@ -193,7 +193,7 @@ def format_pyetrc(
             "UI": {"Color": (line.color or "#000000").lower()},
             "checi": [train_id, train_id, ""] if train.direction == base_direction else [train_id, "", train_id],
             "sfz": train.stations[0],
-            "zdz": train.last_station(),
+            "zdz": train.last_station() + (loop_suffix if line.loop else ""),
             "shown": True,
             "tags": [r.name for r in train.routes],
         })
@@ -203,19 +203,21 @@ def format_pyetrc(
             arrival_str = get_time_str(*arriving_time)
             depart_str = get_time_str(*depart_time)
             passing = station in train.skip_stations
-            if passing:
-                arrival_value = departure_value = f"{depart_str}:00"
+            if passing or station == train.stations[0]:
+                arrival_value = depart_value = f"{depart_str}:00"
+            elif station == train.last_station():
+                arrival_value = depart_value = f"{arrival_str}:00"
             elif train.stopping_time(station) == 0:
                 before_time_str = get_time_str(*add_min_tuple(depart_time, -1))
                 arrival_value = f"{before_time_str}:50"
-                departure_value = f"{depart_str}:10"
+                depart_value = f"{depart_str}:10"
             else:
                 arrival_value = f"{arrival_str}:00"
-                departure_value = f"{depart_str}:00"
+                depart_value = f"{depart_str}:00"
             timetable_list.append({
                 "business": not passing,
                 "ddsj": arrival_value,
-                "cfsj": departure_value,
+                "cfsj": depart_value,
                 "zhanming": station
             })
         if train.loop_next is not None:
@@ -224,20 +226,11 @@ def format_pyetrc(
             arrival_str = get_time_str(*next_train.arrival_time[next_station])
             depart_str = get_time_str(*next_train.departure_time[next_station])
             passing = next_station in next_train.skip_stations
-            if passing:
-                arrival_value = departure_value = f"{depart_str}:00"
-            elif next_train.stopping_time(next_station) == 0:
-                before_time_str = get_time_str(*add_min_tuple(next_train.departure_time[next_station], -1))
-                arrival_value = f"{before_time_str}:50"
-                departure_value = f"{depart_str}:10"
-            else:
-                arrival_value = f"{arrival_str}:00"
-                departure_value = f"{depart_str}:00"
             timetable_list.append({
                 "business": not passing,
-                "ddsj": arrival_value,
-                "cfsj": departure_value,
-                "zhanming": next_station
+                "ddsj": f"{arrival_str}:00",
+                "cfsj": f"{depart_str}:00",
+                "zhanming": next_station + loop_suffix
             })
         trains_list[-1]["timetable"] = timetable_list
     result["trains"] = trains_list
