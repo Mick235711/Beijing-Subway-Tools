@@ -121,7 +121,7 @@ def modify_timetable(
     """ Interactively modify a timetable without advancing it to another station """
     while True:
         print("Current Timetable:")
-        brace_dict = timetable.pretty_print(show_empty=show_empty)
+        brace_dict = timetable.pretty_print(show_routes=(set() if show_empty else None))
         brace_dict[""] = timetable.base_route
         modification = questionary.text(
             "Enter a modification (or ok):",

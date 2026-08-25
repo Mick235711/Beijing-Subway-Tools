@@ -107,7 +107,7 @@ class Timetable:
 
     def pretty_print(
         self, *, with_time: dict[str, int | None] | None = None,
-        show_empty: bool = False
+        show_routes: set[str] | None = None
     ) -> dict[str, TrainRoute]:
         """ Print the entire timetable """
         # First, organize into hour -> Trains and collect routes
@@ -149,7 +149,7 @@ class Timetable:
                 minute = f"{train.leaving_time.minute:>02}"
                 brace = combine_brace(brace_dict_r, train.train_route)
                 brace_left, brace_right = brace[:len(brace) // 2], brace[len(brace) // 2:]
-                if not show_empty:
+                if show_routes is None or any(route.name in show_routes for route in train.route_iter()):
                     minute = brace_left + minute + brace_right
                 print(minute, end="")
             print()

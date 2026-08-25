@@ -33,18 +33,21 @@ Notice that also, directional verbs can be completed from East/West/etc.
 # [`timetable/`](/src/timetable): Creating and Modifying Timetables
 ### [`print_timetable.py`](/src/timetable/print_timetable.py): Print any station's timetable
 ```
-usage: print_timetable.py [-h] [-e] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES]
+usage: print_timetable.py [-h] [-e | --only-show ONLY_SHOW] [-i INCLUDE_ROUTES | -x EXCLUDE_ROUTES]
 
 options:
   -h, --help            show this help message and exit
   -e, --empty           Show empty timetable
-  -i INCLUDE_ROUTES, --include-routes INCLUDE_ROUTES
+  --only-show ONLY_SHOW
+                        Show only these routes
+  -i, --include-routes INCLUDE_ROUTES
                         Include routes
-  -x EXCLUDE_ROUTES, --exclude-routes EXCLUDE_ROUTES
+  -x, --exclude-routes EXCLUDE_ROUTES
                         Exclude routes
 ```
 Simply print any station's timetable. The program will ask for city, line, station and direction.
 If `-e` is specified, the printing will be without any kind of route information or brace decoration.
+Otherwise, if `--only-show` is specified, the printing will only show braces for specified routes.
 
 Additionally, options `-i` and `-x` can be used to include/exclude specific routes.
 For instance, `-x A站始发空车,B站回库车` exclude trains with these routes in the output.

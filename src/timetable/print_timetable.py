@@ -26,10 +26,12 @@ def in_route(
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--empty", action="store_true", help="Show empty timetable")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-i", "--include-routes", help="Include routes")
-    group.add_argument("-x", "--exclude-routes", help="Exclude routes")
+    group.add_argument("-e", "--empty", action="store_true", help="Show empty timetable")
+    group.add_argument("--only-show", help="Show only these routes")
+    group2 = parser.add_mutually_exclusive_group()
+    group2.add_argument("-i", "--include-routes", help="Include routes")
+    group2.add_argument("-x", "--exclude-routes", help="Exclude routes")
     args = parser.parse_args()
 
     _, station, _, _, timetable = ask_for_timetable()
@@ -38,7 +40,13 @@ def main() -> None:
     timetable.trains = {k: train for k, train in timetable.trains.items()
                         if in_route(train.route_iter(), include_routes=include_routes, exclude_routes=exclude_routes)}
     print(f"Timetable for {station}:")
-    timetable.pretty_print(show_empty=args.empty)
+    if args.only_show is not None:
+        routes = parse_comma(args.only_show)
+    elif args.empty:
+        routes = set()
+    else:
+        routes = None
+    timetable.pretty_print(show_routes=routes)
 
 
 # Call main
