@@ -1,6 +1,5 @@
 // 数据截止2024/11
 // 机场捷运时刻表（来自桃园捷运官网）
-//
 {
     name: "桃園機場捷運",
     color: "#8246AF",
@@ -39,9 +38,10 @@
     train_routes: {
         "桃园方向": {
             aliases: ["Taoyuan-bound"],
-            "普通車": {},
-            "三重始發空車": {starts_with: "三重"},
-            "體育大學始發空車": {starts_with: "體育大學"},
+            "普通車": {stopping_times: {"長庚醫院": 4}},
+            "不待避": {},
+            "三重始發空車": {stopping_times: {"長庚醫院": 4}, starts_with: "三重"},
+            "體育大學始發空車": {stopping_times: {"長庚醫院": 4}, starts_with: "體育大學"},
             "長庚醫院始發空車": {starts_with: "長庚醫院"},
             "山鼻始發空車": {starts_with: "山鼻"},
             "機場第一航廈始發空車": {starts_with: "機場第一航廈"},
@@ -59,13 +59,15 @@
         "台北方向": {
             aliases: ["Taipei-bound"],
             reversed: true,
-            "普通車": {},
+            "普通車": {stopping_times: {"長庚醫院": 4}},
+            "不待避": {},
             "泰山始發空車": {starts_with: "泰山"},
             "長庚醫院始發空車": {starts_with: "長庚醫院"},
+            "山鼻始發空車(待避)": {stopping_times: {"長庚醫院": 4}, starts_with: "山鼻"},
             "山鼻始發空車": {starts_with: "山鼻"},
             "機場第二航廈始發空車": {starts_with: "機場第二航廈"},
-            "機場旅館始發空車": {starts_with: "機場旅館"},
-            "高鐵桃園站始發空車": {starts_with: "高鐵桃園站"},
+            "機場旅館始發空車": {stopping_times: {"長庚醫院": 4}, starts_with: "機場旅館"},
+            "高鐵桃園站始發空車": {stopping_times: {"長庚醫院": 4}, starts_with: "高鐵桃園站"},
             "南段深夜普通車": {ends_with: "機場第一航廈"},
             "直達車": {
                 skip: ["三重", "新莊副都心", "泰山", "泰山貴和", "體育大學", "林口", "山鼻", "坑口"],
@@ -99,7 +101,8 @@
                         {plan: "環北直達車", trains: ["06:15", "07:00", "08:00"]},
                         {plan: "環北直達車", first_train: "16:00", skip_trains: 7, count: 3},
                         {plan: "環北直達車", trains: ["18:45", "19:00"]},
-                        {plan: "北段深夜普通車", trains: ["18:34", "23:22", "23:37"]}
+                        {plan: "北段深夜普通車", trains: ["18:34", "23:22", "23:37"]},
+                        {plan: "不待避", trains: ["23:07"]}
                     ]
                 },
                 "例假日": {
@@ -115,7 +118,8 @@
                         {plan: "直達車", first_train: "17:15", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "18:15", skip_trains: 1, until: "23:00"},
                         {plan: "環北直達車", first_train: "13:00", skip_trains: 7, until: "18:00"},
-                        {plan: "北段深夜普通車", trains: ["23:22", "23:37"]}
+                        {plan: "北段深夜普通車", trains: ["23:22", "23:37"]},
+                        {plan: "不待避", trains: ["23:07"]}
                     ]
                 }
             },
@@ -137,13 +141,14 @@
                         {plan: "直達車", first_train: "19:36", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "20:36", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "21:36", skip_trains: 1, until: "23:40"},
-                        {plan: "山鼻始發空車", trains: ["06:42"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:42"]},
                         {plan: "山鼻始發空車", first_train: "07:46", skip_trains: 2, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:57"]},
                         {plan: "高鐵桃園站始發空車", trains: ["07:12"]},
                         {plan: "環北直達車", first_train: "08:06", skip_trains: 2, count: 3},
                         {plan: "環北直達車", trains: ["09:21", "10:21", "18:21", "19:21", "20:21", "21:21"]},
-                        {plan: "機場第二航廈始發空車", trains: ["20:16"]}
+                        {plan: "機場第二航廈始發空車", trains: ["20:16"]},
+                        {plan: "不待避", first_train: "23:56", count: 3}
                     ]
                 },
                 "例假日": {
@@ -160,10 +165,11 @@
                         {plan: "直達車", first_train: "18:36", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "19:36", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "20:36", skip_trains: 1, until: "23:40"},
-                        {plan: "山鼻始發空車", trains: ["06:42"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:42"]},
                         {plan: "機場旅館始發空車", trains: ["06:57"]},
                         {plan: "高鐵桃園站始發空車", trains: ["07:12"]},
-                        {plan: "環北直達車", first_train: "15:21", skip_trains: 7, until: "20:21"}
+                        {plan: "環北直達車", first_train: "15:21", skip_trains: 7, until: "20:21"},
+                        {plan: "不待避", first_train: "23:56", count: 3}
                     ]
                 }
             }
@@ -176,7 +182,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["05:59"]},
-                        {plan: "北段深夜普通車", trains: ["18:40", "23:31", "23:46"]}
+                        {plan: "北段深夜普通車", trains: ["18:40", "23:31", "23:46"]},
+                        {plan: "不待避", trains: ["23:16"]}
                     ]
                 },
                 "例假日": {
@@ -185,7 +192,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["05:59"]},
-                        {plan: "北段深夜普通車", trains: ["23:31", "23:46"]}
+                        {plan: "北段深夜普通車", trains: ["23:31", "23:46"]},
+                        {plan: "不待避", trains: ["23:16"]}
                     ]
                 }
             },
@@ -198,11 +206,12 @@
                     filters: [
                         {plan: "泰山始發空車", trains: ["06:06"]},
                         {plan: "長庚醫院始發空車", trains: ["06:21"]},
-                        {plan: "山鼻始發空車", trains: ["06:36"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:36"]},
                         {plan: "山鼻始發空車", first_train: "07:40", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:51"]},
                         {plan: "高鐵桃園站始發空車", trains: ["07:06"]},
-                        {plan: "機場第二航廈始發空車", trains: ["20:10"]}
+                        {plan: "機場第二航廈始發空車", trains: ["20:10"]},
+                        {plan: "不待避", first_train: "23:47", count: 3}
                     ]
                 },
                 "例假日": {
@@ -212,9 +221,10 @@
                     filters: [
                         {plan: "泰山始發空車", trains: ["06:06"]},
                         {plan: "長庚醫院始發空車", trains: ["06:21"]},
-                        {plan: "山鼻始發空車", trains: ["06:36"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:36"]},
                         {plan: "機場旅館始發空車", trains: ["06:51"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["07:06"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["07:06"]},
+                        {plan: "不待避", first_train: "23:47", count: 3}
                     ]
                 }
             }
@@ -237,7 +247,8 @@
                         {plan: "環北直達車", trains: ["06:25", "07:10", "08:10"]},
                         {plan: "環北直達車", first_train: "16:10", skip_trains: 7, count: 3},
                         {plan: "環北直達車", trains: ["18:55", "19:10"]},
-                        {plan: "北段深夜普通車", trains: ["18:44", "23:35", "23:50"]}
+                        {plan: "北段深夜普通車", trains: ["18:44", "23:35", "23:50"]},
+                        {plan: "不待避", trains: ["23:20"]}
                     ]
                 },
                 "例假日": {
@@ -254,7 +265,8 @@
                         {plan: "直達車", first_train: "17:25", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "18:25", skip_trains: 1, until: "23:10"},
                         {plan: "環北直達車", first_train: "13:10", skip_trains: 7, until: "18:10"},
-                        {plan: "北段深夜普通車", trains: ["23:35", "23:50"]}
+                        {plan: "北段深夜普通車", trains: ["23:35", "23:50"]},
+                        {plan: "不待避", trains: ["23:20"]}
                     ]
                 }
             },
@@ -275,13 +287,14 @@
                         {plan: "直達車", first_train: "19:26", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "20:26", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "21:26", skip_trains: 1, until: "23:27"},
-                        {plan: "山鼻始發空車", trains: ["06:32"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:32"]},
                         {plan: "山鼻始發空車", first_train: "07:36", skip_trains: 2, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:47"]},
                         {plan: "高鐵桃園站始發空車", trains: ["07:02"]},
                         {plan: "環北直達車", first_train: "07:56", skip_trains: 2, count: 3},
                         {plan: "環北直達車", trains: ["09:11", "10:11", "18:11", "19:11", "20:11", "21:11"]},
-                        {plan: "機場第二航廈始發空車", trains: ["20:06"]}
+                        {plan: "機場第二航廈始發空車", trains: ["20:06"]},
+                        {plan: "不待避", first_train: "23:43", count: 3}
                     ]
                 },
                 "例假日": {
@@ -298,10 +311,11 @@
                         {plan: "直達車", first_train: "18:26", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "19:26", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "20:26", skip_trains: 1, until: "23:27"},
-                        {plan: "山鼻始發空車", trains: ["06:32"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:32"]},
                         {plan: "機場旅館始發空車", trains: ["06:47"]},
                         {plan: "高鐵桃園站始發空車", trains: ["07:02"]},
-                        {plan: "環北直達車", first_train: "15:11", skip_trains: 7, until: "20:11"}
+                        {plan: "環北直達車", first_train: "15:11", skip_trains: 7, until: "20:11"},
+                        {plan: "不待避", first_train: "23:43", count: 3}
                     ]
                 }
             }
@@ -314,7 +328,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["06:05"]},
-                        {plan: "北段深夜普通車", trains: ["18:46", "23:37", "23:52"]}
+                        {plan: "北段深夜普通車", trains: ["18:46", "23:37", "23:52"]},
+                        {plan: "不待避", trains: ["23:22"]}
                     ]
                 },
                 "例假日": {
@@ -323,7 +338,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["06:05"]},
-                        {plan: "北段深夜普通車", trains: ["23:37", "23:52"]}
+                        {plan: "北段深夜普通車", trains: ["23:37", "23:52"]},
+                        {plan: "不待避", trains: ["23:22"]}
                     ]
                 }
             },
@@ -336,11 +352,12 @@
                     filters: [
                         {plan: "泰山始發空車", trains: ["05:59"]},
                         {plan: "長庚醫院始發空車", trains: ["06:14"]},
-                        {plan: "山鼻始發空車", trains: ["06:29"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:29"]},
                         {plan: "山鼻始發空車", first_train: "07:33", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:44"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:59"]},
-                        {plan: "機場第二航廈始發空車", trains: ["20:03"]}
+                        {plan: "機場第二航廈始發空車", trains: ["20:03"]},
+                        {plan: "不待避", first_train: "23:41", count: 3}
                     ]
                 },
                 "例假日": {
@@ -350,9 +367,10 @@
                     filters: [
                         {plan: "泰山始發空車", trains: ["05:59"]},
                         {plan: "長庚醫院始發空車", trains: ["06:14"]},
-                        {plan: "山鼻始發空車", trains: ["06:29"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:29"]},
                         {plan: "機場旅館始發空車", trains: ["06:44"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:59"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:59"]},
+                        {plan: "不待避", first_train: "23:41", count: 3}
                     ]
                 }
             }
@@ -365,7 +383,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["06:07"]},
-                        {plan: "北段深夜普通車", trains: ["18:48", "23:39", "23:54"]}
+                        {plan: "北段深夜普通車", trains: ["18:48", "23:39", "23:54"]},
+                        {plan: "不待避", trains: ["23:24"]}
                     ]
                 },
                 "例假日": {
@@ -374,7 +393,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["06:07"]},
-                        {plan: "北段深夜普通車", trains: ["23:39", "23:54"]}
+                        {plan: "北段深夜普通車", trains: ["23:39", "23:54"]},
+                        {plan: "不待避", trains: ["23:24"]}
                     ]
                 }
             },
@@ -387,11 +407,12 @@
                     filters: [
                         {plan: "泰山始發空車", trains: ["05:57"]},
                         {plan: "長庚醫院始發空車", trains: ["06:12"]},
-                        {plan: "山鼻始發空車", trains: ["06:27"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:27"]},
                         {plan: "山鼻始發空車", first_train: "07:31", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:42"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:57"]},
-                        {plan: "機場第二航廈始發空車", trains: ["20:01"]}
+                        {plan: "機場第二航廈始發空車", trains: ["20:01"]},
+                        {plan: "不待避", first_train: "23:39", count: 3}
                     ]
                 },
                 "例假日": {
@@ -401,9 +422,10 @@
                     filters: [
                         {plan: "泰山始發空車", trains: ["05:57"]},
                         {plan: "長庚醫院始發空車", trains: ["06:12"]},
-                        {plan: "山鼻始發空車", trains: ["06:27"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:27"]},
                         {plan: "機場旅館始發空車", trains: ["06:42"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:57"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:57"]},
+                        {plan: "不待避", first_train: "23:39", count: 3}
                     ]
                 }
             }
@@ -416,7 +438,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["06:10"]},
-                        {plan: "北段深夜普通車", trains: ["18:51", "23:42", "23:57"]}
+                        {plan: "北段深夜普通車", trains: ["18:51", "23:42", "23:57"]},
+                        {plan: "不待避", trains: ["23:27"]}
                     ]
                 },
                 "例假日": {
@@ -425,7 +448,8 @@
                     ],
                     filters: [
                         {plan: "三重始發空車", trains: ["06:10"]},
-                        {plan: "北段深夜普通車", trains: ["23:42", "23:57"]}
+                        {plan: "北段深夜普通車", trains: ["23:42", "23:57"]},
+                        {plan: "不待避", trains: ["23:27"]}
                     ]
                 }
             },
@@ -437,11 +461,12 @@
                     ],
                     filters: [
                         {plan: "長庚醫院始發空車", trains: ["06:09"]},
-                        {plan: "山鼻始發空車", trains: ["06:24"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:24"]},
                         {plan: "山鼻始發空車", first_train: "07:28", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:39"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:54"]},
-                        {plan: "機場第二航廈始發空車", trains: ["19:58"]}
+                        {plan: "機場第二航廈始發空車", trains: ["19:58"]},
+                        {plan: "不待避", first_train: "23:36", count: 3}
                     ]
                 },
                 "例假日": {
@@ -450,9 +475,10 @@
                     ],
                     filters: [
                         {plan: "長庚醫院始發空車", trains: ["06:09"]},
-                        {plan: "山鼻始發空車", trains: ["06:24"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:24"]},
                         {plan: "機場旅館始發空車", trains: ["06:39"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:54"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:54"]},
+                        {plan: "不待避", first_train: "23:36", count: 3}
                     ]
                 }
             }
@@ -466,7 +492,8 @@
                     filters: [
                         {plan: "體育大學始發空車", trains: ["06:00"]},
                         {plan: "三重始發空車", trains: ["06:15"]},
-                        {plan: "北段深夜普通車", trains: ["18:56", "23:47", "00:02"]}
+                        {plan: "北段深夜普通車", trains: ["18:56", "23:47", "00:02"]},
+                        {plan: "不待避", trains: ["23:32"]}
                     ]
                 },
                 "例假日": {
@@ -476,7 +503,8 @@
                     filters: [
                         {plan: "體育大學始發空車", trains: ["06:00"]},
                         {plan: "三重始發空車", trains: ["06:15"]},
-                        {plan: "北段深夜普通車", trains: ["23:47", "00:02"]}
+                        {plan: "北段深夜普通車", trains: ["23:47", "00:02"]},
+                        {plan: "不待避", trains: ["23:32"]}
                     ]
                 }
             },
@@ -488,11 +516,12 @@
                     ],
                     filters: [
                         {plan: "長庚醫院始發空車", trains: ["06:02"]},
-                        {plan: "山鼻始發空車", trains: ["06:17"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:17"]},
                         {plan: "山鼻始發空車", first_train: "07:21", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:32"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:47"]},
-                        {plan: "機場第二航廈始發空車", trains: ["19:51"]}
+                        {plan: "機場第二航廈始發空車", trains: ["19:51"]},
+                        {plan: "不待避", first_train: "23:29", count: 3}
                     ]
                 },
                 "例假日": {
@@ -501,9 +530,10 @@
                     ],
                     filters: [
                         {plan: "長庚醫院始發空車", trains: ["06:02"]},
-                        {plan: "山鼻始發空車", trains: ["06:17"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:17"]},
                         {plan: "機場旅館始發空車", trains: ["06:32"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:47"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:47"]},
+                        {plan: "不待避", first_train: "23:29", count: 3}
                     ]
                 }
             }
@@ -528,7 +558,8 @@
                         {plan: "直達車", trains: ["18:37", "18:52"]},
                         {plan: "直達車", first_train: "19:37", skip_trains: 1, until: "23:22"},
                         {plan: "三重始發空車", trains: ["06:23"]},
-                        {plan: "北段深夜普通車", trains: ["19:00", "23:51", "00:06"]}
+                        {plan: "北段深夜普通車", trains: ["19:00", "23:51", "00:06"]},
+                        {plan: "不待避", trains: ["23:36"]}
                     ]
                 },
                 "例假日": {
@@ -547,7 +578,8 @@
                         {plan: "體育大學始發空車", trains: ["06:08"]},
                         {plan: "三重始發空車", trains: ["06:23"]},
                         {plan: "環北直達車", first_train: "13:22", skip_trains: 7, until: "18:22"},
-                        {plan: "北段深夜普通車", trains: ["23:51", "00:06"]}
+                        {plan: "北段深夜普通車", trains: ["23:51", "00:06"]},
+                        {plan: "不待避", trains: ["23:36"]}
                     ]
                 }
             },
@@ -567,13 +599,14 @@
                         {plan: "直達車", first_train: "19:11", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "20:11", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "21:11", skip_trains: 1, until: "23:12"},
-                        {plan: "山鼻始發空車", trains: ["06:13"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:13"]},
                         {plan: "山鼻始發空車", first_train: "07:17", skip_trains: 2, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:28"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:43"]},
                         {plan: "環北直達車", first_train: "07:41", skip_trains: 2, count: 3},
                         {plan: "環北直達車", trains: ["08:56", "09:56", "17:56", "18:56", "19:56", "20:56"]},
-                        {plan: "機場第二航廈始發空車", trains: ["19:47"]}
+                        {plan: "機場第二航廈始發空車", trains: ["19:47"]},
+                        {plan: "不待避", first_train: "23:25", count: 3}
                     ]
                 },
                 "例假日": {
@@ -589,10 +622,11 @@
                         {plan: "直達車", first_train: "18:11", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "19:11", skip_trains: 1, count: 3},
                         {plan: "直達車", first_train: "20:11", skip_trains: 1, until: "23:12"},
-                        {plan: "山鼻始發空車", trains: ["06:13"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:13"]},
                         {plan: "機場旅館始發空車", trains: ["06:28"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:43"]},
-                        {plan: "環北直達車", first_train: "14:56", skip_trains: 7, until: "19:56"}
+                        {plan: "環北直達車", first_train: "14:56", skip_trains: 7, until: "19:56"},
+                        {plan: "不待避", first_train: "23:25", count: 3}
                     ]
                 }
             }
@@ -606,7 +640,8 @@
                     filters: [
                         {plan: "體育大學始發空車", trains: ["06:11"]},
                         {plan: "三重始發空車", trains: ["06:26"]},
-                        {plan: "北段深夜普通車", trains: ["19:03", "23:54", "00:09"]}
+                        {plan: "北段深夜普通車", trains: ["19:03", "23:54", "00:09"]},
+                        {plan: "不待避", trains: ["23:39"]}
                     ]
                 },
                 "例假日": {
@@ -616,7 +651,8 @@
                     filters: [
                         {plan: "體育大學始發空車", trains: ["06:11"]},
                         {plan: "三重始發空車", trains: ["06:26"]},
-                        {plan: "北段深夜普通車", trains: ["23:54", "00:09"]}
+                        {plan: "北段深夜普通車", trains: ["23:54", "00:09"]},
+                        {plan: "不待避", trains: ["23:39"]}
                     ]
                 }
             },
@@ -627,11 +663,12 @@
                         {first_train: "23:07", delta: [15, 15, 15]}
                     ],
                     filters: [
-                        {plan: "山鼻始發空車", trains: ["06:06"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:06"]},
                         {plan: "山鼻始發空車", first_train: "07:14", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:21"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:36"]},
-                        {plan: "機場第二航廈始發空車", trains: ["19:44"]}
+                        {plan: "機場第二航廈始發空車", trains: ["19:44"]},
+                        {plan: "不待避", first_train: "23:22", count: 3}
                     ]
                 },
                 "例假日": {
@@ -639,9 +676,10 @@
                         {first_train: "06:06", delta: [[66, [15]], 16, 15, 15, 15, 15]}
                     ],
                     filters: [
-                        {plan: "山鼻始發空車", trains: ["06:06"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["06:06"]},
                         {plan: "機場旅館始發空車", trains: ["06:21"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:36"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:36"]},
+                        {plan: "不待避", first_train: "23:22", count: 3}
                     ]
                 }
             }
@@ -656,7 +694,8 @@
                         {plan: "山鼻始發空車", trains: ["06:05"]},
                         {plan: "體育大學始發空車", trains: ["06:20"]},
                         {plan: "三重始發空車", trains: ["06:35"]},
-                        {plan: "北段深夜普通車", trains: ["19:12", "00:04", "00:19"]}
+                        {plan: "北段深夜普通車", trains: ["19:12", "00:04", "00:19"]},
+                        {plan: "不待避", trains: ["23:49"]}
                     ]
                 },
                 "例假日": {
@@ -667,7 +706,8 @@
                         {plan: "山鼻始發空車", trains: ["06:05"]},
                         {plan: "體育大學始發空車", trains: ["06:20"]},
                         {plan: "三重始發空車", trains: ["06:35"]},
-                        {plan: "北段深夜普通車", trains: ["00:04", "00:19"]}
+                        {plan: "北段深夜普通車", trains: ["00:04", "00:19"]},
+                        {plan: "不待避", trains: ["23:49"]}
                     ]
                 }
             },
@@ -677,11 +717,12 @@
                         {first_train: "05:58", delta: [15, 15, 15, 15, [4, [9, 6]], [46, [15]], 9, 6, [16, [15]]]}
                     ],
                     filters: [
-                        {plan: "山鼻始發空車", trains: ["05:58"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["05:58"]},
                         {plan: "山鼻始發空車", first_train: "07:07", skip_trains: 1, count: 4},
                         {plan: "機場旅館始發空車", trains: ["06:13"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:28"]},
-                        {plan: "機場第二航廈始發空車", trains: ["19:37"]}
+                        {plan: "機場第二航廈始發空車", trains: ["19:37"]},
+                        {plan: "不待避", first_train: "23:13", count: 3}
                     ]
                 },
                 "例假日": {
@@ -689,9 +730,10 @@
                         {first_train: "05:58", delta: [[71, [15]]]}
                     ],
                     filters: [
-                        {plan: "山鼻始發空車", trains: ["05:58"]},
+                        {plan: "山鼻始發空車(待避)", trains: ["05:58"]},
                         {plan: "機場旅館始發空車", trains: ["06:13"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:28"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:28"]},
+                        {plan: "不待避", first_train: "23:13", count: 3}
                     ]
                 }
             }
@@ -706,7 +748,8 @@
                         {plan: "山鼻始發空車", trains: ["06:08"]},
                         {plan: "體育大學始發空車", trains: ["06:23"]},
                         {plan: "三重始發空車", trains: ["06:38"]},
-                        {plan: "北段深夜普通車", trains: ["19:14", "00:07", "00:22"]}
+                        {plan: "北段深夜普通車", trains: ["19:14", "00:07", "00:22"]},
+                        {plan: "不待避", trains: ["23:52"]}
                     ]
                 },
                 "例假日": {
@@ -717,7 +760,8 @@
                         {plan: "山鼻始發空車", trains: ["06:08"]},
                         {plan: "體育大學始發空車", trains: ["06:23"]},
                         {plan: "三重始發空車", trains: ["06:38"]},
-                        {plan: "北段深夜普通車", trains: ["00:07", "00:22"]}
+                        {plan: "北段深夜普通車", trains: ["00:07", "00:22"]},
+                        {plan: "不待避", trains: ["23:52"]}
                     ]
                 }
             },
@@ -729,7 +773,8 @@
                     filters: [
                         {plan: "機場旅館始發空車", trains: ["06:11"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:26"]},
-                        {plan: "機場第二航廈始發空車", trains: ["19:34"]}
+                        {plan: "機場第二航廈始發空車", trains: ["19:34"]},
+                        {plan: "不待避", first_train: "23:11", count: 3}
                     ]
                 },
                 "例假日": {
@@ -738,7 +783,8 @@
                     ],
                     filters: [
                         {plan: "機場旅館始發空車", trains: ["06:11"]},
-                        {plan: "高鐵桃園站始發空車", trains: ["06:26"]}
+                        {plan: "高鐵桃園站始發空車", trains: ["06:26"]},
+                        {plan: "不待避", first_train: "23:11", count: 3}
                     ]
                 }
             }
@@ -767,7 +813,8 @@
                         {plan: "環北直達車", trains: ["19:22", "19:37"]},
                         {plan: "體育大學始發空車", trains: ["06:27"]},
                         {plan: "三重始發空車", trains: ["06:42"]},
-                        {plan: "北段深夜普通車", trains: ["19:18", "00:11", "00:26"]}
+                        {plan: "北段深夜普通車", trains: ["19:18", "00:11", "00:26"]},
+                        {plan: "不待避", trains: ["23:56"]}
                     ]
                 },
                 "例假日": {
@@ -788,7 +835,8 @@
                         {plan: "體育大學始發空車", trains: ["06:27"]},
                         {plan: "三重始發空車", trains: ["06:42"]},
                         {plan: "環北直達車", first_train: "13:37", skip_trains: 7, until: "18:37"},
-                        {plan: "北段深夜普通車", trains: ["00:11", "00:26"]}
+                        {plan: "北段深夜普通車", trains: ["00:11", "00:26"]},
+                        {plan: "不待避", trains: ["23:56"]}
                     ]
                 }
             },
@@ -811,7 +859,8 @@
                         {plan: "環北直達車", first_train: "07:28", skip_trains: 1, count: 3},
                         {plan: "環北直達車", trains: ["08:43", "09:43", "17:43", "18:43", "19:43", "20:43"]},
                         {plan: "機場第二航廈始發空車", trains: ["19:31"]},
-                        {plan: "南段深夜普通車", trains: ["23:54", "00:09"]}
+                        {plan: "南段深夜普通車", trains: ["23:54", "00:09"]},
+                        {plan: "不待避", first_train: "23:07", count: 3}
                     ]
                 },
                 "例假日": {
@@ -829,7 +878,8 @@
                         {plan: "機場旅館始發空車", trains: ["06:07"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:22"]},
                         {plan: "環北直達車", first_train: "14:43", skip_trains: 7, until: "19:43"},
-                        {plan: "南段深夜普通車", trains: ["23:54", "00:09"]}
+                        {plan: "南段深夜普通車", trains: ["23:54", "00:09"]},
+                        {plan: "不待避", first_train: "23:07", count: 3}
                     ]
                 }
             }
@@ -860,7 +910,8 @@
                         {plan: "環北直達車", trains: ["19:26", "19:41"]},
                         {plan: "體育大學始發空車", trains: ["06:30"]},
                         {plan: "三重始發空車", trains: ["06:45"]},
-                        {plan: "北段深夜普通車", trains: ["19:22", "00:13", "00:28"]}
+                        {plan: "北段深夜普通車", trains: ["19:22", "00:13", "00:28"]},
+                        {plan: "不待避", trains: ["23:58"]}
                     ]
                 },
                 "例假日": {
@@ -882,7 +933,8 @@
                         {plan: "體育大學始發空車", trains: ["06:30"]},
                         {plan: "三重始發空車", trains: ["06:45"]},
                         {plan: "環北直達車", first_train: "13:41", skip_trains: 7, until: "18:41"},
-                        {plan: "北段深夜普通車", trains: ["00:13", "00:28"]}
+                        {plan: "北段深夜普通車", trains: ["00:13", "00:28"]},
+                        {plan: "不待避", trains: ["23:58"]}
                     ]
                 }
             },
@@ -905,7 +957,8 @@
                         {plan: "環北直達車", first_train: "07:25", skip_trains: 1, count: 3},
                         {plan: "環北直達車", trains: ["08:40", "09:40", "17:40", "18:40", "19:40", "20:40"]},
                         {plan: "機場第二航廈始發空車", trains: ["19:28"]},
-                        {plan: "南段深夜普通車", trains: ["23:52", "00:07"]}
+                        {plan: "南段深夜普通車", trains: ["23:52", "00:07"]},
+                        {plan: "不待避", first_train: "23:05", count: 3}
                     ]
                 },
                 "例假日": {
@@ -923,7 +976,8 @@
                         {plan: "機場旅館始發空車", trains: ["06:04"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:19"]},
                         {plan: "環北直達車", first_train: "14:40", skip_trains: 7, until: "19:40"},
-                        {plan: "南段深夜普通車", trains: ["23:52", "00:07"]}
+                        {plan: "南段深夜普通車", trains: ["23:52", "00:07"]},
+                        {plan: "不待避", first_train: "23:05", count: 3}
                     ]
                 }
             }
@@ -938,7 +992,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:03"]},
                         {plan: "山鼻始發空車", trains: ["06:18"]},
                         {plan: "體育大學始發空車", trains: ["06:33"]},
-                        {plan: "三重始發空車", trains: ["06:48"]}
+                        {plan: "三重始發空車", trains: ["06:48"]},
+                        {plan: "不待避", trains: ["00:01"]}
                     ]
                 },
                 "例假日": {
@@ -949,7 +1004,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:03"]},
                         {plan: "山鼻始發空車", trains: ["06:18"]},
                         {plan: "體育大學始發空車", trains: ["06:33"]},
-                        {plan: "三重始發空車", trains: ["06:48"]}
+                        {plan: "三重始發空車", trains: ["06:48"]},
+                        {plan: "不待避", trains: ["00:01"]}
                     ]
                 }
             },
@@ -961,7 +1017,8 @@
                     filters: [
                         {plan: "機場旅館始發空車", trains: ["06:00"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:15"]},
-                        {plan: "南段深夜普通車", trains: ["23:48", "00:03"]}
+                        {plan: "南段深夜普通車", trains: ["23:48", "00:03"]},
+                        {plan: "不待避", first_train: "23:01", count: 3}
                     ]
                 },
                 "例假日": {
@@ -971,7 +1028,8 @@
                     filters: [
                         {plan: "機場旅館始發空車", trains: ["06:00"]},
                         {plan: "高鐵桃園站始發空車", trains: ["06:15"]},
-                        {plan: "南段深夜普通車", trains: ["23:48", "00:03"]}
+                        {plan: "南段深夜普通車", trains: ["23:48", "00:03"]},
+                        {plan: "不待避", first_train: "23:01", count: 3}
                     ]
                 }
             }
@@ -986,7 +1044,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:06"]},
                         {plan: "山鼻始發空車", trains: ["06:21"]},
                         {plan: "體育大學始發空車", trains: ["06:36"]},
-                        {plan: "三重始發空車", trains: ["06:51"]}
+                        {plan: "三重始發空車", trains: ["06:51"]},
+                        {plan: "不待避", trains: ["00:04"]}
                     ]
                 },
                 "例假日": {
@@ -997,7 +1056,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:06"]},
                         {plan: "山鼻始發空車", trains: ["06:21"]},
                         {plan: "體育大學始發空車", trains: ["06:36"]},
-                        {plan: "三重始發空車", trains: ["06:51"]}
+                        {plan: "三重始發空車", trains: ["06:51"]},
+                        {plan: "不待避", trains: ["00:04"]}
                     ]
                 }
             },
@@ -1008,7 +1068,8 @@
                     ],
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:12"]},
-                        {plan: "南段深夜普通車", trains: ["23:45", "00:00"]}
+                        {plan: "南段深夜普通車", trains: ["23:45", "00:00"]},
+                        {plan: "不待避", first_train: "22:58", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1017,7 +1078,8 @@
                     ],
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:12"]},
-                        {plan: "南段深夜普通車", trains: ["23:45", "00:00"]}
+                        {plan: "南段深夜普通車", trains: ["23:45", "00:00"]},
+                        {plan: "不待避", first_train: "22:58", count: 3}
                     ]
                 }
             }
@@ -1032,7 +1094,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:09"]},
                         {plan: "山鼻始發空車", trains: ["06:24"]},
                         {plan: "體育大學始發空車", trains: ["06:39"]},
-                        {plan: "三重始發空車", trains: ["06:54"]}
+                        {plan: "三重始發空車", trains: ["06:54"]},
+                        {plan: "不待避", trains: ["00:07"]}
                     ]
                 },
                 "例假日": {
@@ -1043,7 +1106,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:09"]},
                         {plan: "山鼻始發空車", trains: ["06:24"]},
                         {plan: "體育大學始發空車", trains: ["06:39"]},
-                        {plan: "三重始發空車", trains: ["06:54"]}
+                        {plan: "三重始發空車", trains: ["06:54"]},
+                        {plan: "不待避", trains: ["00:07"]}
                     ]
                 }
             },
@@ -1054,7 +1118,8 @@
                     ],
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:09"]},
-                        {plan: "南段深夜普通車", trains: ["23:41", "23:56"]}
+                        {plan: "南段深夜普通車", trains: ["23:41", "23:56"]},
+                        {plan: "不待避", first_train: "22:54", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1063,7 +1128,8 @@
                     ],
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:09"]},
-                        {plan: "南段深夜普通車", trains: ["23:41", "23:56"]}
+                        {plan: "南段深夜普通車", trains: ["23:41", "23:56"]},
+                        {plan: "不待避", first_train: "22:54", count: 3}
                     ]
                 }
             }
@@ -1078,7 +1144,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:12"]},
                         {plan: "山鼻始發空車", trains: ["06:27"]},
                         {plan: "體育大學始發空車", trains: ["06:42"]},
-                        {plan: "三重始發空車", trains: ["06:57"]}
+                        {plan: "三重始發空車", trains: ["06:57"]},
+                        {plan: "不待避", trains: ["00:10"]}
                     ]
                 },
                 "例假日": {
@@ -1089,7 +1156,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:12"]},
                         {plan: "山鼻始發空車", trains: ["06:27"]},
                         {plan: "體育大學始發空車", trains: ["06:42"]},
-                        {plan: "三重始發空車", trains: ["06:57"]}
+                        {plan: "三重始發空車", trains: ["06:57"]},
+                        {plan: "不待避", trains: ["00:10"]}
                     ]
                 }
             },
@@ -1100,7 +1168,8 @@
                     ],
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:06"]},
-                        {plan: "南段深夜普通車", trains: ["23:38", "23:53"]}
+                        {plan: "南段深夜普通車", trains: ["23:38", "23:53"]},
+                        {plan: "不待避", first_train: "22:51", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1109,7 +1178,8 @@
                     ],
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:06"]},
-                        {plan: "南段深夜普通車", trains: ["23:38", "23:53"]}
+                        {plan: "南段深夜普通車", trains: ["23:38", "23:53"]},
+                        {plan: "不待避", first_train: "22:51", count: 3}
                     ]
                 }
             }
@@ -1131,7 +1201,8 @@
                         {plan: "環北直達車", first_train: "16:54", skip_trains: 4, count: 3},
                         {plan: "環北直達車", trains: ["19:39", "19:54"]},
                         {plan: "體育大學始發空車", trains: ["06:47"]},
-                        {plan: "三重始發空車", trains: ["07:02"]}
+                        {plan: "三重始發空車", trains: ["07:02"]},
+                        {plan: "不待避", trains: ["00:15"]}
                     ]
                 },
                 "例假日": {
@@ -1144,7 +1215,8 @@
                         {plan: "山鼻始發空車", trains: ["06:32"]},
                         {plan: "體育大學始發空車", trains: ["06:47"]},
                         {plan: "三重始發空車", trains: ["07:02"]},
-                        {plan: "環北直達車", first_train: "13:54", skip_trains: 4, until: "18:54"}
+                        {plan: "環北直達車", first_train: "13:54", skip_trains: 4, until: "18:54"},
+                        {plan: "不待避", trains: ["00:15"]}
                     ]
                 }
             },
@@ -1159,7 +1231,8 @@
                         {plan: "環北直達車", first_train: "07:11", skip_trains: 1, count: 3},
                         {plan: "環北直達車", trains: ["08:26", "09:26"]},
                         {plan: "環北直達車", first_train: "17:26", skip_trains: 4, count: 4},
-                        {plan: "南段深夜普通車", trains: ["23:34", "23:49"]}
+                        {plan: "南段深夜普通車", trains: ["23:34", "23:49"]},
+                        {plan: "不待避", first_train: "22:47", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1169,7 +1242,8 @@
                     filters: [
                         {plan: "高鐵桃園站始發空車", trains: ["06:02"]},
                         {plan: "環北直達車", first_train: "14:26", skip_trains: 4, until: "19:26"},
-                        {plan: "南段深夜普通車", trains: ["23:34", "23:49"]}
+                        {plan: "南段深夜普通車", trains: ["23:34", "23:49"]},
+                        {plan: "不待避", first_train: "22:47", count: 3}
                     ]
                 }
             }
@@ -1185,7 +1259,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:20"]},
                         {plan: "山鼻始發空車", trains: ["06:35"]},
                         {plan: "體育大學始發空車", trains: ["06:50"]},
-                        {plan: "三重始發空車", trains: ["07:05"]}
+                        {plan: "三重始發空車", trains: ["07:05"]},
+                        {plan: "不待避", trains: ["00:18"]}
                     ]
                 },
                 "例假日": {
@@ -1197,7 +1272,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:20"]},
                         {plan: "山鼻始發空車", trains: ["06:35"]},
                         {plan: "體育大學始發空車", trains: ["06:50"]},
-                        {plan: "三重始發空車", trains: ["07:05"]}
+                        {plan: "三重始發空車", trains: ["07:05"]},
+                        {plan: "不待避", trains: ["00:18"]}
                     ]
                 }
             },
@@ -1207,7 +1283,8 @@
                         {first_train: "06:14", delta: [[68, [15]], 17, 15]}
                     ],
                     filters: [
-                        {plan: "南段深夜普通車", trains: ["23:31", "23:46"]}
+                        {plan: "南段深夜普通車", trains: ["23:31", "23:46"]},
+                        {plan: "不待避", first_train: "22:44", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1215,7 +1292,8 @@
                         {first_train: "06:14", delta: [[68, [15]], 17, 15]}
                     ],
                     filters: [
-                        {plan: "南段深夜普通車", trains: ["23:31", "23:46"]}
+                        {plan: "南段深夜普通車", trains: ["23:31", "23:46"]},
+                        {plan: "不待避", first_train: "22:44", count: 3}
                     ]
                 }
             }
@@ -1231,7 +1309,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:25"]},
                         {plan: "山鼻始發空車", trains: ["06:40"]},
                         {plan: "體育大學始發空車", trains: ["06:55"]},
-                        {plan: "三重始發空車", trains: ["07:10"]}
+                        {plan: "三重始發空車", trains: ["07:10"]},
+                        {plan: "不待避", trains: ["00:23"]}
                     ]
                 },
                 "例假日": {
@@ -1243,7 +1322,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:25"]},
                         {plan: "山鼻始發空車", trains: ["06:40"]},
                         {plan: "體育大學始發空車", trains: ["06:55"]},
-                        {plan: "三重始發空車", trains: ["07:10"]}
+                        {plan: "三重始發空車", trains: ["07:10"]},
+                        {plan: "不待避", trains: ["00:23"]}
                     ]
                 }
             },
@@ -1253,7 +1333,8 @@
                         {first_train: "06:09", delta: [[68, [15]], 17, 15]}
                     ],
                     filters: [
-                        {plan: "南段深夜普通車", trains: ["23:26", "23:41"]}
+                        {plan: "南段深夜普通車", trains: ["23:26", "23:41"]},
+                        {plan: "不待避", first_train: "22:39", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1261,7 +1342,8 @@
                         {first_train: "06:09", delta: [[68, [15]], 17, 15]}
                     ],
                     filters: [
-                        {plan: "南段深夜普通車", trains: ["23:26", "23:41"]}
+                        {plan: "南段深夜普通車", trains: ["23:26", "23:41"]},
+                        {plan: "不待避", first_train: "22:39", count: 3}
                     ]
                 }
             }
@@ -1284,7 +1366,8 @@
                         {plan: "環北直達車", first_train: "17:05", skip_trains: 4, count: 3},
                         {plan: "環北直達車", trains: ["19:50", "20:05"]},
                         {plan: "體育大學始發空車", trains: ["06:59"]},
-                        {plan: "三重始發空車", trains: ["07:14"]}
+                        {plan: "三重始發空車", trains: ["07:14"]},
+                        {plan: "不待避", trains: ["00:27"]}
                     ]
                 },
                 "例假日": {
@@ -1297,7 +1380,8 @@
                         {plan: "山鼻始發空車", trains: ["06:44"]},
                         {plan: "體育大學始發空車", trains: ["06:59"]},
                         {plan: "三重始發空車", trains: ["07:14"]},
-                        {plan: "環北直達車", first_train: "14:05", skip_trains: 4, until: "19:05"}
+                        {plan: "環北直達車", first_train: "14:05", skip_trains: 4, until: "19:05"},
+                        {plan: "不待避", trains: ["00:27"]}
                     ]
                 }
             },
@@ -1311,7 +1395,8 @@
                         {plan: "環北直達車", first_train: "07:00", skip_trains: 1, count: 3},
                         {plan: "環北直達車", trains: ["08:15", "09:15"]},
                         {plan: "環北直達車", first_train: "17:15", skip_trains: 4, count: 4},
-                        {plan: "南段深夜普通車", trains: ["23:22", "23:37"]}
+                        {plan: "南段深夜普通車", trains: ["23:22", "23:37"]},
+                        {plan: "不待避", first_train: "22:35", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1320,7 +1405,8 @@
                     ],
                     filters: [
                         {plan: "環北直達車", first_train: "14:15", skip_trains: 4, until: "19:15"},
-                        {plan: "南段深夜普通車", trains: ["23:22", "23:37"]}
+                        {plan: "南段深夜普通車", trains: ["23:22", "23:37"]},
+                        {plan: "不待避", first_train: "22:35", count: 3}
                     ]
                 }
             }
@@ -1337,7 +1423,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:31"]},
                         {plan: "山鼻始發空車", trains: ["06:46"]},
                         {plan: "體育大學始發空車", trains: ["07:01"]},
-                        {plan: "三重始發空車", trains: ["07:16"]}
+                        {plan: "三重始發空車", trains: ["07:16"]},
+                        {plan: "不待避", trains: ["00:29"]}
                     ]
                 },
                 "例假日": {
@@ -1349,7 +1436,8 @@
                         {plan: "機場第一航廈始發空車", trains: ["06:31"]},
                         {plan: "山鼻始發空車", trains: ["06:46"]},
                         {plan: "體育大學始發空車", trains: ["07:01"]},
-                        {plan: "三重始發空車", trains: ["07:16"]}
+                        {plan: "三重始發空車", trains: ["07:16"]},
+                        {plan: "不待避", trains: ["00:29"]}
                     ]
                 }
             },
@@ -1359,7 +1447,8 @@
                         {first_train: "06:03", delta: [[68, [15]], 17, 15]}
                     ],
                     filters: [
-                        {plan: "南段深夜普通車", trains: ["23:20", "23:35"]}
+                        {plan: "南段深夜普通車", trains: ["23:20", "23:35"]},
+                        {plan: "不待避", first_train: "22:33", count: 3}
                     ]
                 },
                 "例假日": {
@@ -1367,7 +1456,8 @@
                         {first_train: "06:03", delta: [[68, [15]], 17, 15]}
                     ],
                     filters: [
-                        {plan: "南段深夜普通車", trains: ["23:20", "23:35"]}
+                        {plan: "南段深夜普通車", trains: ["23:20", "23:35"]},
+                        {plan: "不待避", first_train: "22:33", count: 3}
                     ]
                 }
             }

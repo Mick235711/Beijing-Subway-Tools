@@ -40,7 +40,7 @@ class Train:
         self.stopping_times: dict[str, int] = {}
         for route in routes:
             for station, stopping_time in route.stopping_times.items():
-                if station in self.stopping_times and self.stopping_times[station] != stopping_time:
+                if station in self.stopping_times and 0 < stopping_time != self.stopping_times[station]:
                     raise ValueError(
                         f"Conflicting stopping times at {station}: "
                         f"{self.stopping_times[station]} and {stopping_time} ({routes})"

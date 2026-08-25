@@ -436,10 +436,12 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             if route_name in ["reversed", "aliases", "icon"] or route_name.startswith("end_circle"):
                 continue
             route = parse_train_route(
-                direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop)
-            if len(route_value) == 0:
+                direction, line.directions[direction], route_name, route_value, line.carriage_num, line.loop
+            )
+            pure_keys = [x for x in route_value.keys() if x != "stopping_times"]
+            if len(pure_keys) == 0 and direction not in line.direction_base_route:
                 line.direction_base_route[direction] = route
-            elif line.loop and len(route_value) == 1 and "starts_with" in route_value and \
+            elif line.loop and len(pure_keys) == 1 and "starts_with" in route_value and \
                     route_value["starts_with"] == line.directions[direction][0]:
                 line.loop_start_route[direction] = route
             line.train_routes[direction][route_name] = route

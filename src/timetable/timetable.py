@@ -76,6 +76,8 @@ class Timetable:
                 route.stopping_times[station]
                 for route in self.route_iter() if station in route.stopping_times
             }
+            if 0 in values:
+                return 0
             if len(values) > 1:
                 raise ValueError(f"Conflicting stopping times at {station}: {values} ({self.route_iter()})")
             return next(iter(values), 0)
