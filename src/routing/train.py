@@ -7,8 +7,9 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from functools import lru_cache
+from typing import TypeVar
 
 from src.city.line import Line
 from src.city.train_route import TrainRoute, stations_dist, route_dist
@@ -18,13 +19,14 @@ from src.common.common import diff_time, get_time_repr, get_time_str, format_dur
 from src.timetable.timetable import Timetable, route_stations, route_skip_stations, route_without_timetable
 
 _PARSE_LOCK = threading.RLock()
+V = TypeVar("V")
 
 
 class Train:
     """ Represents a train """
 
     def __init__(self, line: Line, routes: list[TrainRoute], date_group: str,
-                 arrival_time: dict[str, TimeSpec]) -> None:
+                 departure_time: dict[str, TimeSpec]) -> None:
         """ Constructor """
         self.line = line
         self.carriage_num = min(x.carriage_num for x in routes)
@@ -35,9 +37,40 @@ class Train:
         self.real_end = end_route.real_end
         self.skip_stations = route_skip_stations(self.routes)
         self.without_timetable = route_without_timetable(self.routes)
-        self.arrival_time = arrival_time
+        self.stopping_times: dict[str, int] = {}
+        for route in routes:
+            for station, stopping_time in route.stopping_times.items():
+                if station in self.stopping_times and self.stopping_times[station] != stopping_time:
+                    raise ValueError(
+                        f"Conflicting stopping times at {station}: "
+                        f"{self.stopping_times[station]} and {stopping_time} ({routes})"
+                    )
+                self.stopping_times[station] = stopping_time
+        self.departure_time: dict[str, TimeSpec] = {}
+        self.arrival_time: dict[str, TimeSpec] = {}
+        for station, time_spec in departure_time.items():
+            self.set_departure_time(station, time_spec)
         self.loop_prev: Train | None = None
         self.loop_next: Train | None = None
+
+    def stopping_time(self, station: str) -> int:
+        """ Return whole minutes spent at station """
+        assert station in self.stations, (self, station)
+        if station in self.skip_stations:
+            return 0
+        return self.stopping_times.get(station, 0)
+
+    def set_departure_time(self, station: str, departure: TimeSpec) -> None:
+        """ Set a station departure and derive its arrival """
+        self.departure_time[station] = departure
+        stopping_time = self.stopping_time(station)
+        arrival = add_min_tuple(departure, -stopping_time)
+        if diff_time_tuple(departure, arrival) != stopping_time:
+            raise ValueError(
+                f"Stopping time at {station} crosses before the representable service day: "
+                f"{departure}, {stopping_time} minutes"
+            )
+        self.arrival_time[station] = arrival
 
     def last_station(self) -> str:
         """ Get last station in the timetable """
@@ -57,7 +90,7 @@ class Train:
 
     def last_time_repr(self) -> str:
         """ Train last time representation """
-        return get_time_repr(*self.end_time())
+        return get_time_repr(*self.last_time())
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -65,7 +98,8 @@ class Train:
             return (
                 f"<{self.direction_repr()} " +
                 f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " +
-                f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} (loop)>"
+                f"{self.line.station_full_name(self.loop_next.stations[0])} " +
+                f"{self.loop_next.arrival_time_repr(self.loop_next.stations[0])} (loop)>"
             )
         return f"<{self.direction_repr()} {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}" + \
             f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}>"
@@ -75,7 +109,10 @@ class Train:
         return (
             self.line.name, self.carriage_num, self.direction, tuple(self.stations),
             self.real_end, tuple(sorted(self.skip_stations, key=lambda t: to_pinyin(t)[0])),
-            tuple(self.arrival_time[s] for s in self.stations if s in self.arrival_time)
+            tuple(
+                (self.arrival_time[s], self.departure_time[s])
+                for s in self.stations if s in self.arrival_time
+            )
         )
 
     def __eq__(self, other: object) -> bool:
@@ -105,8 +142,8 @@ class Train:
         return self.line.carriage_type.train_formal_name(self.carriage_num)
 
     def start_time(self) -> TimeSpec:
-        """ Train start time """
-        return self.arrival_time[self.stations[0]]
+        """ Train passenger departure time at the origin """
+        return self.departure_time[self.stations[0]]
 
     def start_time_str(self) -> str:
         """ Train start time string """
@@ -117,7 +154,7 @@ class Train:
         return get_time_repr(*self.start_time())
 
     def end_time(self) -> TimeSpec:
-        """ Train end time """
+        """ Train passenger arrival time at the destination """
         return self.arrival_time[self.stations[-1]]
 
     def end_time_str(self) -> str:
@@ -134,27 +171,37 @@ class Train:
 
     def real_end_time(self, trains: Iterable[Train]) -> TimeSpec:
         """ Train real end time """
-        end_time = self.end_time()
+        end_time = self.departure_time[self.stations[-1]]
         if self.real_end is None:
-            return end_time
+            return self.end_time()
 
         # Calculate the minimum time between two stations
         time_list = [
-            diff_time_tuple(train.arrival_time[self.real_end], train.arrival_time[self.stations[-1]])
+            diff_time_tuple(train.arrival_time[self.real_end], train.departure_time[self.stations[-1]])
             for train in trains if train.line == self.line and train.direction == self.direction and
             self.stations[-1] in train.arrival_time and self.real_end in train.arrival_time
         ]
         return add_min_tuple(end_time, min(time_list))
 
     def stop_time_repr(self, station: str) -> str:
-        """ Train stop time representation """
-        assert station in self.stations and station in self.arrival_time, station
-        return get_time_repr(*self.arrival_time[station])
+        """ Train departure time representation, retained for departure-oriented callers """
+        assert station in self.stations and station in self.departure_time, station
+        return get_time_repr(*self.departure_time[station])
 
     def stop_time_str(self, station: str) -> str:
         """ Train stop time string """
-        assert station in self.stations and station in self.arrival_time, station
-        return get_time_str(*self.arrival_time[station])
+        assert station in self.stations and station in self.departure_time, station
+        return get_time_str(*self.departure_time[station])
+
+    def arrival_time_repr(self, station: str) -> str:
+        """ Train arrival time representation at station """
+        assert station in self.arrival_time, station
+        return get_time_repr(*self.arrival_time[station])
+
+    def departure_time_repr(self, station: str) -> str:
+        """ Train departure time representation at station """
+        assert station in self.departure_time, station
+        return get_time_repr(*self.departure_time[station])
 
     def show_with(self, station: str, reverse: bool = False) -> str:
         """ String representation with stop time on station """
@@ -163,7 +210,8 @@ class Train:
             if self.stations[0] != station:
                 base += f" <- {self.line.station_full_name(self.stations[0])} {self.start_time_repr()}"
             if self.loop_next is not None:
-                base = f"{self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()} <- " + base
+                base = f"{self.line.station_full_name(self.loop_next.stations[0])} " + \
+                    f"{self.loop_next.arrival_time_repr(self.loop_next.stations[0])} <- " + base
             elif self.stations[-1] != station:
                 base = f"{self.line.station_full_name(self.stations[-1])} {self.end_time_repr()} <- " + base
             return base
@@ -171,7 +219,8 @@ class Train:
         if self.stations[0] != station:
             base = f"{self.line.station_full_name(self.stations[0])} {self.start_time_repr()} -> " + base
         if self.loop_next is not None:
-            base += f" -> {self.line.station_full_name(self.loop_next.stations[0])} {self.loop_next.start_time_repr()}"
+            base += f" -> {self.line.station_full_name(self.loop_next.stations[0])} " + \
+                self.loop_next.arrival_time_repr(self.loop_next.stations[0])
         elif self.stations[-1] != station:
             base += f" -> {self.line.station_full_name(self.stations[-1])} {self.end_time_repr()}"
         return base
@@ -201,21 +250,38 @@ class Train:
             for st in self.stations if (with_passing or st not in self.skip_stations)
         ]
 
-    def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
-        """ Display the arrival_time dict start from start_station, considering loop """
+    def departure_times(self, *, with_passing: bool = False) -> list[tuple[str, str, TimeSpec | None]]:
+        """ Return station departures for uniformity with ThroughTrain """
+        return [
+            (st, self.line.name, self.departure_time.get(st))
+            for st in self.stations if (with_passing or st not in self.skip_stations)
+        ]
+
+    def generic_virtual(
+        self, field: Callable[[Train], dict[str, V]], start_station: str | None = None
+    ) -> dict[str, V]:
+        """ Display the virtual time dict start from start_station """
         if start_station is None:
-            return self.arrival_time
-        assert start_station in self.arrival_time, (self, start_station)
-        arrival_keys = list(self.arrival_time.keys())
+            return field(self)
+        assert start_station in field(self), (self, start_station)
+        arrival_keys = list(field(self).keys())
         arrival_index = arrival_keys.index(start_station)
-        cur_list = list(self.arrival_time.items())[arrival_index:]
+        cur_list = list(field(self).items())[arrival_index:]
         if self.loop_next is not None:
-            next_list = list(self.loop_next.arrival_time.items())
-            if start_station in self.loop_next.arrival_time:
-                next_index = list(self.loop_next.arrival_time.keys()).index(start_station)
+            next_list = list(field(self.loop_next).items())
+            if start_station in field(self.loop_next):
+                next_index = list(field(self.loop_next).keys()).index(start_station)
                 next_list = next_list[:next_index]
             cur_list += next_list
         return dict(cur_list)
+
+    def arrival_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
+        """ Display the arrival_time dict start from start_station, considering loop """
+        return self.generic_virtual(lambda x: x.arrival_time, start_station)
+
+    def departure_time_virtual(self, start_station: str | None = None) -> dict[str, TimeSpec]:
+        """ Display departures from start_station, considering a linked loop segment """
+        return self.generic_virtual(lambda x: x.departure_time, start_station)
 
     def can_reach(self, start_station: str, end_station: str) -> bool:
         """ Determine whether this service stops at end_station after start_station """
@@ -270,7 +336,7 @@ class Train:
         """ One-line short duration string for two stations """
         virtual = self.arrival_time_virtual(start_station)
         arrival_keys = list(virtual.keys())
-        start_time, start_day = virtual[start_station]
+        start_time, start_day = self.departure_time[start_station]
         start_index = arrival_keys.index(start_station)
         if end_station == start_station:
             end_time, end_day = self.arrival_time_after(start_station, end_station)
@@ -320,7 +386,7 @@ class Train:
         if self.loop_next is None:
             end_time, end_day = self.end_time()
         else:
-            end_time, end_day = self.loop_next.start_time()
+            end_time, end_day = self.loop_next.arrival_time[self.loop_next.stations[0]]
         return diff_time(end_time, start_time, end_day, start_day)
 
     @lru_cache
@@ -361,7 +427,10 @@ class Train:
             base += f", {speed_str(self.speed())}"
         return base
 
-    def pretty_print(self, *, with_speed: bool = False) -> None:
+    def pretty_print(
+        self, *, with_speed: bool = False,
+        show_origin_arrival: bool = False, show_terminus_departure: bool = False
+    ) -> None:
         """ Print the entire timetable for this train """
         duration_repr = self.duration_repr(with_speed=with_speed)
         print(f"{self.line_repr()} ({duration_repr})\n")
@@ -377,7 +446,15 @@ class Train:
                 assert station in self.without_timetable, station
                 reprs.append(f"{self.line.station_full_name(station)} --:--")
                 continue
-            reprs.append(f"{self.line.station_full_name(station)} {get_time_repr(*self.arrival_time[station])}")
+            arrival_repr = get_time_repr(*self.arrival_time[station])
+            departure_repr = get_time_repr(*self.departure_time[station])
+            if station == self.stations[0] and self.loop_prev is None and not show_origin_arrival:
+                time_repr = departure_repr
+            elif station == self.stations[-1] and self.loop_next is None and not show_terminus_departure:
+                time_repr = arrival_repr
+            else:
+                time_repr = arrival_repr if arrival_repr == departure_repr else f"{arrival_repr}–{departure_repr}"
+            reprs.append(f"{self.line.station_full_name(station)} {time_repr}")
             if self.arrival_time[station][1]:
                 have_next = True
         if self.loop_next is not None:
@@ -412,7 +489,7 @@ class Train:
                 arrival_time, next_day = self.loop_next.arrival_time[station]
 
             if station not in self.skip_stations and last_station is not None:
-                last_time, last_next_day = self.arrival_time[last_station]
+                last_time, last_next_day = self.departure_time[last_station]
                 duration = diff_time(arrival_time, last_time, next_day, last_next_day)
                 dist = stations_dist(stations, station_dists, last_station, station)
                 print(f"({format_duration(duration, consider_zero=True)}, {distance_str(dist)}", end="")
@@ -445,7 +522,7 @@ def assign_loop_next(
     base_route: TrainRoute, loop_start_route: TrainRoute | None = None
 ) -> dict[int, list[Train]]:
     """ Assign loop_next field for a loop line """
-    trains_all = [t for tl in trains.values() for t in tl if stations[0] in t.arrival_time]
+    trains_all = [t for tl in trains.values() for t in tl if stations[0] in t.departure_time]
     trains_sorted = sorted(trains_all, key=lambda x: get_time_str(*x.arrival_time[stations[0]]))
     candidate_list: list[Train] = []
     for route_id, train_list in trains.items():
@@ -454,15 +531,15 @@ def assign_loop_next(
         if not loop:
             continue
         candidate_list += train_list
-    for train in sorted(candidate_list, key=lambda x: get_time_str(*x.arrival_time[stations[-1]])):
-        last_time_day = train.arrival_time[stations[-1]]
+    for train in sorted(candidate_list, key=lambda x: get_time_str(*x.departure_time[stations[-1]])):
+        last_time_day = train.departure_time[stations[-1]]
         first_time, first_day = add_min_tuple(last_time_day, loop_last_segment)
 
         # Assign to nearest existing trains
         found_train: Train | None = None
         for i, train2 in enumerate(trains_sorted):
-            train2_leave, train2_day = train2.arrival_time[stations[0]]
-            if diff_time(train2_leave, first_time, train2_day, first_day) >= 0:
+            train2_arrive, train2_day = train2.arrival_time[stations[0]]
+            if diff_time(train2_arrive, first_time, train2_day, first_day) >= 0:
                 found_train = train2
                 trains_sorted = trains_sorted[:i] + trains_sorted[i + 1:]
                 break
@@ -528,13 +605,22 @@ def parse_trains_stations(
                 assert len(trains[route_id]) == len(timetable_trains), \
                     (station, routes_dict[route_id], len(trains[route_id]), len(timetable_trains))
                 for i in range(len(trains[route_id])):
-                    trains[route_id][i].arrival_time[station] = (
+                    trains[route_id][i].set_departure_time(station, (
                         timetable_trains[i].leaving_time,
                         timetable_trains[i].next_day
-                    )
+                    ))
     if line.loop:
         trains = assign_loop_next(trains, routes_dict, stations, line.loop_last_segment,
                                   line.direction_base_route[direction], line.loop_start_route.get(direction))
+
+    for train_list in trains.values():
+        for train in train_list:
+            timed_stations = [station for station in train.stations if station in train.departure_time]
+            for previous, current in zip(timed_stations[:-1], timed_stations[1:]):
+                if diff_time_tuple(train.arrival_time[current], train.departure_time[previous]) < 0:
+                    raise ValueError(
+                        f"Arrival at {current} precedes departure from {previous}: {train}"
+                    )
 
     # Collect all route types
     return [train for train_list in trains.values() for train in train_list]

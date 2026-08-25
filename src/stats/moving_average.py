@@ -52,7 +52,7 @@ def count_train(station: str, trains: Sequence[Train], *, moving_min: int = 60,
     """ Count the trains as moving average of station-wise count/capacities """
     result_dict: dict[str, tuple[int, int]] = {}
     for train in trains:
-        start_tuple = train.arrival_time[station]
+        start_tuple = train.departure_time[station]
         for i in range(-moving_min + 1, 1):
             cur_tuple = add_min_tuple(start_tuple, i)
             if start_time is not None and diff_time_tuple(start_time, cur_tuple) > 0:
@@ -105,8 +105,8 @@ def get_section_data(
         sorted_list = sorted(value, key=lambda t: t.stop_time_str(station))
         for time_str, (count_value, cap_value) in count_train(
             station, value, moving_min=moving_min,
-            start_time=None if include_edge else sorted_list[0].arrival_time[station],
-            end_time=None if include_edge else sorted_list[-1].arrival_time[station]
+            start_time=None if include_edge else sorted_list[0].departure_time[station],
+            end_time=None if include_edge else sorted_list[-1].departure_time[station]
         ).items():
             count_dict[key + (time_str,)] = count_value
             cap_dict[key + (time_str,)] = cap_value

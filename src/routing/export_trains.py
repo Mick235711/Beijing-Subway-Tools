@@ -42,7 +42,7 @@ def format_schedule_json(
     """ Format train information in schedule JSON format """
     train_dict = parse_all_trains(lines)  # line -> direction -> date_group -> list[Train]
 
-    # line -> direction -> date_group -> train_key -> list of (station, arrival_time)
+    # line -> direction -> date_group -> train_key -> list of (station, departure_time)
     result: dict[str, dict[str, dict[str, dict[str, list[NoIndent]]]]] = {}
     for line in sorted(lines, key=lambda single_line: single_line.index):
         assert line.name in train_dict, (train_dict.keys(), line)
@@ -67,12 +67,12 @@ def format_schedule_json(
                         train_key = generate_train_key(line.index, direction_index, date_group_index, train_index)
                     if train_key not in result[line.name][direction][date_group]:
                         result[line.name][direction][date_group][train_key] = []
-                    for station, arrival_time in train.arrival_time.items():
+                    for station, departure_time in train.departure_time.items():
                         prepend = ""
                         if station in train.skip_stations:
                             prepend = "("
                         result[line.name][direction][date_group][train_key].append(
-                            NoIndent((station, prepend + get_time_str(*arrival_time)))
+                            NoIndent((station, prepend + get_time_str(*departure_time)))
                         )
 
     # Output
@@ -128,12 +128,16 @@ def format_etrc(
         else:
             result += f"{train.stations[-1]}\n"
         for station, arriving_time in train.arrival_time.items():
-            time_str = get_time_str(*arriving_time)
-            result += f"{station},{time_str},{time_str}," + ("false" if station in train.skip_stations else "true") + "\n"
+            arrival_str = get_time_str(*arriving_time)
+            departure_str = get_time_str(*train.departure_time[station])
+            result += f"{station},{arrival_str},{departure_str}," + \
+                ("false" if station in train.skip_stations else "true") + "\n"
         if train.loop_next is not None:
             next_station = train.loop_next.stations[0]
-            time_str = get_time_str(*train.loop_next.arrival_time[next_station])
-            result += f"{next_station}{loop_suffix},{time_str},{time_str},true\n"
+            arrival_str = get_time_str(*train.loop_next.arrival_time[next_station])
+            departure_str = get_time_str(*train.loop_next.departure_time[next_station])
+            result += f"{next_station}{loop_suffix},{arrival_str},{departure_str}," + \
+                ("false" if next_station in train.loop_next.skip_stations else "true") + "\n"
 
     # Add colors
     result += "---Color---\n"
@@ -195,23 +199,44 @@ def format_pyetrc(
         })
         timetable_list: list = []
         for station, arriving_time in train.arrival_time.items():
-            # Give 10s before and after for stopping
-            time_str = get_time_str(*arriving_time)
-            before_time_str = get_time_str(*add_min_tuple(arriving_time, -1))
+            depart_time = train.departure_time[station]
+            arrival_str = get_time_str(*arriving_time)
+            depart_str = get_time_str(*depart_time)
+            passing = station in train.skip_stations
+            if passing:
+                arrival_value = departure_value = f"{depart_str}:00"
+            elif train.stopping_time(station) == 0:
+                before_time_str = get_time_str(*add_min_tuple(depart_time, -1))
+                arrival_value = f"{before_time_str}:50"
+                departure_value = f"{depart_str}:10"
+            else:
+                arrival_value = f"{arrival_str}:00"
+                departure_value = f"{depart_str}:00"
             timetable_list.append({
-                "business": station not in train.skip_stations,
-                "ddsj": f"{time_str}:00" if station in train.skip_stations else f"{before_time_str}:50",
-                "cfsj": f"{time_str}:00" if station in train.skip_stations else f"{time_str}:10",
+                "business": not passing,
+                "ddsj": arrival_value,
+                "cfsj": departure_value,
                 "zhanming": station
             })
         if train.loop_next is not None:
             next_station = train.loop_next.stations[0]
-            time_str = get_time_str(*train.loop_next.arrival_time[next_station])
-            before_time_str = get_time_str(*add_min_tuple(train.loop_next.arrival_time[next_station], -1))
+            next_train = train.loop_next
+            arrival_str = get_time_str(*next_train.arrival_time[next_station])
+            depart_str = get_time_str(*next_train.departure_time[next_station])
+            passing = next_station in next_train.skip_stations
+            if passing:
+                arrival_value = departure_value = f"{depart_str}:00"
+            elif next_train.stopping_time(next_station) == 0:
+                before_time_str = get_time_str(*add_min_tuple(next_train.departure_time[next_station], -1))
+                arrival_value = f"{before_time_str}:50"
+                departure_value = f"{depart_str}:10"
+            else:
+                arrival_value = f"{arrival_str}:00"
+                departure_value = f"{depart_str}:00"
             timetable_list.append({
-                "business": True,
-                "ddsj": f"{before_time_str}:50",
-                "cfsj": f"{time_str}:10",
+                "business": not passing,
+                "ddsj": arrival_value,
+                "cfsj": departure_value,
                 "zhanming": next_station
             })
         trains_list[-1]["timetable"] = timetable_list

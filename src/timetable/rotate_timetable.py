@@ -20,8 +20,8 @@ from src.routing.train import Train, parse_trains
 from src.timetable.input_to_timetable import divide_filters, divide_schedule
 from src.timetable.timetable import Timetable
 
-RouteKey = tuple[tuple[str, ...], bool, bool]
-TimeEntry = tuple[str, tuple[time, bool]]
+RouteKey = tuple[tuple[str, ...], bool, bool, tuple[tuple[str, int], ...]]
+TimeEntry = tuple[str, tuple[time, bool], int | None]
 
 
 def direction_stations_after_rotation(line: Line, direction: str, new_start: str) -> list[str]:
@@ -51,9 +51,9 @@ def train_chains(trains: list[Train]) -> list[list[TimeEntry]]:
         while current is not None and current not in visited:
             visited.add(current)
             chain.extend([
-                (station, current.arrival_time[station])
+                (station, current.departure_time[station], current.stopping_times.get(station))
                 for station in current.stations
-                if station in current.arrival_time
+                if station in current.departure_time
             ])
             current = current.loop_next
         if chain:
@@ -72,7 +72,7 @@ def split_chain_at_start(chain: list[TimeEntry], new_base: list[str]) -> list[tu
     new_start = new_base[0]
     segments: list[tuple[list[TimeEntry], bool]] = []
     start_index = 0
-    for index, (station, _) in enumerate(chain):
+    for index, (station, _, _) in enumerate(chain):
         if station != new_start:
             continue
         if index > start_index:
@@ -91,10 +91,11 @@ def route_key_for_segment(
     segment: list[TimeEntry], is_loop: bool, new_base: list[str], is_start_route: bool = False
 ) -> RouteKey:
     """ Return the route key represented by a segment """
-    stations = tuple(station for station, _ in segment)
+    stations = tuple(station for station, _, _ in segment)
+    stopping_times = tuple(sorted((station, value) for station, _, value in segment if value is not None))
     # Ensure that loop segment does not end at the station before the new start
     assert not is_loop or stations[-1] == new_base[-1], (stations, new_base)
-    return stations, is_loop, is_start_route
+    return stations, is_loop, is_start_route, stopping_times
 
 
 def make_unique(name: str, used: dict[str, RouteKey], key: RouteKey) -> str:
@@ -109,7 +110,7 @@ def make_unique(name: str, used: dict[str, RouteKey], key: RouteKey) -> str:
 
 def route_name(key: RouteKey, base_key: RouteKey, base_name: str, new_start: str) -> str:
     """ Name a generated route """
-    stations, is_loop, is_start_route = key
+    stations, is_loop, is_start_route, _ = key
     if key == base_key:
         return base_name
     if is_start_route or is_loop:
@@ -121,15 +122,16 @@ def route_name(key: RouteKey, base_key: RouteKey, base_name: str, new_start: str
 
 def make_route_spec(key: RouteKey, base_key: RouteKey) -> dict[str, Any]:
     """ Return JSON5 route spec for a route key """
+    stations, is_loop, is_start_route, stopping_times = key
+    stopping_spec = {"stopping_times": dict(stopping_times)} if stopping_times else {}
     if key == base_key:
-        return {}
-    stations, is_loop, is_start_route = key
+        return stopping_spec
     if is_start_route:
-        return {"starts_with": stations[0]}
+        return {"starts_with": stations[0], **stopping_spec}
     spec: dict[str, Any] = {"stations": list(stations)}
     if not is_loop:
         spec["loop"] = False
-    return spec
+    return {**spec, **stopping_spec}
 
 
 def timetable_to_spec(timetable: Timetable, *, break_entries: int = 15) -> dict[str, list[dict[str, Any]]]:
@@ -160,7 +162,11 @@ def generated_for_direction(
     base_name: str, *, break_entries: int = 15
 ) -> tuple[dict[str, dict[str, Any]], OrderedDict[str, dict[str, Any]]]:
     """ Generate timetables and route specs for one direction/date group """
-    base_key: RouteKey = (tuple(new_base), True, False)
+    base_stopping_times = tuple(sorted(
+        (station, value) for station, value in line.direction_base_route[direction].stopping_times.items()
+        if station in new_base
+    ))
+    base_key: RouteKey = (tuple(new_base), True, False, base_stopping_times)
     route_keys: OrderedDict[RouteKey, None] = OrderedDict()
     route_keys[base_key] = None
     station_trains: dict[str, dict[time, Timetable.Train]] = {station: {} for station in new_base}
@@ -170,7 +176,7 @@ def generated_for_direction(
         for index, (segment, is_loop) in enumerate(split_chain_at_start(chain, new_base)):
             is_start_route = (
                 index == 0 and is_loop and
-                tuple(station for station, _ in segment) == tuple(new_base)
+                tuple(station for station, _, _ in segment) == tuple(new_base)
             )
             segments.append((segment, is_loop, is_start_route))
 
@@ -184,14 +190,15 @@ def generated_for_direction(
     for key in route_keys:
         name = make_unique(route_name(key, base_key, base_name, new_base[0]), used_names, key)
         used_names[name] = key
-        stations, is_loop, _ = key
+        stations, is_loop, _, stopping_times = key
         routes[key] = TrainRoute(name, direction, list(stations), line.carriage_num, is_loop)
+        routes[key].stopping_times = dict(stopping_times)
         route_specs[name] = make_route_spec(key, base_key)
 
     for segment, is_loop, is_start_route in segments:
         key = route_key_for_segment(segment, is_loop, new_base, is_start_route)
         route = routes[key]
-        for station, time_spec in segment:
+        for station, time_spec, _ in segment:
             leaving_time, next_day = time_spec
             assert leaving_time not in station_trains[station], (station, station_trains[station], leaving_time)
             station_trains[station][leaving_time] = Timetable.Train(
@@ -264,7 +271,7 @@ def estimate_loop_last_segment(line: Line, new_start: str) -> int:
                         continue
                     if segment[-1][0] != new_base[-1] or next_segment[0][0] != new_base[0]:
                         continue
-                    delta = diff_time_tuple(next_segment[0][1], segment[-1][1])
+                    delta = diff_time_tuple(next_segment[0][1], segment[-1][1]) - (next_segment[0][2] or 0)
                     if delta > 0:
                         candidates.append(delta)
     return min(candidates) if candidates else line.loop_last_segment

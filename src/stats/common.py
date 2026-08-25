@@ -286,7 +286,7 @@ def parse_args(
 
     # Parse start/end limit time
     if include_passing_limit:
-        all_trains = {k: [e for e in v if within_time(e[1].arrival_time[k], args.limit_start, args.limit_end)]
+        all_trains = {k: [e for e in v if within_time(e[1].departure_time[k], args.limit_start, args.limit_end)]
                       for k, v in all_trains.items()}
     return all_trains, args, city, lines
 

@@ -25,6 +25,7 @@ class TrainRoute:
         self.loop = loop
         self.starts_with: str | None = None
         self.ends_with: str | None = None
+        self.stopping_times: dict[str, int] = {}
 
     def __repr__(self) -> str:
         """ Get string representation """
@@ -50,11 +51,14 @@ class TrainRoute:
             return False
         return self.name == other.name and self.direction == other.direction and \
             self.stations == other.stations and self.skip_stations == other.skip_stations and \
-            self.carriage_num == other.carriage_num
+            self.carriage_num == other.carriage_num and self.stopping_times == other.stopping_times
 
     def __hash__(self) -> int:
         """ Hashing protocol """
-        return hash((self.name, self.direction, tuple(self.stations), tuple(self.skip_stations), self.carriage_num))
+        return hash((
+            self.name, self.direction, tuple(self.stations), tuple(sorted(self.skip_stations)),
+            self.carriage_num, tuple(sorted(self.stopping_times.items()))
+        ))
 
 
 def parse_train_route(direction: str, base: list[str],
@@ -66,14 +70,13 @@ def parse_train_route(direction: str, base: list[str],
     route = TrainRoute(name, direction, base, spec.get("carriage_num", carriage_num), route_loop, spec.get("real_end"))
     if "stations" in spec:
         route.stations = spec["stations"]
-        return route
-
-    if "starts_with" in spec:
-        route.stations = route.stations[route.stations.index(spec["starts_with"]):]
-        route.starts_with = spec["starts_with"]
-    if "ends_with" in spec:
-        route.stations = route.stations[:route.stations.index(spec["ends_with"]) + 1]
-        route.ends_with = spec["ends_with"]
+    else:
+        if "starts_with" in spec:
+            route.stations = route.stations[route.stations.index(spec["starts_with"]):]
+            route.starts_with = spec["starts_with"]
+        if "ends_with" in spec:
+            route.stations = route.stations[:route.stations.index(spec["ends_with"]) + 1]
+            route.ends_with = spec["ends_with"]
     if "skip" in spec:
         route.skip_stations = set(spec["skip"])
         assert all(ss in route.stations for ss in route.skip_stations), spec
@@ -81,6 +84,12 @@ def parse_train_route(direction: str, base: list[str],
         if len(route.skip_stations) == 0:
             print("Warning: skip_timetable is set but no skip stations are defined")
         route.skip_timetable = spec["skip_timetable"]
+    if "stopping_times" in spec:
+        stopping_times = spec["stopping_times"]
+        assert all(type(value) is int and value >= 0 for value in stopping_times.values()), spec
+        assert all(station in route.stations for station in stopping_times), spec
+        assert all(station not in route.skip_stations for station in stopping_times), spec
+        route.stopping_times = dict(stopping_times)
     if route.stations[-1] != base[-1]:
         route.loop = False
     return route

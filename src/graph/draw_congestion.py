@@ -220,7 +220,7 @@ def get_congestion_stats(
                             assert path_train.loop_next is not None and\
                                    path_station in path_train.loop_next.arrival_time, (expanded, path_station, path_train)
                             path_train = path_train.loop_next
-                        load_dict[load_key][1].add(path_train.arrival_time[path_station])
+                        load_dict[load_key][1].add(path_train.departure_time[path_station])
                     elif i == 0:
                         load_dict[load_key][1].add((start_time, start_day))
                     else:
@@ -232,7 +232,7 @@ def get_congestion_stats(
                             index -= 1
                             prev_train = expanded[index][1]
                         assert index >= 0 and isinstance(prev_train, Train), (expanded, index, i, prev_train)
-                        load_dict[load_key][1].add(prev_train.arrival_time_virtual(expanded[index][0])[path_station])
+                        load_dict[load_key][1].add(prev_train.departure_time_virtual(expanded[index][0])[path_station])
                     load_dict[load_key][2].add(path_train)
     return line_stats, all_stats, load_dict, transfer_stats, virtual_stats, train_set
 

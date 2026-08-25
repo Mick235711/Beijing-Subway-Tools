@@ -384,10 +384,10 @@ options:
   --real-loop           Export loop as is
 ```
 Export all trains recorded into several formats. Supported formats (specified via `--format`):
-- A JSON file similar to those mandated in the
+- A departure-only JSON file similar to those mandated in the
 [beijing_subway_schedule](https://github.com/BoyInTheSun/beijing-subway-schedule) README.
-- A [ETRC](https://github.com/lifanxi/train-graph)-compatible `.trc` file. For compatability reason all distances are multiplied by 10.
-- A [pyETRC](https://github.com/CDK6182CHR/train_graph)/[qETRC](https://github.com/CDK6182CHR/qETRC)-compatible `.pyetgr` file. It is assumed that each train stops at stations for 20 seconds.
+- An [ETRC](https://github.com/lifanxi/train-graph)-compatible `.trc` file with separate arrival and departure columns. For compatibility reasons all distances are multiplied by 10.
+- A [pyETRC](https://github.com/CDK6182CHR/train_graph)/[qETRC](https://github.com/CDK6182CHR/qETRC)-compatible `.pyetgr` file. Positive route `stopping_times` are exported exactly. A stopping station with a zero-minute annotation/default assumes a 20-second stopping time (arrival 10 seconds before and departure 10 seconds after the scheduled minute).
 
 Command line arguments available:
 - `--indent` will append `N` spaces before each line and also indent the JSON output (not passing this will cause all output be in one line).

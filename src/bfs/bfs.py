@@ -162,7 +162,7 @@ class BFSResult:
 
         line_list: list[str] = []
         if isinstance(path[0][1], Train):
-            first_time, first_day = path[0][1].arrival_time[path[0][0]]
+            first_time, first_day = path[0][1].departure_time[path[0][0]]
             first_waiting = diff_time(first_time, self.initial_time, first_day, self.initial_day)
             if first_waiting < 0:
                 assert self.force_next_day, (self.initial_time, self.initial_day, first_time, first_day)
@@ -190,7 +190,7 @@ class BFSResult:
                 last_virtual = train
                 continue
 
-            start_time, start_day = train.arrival_time[station]
+            start_time, start_day = train.departure_time[station]
             if last_train is not None:
                 # Display transfer information
                 assert last_station is not None
@@ -300,7 +300,7 @@ def get_all_trains_single(
                 for train in date_dict:
                     if station in train.arrival_time and station not in train.skip_stations:
                         all_passing.append(train)
-    return sorted(all_passing, key=lambda t: get_time_str(*t.arrival_time[station]))
+    return sorted(all_passing, key=lambda t: get_time_str(*t.departure_time[station]))
 
 
 def find_next_train(
@@ -317,11 +317,11 @@ def find_next_train(
             continue
         for train in date_dict:
             if station in train.arrival_time and station not in train.skip_stations:
-                arr_time, arr_day = train.arrival_time[station]
-                if diff_time(arr_time, cur_time, arr_day, cur_day) < 0:
+                depart_time, depart_day = train.departure_time[station]
+                if diff_time(depart_time, cur_time, depart_day, cur_day) < 0:
                     continue
                 all_passing.append(train)
-    for train in sorted(all_passing, key=lambda st: get_time_str(*st.arrival_time[station])):
+    for train in sorted(all_passing, key=lambda st: get_time_str(*st.departure_time[station])):
         key = (train.line.name, train.direction, frozenset(train.routes))
         if key not in result:
             result[key] = train

@@ -64,11 +64,11 @@ def highest_speed_train(
 def compute_data(train: Train, station1: str, station2: str) -> tuple[float, int, int]:
     """ Compute data for a segment """
     duration = diff_time_tuple(
-        train.arrival_time_virtual(station1)[station2], train.arrival_time[station1]
+        train.arrival_time_virtual(station1)[station2], train.departure_time[station1]
     )
     distance = train.two_station_dist(station1, station2)
     if duration < 0:
-        print(train, train.arrival_time)
+        print(train, {s: (train.arrival_time[s], train.departure_time[s]) for s in train.arrival_time})
     return segment_speed(distance, duration), duration, distance
 
 

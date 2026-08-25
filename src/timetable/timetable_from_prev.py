@@ -35,7 +35,9 @@ def add_delta(
             continue
         if only_route is not None and train.route_iter() != only_route:
             continue
-        new_time, next_day = add_min(train.leaving_time, delta, train.next_day)
+        new_time, next_day = add_min(
+            train.leaving_time, delta + train.stopping_time(next_station), train.next_day
+        )
         new_train = deepcopy(train)
         new_train.leaving_time = new_time
         new_train.next_day = next_day

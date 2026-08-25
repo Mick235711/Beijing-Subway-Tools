@@ -313,9 +313,9 @@ def group_trains(
     """ Group trains into (hour, next_day) -> train list, also collect the routes """
     hour_dict: dict[tuple[int, bool], list[Train]] = {}
     routes: dict[TrainRoute, int] = {}
-    for train in sorted(train_list, key=lambda t: get_time_str(*t.arrival_time[station])):
-        arrive_time, next_day = train.arrival_time[station]
-        key = (arrive_time.hour, next_day)
+    for train in sorted(train_list, key=lambda t: get_time_str(*t.departure_time[station])):
+        depart_time, next_day = train.departure_time[station]
+        key = (depart_time.hour, next_day)
         if key not in hour_dict:
             hour_dict[key] = []
         hour_dict[key].append(train)
@@ -343,15 +343,15 @@ def single_hour_timetable(
 ) -> dict[TrainRoute, list[tuple[Train, Label]]]:
     """ Display timetable for a single hour """
     trains = sorted([
-        t for t in train_list if t.arrival_time[station][0].hour == hour and t.arrival_time[station][1] == next_day
-    ], key=lambda t: get_time_str(*t.arrival_time[station]), reverse=reverse)
+        t for t in train_list if t.departure_time[station][0].hour == hour and t.departure_time[station][1] == next_day
+    ], key=lambda t: get_time_str(*t.departure_time[station]), reverse=reverse)
     minute_labels: dict[TrainRoute, list[tuple[Train, Label]]] = {}
     for train in trains:
-        arrival_time = train.arrival_time[station]
+        depart_time = train.departure_time[station]
         style, inner = apply_style(hour_display, [(route, styles[route]) for route in train.routes])
         train_id = find_train_id(train_id_dict, train)
         with label_function(
-            train, train_id, apply_formatting(hour_display, [styles[route] for route in train.routes], arrival_time)
+            train, train_id, apply_formatting(hour_display, [styles[route] for route in train.routes], depart_time)
         ).on(
             "click", lambda t=train, i=train_id: refresh_train_drawer(
                 t, start_date, i, train_id_dict, city.station_lines
@@ -409,7 +409,7 @@ def change_style(
         if isinstance(train, Train):
             style, inner = apply_style(hour_display, [(route, new_styles[route]) for route in train.routes])
             element.set_text(apply_formatting(
-                hour_display, [new_styles[route] for route in train.routes], train.arrival_time[station]
+                hour_display, [new_styles[route] for route in train.routes], train.departure_time[station]
             ))
         else:
             style, inner = apply_style(hour_display, [(None, new_styles[None]), (None, default_hour_style)])
@@ -621,10 +621,10 @@ def show_filter_inner_menu(
                     )
                 )
 
-        get_time_range_filtered("Arrival Time", lambda t: t.arrival_time[station])
+        get_time_range_filtered("Departure Time", lambda t: t.departure_time[station])
         get_time_range_filtered("Start Time", lambda t: t.start_time())
         get_time_range_filtered(
-            "End Time", lambda t: t.loop_next.start_time() if t.loop_next is not None else t.end_time()
+            "End Time", lambda t: t.last_time()
         )
         with ui.row().classes("w-[90%] items-center justify-end ml-1"):
             ui.label("Duration: ")

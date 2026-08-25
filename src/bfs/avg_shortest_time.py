@@ -41,10 +41,10 @@ def get_minute_list(
     """ Get a list of minutes to execute BFS on """
     # Loop through first train to last train
     all_trains = get_all_trains_single(lines, train_dict, start_station, start_date)
-    all_arrival = [train.arrival_time[start_station] for train in all_trains
-                   if (limit_line is None or train.line.name == limit_line) and
-                   (limit_direction is None or train.direction == limit_direction)]
-    all_minutes = list({to_minutes(arrive_time, arrive_day) for arrive_time, arrive_day in all_arrival})
+    all_departure = [train.departure_time[start_station] for train in all_trains
+                     if (limit_line is None or train.line.name == limit_line) and
+                     (limit_direction is None or train.direction == limit_direction)]
+    all_minutes = list({to_minutes(depart_time, depart_day) for depart_time, depart_day in all_departure})
     limit_start_num = 0 if limit_start is None else to_minutes(limit_start, limit_start_day)
     limit_end_num = 48 * 60 if limit_end is None else to_minutes(limit_end, limit_end_day)
     all_list = [x for x in all_minutes if limit_start_num <= x <= limit_end_num]
@@ -328,7 +328,7 @@ def get_waiting_time(
                 total_waiting -= train[3][0]
             continue
 
-        next_time = train.arrival_time[station]
+        next_time = train.departure_time[station]
         total_waiting += diff_time_tuple(next_time, cur_time)
         cur_time = train.arrival_time_after(station, next_station)
         if exclude_transfer and i < len(path_info[1]) - 1:

@@ -74,11 +74,11 @@ def ask_for_shortest_time(
                 for train in group_dict:
                     if start in train.arrival_time:
                         all_trains.append(train)
-    all_trains = sorted(all_trains, key=lambda t: get_time_str(*t.arrival_time[start]))
+    all_trains = sorted(all_trains, key=lambda t: get_time_str(*t.departure_time[start]))
     virtual_transfers = city.virtual_transfers if not args.exclude_virtual else {}
 
     start_time, start_day = ask_for_time(
-        allow_first=lambda: all_trains[0].arrival_time[start],
+        allow_first=lambda: all_trains[0].departure_time[start],
         allow_last=(None if end is None else (lambda: find_last_train(
             lines, train_dict, through_dict,
             city.transfers, virtual_transfers,

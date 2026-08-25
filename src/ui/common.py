@@ -364,21 +364,21 @@ def find_train_id(train_dict: dict[str, Train], train: Train) -> str:
 
 def find_first_train(train_list: list[Train | ThroughTrain], station: str, reverse: bool = False) -> tuple[Train, str]:
     """ Find first/last train passing through a station """
-    def get_arrival_time(inner_train: Train | ThroughTrain) -> TimeSpec:
-        """ Get arrival time for a train in the given station """
-        result = {k: v for k, _, v in inner_train.arrival_times()}[station]
-        assert result is not None, (inner_train, station)
-        return result
+    def get_departure_time(inner_train: Train | ThroughTrain) -> TimeSpec:
+        """ Get departure time for a train at the given station """
+        if isinstance(inner_train, Train):
+            return inner_train.departure_time[station]
+        return inner_train.station_lines()[station][2].departure_time[station]
 
     if reverse:
-        train_full = max(train_list, key=lambda t: get_time_str(*get_arrival_time(t)))
+        train_full = max(train_list, key=lambda t: get_time_str(*get_departure_time(t)))
     else:
-        train_full = min(train_list, key=lambda t: get_time_str(*get_arrival_time(t)))
+        train_full = min(train_list, key=lambda t: get_time_str(*get_departure_time(t)))
     if isinstance(train_full, Train):
         train = train_full
     else:
         train = train_full.station_lines()[station][2]
-    return train, get_time_str(*train.arrival_time[station])
+    return train, get_time_str(*train.departure_time[station])
 
 
 def calculate_moving_average(

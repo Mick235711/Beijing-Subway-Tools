@@ -27,7 +27,9 @@ def average_speed(
         if start_elem in train.skip_stations or end_elem in train.skip_stations:
             continue
         total_cnt += 1
-        single_duration = diff_time_tuple(train.arrival_time_virtual(start_elem)[end_elem], train.arrival_time[start_elem])
+        single_duration = diff_time_tuple(
+            train.arrival_time_virtual(start_elem)[end_elem], train.departure_time[start_elem]
+        )
         total_duration += single_duration
         total_speed += segment_speed(train.two_station_dist(start_elem, end_elem), single_duration)
     return total_cnt, total_duration / total_cnt, total_speed / total_cnt
@@ -41,11 +43,20 @@ def find_overtaken(train: Train, train_list: list[Train]) -> list[tuple[str, str
         for station1, station2 in zip(candidate_stations[:-1], candidate_stations[1:]):
             # if at station1 train > candidate, and at station2 train < candidate, then overtaken
             if diff_time_tuple(
-                train.arrival_time[station1], candidate.arrival_time[station1]
+                train.departure_time[station1], candidate.departure_time[station1]
             ) > 0 > diff_time_tuple(
                 train.arrival_time[station2], candidate.arrival_time[station2]
             ):
                 overtaken.append((station1, station2, candidate))
+        for station in candidate_stations:
+            if station not in train.skip_stations or candidate.stopping_time(station) == 0:
+                continue
+            passing = train.departure_time[station]
+            if diff_time_tuple(passing, candidate.arrival_time[station]) >= 0 and \
+                    diff_time_tuple(candidate.departure_time[station], passing) >= 0:
+                entry = (station, station, candidate)
+                if entry not in overtaken:
+                    overtaken.append(entry)
     return overtaken
 
 

@@ -942,11 +942,11 @@ def train_timeline(
                         prev_time = prev_prev.arrival_time_after(train[1][i - 2][0], prev_station)
                     transfer_time = prev_train_tuple[3]
                 prev_time = (prev_time[0], prev_time[1] or force_next_day)
-                if diff_time_tuple(inner_train.arrival_time[inner_station], prev_time) < 0:
+                if diff_time_tuple(inner_train.departure_time[inner_station], prev_time) < 0:
                     force_next_day = True
                 adjusted_time = (
-                    inner_train.arrival_time[inner_station][0],
-                    inner_train.arrival_time[inner_station][1] or force_next_day
+                    inner_train.departure_time[inner_station][0],
+                    inner_train.departure_time[inner_station][1] or force_next_day
                 )
                 waiting_time = diff_time_tuple(adjusted_time, prev_time) - transfer_time[0]
                 transfer_time_dict[(inner_station, inner_train.line.name)] = (transfer_time, waiting_time)
@@ -1050,7 +1050,10 @@ def train_timeline(
                     real_interval_duration = None
                     interval_dist = None
                 else:
-                    interval_duration = diff_time_tuple(next_time, arrival_time)
+                    interval_start = arrival_time
+                    if isinstance(line_train, tuple) and station in line_train[3].departure_time:
+                        interval_start = line_train[3].departure_time[station]
+                    interval_duration = diff_time_tuple(next_time, interval_start)
                     if transfer_time_value is None:
                         real_interval_duration = interval_duration
                     elif transfer_time_value[1] is None:
@@ -1115,8 +1118,14 @@ def train_timeline(
 
             if arrival_time is None:
                 subtitle = line_train if isinstance(line_train, str) else "passing"
+            elif i == 0 and isinstance(line_train, tuple) and station in line_train[3].departure_time:
+                subtitle = get_time_repr(*line_train[3].departure_time[station])
             else:
                 subtitle = get_time_repr(*arrival_time)
+                if i < len(stations) - 1 and isinstance(line_train, tuple) and station in line_train[3].departure_time:
+                    depart_time = line_train[3].departure_time[station]
+                    if depart_time != arrival_time:
+                        subtitle += "–" + get_time_repr(*depart_time)
             if show_tally and tally_str is not None:
                 subtitle += "\n" + tally_str
 
@@ -1177,7 +1186,7 @@ def train_timeline(
                                 ui.label("Overtaken:").classes("text-subtitle-1")
                             for overtaken_train in sorted(
                                 [t[1] for s in between_stations if s in overtaken_dict for t in overtaken_dict[s]],
-                                key=lambda x: get_time_str(*x.arrival_time[station]), reverse=True
+                                key=lambda x: get_time_str(*x.departure_time[station]), reverse=True
                             ):
                                 with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
                                     overtaken_id = find_train_id(train_id_dict, overtaken_train)
@@ -1189,7 +1198,7 @@ def train_timeline(
                                         with ui.tooltip().add_slot("default"):
                                             with ui.element("div").classes("inline-flex flex-wrap items-center leading-tight gap-x-1"):
                                                 ui.label(station)
-                                                ui.label(get_time_repr(*overtaken_train.arrival_time[station]))
+                                                ui.label(get_time_repr(*overtaken_train.departure_time[station]))
                                                 ui.icon("arrow_right_alt")
                                                 ui.label(next_station)
                                                 ui.label(get_time_repr(*overtaken_train.arrival_time[next_station]))

@@ -174,14 +174,14 @@ def to_trains(
         for date_group, train_list in train_dict[line_name][direction].items():
             trains = sorted(
                 [train for train in train_list if train.can_reach(station, next_station)],
-                key=lambda train: get_time_str(*train.arrival_time[station])
+                key=lambda train: get_time_str(*train.departure_time[station])
             )
             if line.date_groups[date_group].covers(next_date):
                 if len(trains) == 0:
                     continue
                 next_candidates.append(trains[0])
             if line.date_groups[date_group].covers(cur_date):
-                trains = [train for train in trains if diff_time_tuple(train.arrival_time[station], cur_tuple) >= 0]
+                trains = [train for train in trains if diff_time_tuple(train.departure_time[station], cur_tuple) >= 0]
                 if len(trains) == 0:
                     continue
                 cur_candidates.append(trains[0])

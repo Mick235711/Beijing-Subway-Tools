@@ -217,6 +217,14 @@
                         "carriage_num": {
                             "description": "Number of carriages in use for this route",
                             "type": "integer"
+                        },
+                        "stopping_times": {
+                            "description": "Whole minutes spent stopped at stations by every train using this route",
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer",
+                                "minimum": 0
+                            }
                         }
                     },
                     "additionalProperties": false

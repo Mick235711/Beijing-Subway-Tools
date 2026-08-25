@@ -73,15 +73,27 @@ If `index` is not provided, it is assumed to be the last station's index +1 (or 
 A train route refers to a regularly scheduled train visiting several predetermined stations in order. Common train routing includes "Full route", "Short turn on Station X",
 "Clockwise", "Branch A", etc. The routing for a line is specified under `train_routes.<direction>.<routing_name>`.
 
-| Key                   | Required              | Type   | Default           | Value                                                                                        |
-|-----------------------|-----------------------|--------|-------------------|----------------------------------------------------------------------------------------------|
-| starts_with           | No                    | string | The first station | Specify that those trains starts at this station.                                            |
-| ends_with             | No                    | string | The last station  | Specify that those trains ends at this station.                                              |
-| skip                  | No                    | array  | []                | Specify that those station will be skipped.                                                  |
-| skip_timetable        | No                    | bool   | false             | Specify if skipped station still have passing time entry in the timetable.                   |
-| stations              | No                    | array  |                   | Specify the stations that this route stops at. If present, all other attributes are ignored. |
-| real_end              | No                    | string | The last station  | Specify that this route actually runs (without passenger) to another station.                |
-| carriage_num          | No                    | int    | Same as line      | Specify that this route use fewer carriages.                                                 |
+| Key            | Required | Type   | Default           | Value                                                                                            |
+|----------------|----------|--------|-------------------|--------------------------------------------------------------------------------------------------|
+| starts_with    | No       | string | The first station | Specify that those trains starts at this station.                                                |
+| ends_with      | No       | string | The last station  | Specify that those trains ends at this station.                                                  |
+| skip           | No       | array  | []                | Specify that those station will be skipped.                                                      |
+| skip_timetable | No       | bool   | false             | Specify if skipped station still have passing time entry in the timetable.                       |
+| stations       | No       | array  |                   | Specify the stations that this route stops at. If present, routing-shape attributes are ignored. |
+| real_end       | No       | string | The last station  | Specify that this route actually runs (without passenger) to another station.                    |
+| carriage_num   | No       | int    | Same as line      | Specify that this route use fewer carriages.                                                     |
+| stopping_times | No       | object | `{}`              | Map station names to whole minutes every train on this route stops before departing.             |
+
+Timetable schedule entries remain **departure times**. For a route with
+`stopping_times: {"Station A": 3}`, a train scheduled at `08:05` at Station A arrives at `08:02`
+and departs at `08:05`. Missing entries mean zero minutes at the source timetable's minute precision.
+
+Stopping times must be non-negative integers. A station must belong to the route and must not be listed
+in `skip`. When a train is assigned multiple routes, annotations for the same station must agree;
+omitted values are ignored when detecting conflicts, while an explicit zero is still an annotation.
+Derived arrivals must not precede the previous station's departure. A skipped station has a single passing time. Passenger-facing
+semantics use departure at a route origin, arrival at a terminus, and both times at intermediate,
+through-service, and loop junction stations.
 
 ## Date Group Specification Format
 A date group is a couple of dates where trains are scheduled the same, such as Weekdays, Saturdays, etc.

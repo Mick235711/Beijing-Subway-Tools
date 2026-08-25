@@ -53,7 +53,7 @@ def get_time_between(
     for train in train_list:
         if start not in train.arrival_time:
             continue
-        time_str = get_time_str(*train.arrival_time[start])
+        time_str = get_time_str(*train.departure_time[start])
         if end not in train.arrival_time or start in train.skip_stations or end in train.skip_stations:
             time_dict[time_str] = None
             continue
@@ -69,7 +69,7 @@ def get_time_between(
         arrival_keys = list(train.arrival_time.keys())
         start_index = arrival_keys.index(start)
         end_index = arrival_keys.index(end)
-        start_time, start_day = train.arrival_time[start]
+        start_time, start_day = train.departure_time[start]
         if end_index <= start_index:
             assert line.loop, line
             if train.loop_next is None:
@@ -120,7 +120,7 @@ def viable_train(
         return False
     if exclude_express and train.is_express():
         return False
-    if cur_time is not None and diff_time_tuple(train.arrival_time[cur_time[0]], cur_time[1]) < 0:
+    if cur_time is not None and diff_time_tuple(train.departure_time[cur_time[0]], cur_time[1]) < 0:
         return False
     return True
 
@@ -146,7 +146,7 @@ def fare_between(
                 include_routes=include_routes, exclude_routes=exclude_routes,
                 full_only=full_only, exclude_express=exclude_express
             )
-        ], key=lambda t: get_time_str(*t.arrival_time[station1])):
+        ], key=lambda t: get_time_str(*t.departure_time[station1])):
             candidate = train
             break
         if candidate is not None:

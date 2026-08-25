@@ -16,7 +16,7 @@
         {name: "七里庄", dist: 1579},
         {name: "西局", dist: 845},
         {name: "东管头", dist: 1489},
-        {name: "丽泽商务区", dist: 958, alises: ["Lize Business District"]},
+        {name: "丽泽商务区", dist: 958, aliases: ["Lize Business District"]},
         {name: "菜户营", dist: 828},
         {name: "西铁营", dist: 1462},
         {name: "景风门", dist: 883},

@@ -4,13 +4,17 @@
 """ A class for a through train """
 
 # Libraries
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from functools import lru_cache
+from typing import TypeVar
 
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import format_duration, distance_str, speed_str, segment_speed, diff_time_tuple, TimeSpec
+from src.common.common import format_duration, distance_str, speed_str, segment_speed, diff_time_tuple, TimeSpec, get_time_str
 from src.routing.train import Train, get_train_id
+
+
+V = TypeVar("V")
 
 
 class ThroughTrain:
@@ -62,18 +66,28 @@ class ThroughTrain:
             return None
         return self.trains[line_names[line_index - 1]]
 
-    def arrival_times(self, *, with_passing: bool = False) -> list[tuple[str, str, TimeSpec | None]]:
-        """ Return the cumulative arrival times, list of (station, line, time) """
-        arrival_times: list[tuple[str, str, TimeSpec | None]] = []
+    def get_cumulative_field(
+        self, field: Callable[[Train], dict[str, V]], *, with_passing: bool = False
+    ) -> list[tuple[str, str, V | None]]:
+        """ Return the cumulative field values """
+        field_values: list[tuple[str, str, V | None]] = []
         for i, (line, _, _, _) in enumerate(self.spec.spec):
             train = self.trains[line.name]
             end_index = len(train.stations) - (0 if i == len(self.spec.spec) - 1 else 1)
-            arrival_times.extend([
-                (st, train.line.name, train.arrival_time.get(st))
+            field_values.extend([
+                (st, train.line.name, field(train).get(st))
                 for st in train.stations[:end_index]
                 if (with_passing or st not in train.skip_stations)
             ])
-        return arrival_times
+        return field_values
+
+    def arrival_times(self, *, with_passing: bool = False) -> list[tuple[str, str, TimeSpec | None]]:
+        """ Return the cumulative arrival times """
+        return self.get_cumulative_field(lambda t: t.arrival_time, with_passing=with_passing)
+
+    def departure_times(self, *, with_passing: bool = False) -> list[tuple[str, str, TimeSpec | None]]:
+        """ Return the cumulative departure times """
+        return self.get_cumulative_field(lambda t: t.departure_time, with_passing=with_passing)
 
     def all_stations(self) -> list[str]:
         """ Return all the stations in each trains """
@@ -139,7 +153,8 @@ class ThroughTrain:
         last_train = self.last_train()
         base = f"{first_train.stations[0]} {first_train.start_time_repr()} -> "
         if last_train.loop_next is not None:
-            base += f"{last_train.loop_next.stations[0]} {last_train.loop_next.start_time_repr()} (loop)"
+            base += f"{last_train.loop_next.stations[0]} " + \
+                f"{last_train.loop_next.arrival_time_repr(last_train.loop_next.stations[0])} (loop)"
         else:
             base += f"{last_train.stations[-1]} {last_train.end_time_repr()}"
         return repr(self.spec)[1:-1] + " " + base
@@ -149,13 +164,14 @@ class ThroughTrain:
         duration_repr = self.duration_repr(with_speed=with_speed)
         print(f"Total: {self.line_repr()} ({duration_repr})\n")
 
-        first = True
-        for line, _, _, _ in self.spec.spec:
-            if first:
-                first = False
-            else:
+        for index, (line, _, _, _) in enumerate(self.spec.spec):
+            if index > 0:
                 print("\n(through to)\n")
-            self.trains[line.name].pretty_print(with_speed=with_speed)
+            self.trains[line.name].pretty_print(
+                with_speed=with_speed,
+                show_origin_arrival=index > 0,
+                show_terminus_departure=index < len(self.spec.spec) - 1,
+            )
 
     @lru_cache
     def duration(self) -> int:
@@ -265,7 +281,7 @@ def parse_through_train(
 
             time_dict: dict[str, Train] = {}
             for train in candidate_list:
-                key = train.start_time_str()
+                key = get_time_str(*train.arrival_time[train.stations[0]])
                 assert key not in time_dict, (time_dict, train, candidate_list)
                 time_dict[key] = train
             assert last_line is not None, last_line

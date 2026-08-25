@@ -17,7 +17,7 @@
         {name: "淡金鄧公", dist: 933},
         {name: "淡江大學", dist: 994, aliases: ["Tamkang University"]},
         {name: "淡金北新", dist: 578, aliases: ["Beitouzi"]},
-        {name: "新市一路", dist: 513, alises: ["Xinshi 1st Rd."]},
+        {name: "新市一路", dist: 513, aliases: ["Xinshi 1st Rd."]},
         {name: "淡水行政中心", dist: 830, aliases: ["Tamsui District Office"]},
         {name: "濱海義山", dist: 720},
         {name: "濱海沙崙", dist: 591},

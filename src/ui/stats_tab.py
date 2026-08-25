@@ -1057,7 +1057,7 @@ def draw_circular_radar(
             if use_first:
                 start_time, end_time = end_time, start_time
                 start_station, end_station = end_station, start_station
-            intersect_time = train.arrival_time[last_station]
+            intersect_time = train.departure_time[last_station]
             radial = 360 * cur_index / total_length
             arc = draw_arc(
                 TOTAL_WIDTH / 2, TOTAL_WIDTH / 2,
@@ -1144,7 +1144,7 @@ def draw_parallel_radar(
             if use_first:
                 start_time, end_time = end_time, start_time
                 start_station, end_station = end_station, start_station
-            intersect_time = train.arrival_time[last_station]
+            intersect_time = train.departure_time[last_station]
             start_x = to_x(start_time, first_time, use_first=use_first)
             end_x = to_x(end_time, first_time, use_first=use_first)
             intersect_x = to_x(intersect_time, first_time, use_first=use_first)
@@ -1260,16 +1260,16 @@ def final_train_radar(
                 continue
             if last_station not in last_dict:
                 last_dict[last_station] = []
-            def arrival_key(inner_train: Train, *, ls: str = last_station) -> str:
-                """ Return arrival time string for sorting trains """
-                return get_time_str(*inner_train.arrival_time[ls])
-            last_train = (min if use_first else max)(filtered_list, key=arrival_key)
+            def departure_key(inner_train: Train, *, ls: str = last_station) -> str:
+                """ Return departure time string for sorting trains """
+                return get_time_str(*inner_train.departure_time[ls])
+            last_train = (min if use_first else max)(filtered_list, key=departure_key)
             last_dict[last_station].append(last_train)
             last_full = (min if use_first else max)(
                 [t for t in filtered_list if t.is_full()],
-                key=arrival_key
+                key=departure_key
             )
-            diff = diff_time_tuple(last_full.arrival_time[last_station], last_train.arrival_time[last_station])
+            diff = diff_time_tuple(last_full.departure_time[last_station], last_train.departure_time[last_station])
             if last_full != last_train and ((use_first and diff > 0) or (not use_first and diff < 0)):
                 last_dict[last_station].append(last_full)
 
@@ -1302,7 +1302,7 @@ def final_train_radar(
         assert base_line is not None, base_line
         ordered_trains = sorted(
             unique_on([(s, [t]) for s, tl in last_dict.items() for t in tl], lambda x: repr(x[1][0])),
-            key=lambda x: get_time_str(*x[1][0].arrival_time[x[0]])
+            key=lambda x: get_time_str(*x[1][0].departure_time[x[0]])
         )
     else:
         assert sort_trains in ["Start", "End"], sort_trains

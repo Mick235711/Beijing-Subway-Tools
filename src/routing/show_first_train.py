@@ -20,10 +20,11 @@ def get_first_last(
     station: str, train_list: list[Train], *, full_mode: FullMode = "direction"
 ) -> tuple[Train, Train, Train, Train]:
     """ Get the first/last train for each station in the line """
-    filtered_list = [train for train in train_list if station in train.arrival_time
+    filtered_list = [train for train in train_list if station in train.departure_time
                      and station not in train.skip_stations]
     filtered_list = sorted(
-        filtered_list, key=lambda train: get_time_str(*train.arrival_time[station]))
+        filtered_list, key=lambda train: get_time_str(*train.departure_time[station])
+    )
     if full_mode == "direction":
         filtered_full = [
             train for train in filtered_list if train.line.direction_stations(train.direction)[-1] in train.arrival_time

@@ -70,6 +70,16 @@ class Timetable:
             """ Return true if this train's route is loop """
             return all(route.loop for route in self.route_iter())
 
+        def stopping_time(self, station: str) -> int:
+            """ Return the route-composed stopping time at station """
+            values = {
+                route.stopping_times[station]
+                for route in self.route_iter() if station in route.stopping_times
+            }
+            if len(values) > 1:
+                raise ValueError(f"Conflicting stopping times at {station}: {values} ({self.route_iter()})")
+            return next(iter(values), 0)
+
         def sort_key(self) -> TimeSpec:
             """ Return the time """
             return self.leaving_time, self.next_day

@@ -133,7 +133,9 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
           "trains": [
             {
               "train_code": "1001",
+              "arrival_time": "08:03",
               "departure_time": "08:05",
+              "stopping_time_minutes": 2,
               "is_last_train": false,
               "routes": ["全程车"]
             }
@@ -144,6 +146,11 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
   ]
 }
 ```
+
+`query_time` filters and orders boardable trains by `departure_time`. At a passenger route origin,
+`arrival_time` is `null`; at a terminating station, `departure_time` is `null`. Intermediate and
+through/loop junction stops expose both values. Passing stations have equal arrival and departure
+times and a zero stopping time.
 
 #### 2.2 获取列车详细信息 (`get_train_detailed_info`)
 获取特定车次的完整运行计划，包括沿途各站的到发时间。
@@ -162,7 +169,7 @@ pm2 start "./.venv/bin/fastmcp run src/mcp/server.py --transport http --host 0.0
 - 必须提供 `train_code` 或者 (`station_name` + `approx_time`) 来唯一定位一趟列车。
 
 **输出参数:**
-- `string`: 纯文本格式的列车运行明细（调用现有 pretty_print，含区间耗时/里程/速度）。未找到列车时返回如 `"Error: Train not found"`。
+- `string`: 纯文本格式的列车运行明细（调用现有 pretty_print，停车时显示“到达–发车”，并含区间耗时/里程/速度）。未找到列车时返回如 `"Error: Train not found"`。
 
 ```
 13号线 东行 全程车 [6B] 西直门 08:00 -> 东直门 08:25 (25min, 27.1km, 65.1km/h)

@@ -538,8 +538,9 @@ def validate_timetable(
             (routes_dict[route_id], len(trains[route_id]), len(timetable_trains))
         for i, (route_list, (prev_time, prev_day)) in enumerate(trains[route_id]):
             next_train = timetable_trains[i]
-            new_time = next_train.leaving_time
-            new_day = next_train.next_day
+            new_time, new_day = add_min(
+                next_train.leaving_time, -next_train.stopping_time(cur_station), next_train.next_day
+            )
             train_prev = get_prev(next_train, cur_station)
             diff = diff_time(new_time, prev_time, new_day, prev_day)
             if train_prev not in initial_diff:

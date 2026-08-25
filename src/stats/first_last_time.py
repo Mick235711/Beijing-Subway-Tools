@@ -17,7 +17,7 @@ def first_train_station(
     processed_dict: list[tuple[str, Train, str]] = [
         (station, train, date_group) for station, trains in all_trains.items() for date_group, train in trains
     ]
-    processed_dict = sorted(processed_dict, key=lambda x: get_time_str(*x[1].arrival_time[x[0]]))
+    processed_dict = sorted(processed_dict, key=lambda x: get_time_str(*x[1].departure_time[x[0]]))
     display_first(
         processed_dict,
         lambda data: f"{data[0]}: {data[1].stop_time_repr(data[0])} @ {data[2]} {data[1].station_repr(data[0])})",
@@ -47,11 +47,11 @@ def latest_first_train(
     first_trains: dict[str, tuple[str, Train]] = {}
     last_trains: dict[str, tuple[str, Train]] = {}
     for station, inner_dict in processed_dict.items():
-        inner_list = sorted(inner_dict, key=lambda x: get_time_str(*x[1].arrival_time[station]))
+        inner_list = sorted(inner_dict, key=lambda x: get_time_str(*x[1].departure_time[station]))
         first_trains[station] = inner_list[0]
         last_trains[station] = inner_list[-1]
-    first_trains = dict(sorted(first_trains.items(), key=lambda x: get_time_str(*x[1][1].arrival_time[x[0]])))
-    last_trains = dict(sorted(last_trains.items(), key=lambda x: get_time_str(*x[1][1].arrival_time[x[0]])))
+    first_trains = dict(sorted(first_trains.items(), key=lambda x: get_time_str(*x[1][1].departure_time[x[0]])))
+    last_trains = dict(sorted(last_trains.items(), key=lambda x: get_time_str(*x[1][1].departure_time[x[0]])))
 
     print("Earliest -> Latest First Trains:")
     display_trains(first_trains, limit_num=limit_num)

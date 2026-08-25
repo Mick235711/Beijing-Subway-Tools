@@ -11,7 +11,7 @@ from typing import Any
 
 from src.city.city import City
 from src.common.common import get_time_str
-from src.mcp.context import get_city, get_train_dict
+from src.mcp.context import get_city, get_through_dict, get_train_dict
 from src.mcp.utils import fuzzy_match
 from src.timetable.print_timetable import in_route
 
@@ -26,6 +26,20 @@ def _resolve_line(city: City, line_name: str) -> str | None:
     """ Resolve a line name to a canonical line name """
     candidates = fuzzy_match(line_name, city.lines.keys())
     return candidates[0] if candidates else None
+
+
+def _through_endpoint_flags() -> dict[int, tuple[bool, bool]]:
+    """ Map component trains to whether passenger service continues before/after them """
+    result: dict[int, tuple[bool, bool]] = {}
+    for through_trains in get_through_dict().values():
+        for through_train in through_trains:
+            component_lines = [line.name for line, _, _, _ in through_train.spec.spec]
+            for index, line_name in enumerate(component_lines):
+                result[id(through_train.trains[line_name])] = (
+                    index > 0,
+                    index < len(component_lines) - 1,
+                )
+    return result
 
 
 def get_station_timetable(
@@ -51,6 +65,7 @@ def get_station_timetable(
     """
     city = get_city()
     train_dict = get_train_dict()
+    through_endpoint_flags = _through_endpoint_flags()
     
     try:
         query_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -121,32 +136,39 @@ def get_station_timetable(
 
             trains = train_dict[l_name][d][target_date_group]
 
-            trains_at_station = [t for t in trains if station_key in t.arrival_time]
-            trains_at_station.sort(key=lambda t: get_time_str(*t.arrival_time[station_key]))
+            trains_at_station = [t for t in trains if station_key in t.departure_time]
+            trains_at_station.sort(key=lambda t: get_time_str(*t.departure_time[station_key]))
             last_train_obj = trains_at_station[-1] if trains_at_station else None
 
             valid_trains: list[dict[str, Any]] = []
             for train in trains:
-                if station_key not in train.arrival_time:
+                if station_key not in train.departure_time:
                     continue
 
                 if not in_route(train.routes, include_routes=set(include_routes) if include_routes else None, exclude_routes=set(exclude_routes) if exclude_routes else None):
                     continue
 
-                arr_time, arr_day = train.arrival_time[station_key]
-                time_str = get_time_str(arr_time, arr_day)
+                departure_str = get_time_str(*train.departure_time[station_key])
+                arrival_str = get_time_str(*train.arrival_time[station_key])
+                through_before, through_after = through_endpoint_flags.get(id(train), (False, False))
+                passenger_arrival = None if station_key == train.stations[0] and train.loop_prev is None and \
+                    not through_before else arrival_str
+                passenger_departure = None if station_key == train.stations[-1] and train.loop_next is None and \
+                    not through_after else departure_str
 
-                if query_time and time_str < query_time:
+                if query_time and (passenger_departure is None or passenger_departure < query_time):
                     continue
 
                 valid_trains.append({
                     "train_code": train.train_code(),
-                    "departure_time": time_str,
+                    "arrival_time": passenger_arrival,
+                    "departure_time": passenger_departure,
+                    "stopping_time_minutes": train.stopping_time(station_key),
                     "is_last_train": (train == last_train_obj),
                     "routes": [r.name for r in train.routes],
                 })
 
-            valid_trains.sort(key=lambda x: x["departure_time"])
+            valid_trains.sort(key=lambda x: x["departure_time"] or x["arrival_time"] or "")
 
             if query_time:
                 valid_trains = valid_trains[:count]
@@ -188,6 +210,7 @@ def get_train_detailed_info(
     """
     city = get_city()
     train_dict = get_train_dict()
+    through_endpoint_flags = _through_endpoint_flags()
 
     try:
         query_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -225,8 +248,9 @@ def get_train_detailed_info(
                 target_train = train
                 break
             if station_key and approx_time and station_key in train.arrival_time:
-                t_str = get_time_str(*train.arrival_time[station_key])
-                if t_str == approx_time:
+                arrival_str = get_time_str(*train.arrival_time[station_key])
+                departure_str = get_time_str(*train.departure_time[station_key])
+                if approx_time in {arrival_str, departure_str}:
                     target_train = train
                     break
         if target_train:
@@ -236,6 +260,11 @@ def get_train_detailed_info(
         return "Error: Train not found"
 
     output = io.StringIO()
+    through_before, through_after = through_endpoint_flags.get(id(target_train), (False, False))
     with redirect_stdout(output):
-        target_train.pretty_print(with_speed=True)
+        target_train.pretty_print(
+            with_speed=True,
+            show_origin_arrival=through_before,
+            show_terminus_departure=through_after,
+        )
     return output.getvalue()
