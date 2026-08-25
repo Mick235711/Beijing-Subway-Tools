@@ -1113,6 +1113,8 @@ def train_timeline(
                 tally_num_sta += interval_num_sta
             if interval_duration is not None:
                 tally_duration += interval_duration
+                if isinstance(line_train, tuple):
+                    tally_duration += line_train[3].stopping_time(station)
             if interval_dist is not None:
                 tally_dist += interval_dist
 
@@ -1156,6 +1158,8 @@ def train_timeline(
                 express_icon = "south" if is_through else "sync"
             elif station in skip_stations:
                 express_icon = "keyboard_double_arrow_down"
+            elif line_train[3].stopping_time(station) > 0:
+                express_icon = "pause"
 
             if isinstance(train, tuple):
                 display_icon = express_icon
@@ -1188,10 +1192,12 @@ def train_timeline(
                             with ui.row().classes("items-center gap-x-1"):
                                 ui.icon("double_arrow")
                                 ui.label("Overtaken:").classes("text-subtitle-1")
-                            for overtaken_train in sorted(
-                                [t[1] for s in between_stations if s in overtaken_dict for t in overtaken_dict[s]],
-                                key=lambda x: get_time_str(*x.departure_time[station]), reverse=True
+                            for overtaken_next, overtaken_train in sorted(
+                                [t for s in between_stations if s in overtaken_dict for t in overtaken_dict[s]],
+                                key=lambda x: get_time_str(*x[1].departure_time[station]), reverse=True
                             ):
+                                if interval_num_sta is not None and interval_num_sta > 1:
+                                    overtaken_next = next_station
                                 with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
                                     overtaken_id = find_train_id(train_id_dict, overtaken_train)
                                     with ui.label(overtaken_id).classes("cursor-pointer").on(
@@ -1202,10 +1208,16 @@ def train_timeline(
                                         with ui.tooltip().add_slot("default"):
                                             with ui.element("div").classes("inline-flex flex-wrap items-center leading-tight gap-x-1"):
                                                 ui.label(station)
-                                                ui.label(get_time_repr(*overtaken_train.departure_time[station]))
+                                                if overtaken_next == station:
+                                                    ui.label(get_time_repr(*overtaken_train.arrival_time[station]))
+                                                else:
+                                                    ui.label(get_time_repr(*overtaken_train.departure_time[station]))
                                                 ui.icon("arrow_right_alt")
-                                                ui.label(next_station)
-                                                ui.label(get_time_repr(*overtaken_train.arrival_time[next_station]))
+                                                if overtaken_next == station:
+                                                    ui.label(get_time_repr(*overtaken_train.departure_time[station]))
+                                                else:
+                                                    ui.label(overtaken_next)
+                                                    ui.label(get_time_repr(*overtaken_train.arrival_time[overtaken_next]))
                 if i != len(stations) - 1:
                     if interval_str is not None:
                         ui.label(interval_str)

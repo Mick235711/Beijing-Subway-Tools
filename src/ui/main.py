@@ -105,6 +105,16 @@ async def main_page(city_name: str) -> None:
              rgba(0,0,0,0) calc(50% + 1.51px),
              rgba(0,0,0,0) 100%);
 }
+.stopped-station-dot .q-timeline__dot:before {
+    width: 3px;
+    height: 12px;
+    background: currentColor;
+    box-shadow: 6px 0 0 currentColor;
+    border: 0;
+    border-radius: 0;
+    transform: translate(3px, 1px);
+    -webkit-transform: translate(3px, 1px);
+}
 .timetable-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;
 }

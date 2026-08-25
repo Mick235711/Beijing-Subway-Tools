@@ -380,8 +380,7 @@ def route_timeline(
                     if station in skip_stations and express_icon is not None:
                         express_icon = ""
                     with ui.timeline_entry(
-                        icon=express_icon,
-                        color=("invisible" if i < start_index else None)
+                        icon=express_icon, color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
                         if i >= start_index:
                             entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
@@ -389,6 +388,8 @@ def route_timeline(
                             entry.classes("mt-[-16px]")
                         if station in skip_stations:
                             entry.classes("skipped-station-dot")
+                        elif any(r.stopping_times.get(station, 0) > 0 for r in route):
+                            entry.classes("stopped-station-dot")
                         if show_train_count and i != len(inner_stations) - 1:
                             ui.label("train").classes("invisible text-nowrap w-0")
                     with entry.add_slot("title"):
