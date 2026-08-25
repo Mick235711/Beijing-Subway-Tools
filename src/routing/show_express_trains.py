@@ -92,8 +92,11 @@ def main() -> None:
         over_end = route_end if route_end in overtake.arrival_time else overtake.stations[-1]
         route_start_list.append(over_start)
         route_end_list.append(over_end)
-        print(f"Overtake #{i + 1}: {overtake.two_station_str(over_start, over_end)} " +
-              f"(overtake at {station1} -> {station2})")
+        print(f"Overtake #{i + 1}: {overtake.two_station_str(over_start, over_end)} ", end="")
+        if station1 == station2:
+            print(f"(overtake at {station1})")
+        else:
+            print(f"(overtake at {station1} -> {station2})")
     if len(overtaken) > 0:
         _, overtake_duration, overtake_speed = average_speed(
             [x[2] for x in overtaken], route_start_list, route_end_list

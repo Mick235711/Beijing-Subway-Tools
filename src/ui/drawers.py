@@ -1125,7 +1125,7 @@ def train_timeline(
                 if i < len(stations) - 1 and isinstance(line_train, tuple) and station in line_train[3].departure_time:
                     depart_time = line_train[3].departure_time[station]
                     if depart_time != arrival_time:
-                        subtitle += "–" + get_time_repr(*depart_time)
+                        subtitle += "/" + get_time_repr(*depart_time)
             if show_tally and tally_str is not None:
                 subtitle += "\n" + tally_str
 
@@ -1175,9 +1175,13 @@ def train_timeline(
                     between_stations: list[str] = []
                 elif station not in single_train.arrival_time:
                     assert single_train.loop_next is not None and station in single_train.loop_next.arrival_time, (single_train, station)
-                    between_stations = single_train.loop_next.two_station_interval(station, next_station)
+                    between_stations = single_train.loop_next.two_station_interval(
+                        station, next_station, expand_all=True
+                    )
                 else:
-                    between_stations = single_train.two_station_interval(station, next_station)
+                    between_stations = single_train.two_station_interval(
+                        station, next_station, expand_all=True
+                    )
                 if i != len(stations) - 1 and any(s in overtaken_dict for s in between_stations) and train_id_dict is not None:
                     with ui.card().props("flat").classes("q-pa-sm mb-2 bg-secondary"):
                         with ui.card_section().classes("p-0"):

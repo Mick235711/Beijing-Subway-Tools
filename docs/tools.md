@@ -266,6 +266,7 @@ Modify/insert timetable in batch, used to modify all timetables for a specific d
 
 - `-b` determines the threshold of number of entries to break two consecutive `schedule` specification (defaults to 15).
 - `-l N` will append `4 * N` spaces before each line. (Default behavior is to not prepend spaces; `-l 2` is recommended for storing timetable specs)
+- At any new-timetable prompt after the first station, enter exactly `MODIFY` to modify the previous station's timetable.
 
 Please follow the prompts shown. This program is essentially a combination of [`input_to_timetable.py`](#input_to_timetablepy-parse-text-input-into-timetable-description)
 and [`timetable_from_prev.py`](#timetable_from_prevpy-create-next-timetable-from-previous-stations-timetable) and call into these two when appropriate.

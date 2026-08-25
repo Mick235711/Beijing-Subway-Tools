@@ -18,7 +18,10 @@ from src.routing.train import filter_route
 from src.timetable.timetable import Timetable
 
 
-def parse_input(tolerate: bool = False, routes: tuple[DateGroup, TrainRoute, dict[str, TrainRoute]] | None = None) -> Timetable:
+def parse_input(
+    tolerate: bool = False, routes: tuple[DateGroup, TrainRoute, dict[str, TrainRoute]] | None = None,
+    *, input_lines: Iterable[str] | None = None
+) -> Timetable:
     """ Parse input into a timetable object """
     # provide base date group and base train route
     base_group = DateGroup("Base Group") if routes is None else routes[0]
@@ -30,7 +33,7 @@ def parse_input(tolerate: bool = False, routes: tuple[DateGroup, TrainRoute, dic
     prev_max = 0
     prev_hour: int | None = None
     route_dict: dict[str, list[int]] = {}
-    for line in sys.stdin:
+    for line in (sys.stdin if input_lines is None else input_lines):
         line = line.strip()
         if line == "":
             continue

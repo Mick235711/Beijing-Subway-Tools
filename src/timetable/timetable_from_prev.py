@@ -115,6 +115,29 @@ def do_modification(
     return dict(sorted(new_trains.items(), key=lambda x: x[1].sort_key_str()))
 
 
+def modify_timetable(
+    timetable: Timetable, station: str, direction: str, date_group: DateGroup, *, show_empty: bool = False
+) -> Timetable:
+    """ Interactively modify a timetable without advancing it to another station """
+    while True:
+        print("Current Timetable:")
+        brace_dict = timetable.pretty_print(show_empty=show_empty)
+        brace_dict[""] = timetable.base_route
+        modification = questionary.text(
+            "Enter a modification (or ok):",
+            validate=lambda x:
+            x.lower() == "ok" or x == "" or x[:x.find("|")].strip().isdigit()
+        ).ask()
+        if modification.lower() == "ok" or modification == "":
+            break
+
+        timetable.trains = do_modification(
+            modification, timetable.trains, brace_dict, station, direction, date_group
+        )
+
+    return timetable
+
+
 def generate_next(
     timetable: Timetable, station: str, line: Line, direction: str, date_group: DateGroup,
     *, show_empty: bool = False, remove_train: bool = True
@@ -162,24 +185,7 @@ def generate_next(
             new_timetable.trains |= answer_timetable.trains
             print("Added " + suffix_s("train", len(answer_timetable.trains)) + ".")
 
-    # Ask for modifications
-    while True:
-        print("Current Timetable:")
-        brace_dict = new_timetable.pretty_print(show_empty=show_empty)
-        brace_dict[""] = new_timetable.base_route
-        modification = questionary.text(
-            "Enter a modification (or ok):",
-            validate=lambda x:
-            x.lower() == "ok" or x == "" or x[:x.find("|")].strip().isdigit()
-        ).ask()
-        if modification.lower() == "ok" or modification == "":
-            break
-
-        # Try to perform this modification
-        new_timetable.trains = do_modification(modification, new_timetable.trains, brace_dict,
-                                               station, direction, date_group)
-
-    return new_timetable
+    return modify_timetable(new_timetable, station, direction, date_group, show_empty=show_empty)
 
 
 def main() -> None:

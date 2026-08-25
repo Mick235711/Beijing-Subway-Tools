@@ -6,9 +6,11 @@
 
 # Libraries
 import argparse
+import re
 import sys
 import traceback
-from copy import copy
+from copy import copy, deepcopy
+from enum import Enum, auto
 
 import questionary
 
@@ -19,7 +21,12 @@ from src.city.train_route import TrainRoute
 from src.common.common import ask_for_int, suffix_s
 from src.timetable.input_to_timetable import parse_input, validate_timetable, to_json_format
 from src.timetable.timetable import Timetable
-from src.timetable.timetable_from_prev import add_delta
+from src.timetable.timetable_from_prev import add_delta, modify_timetable
+
+
+class _TimetableInputAction(Enum):
+    """ Special actions accepted in place of timetable input """
+    MODIFY_PREVIOUS = auto()
 
 
 def double_confirm() -> bool:
@@ -34,13 +41,24 @@ def double_confirm() -> bool:
 
 
 def get_timetable(
-    date_group: DateGroup, base_route: TrainRoute, routes: dict[str, TrainRoute], tolerate: bool = False
-) -> Timetable | None:
+    date_group: DateGroup, base_route: TrainRoute, routes: dict[str, TrainRoute], tolerate: bool = False,
+    *, allow_modify: bool = False
+) -> Timetable | _TimetableInputAction | None:
     """ Get timetable with interrupt protection """
     while True:
         try:
-            timetable = parse_input(tolerate, (date_group, base_route, routes))
-            assert len(timetable.trains) > 0, timetable
+            if allow_modify:
+                input_lines = list(sys.stdin)
+                input_text = "".join(input_lines)
+                if input_text.strip() == "MODIFY":
+                    return _TimetableInputAction.MODIFY_PREVIOUS
+                timetable = parse_input(
+                    tolerate, (date_group, base_route, routes), input_lines=input_lines
+                )
+            else:
+                timetable = parse_input(tolerate, (date_group, base_route, routes))
+            if len(timetable.trains) == 0:
+                raise ValueError("Empty timetable")
             return timetable
         except:
             traceback.print_exc()
@@ -74,6 +92,14 @@ def inject_to_last(orig_content: str, inject_str: str, second_to_last: int) -> s
     return orig_content[:third_to_last] + init_char + inject_str + orig_content[third_to_last:].lstrip("\r\n")
 
 
+def find_timetable_object(content: str) -> tuple[int, int]:
+    """ Return the bounds of the root timetable object """
+    match = re.search(r'(?m)^[ \t]*(?:"timetable"|timetable)[ \t]*:[ \t]*\{', content)
+    if match is None:
+        raise ValueError("Line file does not contain a timetable object")
+    return match.start(), find_closing_brace(content, match.start())
+
+
 def input_timetables(
     line: Line, direction: str, date_group: DateGroup, *, level: int = 0, break_entries: int = 15
 ) -> dict[str, Timetable]:
@@ -102,6 +128,7 @@ def input_timetables(
         if i == 0:
             print("Please input proper timetable for this station:")
             new_timetable = get_timetable(date_group, line.direction_base_route[direction], line.train_routes[direction])
+            assert not isinstance(new_timetable, _TimetableInputAction), new_timetable
             if new_timetable is None:
                 break
             timetables[station] = new_timetable
@@ -121,9 +148,27 @@ def input_timetables(
         else:
             while True:
                 print("Please input new timetable for this station:")
-                timetable = get_timetable(date_group, line.direction_base_route[direction], line.train_routes[direction], True)
-                if timetable is None:
+                timetable_input = get_timetable(
+                    date_group, line.direction_base_route[direction], line.train_routes[direction], True,
+                    allow_modify=True
+                )
+                if timetable_input is _TimetableInputAction.MODIFY_PREVIOUS:
+                    prev_station = stations[i - 1]
+                    prev_timetable = modify_timetable(
+                        deepcopy(prev_timetable), prev_station, direction, date_group
+                    )
+                    timetables[prev_station] = prev_timetable
+                    timetables_appending[prev_station][direction][date_group.name] = prev_timetable
+                    print("Modification successful! Updated previous timetable:")
+                    print(to_json_format(
+                        prev_timetable, level=level, break_entries=break_entries,
+                        with_date_group=date_group.name
+                    ))
+                    print()
+                    continue
+                if timetable_input is None:
                     break
+                timetable = timetable_input
                 try:
                     final_timetable = validate_timetable(
                         line, copy(prev_timetable), stations[i - 1], direction, date_group, timetable,
@@ -133,9 +178,9 @@ def input_timetables(
                 except:
                     traceback.print_exc()
                     if not double_confirm():
-                        timetable = None
+                        timetable_input = None
                         break
-            if timetable is None:
+            if timetable_input is None:
                 break
         timetables[station] = final_timetable
         timetables_appending[station][direction][date_group.name] = final_timetable
@@ -176,18 +221,17 @@ def main() -> None:
         timetable_json = to_json_format(
             timetables[station], level=(args.level + 3), break_entries=args.break_entries, with_date_group=date_group.name
         ).lstrip()
-        station_index = orig_content.find(f"\"{station}\":")
+        timetable_index, timetable_close = find_timetable_object(orig_content)
+        station_index = orig_content.find(f"\"{station}\":", timetable_index, timetable_close)
         if station_index == -1:
             print(f"Warning: {station} does not exist, adding to the end...")
-            last_brace = orig_content.rindex("}")
-            second_to_last = orig_content.rindex("}", 0, last_brace)
             timetable_json = timetable_json.rstrip("\r\n")
             orig_content = inject_to_last(orig_content, f"""
 {start}\"{station}\": {{
 {start}    \"{direction}\": {{
 {start}        {timetable_json}
 {start}    }}
-{start}}}\n""", second_to_last)
+{start}}}\n""", timetable_close)
             continue
         station_close = find_closing_brace(orig_content, station_index)
         direction_index = orig_content.find(f"\"{direction}\":", station_index)
