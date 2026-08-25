@@ -49,7 +49,7 @@ def find_overtaken(train: Train, train_list: list[Train]) -> list[tuple[str, str
             ):
                 overtaken.append((station1, station2, candidate))
         for station in candidate_stations:
-            if station not in train.skip_stations or candidate.stopping_time(station) == 0:
+            if train.stopping_time(station) > 0 or candidate.stopping_time(station) == 0:
                 continue
             passing = train.departure_time[station]
             if diff_time_tuple(passing, candidate.arrival_time[station]) >= 0 and \

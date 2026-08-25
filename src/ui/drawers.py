@@ -1196,7 +1196,9 @@ def train_timeline(
                                 [t for s in between_stations if s in overtaken_dict for t in overtaken_dict[s]],
                                 key=lambda x: get_time_str(*x[1].departure_time[station]), reverse=True
                             ):
-                                if interval_num_sta is not None and interval_num_sta > 1:
+                                if diff_time_tuple(
+                                    overtaken_train.departure_time[station], line_train[3].departure_time[station]
+                                ) < 0 and interval_num_sta is not None and interval_num_sta > 1:
                                     overtaken_next = next_station
                                 with ui.row().classes("items-center gap-x-1 gap-y-0 mt-1"):
                                     overtaken_id = find_train_id(train_id_dict, overtaken_train)
