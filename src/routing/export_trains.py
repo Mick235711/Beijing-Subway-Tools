@@ -14,7 +14,9 @@ from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time, add_min_tuple
-from src.routing.train import parse_all_trains, parse_trains, get_train_id
+from src.routing.show_segments import get_all_segments
+from src.routing.train import parse_all_trains, parse_trains, get_train_id, Train
+from src.ui.common import find_train_id
 
 
 def generate_train_key(line_index: int, direction_index: int, date_group_index: int, train_index: int) -> str:
@@ -153,7 +155,7 @@ def format_etrc(
 
 
 def format_pyetrc(
-    line: Line, cur_date: date, *,
+    city: City, line: Line, cur_date: date, *,
     limit_start: str | None = None, limit_end: str | None = None, real_loop: bool = False
 ) -> dict[str, dict | list]:
     """ Format trains in pyETRC format """
@@ -167,9 +169,10 @@ def format_pyetrc(
     # Create circuit (line) information
     cur_dist = 0
     station_list: list = []
-    for station, dist in zip(([line.stations[-1] + loop_suffix] if line.loop else []) + line.stations + (
-        [line.stations[0] + loop_suffix] if line.loop else []
-    ), [0] + ([line.station_dists[-1]] if line.loop else []) + line.station_dists):
+    add_twice = line.loop and not real_loop
+    for station, dist in zip(([line.stations[-1] + loop_suffix] if add_twice else []) + line.stations + (
+        [line.stations[0] + loop_suffix] if add_twice else []
+    ), [0] + ([line.station_dists[-1]] if add_twice else []) + (line.station_dists if not line.loop or add_twice else line.station_dists[:-1])):
         cur_dist += dist
         station_list.append({
             "zhanming": station, "licheng": cur_dist / 1000, "dengji": 0,
@@ -235,6 +238,27 @@ def format_pyetrc(
         trains_list[-1]["timetable"] = timetable_list
     result["trains"] = trains_list
 
+    # Add segments
+    through_routes = {}
+    for direction in line.directions.keys():
+        through_routes[direction] = {
+            inner[-1] for ts in city.through_specs if ts.covers(cur_date)
+            for inner in ts.spec if inner[0].name == line.name and inner[1] == direction
+        }
+    segments = get_all_segments({line.name: line}, [t for t in train_list if all(
+        r not in through_routes[t.direction] for r in t.routes
+    )])[line.name]
+    circuit_list = []
+    for i, train_loop in enumerate(segments):
+        circuit_list.append({
+            "name": f"{i + 1}",
+            "order": [
+                {"checi": find_train_id(train_id_dict, train), "link": True, "virtual": False}
+                for train in train_loop if isinstance(train, Train)
+            ]
+        })
+    result["circuits"] = circuit_list
+
     return result
 
 
@@ -288,7 +312,7 @@ def main() -> None:
                     fp.write(output)
         elif args.format == "pyetrc":
             output_dict = format_pyetrc(
-                line, cur_date, limit_start=args.limit_start, limit_end=args.limit_end, real_loop=args.real_loop
+                city, line, cur_date, limit_start=args.limit_start, limit_end=args.limit_end, real_loop=args.real_loop
             )
             if args.output is None:
                 print(json.dumps(output_dict, indent=args.indent, ensure_ascii=False))

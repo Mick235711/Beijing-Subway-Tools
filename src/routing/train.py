@@ -29,7 +29,13 @@ class Train:
                  departure_time: dict[str, TimeSpec]) -> None:
         """ Constructor """
         self.line = line
-        self.carriage_num = min(x.carriage_num for x in routes)
+        carriage_num_candidates = [x.carriage_num for x in routes if x.carriage_num != line.carriage_num]
+        if len(carriage_num_candidates) == 0:
+            self.carriage_num = line.carriage_num
+        elif len(carriage_num_candidates) == 1:
+            self.carriage_num = carriage_num_candidates[0]
+        else:
+            raise ValueError(f"Conflicting carriage numbers: {carriage_num_candidates} ({routes})")
         self.routes = routes
         self.direction = self.routes[0].direction
         self.date_group = date_group

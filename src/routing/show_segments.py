@@ -76,7 +76,7 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
                 diff = diff_time_tuple(other_train.start_time(), train.end_time())
                 if diff <= 2:
                     j += 1
-                elif diff >= 15:
+                elif diff >= 20:
                     i += 1
                 elif initial_diff is None:
                     initial_diff = diff
