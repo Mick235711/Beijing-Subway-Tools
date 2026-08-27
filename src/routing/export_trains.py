@@ -13,7 +13,8 @@ from typing import Any
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction, ask_for_date
 from src.city.city import City
 from src.city.line import Line
-from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time, add_min_tuple
+from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time, add_min_tuple, \
+    diff_time_tuple
 from src.routing.show_segments import get_all_segments, get_related_through_segments, recover_line_segments
 from src.routing.train import parse_all_trains, parse_trains, get_train_id, Train
 from src.ui.common import find_train_id
@@ -203,20 +204,40 @@ def format_pyetrc(
         timetable_list: list = []
         for station, arriving_time in train.arrival_time.items():
             depart_time = train.departure_time[station]
-            arrival_str = get_time_str(*arriving_time)
             depart_str = get_time_str(*depart_time)
+            arrival_time = train.arrival_time[station]
+            arrival_str = get_time_str(*arriving_time)
             passing = station in train.skip_stations
+            if station == train.last_station():
+                add_padding = False
+            elif station == train.stations[-1]:
+                assert train.loop_next is not None, train
+                if train.loop_next.stations[0] not in train.loop_next.arrival_time:
+                    add_padding = False
+                else:
+                    next_arrival = train.loop_next.arrival_time[train.loop_next.stations[0]]
+                    add_padding = diff_time_tuple(next_arrival, depart_time) == 0
+            else:
+                next_station = train.stations[train.stations.index(station) + 1]
+                if next_station not in train.arrival_time:
+                    add_padding = False
+                else:
+                    next_arrival = train.arrival_time[next_station]
+                    add_padding = diff_time_tuple(next_arrival, depart_time) == 0
+
+            before_time_str = get_time_str(*add_min_tuple(depart_time, -1))
             if passing or station == train.stations[0]:
-                arrival_value = depart_value = f"{depart_str}:00"
+                arrival_value = f"{before_time_str}:30" if add_padding else f"{depart_str}:00"
+                depart_value = f"{before_time_str}:30" if add_padding else f"{depart_str}:00"
             elif station == train.last_station():
                 arrival_value = depart_value = f"{arrival_str}:00"
             elif train.stopping_time(station) == 0:
-                before_time_str = get_time_str(*add_min_tuple(depart_time, -1))
-                arrival_value = f"{before_time_str}:50"
-                depart_value = f"{depart_str}:10"
+                arrival_value = f"{before_time_str}:20" if add_padding else f"{before_time_str}:50"
+                depart_value = f"{before_time_str}:40" if add_padding else f"{depart_str}:10"
             else:
-                arrival_value = f"{arrival_str}:00"
-                depart_value = f"{depart_str}:00"
+                before_arrival_str = get_time_str(*add_min_tuple(arrival_time, -1))
+                arrival_value = f"{before_arrival_str}:30" if add_padding else f"{arrival_str}:00"
+                depart_value = f"{before_time_str}:30" if add_padding else f"{depart_str}:00"
             timetable_list.append({
                 "business": not passing,
                 "ddsj": arrival_value,

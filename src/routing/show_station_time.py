@@ -424,7 +424,7 @@ def main() -> None:
     dist = line.two_station_dist(direction, start, end)
     print(f"Distance: {dist}m ({distance_str(dist)})")
     print(f"Average Speed: {speed_str(dist / 1000 / average(minutes) * 60)} " +
-          f"(min {dist / 1000 / max(minutes) * 60:.2f} - max {dist / 1000 / min(minutes) * 60:.2f})")
+          f"(min {dist / 1000 / max(minutes) * 60:.2f} - max {dist / 1000 / max(0.5, min(minutes)) * 60:.2f})")
 
 
 # Call main

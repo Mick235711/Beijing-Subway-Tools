@@ -20,8 +20,22 @@ from src.routing.train import Train, parse_all_trains
 from src.stats.common import count_trains
 
 Segment = Sequence[Train | ThroughTrain]
-MIN_TURNAROUND_MINUTES = 1
-MAX_TURNAROUND_MINUTES = 20
+MIN_TURNAROUND_MINUTES = 2
+MAX_TURNAROUND_MINUTES = 15
+
+
+def working_start_line_name(train: Train | ThroughTrain) -> str:
+    """Return the line whose rolling stock operates at the start of a working."""
+    if isinstance(train, ThroughTrain):
+        return train.first_train().line.name
+    return train.line.name
+
+
+def working_end_line_name(train: Train | ThroughTrain) -> str:
+    """Return the line whose rolling stock operates at the end of a working."""
+    if isinstance(train, ThroughTrain):
+        return train.last_train().line.name
+    return train.line.name
 
 
 def organize_loop(train_list: Sequence[Train]) -> Sequence[Segment]:
@@ -48,7 +62,7 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
     regular_trains = [train for train in all_trains if isinstance(train, Train)]
     all_carriage_num = {train.carriage_num for train in all_trains}
     for carriage_num in all_carriage_num:
-        end_station_dict: dict[str, list[Train | ThroughTrain]] = {}
+        end_station_dict: dict[tuple[str, str], list[Train | ThroughTrain]] = {}
         reserved_departures: set[int] = set()
         for train in all_trains:
             if train.carriage_num != carriage_num:
@@ -65,10 +79,11 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
                 associate.append((train, next_trains[0]))
                 reserved_departures.add(id(next_trains[0]))
                 continue
-            if end_station not in end_station_dict:
-                end_station_dict[end_station] = []
-            end_station_dict[end_station].append(train)
-        for end_station, train_list in end_station_dict.items():
+            end_key = (working_end_line_name(train), end_station)
+            if end_key not in end_station_dict:
+                end_station_dict[end_key] = []
+            end_station_dict[end_key].append(train)
+        for (operating_line, end_station), train_list in end_station_dict.items():
             arrivals = sorted(
                 [(train, train.real_end_time(regular_trains)) for train in train_list],
                 key=lambda entry: get_time_str(*entry[1])
@@ -76,6 +91,7 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
             departures = sorted([
                 x for x in all_trains
                 if x.stations[0] == end_station and x.carriage_num == carriage_num
+                and working_start_line_name(x) == operating_line
                 and id(x) not in reserved_departures
             ], key=lambda x: x.start_time_str())
 
@@ -85,14 +101,14 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
                 start_time = departure.start_time()
                 while arrival_index < len(arrivals):
                     train, end_time = arrivals[arrival_index]
-                    if diff_time_tuple(start_time, end_time) <= MIN_TURNAROUND_MINUTES:
+                    if diff_time_tuple(start_time, end_time) < MIN_TURNAROUND_MINUTES:
                         break
                     pending_arrivals.append((train, end_time))
                     arrival_index += 1
 
                 while pending_arrivals and diff_time_tuple(
                     start_time, pending_arrivals[0][1]
-                ) >= MAX_TURNAROUND_MINUTES:
+                ) > MAX_TURNAROUND_MINUTES:
                     pending_arrivals.popleft()
 
                 if pending_arrivals:
