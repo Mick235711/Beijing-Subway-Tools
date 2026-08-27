@@ -10,6 +10,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import date, time, timedelta
 from functools import partial
 from math import floor, ceil
+from time import monotonic
 
 from tqdm import tqdm
 
@@ -340,7 +341,8 @@ def all_time_paths(
             path[0][0], path[1][0] if len(path) > 1 else end_station
         ))
     )]
-    with tqdm(desc="Calculating", total=len(all_list)) as bar:
+    bar = None if progress_callback is not None else tqdm(desc="Calculating", total=len(all_list))
+    try:
         executor_cls = ProcessPoolExecutor if mp.parent_process() is None else ThreadPoolExecutor
         with executor_cls() as executor:
             work = partial(
@@ -348,15 +350,22 @@ def all_time_paths(
                 start_date, exclude_edge=exclude_edge
             )
             iterator = executor.map(work, all_list, chunksize=50)
-            for index, start_time, start_day, (bfs_result, bfs_path) in iterator:
-                prefix_str = "" if prefix is None else prefix(index, paths[index][0], paths[index][1])
-                bar.set_description(prefix_str + "Calculating " + city.station_full_name(paths[index][0][0][0]) +
-                                    " at " + get_time_repr(start_time, start_day))
-                if bar.update() and progress_callback is not None:
-                    progress_callback(bar.n, len(all_list))
+            last_progress_time = monotonic()
+            for progress_index, (index, start_time, start_day, (bfs_result, bfs_path)) in enumerate(iterator, start=1):
+                if bar is not None:
+                    prefix_str = "" if prefix is None else prefix(index, paths[index][0], paths[index][1])
+                    bar.set_description(prefix_str + "Calculating " + city.station_full_name(paths[index][0][0][0]) +
+                                        " at " + get_time_repr(start_time, start_day))
+                    bar.update()
+                elif progress_callback is not None and monotonic() - last_progress_time >= 0.1:
+                    progress_callback(progress_index, len(all_list))
+                    last_progress_time = monotonic()
                 if exclude_next_day and bfs_result.force_next_day:
                     continue
                 results[index].append((bfs_result.total_duration(), bfs_path, bfs_result))
+    finally:
+        if bar is not None:
+            bar.close()
     if progress_callback is not None:
         progress_callback(len(all_list), len(all_list))
     return {index: reconstruct_paths(inner_dict) for index, inner_dict in results.items()}

@@ -78,7 +78,7 @@ def shortest_path(
         # Update the distances
         next_tuples = [(to_station, line, edge_dist) for (to_station, line), edge_dist in graph[station].items()]
         to_add: list[tuple[str, Line | None, int]] = []
-        if fare_mode or not include_express:
+        if target_station is not None and (fare_mode or not include_express):
             # A targeted search can enforce must_include against the actual journey endpoints.
             next_tuples = [
                 (to_station, line, edge_dist)
