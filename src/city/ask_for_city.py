@@ -142,8 +142,9 @@ def ask_for_line_in_station(
         print("No lines present!")
         sys.exit(0)
     elif len(lines) == 1:
-        print(f"Line default: {list(lines)[0]}")
-        return list(lines)[0]
+        default_line = next(iter(lines))
+        print(f"Line default: {default_line.full_name()}")
+        return default_line
 
     meta_information: dict[str, str] = {}
     aliases: dict[str, list[str]] = {}

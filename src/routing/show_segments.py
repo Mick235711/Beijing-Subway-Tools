@@ -5,18 +5,23 @@
 
 # Libraries
 import argparse
+from collections import deque
 from collections.abc import Sequence
 from typing import cast, Literal
 
 from src.city.ask_for_city import ask_for_through_train
+from src.city.date_group import DateGroup
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str
-from src.routing.through_train import ThroughTrain
-from src.routing.train import Train
+from src.common.common import complete_pinyin, suffix_s, diff_time_tuple, format_duration, distance_str, get_time_str, \
+    TimeSpec
+from src.routing.through_train import ThroughTrain, parse_through_train
+from src.routing.train import Train, parse_all_trains
 from src.stats.common import count_trains
 
 Segment = Sequence[Train | ThroughTrain]
+MIN_TURNAROUND_MINUTES = 1
+MAX_TURNAROUND_MINUTES = 20
 
 
 def organize_loop(train_list: Sequence[Train]) -> Sequence[Segment]:
@@ -40,9 +45,11 @@ def organize_loop(train_list: Sequence[Train]) -> Sequence[Segment]:
 def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Segment]:
     """ Organize a timetable into train segments """
     associate: list[tuple[Train | ThroughTrain, Train | ThroughTrain]] = []
+    regular_trains = [train for train in all_trains if isinstance(train, Train)]
     all_carriage_num = {train.carriage_num for train in all_trains}
     for carriage_num in all_carriage_num:
         end_station_dict: dict[str, list[Train | ThroughTrain]] = {}
+        reserved_departures: set[int] = set()
         for train in all_trains:
             if train.carriage_num != carriage_num:
                 continue
@@ -56,46 +63,49 @@ def organize_segment(all_trains: Sequence[Train | ThroughTrain]) -> Sequence[Seg
                 ]
                 assert len(next_trains) == 1, (train, next_trains)
                 associate.append((train, next_trains[0]))
+                reserved_departures.add(id(next_trains[0]))
                 continue
             if end_station not in end_station_dict:
                 end_station_dict[end_station] = []
             end_station_dict[end_station].append(train)
         for end_station, train_list in end_station_dict.items():
-            train_list = sorted(train_list, key=lambda x: get_time_str(*x.real_end_time(
-                train for train in all_trains if isinstance(train, Train)
-            )))
-            other_train_list = sorted([
+            arrivals = sorted(
+                [(train, train.real_end_time(regular_trains)) for train in train_list],
+                key=lambda entry: get_time_str(*entry[1])
+            )
+            departures = sorted([
                 x for x in all_trains
                 if x.stations[0] == end_station and x.carriage_num == carriage_num
+                and id(x) not in reserved_departures
             ], key=lambda x: x.start_time_str())
-            i, j = 0, 0
-            initial_diff: int | None = None
-            while i < len(train_list) and j < len(other_train_list):
-                train = train_list[i]
-                other_train = other_train_list[j]
-                diff = diff_time_tuple(other_train.start_time(), train.end_time())
-                if diff <= 2:
-                    j += 1
-                elif diff >= 20:
-                    i += 1
-                elif initial_diff is None:
-                    initial_diff = diff
-                elif diff - initial_diff <= -10:
-                    j += 1
-                elif diff - initial_diff >= 10:
-                    i += 1
-                else:
-                    associate.append((train, other_train))
-                    i += 1
-                    j += 1
+
+            pending_arrivals = deque[tuple[Train | ThroughTrain, TimeSpec]]()
+            arrival_index = 0
+            for departure in departures:
+                start_time = departure.start_time()
+                while arrival_index < len(arrivals):
+                    train, end_time = arrivals[arrival_index]
+                    if diff_time_tuple(start_time, end_time) <= MIN_TURNAROUND_MINUTES:
+                        break
+                    pending_arrivals.append((train, end_time))
+                    arrival_index += 1
+
+                while pending_arrivals and diff_time_tuple(
+                    start_time, pending_arrivals[0][1]
+                ) >= MAX_TURNAROUND_MINUTES:
+                    pending_arrivals.popleft()
+
+                if pending_arrivals:
+                    train, _ = pending_arrivals.pop()
+                    associate.append((train, departure))
 
     # Reassemble loop_dict
     loop_dict: list[list[Train | ThroughTrain]] = []
     associate = sorted(associate, key=lambda x: x[0].start_time_str())
     for cur1, cur2 in associate:
-        for j, entry in enumerate(loop_dict):
+        for entry in loop_dict:
             if entry[-1] == cur1:
-                loop_dict[j].append(cur2)
+                entry.append(cur2)
                 break
         else:
             loop_dict.append([cur1, cur2])
@@ -221,6 +231,85 @@ def parse_through_segments(
     return organize_segment(list(through_list) + list(all_trains))
 
 
+def related_through_specs(
+    line: Line, date_group: str, through_specs: Sequence[ThroughSpec]
+) -> list[ThroughSpec]:
+    """Find the connected through-running group for one line and date group."""
+    related_line_groups = {(line.name, date_group)}
+    result: list[ThroughSpec] = []
+    remaining = list(through_specs)
+    while True:
+        matched = [spec for spec in remaining if related_line_groups.intersection(
+            (spec_line.name, spec_group.name) for spec_line, _, spec_group, _ in spec.spec
+        )]
+        if not matched:
+            return result
+        for spec in matched:
+            result.append(spec)
+            remaining.remove(spec)
+            related_line_groups.update(
+                (spec_line.name, spec_group.name) for spec_line, _, spec_group, _ in spec.spec
+            )
+
+
+def recover_line_segments(segments: Sequence[Segment], line: Line) -> list[Segment]:
+    """Project matched multi-line segments back onto one line."""
+    result: list[Segment] = []
+    for segment in segments:
+        recovered: list[Train] = []
+        for train in segment:
+            if isinstance(train, ThroughTrain):
+                if line.name in train.trains:
+                    recovered.append(train.trains[line.name])
+            elif train.line.name == line.name:
+                recovered.append(train)
+        if recovered:
+            result.append(recovered)
+    return result
+
+
+def segment_serves_line(segment: Segment, line: Line) -> bool:
+    """Whether a matched segment contains a working on the specified line."""
+    return any(
+        line.name in train.trains if isinstance(train, ThroughTrain) else train.line.name == line.name
+        for train in segment
+    )
+
+
+def get_related_through_segments(
+    lines: dict[str, Line], line: Line, date_group: str, through_specs: Sequence[ThroughSpec]
+) -> list[Segment] | None:
+    """Match all through-running lines related to one line and date group."""
+    specs = related_through_specs(line, date_group, through_specs)
+    if not specs:
+        return None
+
+    related_line_groups: dict[str, set[str]] = {}
+    for spec in specs:
+        for spec_line, _, spec_group, _ in spec.spec:
+            if spec_line.name not in related_line_groups:
+                related_line_groups[spec_line.name] = set()
+            related_line_groups[spec_line.name].add(spec_group.name)
+
+    original_train_dict = parse_all_trains(
+        lines[line_name] for line_name in related_line_groups
+    )
+    train_dict, through_dict = parse_through_train(original_train_dict, specs)
+    regular_trains = [
+        train
+        for line_name, date_groups in related_line_groups.items()
+        for direction_dict in train_dict[line_name].values()
+        for group_name in date_groups
+        for train in direction_dict.get(group_name, [])
+    ]
+    through_trains = [
+        train for spec in specs for train in through_dict[spec]
+    ]
+    all_related_trains: list[Train | ThroughTrain] = list(regular_trains)
+    all_related_trains.extend(through_trains)
+    return list(organize_segment(all_related_trains))
+
+
 def main() -> None:
     """ Main function """
     parser = argparse.ArgumentParser()
@@ -228,12 +317,23 @@ def main() -> None:
     parser.add_argument("-f", "--find-train", action="store_true", help="Find a train in the segment")
     args = parser.parse_args()
 
-    city, _, train_dict, line_spec, train_list = ask_for_through_train(ignore_direction=True, exclude_end_circle=True)
+    city, date_group, train_dict, line_spec, train_list = ask_for_through_train(
+        ignore_direction=True, exclude_end_circle=True
+    )
     if isinstance(line_spec, Line):
         is_loop = line_spec.loop
         if not is_loop:
             print("NOTE: Segment analysis for non-loop lines is imprecise.")
-        loop_dict = get_all_segments(city.lines, cast(list[Train], train_list))[line_spec.name]
+        assert isinstance(date_group, DateGroup), date_group
+        through_segments = get_related_through_segments(
+            city.lines, line_spec, date_group.name, city.through_specs
+        )
+        if through_segments is None:
+            loop_dict = get_all_segments(city.lines, cast(list[Train], train_list))[line_spec.name]
+        else:
+            loop_dict = [
+                segment for segment in through_segments if segment_serves_line(segment, line_spec)
+            ]
     else:
         is_loop = False
 

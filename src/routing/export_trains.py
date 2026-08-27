@@ -14,7 +14,7 @@ from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_direction,
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import get_time_str, NoIndent, InnerArrayEncoder, parse_color_string, within_time, add_min_tuple
-from src.routing.show_segments import get_all_segments
+from src.routing.show_segments import get_all_segments, get_related_through_segments, recover_line_segments
 from src.routing.train import parse_all_trains, parse_trains, get_train_id, Train
 from src.ui.common import find_train_id
 
@@ -239,15 +239,19 @@ def format_pyetrc(
     result["trains"] = trains_list
 
     # Add segments
-    through_routes = {}
-    for direction in line.directions.keys():
-        through_routes[direction] = {
-            inner[-1] for ts in city.through_specs if ts.covers(cur_date)
-            for inner in ts.spec if inner[0].name == line.name and inner[1] == direction
-        }
-    segments = get_all_segments({line.name: line}, [t for t in train_list if all(
-        r not in through_routes[t.direction] for r in t.routes
-    )])[line.name]
+    through_segments = get_related_through_segments(
+        city.lines, line, line.determine_date_group(cur_date).name, city.through_specs
+    )
+    if through_segments is None:
+        segments = get_all_segments({line.name: line}, train_list)[line.name]
+    else:
+        line_segments = recover_line_segments(through_segments, line)
+        included_trains = set(train_list)
+        segments = []
+        for segment in line_segments:
+            included = [train for train in segment if train in included_trains]
+            if included:
+                segments.append(included)
     circuit_list = []
     for i, train_loop in enumerate(segments):
         circuit_list.append({
