@@ -5,7 +5,7 @@
 
 # Libraries
 from collections.abc import Callable, Iterable
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from nicegui import background_tasks, binding, run, ui
 from nicegui.elements.checkbox import Checkbox
@@ -18,14 +18,15 @@ from src.city.train_route import TrainRoute
 from src.common.common import get_time_str, direction_repr, suffix_s, to_pinyin, TimeSpec, to_minutes
 from src.routing.through_train import ThroughTrain, parse_through_train, find_through_train
 from src.routing.train import Train, parse_trains, parse_all_trains, get_train_id
-from src.ui.common import get_date_input, get_default_station, get_station_selector_options, find_train_id, \
-    ROUTE_TYPES, get_time_range
+from src.ui.common import get_date_input, get_time_input, get_default_station, get_station_selector_options, \
+    get_line_selector_options, find_train_id, ROUTE_TYPES, get_time_range
 from src.ui.drawers import get_line_badge, get_line_direction_repr, get_station_badge, refresh_train_drawer, \
     get_train_repr, get_train_type, get_badge
 from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import StyleBase, assign_styles, apply_style, apply_formatting, replace_one_text, \
     FilledSquare, FilledCircle, BorderSquare, BorderCircle, SuperText, FormattedText, Colored, \
     BOX_HEIGHT, TITLE_HEIGHT, SINGLE_TEXTS, StyleMode, TimetableMode, FilterMode
+from src.ui.upcoming_departures import TrainDict, UpcomingDeparture, build_upcoming_board, countdown_label
 
 
 @binding.bindable_dataclass
@@ -36,69 +37,223 @@ class TimetableData:
     cur_date: date
     train_dict: dict[tuple[str, str], list[Train]]
     through_dict: dict[ThroughSpec, list[ThroughTrain]]
-    train_dict_key: tuple[str, date] | None
+    train_dict_key: tuple[str, date, tuple[str, ...]] | None
     through_dict_key: tuple[str, ...] | None
 
 
-def get_train_dict(lines: Iterable[Line], cur_date: date) -> dict[tuple[str, str], list[Train]]:
-    """ Get a dictionary of (line, direction) -> trains """
-    train_dict: dict[tuple[str, str], list[Train]] = {}
+def get_train_dicts(lines: Iterable[Line], dates: Iterable[date]) -> dict[date, TrainDict]:
+    """ Get train dictionaries for several dates while parsing every line only once """
+    date_list = list(dict.fromkeys(dates))
+    result: dict[date, TrainDict] = {cur_date: {} for cur_date in date_list}
     for line in lines:
         single_dict = parse_trains(line)
         for direction, direction_dict in single_dict.items():
-            for date_group, train_list in direction_dict.items():
-                if not line.date_groups[date_group].covers(cur_date):
-                    continue
-                train_dict[(line.name, direction)] = train_list
-                break
-    return train_dict
+            for cur_date in date_list:
+                for date_group, train_list in direction_dict.items():
+                    if not line.date_groups[date_group].covers(cur_date):
+                        continue
+                    result[cur_date][(line.name, direction)] = train_list
+                    break
+    return result
+
+
+def get_train_dict(lines: Iterable[Line], cur_date: date) -> TrainDict:
+    """ Get a dictionary of (line, direction) -> trains for one date """
+    return get_train_dicts(lines, [cur_date])[cur_date]
 
 
 def timetable_tab(city: City, data: TimetableData) -> None:
     """ Timetable tab for the main page """
-    with ui.row().classes("items-center justify-between timetable-tab-selection"):
-        timetables_built = False
+    ui.add_css("""
+.pids-board {
+    border: 1px solid rgba(100, 116, 139, .35);
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+}
+.pids-board-header, .pids-departure-row {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, .65fr) minmax(5.5rem, .75fr) minmax(10rem, 1.5fr)
+                           minmax(10rem, 1.7fr) minmax(9rem, 1.3fr) minmax(10rem, 1.5fr);
+    grid-template-areas: "time countdown line destination route notice";
+    align-items: center;
+    column-gap: 1rem;
+}
+.pids-board-header {
+    background: #17233c;
+    color: white;
+    min-height: 2.75rem;
+    padding: .55rem 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.pids-departure-row {
+    min-height: 5.25rem;
+    padding: .75rem 1rem;
+    border-top: 1px solid rgba(100, 116, 139, .22);
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+.pids-departure-row:hover, .pids-departure-row:focus-visible {
+    background: rgba(59, 130, 246, .08);
+    outline: none;
+}
+.pids-cell-time { grid-area: time; font-variant-numeric: tabular-nums; }
+.pids-cell-countdown { grid-area: countdown; }
+.pids-cell-line { grid-area: line; }
+.pids-cell-destination { grid-area: destination; min-width: 0; }
+.pids-cell-route { grid-area: route; min-width: 0; }
+.pids-cell-notice { grid-area: notice; min-width: 0; }
+.pids-departure-time { font-size: 1.65rem; font-weight: 750; letter-spacing: .015em; }
+.pids-destination { font-size: 1.15rem; font-weight: 700; line-height: 1.25; }
+.pids-secondary { color: #64748b; font-size: .8rem; line-height: 1.3; }
+.body--dark .pids-secondary { color: #aab4c4; }
+.body--dark .pids-departure-row:hover, .body--dark .pids-departure-row:focus-visible {
+    background: rgba(96, 165, 250, .12);
+}
+.pids-board-footer { border-top: 1px solid rgba(100, 116, 139, .22); }
+.pids-service-divider {
+    align-items: center;
+    color: #64748b;
+    display: flex;
+    font-size: .8rem;
+    gap: .75rem;
+    padding: .6rem 1rem;
+    white-space: nowrap;
+    width: 100%;
+}
+.pids-service-divider::before, .pids-service-divider::after {
+    background: rgba(100, 116, 139, .35);
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    min-width: 1rem;
+}
+.body--dark .pids-service-divider { color: #aab4c4; }
+@media (max-width: 800px) {
+    .pids-board-header { display: none; }
+    .pids-departure-row {
+        grid-template-columns: minmax(5rem, auto) 1fr;
+        grid-template-areas:
+            "time countdown"
+            "destination destination"
+            "line route"
+            "notice notice";
+        row-gap: .55rem;
+        column-gap: .75rem;
+        min-height: 0;
+    }
+    .pids-cell-countdown { justify-self: end; }
+    .pids-cell-line, .pids-cell-route { align-self: start; }
+}
+    """)
 
+    rendered_mode: str | None = None
+    adjacent_train_cache: dict[tuple[str, date, tuple[str, ...]], TrainDict] = {}
+    upcoming_time: TimeSpec = (datetime.now().time().replace(second=0, microsecond=0), False)
+    upcoming_live = True
+    upcoming_line = "All"
+    syncing_time_input = False
+
+    def current_clock_time() -> TimeSpec:
+        """ Current local wall-clock time at timetable precision """
+        return datetime.now().time().replace(second=0, microsecond=0), False
+
+    with ui.row().classes("items-center justify-between timetable-tab-selection"):
         async def refresh_timetables() -> None:
             """ Refresh timetables in the background """
-            nonlocal timetables_built
+            nonlocal rendered_mode
             loading.set_visibility(True)
-            station = data.station
-            cur_date = data.cur_date
-            key = (station, cur_date)
-            if data.train_dict_key != key:
-                train_dict = await run.io_bound(get_train_dict, city.station_lines[station], cur_date)
-                if train_dict is None:
-                    return
-                if (station, cur_date) != (data.station, data.cur_date):
-                    loading.set_visibility(False)
-                    return
-                data.train_dict = train_dict
-                data.train_dict_key = key
-            if not data.through_dict:
-                loading.set_visibility(False)
-                return
+            try:
+                station = data.station
+                cur_date = data.cur_date
+                active_lines = tuple(data.info_data.station_lines.get(station, set()))
+                line_names = tuple(sorted(line.name for line in active_lines))
+                key = (station, cur_date, line_names)
+                display_mode = display_toggle.value.lower()
+                is_upcoming = display_mode == "upcoming"
+                previous_train_dict: TrainDict = {}
+                next_train_dict: TrainDict = {}
+                if is_upcoming:
+                    adjacent_dates = (cur_date - timedelta(days=1), cur_date + timedelta(days=1))
+                    missing_dates = [
+                        adjacent_date for adjacent_date in adjacent_dates
+                        if (station, adjacent_date, line_names) not in adjacent_train_cache
+                    ]
+                    if data.train_dict_key != key:
+                        missing_dates.append(cur_date)
+                    if missing_dates:
+                        loaded_dicts = await run.io_bound(get_train_dicts, active_lines, missing_dates)
+                        assert loaded_dicts is not None, loaded_dicts
+                        current_line_names = tuple(sorted(
+                            line.name for line in data.info_data.station_lines.get(data.station, set())
+                        ))
+                        if (station, cur_date, line_names) != (data.station, data.cur_date, current_line_names):
+                            return
+                        for loaded_date, loaded_dict in loaded_dicts.items():
+                            if loaded_date == cur_date:
+                                data.train_dict = loaded_dict
+                                data.train_dict_key = key
+                            else:
+                                adjacent_train_cache[(station, loaded_date, line_names)] = loaded_dict
+                    previous_train_dict = adjacent_train_cache[(station, adjacent_dates[0], line_names)]
+                    next_train_dict = adjacent_train_cache[(station, adjacent_dates[1], line_names)]
+                elif data.train_dict_key != key:
+                    train_dict = await run.io_bound(get_train_dict, active_lines, cur_date)
+                    current_line_names = tuple(sorted(
+                        line.name for line in data.info_data.station_lines.get(data.station, set())
+                    ))
+                    if train_dict is None or key != (data.station, data.cur_date, current_line_names):
+                        return
+                    data.train_dict = train_dict
+                    data.train_dict_key = key
 
-            skipped_switch.set_visibility(any(
-                data.station in t.arrival_time and data.station in t.skip_stations
-                for tl in data.train_dict.values() for t in tl
-            ))
-            if not timetables_built:
-                timetables_container.clear()
-                with timetables_container:
-                    timetables(
+                if not data.through_dict:
+                    return
+
+                skipped_switch.set_visibility(not is_upcoming and any(
+                    data.station in train.arrival_time and data.station in train.skip_stations
+                    for train_list in data.train_dict.values() for train in train_list
+                ))
+                upcoming_controls.set_visibility(is_upcoming)
+
+                new_rendered_mode = "upcoming" if is_upcoming else "timetable"
+                if rendered_mode != new_rendered_mode:
+                    timetables_container.clear()
+                    rendered_mode = new_rendered_mode
+                    with timetables_container:
+                        if is_upcoming:
+                            upcoming_board(
+                                city, station_lines=data.info_data.station_lines, station=data.station,
+                                selected_date=data.cur_date, current_time=upcoming_time, is_live=upcoming_live,
+                                selected_line_name=None if upcoming_line == "All" else upcoming_line,
+                                train_dict=data.train_dict, previous_train_dict=previous_train_dict,
+                                next_train_dict=next_train_dict, through_dict=data.through_dict
+                            )
+                        else:
+                            timetables(
+                                city, station_lines=data.info_data.station_lines, station=data.station,
+                                start_date=data.cur_date, train_dict=data.train_dict, through_dict=data.through_dict,
+                                hour_display=display_mode, show_skipped=skipped_switch.value
+                            )
+                elif is_upcoming:
+                    await upcoming_board.refresh(
+                        city, station_lines=data.info_data.station_lines, station=data.station,
+                        selected_date=data.cur_date, current_time=upcoming_time, is_live=upcoming_live,
+                        selected_line_name=None if upcoming_line == "All" else upcoming_line,
+                        train_dict=data.train_dict, previous_train_dict=previous_train_dict,
+                        next_train_dict=next_train_dict, through_dict=data.through_dict
+                    )
+                else:
+                    await timetables.refresh(
                         city, station_lines=data.info_data.station_lines, station=data.station,
                         start_date=data.cur_date, train_dict=data.train_dict, through_dict=data.through_dict,
-                        hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
+                        hour_display=display_mode, show_skipped=skipped_switch.value
                     )
-                timetables_built = True
-            else:
-                await timetables.refresh(
-                    station_lines=data.info_data.station_lines, station=data.station,
-                    start_date=data.cur_date, train_dict=data.train_dict, through_dict=data.through_dict,
-                    hour_display=display_toggle.value.lower(), show_skipped=skipped_switch.value
-                )
-            loading.set_visibility(False)
+            finally:
+                loading.set_visibility(False)
 
         async def load_through_dict() -> None:
             """ Load through-train dictionary in the background """
@@ -124,6 +279,17 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             """ Update the train dict based on current data """
             background_tasks.create_lazy(refresh_timetables(), name="timetable_tab_refresh")
 
+        def set_upcoming_to_now(*, refresh: bool = True) -> None:
+            """ Return Upcoming to its automatically advancing wall-clock state """
+            nonlocal upcoming_live, upcoming_time, syncing_time_input
+            upcoming_live = True
+            upcoming_time = current_clock_time()
+            syncing_time_input = True
+            time_input.set_value(get_time_str(*upcoming_time))
+            syncing_time_input = False
+            if refresh and display_toggle.value == "Upcoming":
+                on_any_change()
+
         def on_station_change(station: str | None = None, new_date: date | None = None) -> None:
             """ Update the data based on selection states """
             if len(data.info_data.lines) == 0:
@@ -140,6 +306,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             select_station.set_options(get_station_selector_options(city.station_lines))
             select_station.set_value(data.station)
             select_station.update()
+            update_upcoming_line_selector()
 
             if new_date is not None:
                 data.cur_date = new_date
@@ -166,13 +333,263 @@ def timetable_tab(city: City, data: TimetableData) -> None:
 
     with ui.row().classes("items-center justify-between"):
         ui.label("Hour display mode: ")
-        display_toggle = ui.toggle(["Prefix", "Title", "List", "Combined"],
+        display_toggle = ui.toggle(["Prefix", "Title", "List", "Combined", "Upcoming"],
                                    value="Prefix", on_change=on_any_change)
         skipped_switch = ui.switch("Show skipping trains", on_change=on_any_change)
+
+    def on_upcoming_time_change(new_time: TimeSpec) -> None:
+        """ Freeze Upcoming at a manually selected time """
+        nonlocal upcoming_live, upcoming_time
+        if syncing_time_input:
+            return
+        upcoming_live = False
+        upcoming_time = new_time[0], False
+        on_any_change()
+
+    def update_upcoming_line_selector(line_name: str | None = None) -> None:
+        """ Refresh the station-specific line filter while preserving valid selections """
+        nonlocal upcoming_line
+        available_lines = {
+            line.name: line for line in data.info_data.station_lines.get(data.station, set())
+        }
+        requested_line = line_name or upcoming_line
+        upcoming_line = (
+            requested_line if len(available_lines) > 1 and requested_line in available_lines else "All"
+        )
+        line_input.set_options(get_line_selector_options(available_lines, append_options={"All"}))
+        line_input.set_value(upcoming_line)
+        with line_input.add_slot("selected"):
+            if upcoming_line == "All":
+                ui.label("All")
+            else:
+                get_line_badge(available_lines[upcoming_line])
+        line_input.update()
+        upcoming_line_controls.set_visibility(len(available_lines) > 1)
+
+    def on_upcoming_line_change(line_name: str | None = None) -> None:
+        """ Apply the selected station line without changing the selected time """
+        update_upcoming_line_selector(line_name)
+        if display_toggle.value == "Upcoming":
+            on_any_change()
+
+    with ui.row().classes(
+        "w-full items-center justify-center gap-x-3 gap-y-1 timetable-tab-selection"
+    ) as upcoming_controls:
+        ui.label("Current time:")
+        time_input = get_time_input(on_upcoming_time_change, label=None).classes("w-36")
+        with ui.row().classes("items-center gap-2") as upcoming_line_controls:
+            ui.label("Line:")
+            line_input = ui.select({"All": "All"}, value="All").props(
+                "use-chips options-html options-dense"
+            ).classes("min-w-40 max-w-64").on_value_change(
+                lambda event: on_upcoming_line_change(event.value)
+            )
+        ui.button("Return to now", icon="schedule", on_click=set_upcoming_to_now).props(
+            "outline no-caps color=primary"
+        ).classes("bg-transparent")
+    upcoming_controls.set_visibility(False)
+
+    def update_live_board() -> None:
+        """ Advance the live board when the wall-clock minute changes """
+        nonlocal upcoming_time, syncing_time_input
+        if not upcoming_live:
+            return
+        new_time = current_clock_time()
+        if new_time == upcoming_time:
+            return
+        upcoming_time = new_time
+        syncing_time_input = True
+        time_input.set_value(get_time_str(*upcoming_time))
+        syncing_time_input = False
+        if display_toggle.value == "Upcoming":
+            on_any_change()
+
+    ui.timer(15, update_live_board)
 
     timetables_container = ui.column().classes("w-full")
     on_station_change(data.station, data.cur_date)
     background_tasks.create(load_through_dict(), name="timetable_through_dict")
+
+
+def _boundary_notice(city: City, departure: UpcomingDeparture) -> None:
+    """ Render a primarily textual first/last passenger notice """
+    assert departure.primary_boundary is not None
+    label = departure.primary_boundary
+    for prefix in ("Last through to ", "First through to "):
+        if not label.startswith(prefix):
+            continue
+        ui.label(prefix)
+        for line_name in label.removeprefix(prefix).split(" / "):
+            line = city.lines.get(line_name)
+            if line is None:
+                ui.label(line_name)
+            else:
+                get_line_badge(line, add_click=True)
+        return
+
+    if label in {"First train", "Last train"}:
+        ui.label(f"{label} for")
+        get_line_badge(
+            departure.line, add_click=True, force_icon_dir=departure.direction
+        )
+        ui.label(departure.direction)
+        return
+    ui.label(label)
+
+
+def _departure_id_context(
+    departure: UpcomingDeparture, selected_date: date,
+    train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict
+) -> tuple[str, dict[str, Train]]:
+    """ Find the existing detail-drawer ID context for a departure's service date """
+    if departure.service_date < selected_date:
+        source_dict = previous_train_dict
+    elif departure.service_date > selected_date:
+        source_dict = next_train_dict
+    else:
+        source_dict = train_dict
+    train_id_dict = get_train_id(source_dict[(departure.line.name, departure.direction)])
+    return find_train_id(train_id_dict, departure.train), train_id_dict
+
+
+def _render_upcoming_departure(
+    city: City, departure: UpcomingDeparture, reference_minute: int | None, selected_date: date,
+    train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict,
+    station_lines: dict[str, set[Line]], *, relative_label: str | None = None
+) -> None:
+    """ Render one responsive clickable PIDS departure row """
+    train_id, train_id_dict = _departure_id_context(
+        departure, selected_date, train_dict, previous_train_dict, next_train_dict
+    )
+    def open_train() -> None:
+        """ Open the clicked train """
+        refresh_train_drawer(
+            departure.train, departure.service_date, train_id, train_id_dict, station_lines
+        )
+
+    with ui.element("div").classes("pids-departure-row").props(
+        f'role="button" tabindex="0" aria-label="{get_time_str(departure.departure_time[0])} '
+        f'{departure.line.name} to {departure.destination}"'
+    ).on("click", open_train).on("keydown.enter", open_train):
+        with ui.element("div").classes("pids-cell-time"):
+            ui.label(get_time_str(departure.departure_time[0])).classes("pids-departure-time")
+            if departure.departure_time[1]:
+                ui.label("after midnight").classes("pids-secondary")
+
+        with ui.element("div").classes("pids-cell-countdown"):
+            if relative_label is None:
+                assert reference_minute is not None
+                relative = countdown_label(departure, reference_minute)
+            else:
+                relative = relative_label
+            ui.label(relative).classes("font-semibold " + ("text-orange-8" if relative == "Departing Now" else ""))
+
+        with ui.element("div").classes("pids-cell-destination"):
+            with ui.element("div").classes("flex flex-wrap items-center gap-1"):
+                destination_line = (
+                    departure.physical_train.last_train().line
+                    if isinstance(departure.physical_train, ThroughTrain)
+                    else departure.line
+                )
+                get_station_badge(
+                    departure.destination, destination_line,
+                    show_badges=False, show_line_badges=False, add_line_click=False,
+                    classes="pids-destination"
+                )
+                route_types = get_train_type(departure.physical_train)
+                if departure.is_through:
+                    route_types.append("Through")
+                for route_type in dict.fromkeys(route_types):
+                    get_badge(route_type, *ROUTE_TYPES[route_type])
+
+            if departure.continuation_lines:
+                with ui.element("div").classes("flex flex-wrap items-center gap-1 pids-secondary"):
+                    ui.label("On ")
+                    get_line_badge(departure.line, add_click=True)
+                    ui.label(f" until {departure.train.last_station()}")
+
+        with ui.element("div").classes("pids-cell-line"):
+            with ui.element("div").classes("flex flex-wrap items-center gap-1"):
+                get_line_badge(departure.line, add_click=True, force_icon_dir=departure.direction)
+                ui.label(departure.direction).classes("font-medium")
+            get_line_direction_repr(departure.line, departure.direction)
+
+        with ui.element("div").classes("pids-cell-route"):
+            ui.label(train_id).classes("font-medium")
+            ui.label(departure.physical_train.train_formal_name()).classes("pids-secondary")
+
+        with ui.element("div").classes("pids-cell-notice"):
+            if departure.primary_boundary is not None:
+                with ui.element("div").classes("flex flex-wrap items-center gap-1"):
+                    _boundary_notice(city, departure)
+
+
+@ui.refreshable
+def upcoming_board(
+    city: City, *, station_lines: dict[str, set[Line]], station: str, selected_date: date,
+    current_time: TimeSpec, is_live: bool, selected_line_name: str | None,
+    train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]]
+) -> None:
+    """ Render the isolated passenger-facing Upcoming display mode """
+    if station not in station_lines:
+        return
+    board = build_upcoming_board(
+        station, selected_date, current_time, train_dict, previous_train_dict, next_train_dict,
+        through_dict, line_name=selected_line_name
+    )
+    current_label = get_time_str(current_time[0])
+
+    with ui.column().classes("w-full gap-y-3"):
+        with ui.row().classes("w-full items-end justify-between gap-2"):
+            with ui.column().classes("gap-0"):
+                ui.label("Upcoming Departures").classes("text-xl font-semibold")
+                with ui.row().classes("items-center gap-1"):
+                    ui.label(
+                        ("As of " if is_live else "Viewing ") + current_label
+                    ).classes("pids-secondary")
+                    if is_live:
+                        ui.badge("Live", color="positive")
+            if board.service_date != selected_date:
+                ui.badge(f"Overnight service from {board.service_date.isoformat()}", color="blue-grey-7")
+
+        with ui.element("div").classes("pids-board"):
+            with ui.element("div").classes("pids-board-header"):
+                for class_name, title in (
+                    ("pids-cell-time", "Departure"),
+                    ("pids-cell-countdown", "Leaves in"),
+                    ("pids-cell-line", "Line / direction"),
+                    ("pids-cell-destination", "Destination / service"),
+                    ("pids-cell-route", "Train"),
+                    ("pids-cell-notice", "Notices"),
+                ):
+                    ui.label(title).classes(class_name)
+
+            for departure in board.departures:
+                _render_upcoming_departure(
+                    city, departure, board.reference_minute, selected_date,
+                    train_dict, previous_train_dict, next_train_dict, station_lines
+                )
+
+            if board.shows_end_of_service:
+                with ui.column().classes("pids-board-footer w-full items-center gap-1 q-pa-md"):
+                    with ui.row().classes("items-center gap-2"):
+                        ui.icon("bedtime", color="blue-grey-6")
+                        ui.label(
+                            "End of service" if board.departures else "Service has ended for this date"
+                        ).classes("font-semibold")
+
+                if board.next_departures:
+                    next_date = board.next_departures[0].service_date.isoformat()
+                    ui.label(f"First services on {next_date}").classes(
+                        "pids-board-footer pids-service-divider"
+                    )
+                    for departure in board.next_departures:
+                        _render_upcoming_departure(
+                            city, departure, None, selected_date,
+                            train_dict, previous_train_dict, next_train_dict, station_lines,
+                            relative_label="Next service"
+                        )
 
 
 def get_train_list(

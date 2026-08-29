@@ -21,6 +21,10 @@ from src.routing.train import Train, parse_trains, parse_all_trains
 from src.timetable.timetable import Timetable
 
 
+# For now, assume that any input after 3:30AM is this day
+SERVICE_DAY_BOUNDARY = time(3, 30)
+
+
 def ask_for_city(*, message: str | None = None) -> City:
     """ Ask for a city """
     cities = get_all_cities()
@@ -463,8 +467,7 @@ def ask_for_time(*, allow_first: Callable[[], TimeSpec] | None = None,
     if response in valid_answer:
         return answer
 
-    # For now, assume that any input after 3:30AM is this day
-    start_day = answer[0] < time(3, 30)
+    start_day = answer[0] < SERVICE_DAY_BOUNDARY
     if start_day:
         print("Warning: assuming next day!")
     return answer[0], start_day

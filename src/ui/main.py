@@ -342,14 +342,20 @@ async def main_page(city_name: str) -> None:
                 timetable_data.through_dict = through_dict
                 timetable_data.through_dict_key = lines_key
 
-        timetable_key = (timetable_data.station, timetable_data.cur_date)
+        timetable_line_names = tuple(sorted(
+            line.name for line in info_data.station_lines.get(timetable_data.station, set())
+        ))
+        timetable_key = (timetable_data.station, timetable_data.cur_date, timetable_line_names)
         if timetable_data.train_dict_key != timetable_key:
             train_dict = await run.io_bound(
-                get_train_dict, city.station_lines[timetable_data.station], timetable_data.cur_date
+                get_train_dict, info_data.station_lines.get(timetable_data.station, set()), timetable_data.cur_date
             )
             if train_dict is None:
                 return
-            if timetable_key == (timetable_data.station, timetable_data.cur_date):
+            if timetable_key == (
+                timetable_data.station, timetable_data.cur_date,
+                tuple(sorted(line.name for line in info_data.station_lines.get(timetable_data.station, set())))
+            ):
                 timetable_data.train_dict = train_dict
                 timetable_data.train_dict_key = timetable_key
 
