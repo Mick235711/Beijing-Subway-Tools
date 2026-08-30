@@ -18,10 +18,9 @@ from src.city.ask_for_city import ask_for_station_pair, ask_for_date, ask_for_st
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s, chin_len, ask_for_int, percentage_str, get_time_repr
-from src.dist_graph.adaptor import get_dist_graph, simplify_path
+from src.dist_graph.adaptor import get_dist_graph, simplify_path, to_abstract
 from src.dist_graph.longest_path import find_longest
 from src.dist_graph.shortest_path import shortest_path
-from src.fare.fare import to_abstract
 from src.routing.through_train import parse_through_train
 from src.routing.train import parse_all_trains
 from src.routing_pk.common import Route, route_str, back_to_string, print_routes, select_stations, select_routes, \

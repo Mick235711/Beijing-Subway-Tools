@@ -196,8 +196,10 @@ class Fare:
                 assert isinstance(last_train, Train), (path, last_index, i)
                 splits.append((path[last_index][0], last_train.line.name, last_train.direction, station,
                                None if train is None else train.line.name, get_fare_single(
-                    cur_candidates, lines, to_abstract(path[last_index:fetch_index + 1]), end_station,
-                    cur_date, last_time, last_day, end_time, end_day
+                    cur_candidates, lines, [
+                        (inner_station, (inner_train.line.name, inner_train.direction) if isinstance(inner_train, Train) else None)
+                        for inner_station, inner_train in path[last_index:fetch_index + 1]
+                    ], end_station, cur_date, last_time, last_day, end_time, end_day
                 )))
                 last_index = orig_delta + i
                 if train is not None:
@@ -208,12 +210,6 @@ class Fare:
                 cur_candidates = new_candidates
             old_index = None
         return splits
-
-
-def to_abstract(path: Path) -> AbstractPath:
-    """ Convert a path to an abstract path """
-    return [(station, (train.line.name, train.direction) if isinstance(train, Train) else None)
-            for station, train in path]
 
 
 def get_fare_single(

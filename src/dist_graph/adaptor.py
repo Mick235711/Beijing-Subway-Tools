@@ -214,6 +214,56 @@ def to_trains(
     ), final_new_path
 
 
+def total_walking(
+    path: AbstractPath, end_station: str, lines: dict[str, Line],
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer]
+) -> tuple[bool, int, int]:
+    """ Get the sum of all transfer walking distances """
+    assert len(path) > 0, path
+    have_dist = True
+    sum_distance = 0
+    sum_stairs = 0
+    for i, (station, line_direction) in enumerate(path):
+        if line_direction is None:
+            # Process virtual transfer
+            if i == 0:
+                prev_line, prev_direction = None, None
+            else:
+                prev_ld = path[i - 1][1]
+                assert prev_ld is not None, path
+                prev_line, prev_direction = lines[prev_ld[0]], prev_ld[1]
+            if i == len(path) - 1:
+                next_line, next_direction = None, None
+                next_station = end_station
+            else:
+                next_ld = path[i + 1][1]
+                assert next_ld is not None, path
+                next_line, next_direction = lines[next_ld[0]], next_ld[1]
+                next_station = path[i + 1][0]
+
+            *_, transfer_time, _ = virtual_dict[(station, next_station)].get_smallest_time(
+                prev_line, prev_direction, next_line, next_direction
+            )
+        else:
+            if i == len(path) - 1:
+                continue
+            next_station = path[i + 1][0]
+            next_ld = path[i + 1][1]
+            if next_ld is None:
+                continue
+
+            # Process normal transfer
+            *_, transfer_time, _ = transfer_dict[next_station].get_smallest_time(
+                lines[line_direction[0]], line_direction[1],
+                lines[next_ld[0]], next_ld[1]
+            )
+
+        have_dist = have_dist and (transfer_time[1] is not None and transfer_time[2] is not None)
+        sum_distance += transfer_time[1] or 0
+        sum_stairs += transfer_time[2] or 0
+    return have_dist, sum_distance, sum_stairs
+
+
 global single_station_bfs
 def single_station_bfs(
     city: City, graph: Graph, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
@@ -369,6 +419,12 @@ def all_time_paths(
     if progress_callback is not None:
         progress_callback(len(all_list), len(all_list))
     return {index: reconstruct_paths(inner_dict) for index, inner_dict in results.items()}
+
+
+def to_abstract(path: BFSPath) -> AbstractPath:
+    """ Convert a path to an abstract path """
+    return [(station, (train.line.name, train.direction) if isinstance(train, Train) else None)
+            for station, train in path]
 
 
 def reduce_path(bfs_path: BFSPath, end_station: str) -> Path:

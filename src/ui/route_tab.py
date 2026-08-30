@@ -14,24 +14,24 @@ from typing import Literal, TypeVar, ParamSpec, Concatenate, Awaitable
 
 from nicegui import run, ui
 from nicegui.element import Element
-from nicegui.events import GenericEventArguments
 from nicegui.elements.button import Button
 from nicegui.elements.progress import LinearProgress
 from nicegui.elements.select import Select
 from nicegui.elements.switch import Switch
+from nicegui.events import GenericEventArguments
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
-from src.bfs.bfs import path_distance, expand_path, total_transfer, total_transfer_duration
+from src.bfs.bfs import path_distance, expand_path, total_transfer
 from src.bfs.k_shortest_path import k_shortest_path
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import to_pinyin, get_text_color, distance_str, format_duration, average, get_time_str, \
     percentage_str, valid_positive, parse_date_opt, parse_time_opt, to_minutes, speed_str, segment_speed, TimeSpec
-from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path, get_dist_graph, simplify_path
+from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path, get_dist_graph, simplify_path, to_abstract, \
+    total_walking
 from src.dist_graph.exotic_path import PathMetric
 from src.dist_graph.shortest_path import shortest_path, Path
-from src.fare.fare import to_abstract
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
@@ -837,8 +837,8 @@ def calculate_data_rows(
         path, end_station = min_info[1], route[1]
         num_station = len(expand_path(path, end_station))
         transfer = total_transfer(path)
-        have_dist, _, sum_walking, sum_stairs = total_transfer_duration(
-            start_date, path, city.transfers, through_dict
+        have_dist, sum_walking, sum_stairs = total_walking(
+            to_abstract(path), end_station, city.lines, city.transfers, city.virtual_transfers
         )
         distance = path_distance(path, end_station)
         speed_display = speed_str(segment_speed(distance, avg_min))
@@ -878,8 +878,8 @@ def calculate_data_rows(
             other_end = other_route[1]
             diff_station = num_station - len(expand_path(other_path, other_end))
             diff_transfer = transfer - total_transfer(other_path)
-            other_have_dist, _, other_walking, other_stairs = total_transfer_duration(
-                start_date, other_path, city.transfers, through_dict
+            other_have_dist, other_walking, other_stairs = total_walking(
+                to_abstract(other_path), other_end, city.lines, city.transfers, city.virtual_transfers
             )
             if other_have_dist:
                 diff_walking = sum_walking - other_walking

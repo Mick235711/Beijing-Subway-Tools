@@ -355,8 +355,6 @@ def total_transfer_duration(
 ) -> tuple[bool, float, int, int]:
     """ Get the sum of all transfer times """
     assert len(path) > 0, path
-    if len(path) == 1:
-        return True, 0.0, 0, 0
     have_dist = True
     sum_duration = 0.0
     sum_distance = 0

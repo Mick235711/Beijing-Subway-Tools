@@ -23,9 +23,9 @@ from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import diff_time, suffix_s, format_duration, distance_str, to_pinyin, parse_comma_list, to_list, \
     get_time_repr, to_minutes, TimeSpec
-from src.dist_graph.adaptor import get_dist_graph, all_bfs_path
+from src.dist_graph.adaptor import get_dist_graph, all_bfs_path, to_abstract
 from src.dist_graph.shortest_path import Graph
-from src.fare.fare import Fare, to_abstract
+from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import parse_all_trains, Train
 from src.stats.common import parse_args, display_first
