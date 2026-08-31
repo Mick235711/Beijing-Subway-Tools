@@ -15,12 +15,12 @@ from time import monotonic
 from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import PathInfo, get_minute_list, reconstruct_paths
-from src.bfs.bfs import BFSResult, expand_path
+from src.bfs.bfs import BFSResult, bfs, expand_path
 from src.bfs.common import AbstractPath, Path as BFSPath
 from src.city.city import City
 from src.city.line import Line
-from src.city.transfer import Transfer
-from src.common.common import add_min_tuple, get_time_str, diff_time_tuple, from_minutes, get_time_repr
+from src.city.transfer import Transfer, get_station_transfer_time
+from src.common.common import add_min_tuple, from_minutes, get_time_repr
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.train import Train
 
@@ -127,6 +127,32 @@ def simplify_path(path: Path, end_station: str) -> AbstractPath:
     return new_path
 
 
+def resolve_line_segment(
+    lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
+    station: str, next_station: str, line_name: str, direction: str,
+    cur_date: date, cur_tuple: tuple[time, bool], *, exclude_edge: bool = False
+) -> tuple[BFSResult, BFSPath, date, bool]:
+    """ Resolve an abstract line segment while allowing internal train changes """
+    line = lines[line_name]
+    restricted_lines = {line_name: line}
+    restricted_trains = {line_name: {direction: train_dict[line_name][direction]}}
+    attempts = [
+        (cur_date, cur_tuple, False),
+        (cur_date + timedelta(days=1), (time.min, False), True),
+    ]
+    for query_date, query_tuple, forced_next_day in attempts:
+        results = bfs(
+            restricted_lines, restricted_trains, {}, {}, {},
+            query_date, station, query_tuple,
+            exclude_edge=exclude_edge, include_express=True
+        )
+        result = results.get((next_station, line_name, direction))
+        if result is None:
+            continue
+        return result, result.shortest_path(results), query_date, forced_next_day
+    raise AssertionError((station, next_station, line_name, direction, cur_date, cur_tuple))
+
+
 def to_trains(
     lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
@@ -169,39 +195,19 @@ def to_trains(
         # Normal line, find a suitable train
         line_name, direction = line_direction
         line = lines[line_name]
-        next_date = cur_date + timedelta(days=1)
-        cur_candidates: list[Train] = []
-        next_candidates: list[Train] = []
-        for date_group, train_list in train_dict[line_name][direction].items():
-            trains = sorted(
-                [train for train in train_list if train.can_reach(station, next_station)],
-                key=lambda train: get_time_str(*train.departure_time[station])
-            )
-            if line.date_groups[date_group].covers(next_date):
-                if len(trains) == 0:
-                    continue
-                next_candidates.append(trains[0])
-            if line.date_groups[date_group].covers(cur_date):
-                trains = [train for train in trains if diff_time_tuple(train.departure_time[station], cur_tuple) >= 0]
-                if len(trains) == 0:
-                    continue
-                cur_candidates.append(trains[0])
-        assert len(cur_candidates) <= 1, (cur_candidates, station, line, direction, cur_tuple)
-        if len(cur_candidates) > 0:
-            candidate = cur_candidates[0]
-        else:
-            assert len(next_candidates) == 1, (next_candidates, station, line, direction, cur_tuple)
-            candidate = next_candidates[0]
-            cur_date = next_date
-            force_next_day = True
-        final_new_path.append((station, candidate))
+        segment_result, segment_path, cur_date, used_next_day = resolve_line_segment(
+            lines, train_dict, station, next_station, line_name, direction,
+            cur_date, cur_tuple, exclude_edge=exclude_edge
+        )
+        final_new_path.extend(segment_path)
+        force_next_day = force_next_day or used_next_day
 
         # Try to find a transfer time
-        cur_tuple = candidate.arrival_time_after(station, next_station)
+        cur_tuple = (segment_result.arrival_time, segment_result.arrival_day)
         if i == len(new_path) - 1 or new_path[i + 1][1] is None:
             continue
-        transfer = transfer_dict[next_station]
-        transfer_time, is_special = transfer.get_transfer_time(
+        transfer_time, is_special = get_station_transfer_time(
+            transfer_dict, next_station,
             line, direction,
             lines[new_path[i + 1][1][0]], new_path[i + 1][1][1],  # type: ignore
             cur_date, cur_tuple[0], cur_tuple[1]
@@ -253,10 +259,13 @@ def total_walking(
                 continue
 
             # Process normal transfer
-            *_, transfer_time, _ = transfer_dict[next_station].get_smallest_time(
-                lines[line_direction[0]], line_direction[1],
-                lines[next_ld[0]], next_ld[1]
-            )
+            if line_direction[0] == next_ld[0]:
+                transfer_time = (0.0, 0, 0)
+            else:
+                *_, transfer_time, _ = transfer_dict[next_station].get_smallest_time(
+                    lines[line_direction[0]], line_direction[1],
+                    lines[next_ld[0]], next_ld[1]
+                )
 
         have_dist = have_dist and (transfer_time[1] is not None and transfer_time[2] is not None)
         sum_distance += transfer_time[1] or 0
@@ -419,12 +428,6 @@ def all_time_paths(
     if progress_callback is not None:
         progress_callback(len(all_list), len(all_list))
     return {index: reconstruct_paths(inner_dict) for index, inner_dict in results.items()}
-
-
-def to_abstract(path: BFSPath) -> AbstractPath:
-    """ Convert a path to an abstract path """
-    return [(station, (train.line.name, train.direction) if isinstance(train, Train) else None)
-            for station, train in path]
 
 
 def reduce_path(bfs_path: BFSPath, end_station: str) -> Path:

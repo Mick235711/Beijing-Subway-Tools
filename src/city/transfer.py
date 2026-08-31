@@ -25,6 +25,21 @@ def format_transfer_data(data: TransferData) -> str:
     )
 
 
+def get_station_transfer_time(
+    transfer_dict: dict[str, "Transfer"], station: str,
+    from_line: Line | str, from_direction: str, to_line: Line | str, to_direction: str,
+    cur_date: date | DateGroup, cur_time: time, cur_day: bool = False
+) -> tuple[TransferData, bool]:
+    """ Retrieve transfer time, treating same-line changes as immediate reboarding """
+    from_name = from_line.name if isinstance(from_line, Line) else from_line
+    to_name = to_line.name if isinstance(to_line, Line) else to_line
+    if from_name == to_name:
+        return (0.0, 0, 0), False
+    return transfer_dict[station].get_transfer_time(
+        from_line, from_direction, to_line, to_direction, cur_date, cur_time, cur_day
+    )
+
+
 class Transfer:
     """ Represents the transfer metadata """
 
@@ -70,8 +85,6 @@ class Transfer:
         key = (from_line.name if isinstance(from_line, Line) else from_line, from_direction,
                to_line.name if isinstance(to_line, Line) else to_line, to_direction)
         if key[0] == key[2]:
-            # FIXME: full solution to same-line transfer
-            # assert key[1] != key[3], key
             return (0.0, 0, 0), False
         if key in self.special_time:
             special_time, interval = self.special_time[key]

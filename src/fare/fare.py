@@ -12,7 +12,7 @@ from datetime import date, time
 
 import pyjson5
 
-from src.bfs.common import AbstractPath, Path
+from src.bfs.common import AbstractPath, Path, to_abstract
 from src.city.date_group import TimeInterval, DateGroup, parse_time_interval
 from src.city.line import Line
 from src.common.common import suffix_s, distance_str, get_time_str
@@ -196,10 +196,9 @@ class Fare:
                 assert isinstance(last_train, Train), (path, last_index, i)
                 splits.append((path[last_index][0], last_train.line.name, last_train.direction, station,
                                None if train is None else train.line.name, get_fare_single(
-                    cur_candidates, lines, [
-                        (inner_station, (inner_train.line.name, inner_train.direction) if isinstance(inner_train, Train) else None)
-                        for inner_station, inner_train in path[last_index:fetch_index + 1]
-                    ], end_station, cur_date, last_time, last_day, end_time, end_day
+                    cur_candidates, lines, to_abstract(
+                        path[last_index:fetch_index + 1]
+                    ), end_station, cur_date, last_time, last_day, end_time, end_day
                 )))
                 last_index = orig_delta + i
                 if train is not None:

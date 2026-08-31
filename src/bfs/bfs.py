@@ -6,6 +6,7 @@
 # Libraries
 from __future__ import annotations
 
+from bisect import bisect_left
 from datetime import date, time, timedelta
 from math import floor, ceil
 from typing import Any
@@ -14,12 +15,17 @@ from src.bfs.common import VTSpec, Path
 from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
-from src.city.transfer import Transfer, format_transfer_data
+from src.city.transfer import Transfer, format_transfer_data, get_station_transfer_time
 from src.common.common import diff_time, format_duration, get_time_str, add_min, suffix_s, distance_str, \
     get_time_repr, from_minutes
 from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, find_through_train
 from src.routing.train import Train
+
+NextTrainIndex = dict[
+    tuple[str, str, str],
+    dict[tuple[str, str, frozenset[TrainRoute]], tuple[list[str], list[Train]]]
+]
 
 
 class BFSResult:
@@ -122,7 +128,8 @@ class BFSResult:
                 f"total distance: {distance_str(self.total_distance(path))}, " +
                 suffix_s("station", len(expand_path(path, self.station))) + ", " +
                 suffix_s("transfer", total_transfer(path, through_dict=through_dict)) +
-                ("" if not have_dist else f" (total {sum_dist}m + {sum_stairs} stairs)") +
+                ("" if not have_dist or (sum_dist == 0 and sum_stairs == 0)
+                 else f" (total {sum_dist}m + {sum_stairs} stairs)") +
                 ("" if fare_str is None or fare_str == "" else ", fare = " + fare_str) + ".")
 
     def pretty_print(
@@ -201,7 +208,8 @@ class BFSResult:
                     transfer_time, special = last_virtual[3], False
                 else:
                     last_time, last_day = last_train.arrival_time_after(last_station, station)
-                    transfer_time, special = transfer_dict[station].get_transfer_time(
+                    transfer_time, special = get_station_transfer_time(
+                        transfer_dict, station,
                         last_train.line, last_train.direction,
                         train.line, train.direction,
                         cur_date, last_time, last_day
@@ -225,10 +233,16 @@ class BFSResult:
                     else:
                         if (station, train.line.name, train.direction) in splits:
                             split_indexes.append(len(line_list))
-                        line_list.append(f"Transfer at {full_name}: " +
-                                         f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
-                                         format_transfer_data(transfer_time) +
-                                         (" (special time)" if special else ""))
+                        if last_train.line == train.line:
+                            line_list.append(
+                                f"Change trains at {full_name}: {last_train.line.full_name()} {train.direction}" +
+                                f", {last_train.routes_str()} -> {train.routes_str()}"
+                            )
+                        else:
+                            line_list.append(f"Transfer at {full_name}: " +
+                                             f"{last_train.line.full_name()} -> {train.line.full_name()}, " +
+                                             format_transfer_data(transfer_time) +
+                                             (" (special time)" if special else ""))
                 if total_waiting > transfer_time[0]:
                     line_list.append("Waiting time: " + suffix_s("minute", total_waiting - transfer_time[0]))
 
@@ -265,7 +279,7 @@ class BFSResult:
 
 
 def combine_trains(path1: Path, path2: Path, end_station: str) -> Path:
-    """ Collapse path such that adjacent same-line trains are merged """
+    """ Collapse duplicate train segments without erasing a real same-line train change """
     assert len(path1) == len(path2) == 1, (path1, path2, end_station)
     prev_station, prev_train = path1[0]
     next_station, next_train = path2[0]
@@ -275,14 +289,11 @@ def combine_trains(path1: Path, path2: Path, end_station: str) -> Path:
         return path1 + path2
     assert prev_train.direction == next_train.direction, (path1, path2, end_station)
 
-    if end_station in prev_train.arrival_time_virtual(prev_station):
+    if prev_train is next_train and end_station in prev_train.arrival_time_virtual(prev_station):
         return path1
-    elif prev_station in next_train.arrival_time and end_station in next_train.arrival_time_virtual(prev_station):
-        return [(prev_station, next_train)]
-    else:
-        # FIXME: We have a problem; both train cannot reach each other.
-        # We make a special case for same-line transfer for now.
-        return path1 + path2
+    if prev_train.loop_next is next_train and end_station in prev_train.arrival_time_virtual(prev_station):
+        return path1
+    return path1 + path2
 
 
 def get_all_trains_single(
@@ -307,10 +318,39 @@ def find_next_train(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     cur_date: date, cur_time: time, cur_day: bool,
     station: str, line: Line, direction: str,
+    index: NextTrainIndex | None = None,
 ) -> list[Train]:
     """ Find all possible next trains """
+    if index is not None:
+        cache_key = (station, line.name, direction)
+        if cache_key not in index:
+            route_trains: dict[tuple[str, str, frozenset[TrainRoute]], list[Train]] = {}
+            for date_group, date_dict in train_dict[line.name][direction].items():
+                if not line.date_groups[date_group].covers(cur_date):
+                    continue
+                for train in date_dict:
+                    if station not in train.arrival_time or station in train.skip_stations:
+                        continue
+                    route_key = (train.line.name, train.direction, frozenset(train.routes))
+                    route_trains.setdefault(route_key, []).append(train)
+            index[cache_key] = {}
+            for route_key, trains in route_trains.items():
+                sorted_trains = sorted(trains, key=lambda train: get_time_str(*train.departure_time[station]))
+                index[cache_key][route_key] = (
+                    [get_time_str(*train.departure_time[station]) for train in sorted_trains],
+                    sorted_trains
+                )
+
+        current = get_time_str(cur_time, cur_day)
+        indexed_result: list[Train] = []
+        for departure_times, trains in index[cache_key].values():
+            train_index = bisect_left(departure_times, current)
+            if train_index < len(trains):
+                indexed_result.append(trains[train_index])
+        return sorted(indexed_result, key=lambda train: get_time_str(*train.departure_time[station]))
+
     # Find one for each line/direction/routes pair
-    result: dict[tuple[str, str, frozenset[TrainRoute]], Train] = {}
+    next_by_route: dict[tuple[str, str, frozenset[TrainRoute]], Train] = {}
     all_passing: list[Train] = []
     for date_group, date_dict in train_dict[line.name][direction].items():
         if not line.date_groups[date_group].covers(cur_date):
@@ -323,9 +363,24 @@ def find_next_train(
                 all_passing.append(train)
     for train in sorted(all_passing, key=lambda st: get_time_str(*st.departure_time[station])):
         key = (train.line.name, train.direction, frozenset(train.routes))
-        if key not in result:
-            result[key] = train
-    return list(result.values())
+        if key not in next_by_route:
+            next_by_route[key] = train
+    return list(next_by_route.values())
+
+
+def useful_same_line_transfer(prev_train: Train, next_train: Train, station: str) -> bool:
+    """ Determine whether changing trains can improve or extend the downstream journey """
+    for next_station, next_arrival in list(next_train.arrival_time_virtual(station).items())[1:]:
+        if next_station in next_train.skip_stations:
+            continue
+        if next_train.loop_next is not None and next_station not in next_train.arrival_time and \
+                next_station in next_train.loop_next.skip_stations:
+            continue
+        if not prev_train.can_reach(station, next_station):
+            return True
+        if get_time_str(*next_arrival) < get_time_str(*prev_train.arrival_time_after(station, next_station)):
+            return True
+    return False
 
 
 def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None) -> int:
@@ -382,7 +437,8 @@ def total_transfer_duration(
 
         # Process normal transfer
         next_time, next_day = train.arrival_time_after(station, next_station)
-        transfer_time, _ = transfer_dict[next_station].get_transfer_time(
+        transfer_time, _ = get_station_transfer_time(
+            transfer_dict, next_station,
             train.line, train.direction,
             next_train.line, next_train.direction,
             start_date, next_time, next_day
@@ -429,6 +485,10 @@ def superior_path(
 ) -> bool:
     """ Determine if path1 is better than path2 """
     # Sort criteria: time -> transfer # -> stops
+    duration1 = result1.total_duration()
+    duration2 = result2.total_duration()
+    if duration1 != duration2:
+        return duration1 < duration2
     if path1 is None:
         assert results is not None
         path1 = result1.shortest_path(results)
@@ -532,6 +592,8 @@ def bfs(
                     )
                 )
     in_queue = set(queue)
+    next_train_index: NextTrainIndex = {}
+    multiple_route_patterns: dict[tuple[str, str], bool] = {}
     while len(queue) > 0:
         key, queue = queue[0], queue[1:]
         station, line_name, direction = key
@@ -560,10 +622,34 @@ def bfs(
         if exclude_edges is not None and station in exclude_edges:
             exclude_tuple |= exclude_edges[station]
 
-        if prev_train is not None and isinstance(prev_train, Train) and prev_train.line.name == line_name:
+        same_line_arrival = isinstance(prev_train, Train) and prev_train.line.name == line_name
+        if same_line_arrival and (line_name, direction) not in multiple_route_patterns:
+            route_patterns: set[frozenset[TrainRoute]] = set()
+            for date_group, trains in train_dict[line_name][direction].items():
+                if not line.date_groups[date_group].covers(start_date):
+                    continue
+                for train in trains:
+                    route_patterns.add(frozenset(train.routes))
+                    if len(route_patterns) > 1:
+                        break
+                if len(route_patterns) > 1:
+                    break
+            multiple_route_patterns[(line_name, direction)] = len(route_patterns) > 1
+
+        if same_line_arrival and not multiple_route_patterns[(line_name, direction)]:
             next_trains = []
         else:
-            next_trains = find_next_train(train_dict, start_date, cur_time, cur_day, station, line, direction)
+            next_trains = find_next_train(
+                train_dict, start_date, cur_time, cur_day, station, line, direction, next_train_index
+            )
+        if same_line_arrival:
+            assert isinstance(prev_train, Train)
+            # Continuing on prev_train was already relaxed to every downstream stop. Re-scan the
+            # other route patterns so a passenger may change to another train on this line.
+            next_trains = [
+                train for train in next_trains
+                if train is not prev_train and useful_same_line_transfer(prev_train, train, station)
+            ]
         for next_train in next_trains:
             next_train_virtual = next_train.arrival_time_virtual(station)
             if len(next_train.line.must_include) != 0 and station not in next_train.line.must_include and not (
@@ -615,7 +701,8 @@ def bfs(
         update_list: list[tuple[str, Line, str]] = []
         for new_line, new_direction in station_dict[station]:
             if new_line.name == line_name:
-                # For now, don't consider same-line transfers
+                # Same-line changes are handled by reboarding above. A transfer state here would
+                # collide with the existing (station, line, direction) arrival state.
                 continue
             if (new_line, new_direction) in exclude_tuple:
                 continue

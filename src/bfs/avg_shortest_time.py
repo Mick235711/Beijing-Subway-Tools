@@ -14,12 +14,12 @@ from typing import Literal
 from tqdm import tqdm
 
 from src.bfs.bfs import bfs_wrap, get_all_trains_single, BFSResult, total_transfer, expand_path, get_result
-from src.bfs.common import AbstractPath, Path
+from src.bfs.common import AbstractPath, Path, to_abstract
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_station_list
 from src.city.city import City
 from src.city.line import Line, station_full_name
 from src.city.through_spec import ThroughSpec
-from src.city.transfer import Transfer
+from src.city.transfer import Transfer, get_station_transfer_time
 from src.common.common import to_minutes, from_minutes, get_time_repr, parse_time_opt, percentage_coverage, \
     percentage_str, suffix_s, average, distance_str, parse_comma, stddev, to_pinyin, TimeSpec, diff_time_tuple
 from src.fare.fare import Fare
@@ -150,10 +150,9 @@ def calculate_shortest(
                       list[tuple[float, AbstractPath, list[PathInfo]]]]] = {}
     for station, times_paths in results.items():
         times = [x[0] for x in times_paths]
-        coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([([
-            (station, (train.line.name, train.direction) if isinstance(train, Train) else None)
-            for station, train in path[1]
-        ], path) for path in times_paths])
+        coverage: list[tuple[float, AbstractPath, list[PathInfo]]] = percentage_coverage([
+            (to_abstract(path[1]), path) for path in times_paths
+        ])
         result_dict[station] = (
             average(times), stddev(times),
             average(total_transfer(path, through_dict=through_dict) for _, path, _ in times_paths),
@@ -334,7 +333,8 @@ def get_waiting_time(
         if exclude_transfer and i < len(path_info[1]) - 1:
             next_train = path_info[1][i + 1][1]
             if not isinstance(next_train, tuple):
-                total_waiting -= transfer_dict[next_station].get_transfer_time(
+                total_waiting -= get_station_transfer_time(
+                    transfer_dict, next_station,
                     train.line, train.direction, next_train.line, next_train.direction,
                     path_info[2].start_date, cur_time[0], cur_time[1]
                 )[0][0]

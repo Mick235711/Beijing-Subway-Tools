@@ -11,14 +11,14 @@ import questionary
 
 from src.bfs.avg_shortest_time import data_criteria, find_avg_paths
 from src.bfs.bfs import Path
-from src.bfs.common import AbstractPath
+from src.bfs.common import AbstractPath, to_abstract
 from src.bfs.k_shortest_path import k_shortest_path, merge_path
 from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path, ask_for_shortest_time
 from src.city.ask_for_city import ask_for_station_pair, ask_for_date, ask_for_station
 from src.city.city import City
 from src.city.line import Line
 from src.common.common import suffix_s, chin_len, ask_for_int, percentage_str, get_time_repr
-from src.dist_graph.adaptor import get_dist_graph, simplify_path, to_abstract
+from src.dist_graph.adaptor import get_dist_graph, simplify_path
 from src.dist_graph.longest_path import find_longest
 from src.dist_graph.shortest_path import shortest_path
 from src.routing.through_train import parse_through_train
@@ -75,8 +75,12 @@ def parse_lines_from_shorthand(splits: list[str], city: City) -> list[tuple[Line
                 raise ValueError(f"Line {cur_line.full_name()} does not have direction {cur_direction}!")
             if last_station is not None and last_station not in cur_line.stations:
                 raise ValueError(f"Station {last_station} not on line {cur_line.full_name()}!")
-            if len(processed) > 0 and isinstance(processed[-1], tuple) and processed[-1][0].index == cur_line.index:
-                raise ValueError(f"Two duplicate lines {cur_line.full_name()} in a row is not allowed!")
+            for previous in reversed(processed):
+                if isinstance(previous, str):
+                    continue
+                if isinstance(previous, tuple) and previous[0].index == cur_line.index:
+                    raise ValueError(f"Adjacent duplicate lines {cur_line.full_name()} is not allowed!")
+                break
             last_station = None
             processed.append((cur_line, cur_direction))
             continue
