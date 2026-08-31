@@ -11,7 +11,7 @@ from typing import Any, Literal
 
 from src.bfs.k_shortest_path import k_shortest_path
 from src.dist_graph.adaptor import get_dist_graph, to_trains
-from src.dist_graph.shortest_path import shortest_path
+from src.dist_graph.shortest_path import k_shortest_static_path
 from src.mcp.context import get_city, get_train_dict, get_through_dict
 from src.mcp.utils import fuzzy_match
 
@@ -94,22 +94,13 @@ def get_transfer_metrics(
 def plan_journey(
     start_station: str, end_station: str, date: str,
     departure_time: str | None = None,
-    strategy: Literal["min_time", "min_transfer"] = "min_time",
+    strategy: Literal["min_time", "min_distance", "min_station"] = "min_time",
     num_paths: int = 5
 ) -> str:
-    """
-    Calculate the best route between two stations. Returns text-based description of routing.
-    
-    :param start_station: Starting station
-    :param end_station: Ending station
-    :param date: Departure date. Format: "YYYY-MM-DD"
-    :param departure_time: Departure time. Format: "HH:MM"
-    :param strategy: Routing strategy. Supports only "min_time" / "min_transfer"
-    :param num_paths: Number of shortest path to return. Only applicable if strategy is "min_time"
-    """
+    """ Calculate the best routes between two stations """
     # Validate strategy early to avoid falling through silently
-    if strategy not in {"min_time", "min_transfer"}:
-        return "Error: Unsupported strategy. Use min_time or min_transfer."
+    if strategy not in {"min_time", "min_distance", "min_station"}:
+        return "Error: Unsupported strategy. Use min_time, min_distance, or min_station."
     if num_paths < 1:
         return "Error: num_paths must be >= 1."
 
@@ -146,29 +137,26 @@ def plan_journey(
 
     output = io.StringIO()
     with redirect_stdout(output):
-        if strategy == 'min_transfer':
-            graph = get_dist_graph(city, ignore_dists=True)
-            path_dict = shortest_path(graph, start_station, ignore_dists=True)
-
-            if end_station not in path_dict:
-                return "Unreachable"
-
-            _, station_path = path_dict[end_station]
-
-            # Convert to trains via existing utility
-            bfs_result, path = to_trains(
-                city.lines, train_dict, city.transfers, city.virtual_transfers,
-                station_path, end_station, query_date, query_time
-            )
-            results = [(bfs_result, path)]
-
-        else:  # min_time
+        if strategy == "min_time":
             results = k_shortest_path(
                 city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers,
                 start_station, end_station,
                 query_date, (query_time, False),
                 k=num_paths
             )
+        else:
+            graph = get_dist_graph(city)
+            static_results = k_shortest_static_path(
+                graph, start_station, end_station, k=num_paths,
+                ignore_dists=(strategy == "min_station")
+            )
+            results = [
+                to_trains(
+                    city.lines, train_dict, city.transfers, city.virtual_transfers,
+                    station_path, end_station, query_date, query_time
+                )
+                for _, station_path in static_results
+            ]
 
         if not results:
             return "Unreachable"

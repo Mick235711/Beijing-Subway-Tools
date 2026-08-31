@@ -794,8 +794,14 @@ options:
   --include-express     Include non-essential use of express lines
   --exclude-single      Exclude single-direction lines
 ```
-Use BFS and Yen's algorithm to find the shortest K routes (in terms of time spent) between two stations.
-The argument `-k` specifies the number of routes to be found (only available in `--data-source time` mode).
+Find the shortest K routes between two stations. Time mode uses timetable BFS and a Yen-style search.
+Distance and station-count modes use Yen's loopless-path algorithm over the static multigraph, with Dijkstra as
+the shortest-path search: physical edge lengths are used for `distance`, while every traversed edge has cost 1
+for `station`. Parallel edges on different lines remain distinct alternatives.
+
+The argument `-k` specifies the number of routes to find in `time`, `distance`, and `station` modes.
+Fare mode continues to return a single route. If the departure-time prompt is left empty in a static mode,
+minimum/maximum timetable realizations are reported separately for each of the K ranked static routes.
 
 **NOTE: Larger `-k` value will result in longer computation time.**
 
@@ -2732,7 +2738,7 @@ options:
 Draw the first k-th shortest paths on the map.
 On default, the route with deeper shades of grey is faster.
 There are three mode selectable by `--strategy`:
-- `kth` that calculate shortest path on a specific time,
+- `kth` that calculates the K shortest paths using the selected `time`, `distance`, or `station` criterion,
 - `avg` that accumulates the shortest path over one day, and
 - `longest` which just wraps [`longest_path.py`](#longest_pathpy-find-the-longest-path-in-a-network).
   - In this mode, you can use `--longest-args='-n ...'` to pass args to the underlying file.

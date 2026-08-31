@@ -70,7 +70,7 @@ def get_best_matching(dist_dict: dict[tuple[str, str], int], verbose: bool = Tru
 
 def dfs(graph: Graph, source: str) -> Generator[tuple[str, str, Line | None]]:
     """ DFS for finding euler route """
-    vertex_stack: list[tuple[str, Line | None]] = [(source, None)]
+    vertex_stack: Path = [(source, None)]
     last_vertex: str | None = None
     last_line: Line | None = None
     cons_line: Line | None = None

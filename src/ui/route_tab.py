@@ -6,11 +6,12 @@
 # Libraries
 import asyncio
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, date, time
 from functools import partial
 from multiprocessing import get_context
 from multiprocessing.connection import Connection
-from typing import Literal, TypeVar, ParamSpec, Concatenate, Awaitable
+from typing import Literal, TypeVar, ParamSpec, Concatenate, Awaitable, cast
 
 from nicegui import run, ui
 from nicegui.element import Element
@@ -28,10 +29,11 @@ from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.common.common import to_pinyin, get_text_color, distance_str, format_duration, average, get_time_str, \
-    percentage_str, valid_positive, parse_date_opt, parse_time_opt, to_minutes, speed_str, segment_speed, TimeSpec
+    percentage_str, valid_positive, parse_date_opt, parse_time_opt, to_minutes, speed_str, segment_speed, TimeSpec, \
+    suffix_s
 from src.dist_graph.adaptor import all_time_paths, reduce_abstract_path, get_dist_graph, simplify_path, total_walking
 from src.dist_graph.exotic_path import PathMetric
-from src.dist_graph.shortest_path import shortest_path, Path
+from src.dist_graph.shortest_path import k_shortest_static_path, Path
 from src.routing.through_train import parse_through_train, ThroughTrain
 from src.routing.train import parse_all_trains
 from src.routing_pk.add_routes import validate_shorthand, parse_shorthand
@@ -42,6 +44,21 @@ from src.ui.common import get_station_html, get_station_selector_options, get_li
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
     refresh_train_drawer
 from src.ui.route_map import add_route_map, add_route_map_viewer
+
+
+PATH_METRIC_OPTIONS: dict[PathMetric, str] = {
+    "time": "Fastest", "distance": "Shortest", "station": "Fewest station"
+}
+
+
+@dataclass(frozen=True)
+class StaticPathInfo:
+    """ One ranked result from a distance or station-count search """
+
+    cost: int
+    path: Path
+    end_station: str
+    metric: PathMetric
 
 
 def is_necessary(city: City, route: Route, index: int) -> bool:
@@ -541,7 +558,7 @@ async def get_kth_routes(
     progress_callback: Callable[[int, int], None], city: City, start_station: str, end_station: str,
     start_date: date, start_time: TimeSpec | None, k: int,
     *, metric: PathMetric, exclude_virtual: bool = False, include_express: bool = False
-) -> list[PathInfo] | tuple[int, Path, str] | None:
+) -> list[PathInfo] | list[StaticPathInfo] | None:
     """ Analyze selected routes """
     lines = city.lines
     if metric == "time":
@@ -549,34 +566,35 @@ async def get_kth_routes(
         train_dict = parse_all_trains(list(lines.values()))
         _, through_dict = parse_through_train(train_dict, city.through_specs)
         progress_callback(0, k)
-        results = await run.io_bound(
+        time_results = await run.io_bound(
             k_shortest_path,
             city.lines, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
             start_station, end_station, start_date, start_time,
             k=k, include_express=include_express, progress_callback=progress_callback
         )
-        if results is None or len(results) == 0:
+        if time_results is None or len(time_results) == 0:
             return None
-        return [(result.total_duration(), path, result) for result, path in results]
+        return [(result.total_duration(), path, result) for result, path in time_results]
 
+    assert metric in ("distance", "station"), metric
     graph = get_dist_graph(city, include_virtual=(not exclude_virtual))
-    progress_callback(0, 1)
-    path_dict = shortest_path(
-        graph, start_station, ignore_dists=(metric == "station"), fare_mode=(metric == "fare"),
-        include_express=include_express, target_station=end_station
+    progress_callback(0, k)
+    static_results = await run.io_bound(
+        k_shortest_static_path,
+        graph, start_station, end_station, k,
+        ignore_dists=(metric == "station"), include_express=include_express,
+        progress_callback=progress_callback
     )
-    progress_callback(1, 1)
-    if end_station not in path_dict:
+    if static_results is None or len(static_results) == 0:
         return None
-    return path_dict[end_station][0], path_dict[end_station][1], end_station
+    return [StaticPathInfo(cost, path, end_station, metric) for cost, path in static_results]
 
 
 def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], None]) -> None:
     """ Top (kth) panel to add new routes """
     def on_input_change() -> None:
         """ Handle input changes """
-        kth_select.set_visibility(metric_select.value == "time")
         calc_button.set_enabled(
             metric_select.value is not None and valid_positive(kth_select.value) is None and
             start_station.value is not None and end_station.value is not None and
@@ -587,7 +605,6 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
         at_label.set_visibility(metric_select.value == "time")
         time_input.set_visibility(metric_select.value == "time")
         if metric_select.value != "time":
-            kth_select.set_value("5")
             date_input.set_value(date.today().isoformat())
             time_input.set_value(get_time_str(datetime.now().time()))
 
@@ -613,16 +630,14 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
             include_express=express_switch.value
         )
         calc_button.set_enabled(True)
-        await kth_table.refresh(start_date=start_date, results=results)
+        await kth_table.refresh(metric=metric_select.value, start_date=start_date, results=results)
 
     with ui.column().classes("w-full"):
         with ui.row().classes("w-full items-center gap-x-2"):
             virtual_switch = ui.switch("Allow virtual transfers", value=False, on_change=on_input_change)
             express_switch = ui.switch("Include express lines", value=False, on_change=on_input_change)
         with ui.row().classes("items-center route-tab-top-selection w-full flex-nowrap"):
-            metric_select = ui.select({
-                "time": "Fastest", "distance": "Shortest", "station": "Fewest station"
-            }, label="Metric", value="time").on_value_change(on_input_change)
+            metric_select = ui.select(PATH_METRIC_OPTIONS, label="Metric", value="time").on_value_change(on_input_change)
             kth_select = ui.input(
                 value="5", label="Kth", validation=valid_positive
             ).props("hide-bottom-space type=number").classes("w-20").on_value_change(on_input_change)
@@ -648,29 +663,52 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
 @ui.refreshable
 def kth_table(
     city: City, on_route_change: Callable[[Route | list[Route]], None],
-    *, start_date: date | None = None, results: list[PathInfo] | tuple[int, Path, str] | None = None
+    *, metric: PathMetric | None = None, start_date: date | None = None,
+    results: list[PathInfo] | list[StaticPathInfo] | None = None
 ) -> None:
     """ Display the top kth route calculated """
-    if start_date is None or results is None:
+    if metric is None or start_date is None or results is None or len(results) == 0:
         return
-    if isinstance(results, tuple):
+    if isinstance(results[0], StaticPathInfo):
+        static_results = cast(list[StaticPathInfo], results)
+        routes = [(simplify_path(info.path, info.end_station), info.end_station) for info in static_results]
         with ui.row().classes("items-center gap-x-1"):
-            ui.label("Computed route:")
-            route = (simplify_path(results[1], results[2]), results[2])
-            display_route(city.lines, route)
-            ui.button("Add to current routes").classes("ml-1").on_click(lambda: on_route_change(route))
+            ui.label("Computed routes:")
+            ui.button("Add All").on_click(lambda: on_route_change(routes))
+        with ui.list().props("separator"):
+            for index, (static_info, route) in enumerate(zip(static_results, routes)):
+                if static_info.metric == "distance":
+                    cost = distance_str(static_info.cost)
+                else:
+                    cost = suffix_s("station", static_info.cost)
+                with ui.item():
+                    with ui.item_section():
+                        with ui.element("div").classes("flex items-center flex-wrap gap-1"):
+                            ui.item_label(f"{PATH_METRIC_OPTIONS[metric]} #{index + 1}:")
+                            get_station_badge(route[0][0][0], show_badges=False, show_line_badges=False)
+                            ui.icon("arrow_right_alt")
+                            get_station_badge(static_info.end_station, show_badges=False, show_line_badges=False)
+                            ui.item_label(f"({cost})")
+                        with ui.item_label().props("caption").add_slot("default"):
+                            with ui.row().classes("items-center gap-x-1"):
+                                display_route(city.lines, route)
+                    with ui.item_section().props("side"):
+                        ui.button("Add").on("click.stop", lambda r=route: on_route_change(r))
         return
 
+    time_results = cast(list[PathInfo], results)
     with ui.row().classes("items-center gap-x-1"):
         ui.label("Computed routes:")
-        ui.button("Add All").on_click(lambda: on_route_change([(to_abstract(p), r.station) for _, p, r in results]))
+        ui.button("Add All").on_click(
+            lambda: on_route_change([(to_abstract(p), r.station) for _, p, r in time_results])
+        )
     with ui.list().props("separator"):
-        for index, info in enumerate(results):
-            name = f"Shortest #{index + 1}"
-            _, path, bfs_result = info
+        for index, time_info in enumerate(time_results):
+            name = f"{PATH_METRIC_OPTIONS[metric]} #{index + 1}"
+            _, path, bfs_result = time_info
             route = (to_abstract(path), bfs_result.station)
             with ui.item(
-                on_click=(lambda n=name, pi=info: refresh_train_drawer(
+                on_click=(lambda n=name, pi=time_info: refresh_train_drawer(
                     pi, start_date, n, None, city.station_lines
                 ))
             ):
@@ -681,7 +719,7 @@ def kth_table(
                         ui.item_label(bfs_result.initial_time_repr())
                         ui.icon("arrow_right_alt")
                         get_station_badge(bfs_result.station, show_badges=False, show_line_badges=False)
-                        ui.item_label(bfs_result.arrival_time_repr())
+                        ui.item_label(bfs_result.arrival_time_repr() + f" ({format_duration(time_info[0])})")
                     with ui.item_label().props("caption").add_slot("default"):
                         with ui.row().classes("items-center gap-x-1"):
                             display_route(city.lines, route)
@@ -794,10 +832,9 @@ async def analyze_routes(
 
 def calculate_data_rows(
     city: City, best_dict: dict[str, set[int]], data_list: list[RouteData],
-    *, start_date: date, cur_time: time, percentage_field: Literal["best", "one", "tie", "other"] = "best",
+    *, cur_time: time, percentage_field: Literal["best", "one", "tie", "other"] = "best",
     insert_transfer: Literal["none", "necessary", "all"] = "necessary",
-    baseline: int | None = None,
-    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+    baseline: int | None = None
 ) -> list[dict]:
     """ Calculate rows for the data table """
     data_dict = {value[0]: value for value in data_list}
@@ -1149,10 +1186,9 @@ def display_data(
         )
         data_dict = {value[0]: value for value in data_list}
         data_table.rows = calculate_data_rows(
-            city, best_dict, data_list, start_date=start_date, cur_time=cur_time[0],
+            city, best_dict, data_list, cur_time=cur_time[0],
             percentage_field=percentage_select.value, insert_transfer=transfer_select.value.lower(),
-            baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value)),
-            through_dict=through_dict
+            baseline=(None if baseline_select.value == "None" else parse_index(baseline_select.value))
         )
         data_table.selected = data_table.rows[:]
         on_chart_data_change()
@@ -1166,10 +1202,7 @@ def display_data(
             path_list=reassign_index(sorted(path_list, key=lambda x: indexes.index(x[0])))
         )
 
-    data_rows = calculate_data_rows(
-        city, best_dict, data_list,
-        start_date=start_date, cur_time=datetime.now().time(), through_dict=through_dict
-    )
+    data_rows = calculate_data_rows(city, best_dict, data_list, cur_time=datetime.now().time())
     data_table_columns: list[dict[str, str | bool]] = [
         {"name": "index", "label": "Index", "field": "index"},
         {"name": "percentage", "label": "Best", "field": "percentage_display", "align": "center",
@@ -1308,8 +1341,7 @@ def display_data(
 
     expanded_map_viewers: dict[int, Element] = {}
     attachment_key = "route-map-result-expanded"
-    with ui.element("div").classes("hidden") as map_viewer_host:
-        pass
+    map_viewer_host = ui.element("div").classes("hidden")
 
     def clear_expanded_route_map() -> None:
         """ Remove the current fixed-route viewer """

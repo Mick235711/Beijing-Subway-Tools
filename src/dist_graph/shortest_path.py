@@ -4,7 +4,9 @@
 """ Find the shortest paths on dist graph """
 
 # Libraries
+from collections.abc import Callable
 from heapq import heapify, heappush, heappop
+from itertools import count
 
 from tqdm import tqdm
 
@@ -13,6 +15,7 @@ from src.city.line import Line
 
 Graph = dict[str, dict[tuple[str, Line | None], int]]  # (to, line), None = virtual transfer (length = 0)
 Path = list[tuple[str, Line | None]]
+Edge = tuple[str, str, Line | None]
 
 
 def get_path(parents: dict[str, tuple[str, Line | None] | None], station: str) -> Path:
@@ -48,6 +51,178 @@ def path_index(path: Path) -> tuple[int, int]:
         if cur is None or (prev is not None and prev.name != cur.name):
             total_transfer += 1
     return total_transfer, len(path)
+
+
+def path_edges(path: Path, end_station: str) -> list[Edge]:
+    """ Expand the compact path representation into line-aware directed edges """
+    return [
+        (station, end_station if i == len(path) - 1 else path[i + 1][0], line)
+        for i, (station, line) in enumerate(path)
+    ]
+
+
+def edges_path(edges: list[Edge]) -> Path:
+    """ Convert line-aware directed edges back to the compact path representation """
+    return [(from_station, line) for from_station, _, line in edges]
+
+
+def _edge_sort_key(edge: Edge) -> tuple[str, str, str, int]:
+    """ Return a deterministic key without requiring Line objects to be orderable """
+    from_station, to_station, line = edge
+    return from_station, to_station, "" if line is None else line.name, -1 if line is None else line.index
+
+
+def _path_sort_key(cost: int, path: Path, end_station: str) -> tuple:
+    """ Rank paths by metric, existing tie-breaks, then a stable edge key """
+    return cost, *path_index(path), tuple(_edge_sort_key(edge) for edge in path_edges(path, end_station))
+
+
+def _transfer_increment(previous_line: Line | None, line: Line | None, *, have_previous: bool) -> int:
+    """ Mirror path_index's transfer counting for one appended edge """
+    if not have_previous:
+        return 0
+    if line is None or (previous_line is not None and previous_line.name != line.name):
+        return 1
+    return 0
+
+
+def targeted_shortest_path(
+    graph: Graph, from_station: str, target_station: str, *,
+    ignore_dists: bool = False, include_express: bool = True,
+    journey_start: str | None = None, journey_end: str | None = None,
+    exclude_stations: set[str] | None = None, exclude_edges: set[Edge] | None = None,
+    initial_line: Line | None = None, have_initial_edge: bool = False
+) -> tuple[int, Path] | None:
+    """ Find one targeted shortest path with exclusions used by Yen's algorithm """
+    if from_station not in graph or target_station not in graph:
+        return None
+    excluded_stations = exclude_stations or set()
+    excluded_edges = exclude_edges or set()
+    if from_station in excluded_stations or target_station in excluded_stations:
+        return None
+    journey_start = from_station if journey_start is None else journey_start
+    journey_end = target_station if journey_end is None else journey_end
+
+    # metric, transfers, edges, canonical edge sequence, sequence, station,
+    # incoming line, compact path
+    sequence = count()
+    initial_key = (0, 0, 0, ())
+    heap: list[tuple] = [(
+        *initial_key, next(sequence), from_station, initial_line, []
+    )]
+    best: dict[tuple[str, Line | None], tuple[int, int, int, tuple]] = {
+        (from_station, initial_line): initial_key
+    }
+
+    while heap:
+        dist, transfers, edge_count, canonical, _, station, previous_line, path = heappop(heap)
+        state = (station, previous_line)
+        if best.get(state) != (dist, transfers, edge_count, canonical):
+            continue
+        if station == target_station:
+            return dist, path
+
+        for (to_station, line), edge_dist in graph.get(station, {}).items():
+            edge = (station, to_station, line)
+            if to_station in excluded_stations or edge in excluded_edges:
+                continue
+            if line is not None and len(line.must_include) > 0 and not include_express and not (
+                journey_start in line.must_include or journey_end in line.must_include
+            ):
+                continue
+
+            new_dist = dist + (1 if ignore_dists else edge_dist)
+            new_transfers = transfers + _transfer_increment(
+                previous_line, line, have_previous=(have_initial_edge or edge_count > 0)
+            )
+            new_canonical = canonical + (_edge_sort_key(edge),)
+            new_key = (new_dist, new_transfers, edge_count + 1, new_canonical)
+            new_state = (to_station, line)
+            if new_state in best and best[new_state] <= new_key:
+                continue
+            best[new_state] = new_key
+            heappush(heap, (
+                *new_key, next(sequence), to_station, line, path + [(station, line)]
+            ))
+    return None
+
+
+def k_shortest_static_path(
+    graph: Graph, from_station: str, target_station: str, k: int = 1, *,
+    ignore_dists: bool = False, include_express: bool = True,
+    progress_callback: Callable[[int, int], None] | None = None
+) -> list[tuple[int, Path]]:
+    """ Find up to k shortest loopless paths using Yen's algorithm """
+    if k < 1:
+        raise ValueError("k must be at least 1")
+
+    first = targeted_shortest_path(
+        graph, from_station, target_station,
+        ignore_dists=ignore_dists, include_express=include_express,
+        journey_start=from_station, journey_end=target_station
+    )
+    if first is None:
+        return []
+
+    accepted = [first]
+    first_key = tuple(path_edges(first[1], target_station))
+    generated_keys: set[tuple[Edge, ...]] = {first_key}
+    candidates: list[tuple[tuple, int, int, Path]] = []
+    sequence = count()
+    if progress_callback is not None:
+        progress_callback(1, k)
+
+    while len(accepted) < k:
+        previous_path = accepted[-1][1]
+        previous_edges = path_edges(previous_path, target_station)
+        previous_stations = [edge[0] for edge in previous_edges] + [target_station]
+
+        for spur_index, spur_station in enumerate(previous_stations[:-1]):
+            root_edges = previous_edges[:spur_index]
+            root_stations = previous_stations[:spur_index]
+            excluded_edges: set[Edge] = set()
+            for _, accepted_path in accepted:
+                accepted_edges = path_edges(accepted_path, target_station)
+                if len(accepted_edges) > spur_index and accepted_edges[:spur_index] == root_edges:
+                    excluded_edges.add(accepted_edges[spur_index])
+
+            spur = targeted_shortest_path(
+                graph, spur_station, target_station,
+                ignore_dists=ignore_dists, include_express=include_express,
+                journey_start=from_station, journey_end=target_station,
+                exclude_stations=set(root_stations), exclude_edges=excluded_edges,
+                initial_line=(None if len(root_edges) == 0 else root_edges[-1][2]),
+                have_initial_edge=(len(root_edges) > 0)
+            )
+            if spur is None:
+                continue
+
+            combined_edges = root_edges + path_edges(spur[1], target_station)
+            stations = [edge[0] for edge in combined_edges] + [target_station]
+            if len(stations) != len(set(stations)):
+                continue
+            candidate_key = tuple(combined_edges)
+            if candidate_key in generated_keys:
+                continue
+            generated_keys.add(candidate_key)
+            candidate_path = edges_path(combined_edges)
+            candidate_cost = sum(
+                1 if ignore_dists else graph[start][(end, line)]
+                for start, end, line in combined_edges
+            )
+            heappush(candidates, (
+                _path_sort_key(candidate_cost, candidate_path, target_station),
+                next(sequence), candidate_cost, candidate_path
+            ))
+
+        if len(candidates) == 0:
+            break
+        _, _, candidate_cost, candidate_path = heappop(candidates)
+        accepted.append((candidate_cost, candidate_path))
+        if progress_callback is not None:
+            progress_callback(len(accepted), k)
+
+    return accepted
 
 
 def shortest_path(

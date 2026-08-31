@@ -8,7 +8,7 @@ import argparse
 import sys
 from datetime import date, time
 
-from src.bfs.avg_shortest_time import all_time_bfs, shortest_path_args, PathInfo
+from src.bfs.avg_shortest_time import all_time_bfs, shortest_path_args, PathInfo, path_shorthand
 from src.bfs.bfs import BFSResult, Path
 from src.bfs.k_shortest_path import k_shortest_path
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
@@ -17,8 +17,8 @@ from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
 from src.common.common import get_time_str, TimeSpec, suffix_s, average, stddev
-from src.dist_graph.adaptor import get_dist_graph, to_trains, all_time_path
-from src.dist_graph.shortest_path import shortest_path
+from src.dist_graph.adaptor import get_dist_graph, to_trains, all_time_path, simplify_path
+from src.dist_graph.shortest_path import k_shortest_static_path, shortest_path
 from src.routing.through_train import ThroughTrain, parse_through_train
 from src.routing.train import Train, parse_all_trains
 
@@ -159,38 +159,53 @@ def get_kth_path(
             print("Unreachable!")
             sys.exit(0)
     else:
-        if args.num_path is not None:
-            print("Warning: --num-path ignored in non-time criteria.")
         if args.data_source == "fare":
+            if args.num_path is not None:
+                print("Warning: --num-path ignored in fare criteria.")
             if city.fare_rules is None:
                 print("Data source fare is not available since this city does not have fare rules defined!")
                 sys.exit(1)
+            graph = get_dist_graph(
+                city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+                include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
+            )
+            path_dict = shortest_path(graph, start[0], fare_mode=True)
+            if end[0] not in path_dict:
+                print("Unreachable!")
+                sys.exit(0)
+            static_results = [path_dict[end[0]]]
         else:
             assert args.data_source in ["station", "distance"], args.data_source
-        graph = get_dist_graph(
-            city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
-            include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
-        )
-        path_dict = shortest_path(
-            graph, start[0], ignore_dists=(args.data_source == "station"), fare_mode=(args.data_source == "fare")
-        )
-        if end[0] not in path_dict:
-            print("Unreachable!")
-            sys.exit(0)
-        _, path = path_dict[end[0]]
+            graph = get_dist_graph(
+                city, include_lines=args.include_lines, exclude_lines=args.exclude_lines,
+                include_virtual=(not args.exclude_virtual), include_circle=(not args.exclude_single)
+            )
+            static_results = k_shortest_static_path(
+                graph, start[0], end[0], k=(args.num_path or 1),
+                ignore_dists=(args.data_source == "station"), include_express=args.include_express
+            )
+            if len(static_results) == 0:
+                print("Unreachable!")
+                sys.exit(0)
 
         if start_time == time.max and start_day:
-            # Populate min/max
-            infos = all_time_path(
-                city, train_dict, path, end[0], start_date,
-                exclude_next_day=args.exclude_next_day, exclude_edge=args.exclude_edge
-            )
-            results = display_info_min(city, infos, through_dict, show_first_last=True)
+            # Populate min/max timetable realizations for every ranked static route.
+            results = []
+            for i, (cost, path) in enumerate(static_results):
+                print(f"\nStatic Path #{i + 1}: {path_shorthand(end[0], city.lines, simplify_path(path, end[0]))}")
+                infos = all_time_path(
+                    city, train_dict, path, end[0], start_date,
+                    exclude_next_day=args.exclude_next_day, exclude_edge=args.exclude_edge
+                )
+                results.extend(display_info_min(city, infos, through_dict, show_first_last=True))
         else:
-            results = [to_trains(
-                lines, train_dict, city.transfers, virtual_transfers, path, end[0],
-                start_date, start_time, start_day, exclude_edge=args.exclude_edge
-            )]
+            results = [
+                to_trains(
+                    lines, train_dict, city.transfers, virtual_transfers, path, end[0],
+                    start_date, start_time, start_day, exclude_edge=args.exclude_edge
+                )
+                for _, path in static_results
+            ]
 
     # Print results
     if start_time == time.max and start_day:
