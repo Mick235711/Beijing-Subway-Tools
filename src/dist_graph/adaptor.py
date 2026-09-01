@@ -388,7 +388,7 @@ def all_time_paths(
     paths: dict[int, tuple[Path, str]], start_date: date,
     *, exclude_next_day: bool = False, exclude_edge: bool = False,
     prefix: Callable[[int, Path, str], str] | None = None,
-    progress_callback: Callable[[int, int], None] | None = None
+    progress_callback: Callable[[int, int], None] | None = None, use_process_pool: bool | None = None
 ) -> dict[int, list[PathInfo]]:
     """ Get the resolved list of paths in all possible timings """
     # Loop through first train to last train
@@ -402,7 +402,9 @@ def all_time_paths(
     )]
     bar = None if progress_callback is not None else tqdm(desc="Calculating", total=len(all_list))
     try:
-        executor_cls = ProcessPoolExecutor if mp.parent_process() is None else ThreadPoolExecutor
+        if use_process_pool is None:
+            use_process_pool = mp.parent_process() is None
+        executor_cls = ProcessPoolExecutor if use_process_pool else ThreadPoolExecutor
         with executor_cls() as executor:
             work = partial(
                 to_trains_wrap_multi, paths, city.lines, train_dict, city.transfers, city.virtual_transfers,

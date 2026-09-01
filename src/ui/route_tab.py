@@ -811,12 +811,12 @@ async def analyze_routes(
     lines = city.lines
     train_dict = parse_all_trains(list(lines.values()))
     _, through_dict = parse_through_train(train_dict, city.through_specs)
-    path_dict = await run.cpu_bound(
+    path_dict = await run.io_bound(
         all_time_paths,
         city, train_dict, {
             i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
         }, start_date,
-        progress_callback=progress_callback
+        progress_callback=progress_callback, use_process_pool=True
     )
     if path_dict is None:
         return [], through_dict
