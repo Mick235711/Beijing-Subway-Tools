@@ -833,6 +833,34 @@ def timeline_station_skipped(
     return isinstance(line_train, tuple) and station in line_train[3].skip_stations
 
 
+def get_transfer_waiting_time(
+    transfer_time: TransferData, prev_time: TimeSpec, departure_time: TimeSpec, *, force_next_day: bool = False
+) -> tuple[float, bool]:
+    """ Return a transfer's wait and updated day rollover flag """
+    prev_time = (prev_time[0], prev_time[1] or force_next_day)
+    if diff_time_tuple(departure_time, prev_time) < 0:
+        force_next_day = True
+    adjusted_departure = (departure_time[0], departure_time[1] or force_next_day)
+    return diff_time_tuple(adjusted_departure, prev_time) - transfer_time[0], force_next_day
+
+
+def get_train_transfer_waiting_time(
+    transfer_dict: dict[str, Transfer], start_date: date, prev_station: str, station: str,
+    prev_train: Train, train: Train, *, force_next_day: bool = False
+) -> tuple[TransferData, float, bool]:
+    """ Return a normal transfer's duration, wait, and updated day rollover flag """
+    prev_time = prev_train.arrival_time_after(prev_station, station)
+    transfer_time, _ = get_station_transfer_time(
+        transfer_dict, station,
+        prev_train.line, prev_train.direction, train.line, train.direction,
+        start_date, *prev_time
+    )
+    waiting_time, force_next_day = get_transfer_waiting_time(
+        transfer_time, prev_time, train.departure_time[station], force_next_day=force_next_day
+    )
+    return transfer_time, waiting_time, force_next_day
+
+
 @ui.refreshable
 def train_timeline(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
@@ -932,11 +960,9 @@ def train_timeline(
             if i > 0:
                 prev_station, prev_train_tuple = train[1][i - 1]
                 if isinstance(prev_train_tuple, Train):
-                    prev_time = prev_train_tuple.arrival_time_after(prev_station, inner_station)
-                    transfer_time, _ = get_station_transfer_time(
-                        transfer_dict, inner_station,
-                        prev_train_tuple.line, prev_train_tuple.direction, inner_train.line, inner_train.direction,
-                        prev_train_tuple.line.date_groups[prev_train_tuple.date_group], *prev_time
+                    transfer_time, waiting_time, force_next_day = get_train_transfer_waiting_time(
+                        transfer_dict, start_date, prev_station, inner_station, prev_train_tuple, inner_train,
+                        force_next_day=force_next_day
                     )
                 else:
                     if i == 1:
@@ -946,14 +972,10 @@ def train_timeline(
                         assert isinstance(prev_prev, Train), (train, i)
                         prev_time = prev_prev.arrival_time_after(train[1][i - 2][0], prev_station)
                     transfer_time = prev_train_tuple[3]
-                prev_time = (prev_time[0], prev_time[1] or force_next_day)
-                if diff_time_tuple(inner_train.departure_time[inner_station], prev_time) < 0:
-                    force_next_day = True
-                adjusted_time = (
-                    inner_train.departure_time[inner_station][0],
-                    inner_train.departure_time[inner_station][1] or force_next_day
-                )
-                waiting_time = diff_time_tuple(adjusted_time, prev_time) - transfer_time[0]
+                    waiting_time, force_next_day = get_transfer_waiting_time(
+                        transfer_time, prev_time, inner_train.departure_time[inner_station],
+                        force_next_day=force_next_day
+                    )
                 transfer_time_dict[(inner_station, inner_train.line.name)] = (transfer_time, waiting_time)
 
             next_station = train[2].station if i == len(train[1]) - 1 else train[1][i + 1][0]
