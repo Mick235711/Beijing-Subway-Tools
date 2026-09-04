@@ -61,6 +61,13 @@ class StaticPathInfo:
     metric: PathMetric
 
 
+@dataclass
+class RouteAnalysisOptions:
+    """ Route-timing policies shared by route discovery and analysis """
+
+    allow_transfer_shortcuts: bool = True
+
+
 def is_necessary(city: City, route: Route, index: int) -> bool:
     """ Determine if the transfer is necessary to print """
     if index == 0:
@@ -164,6 +171,7 @@ def calculate_route_rows(city: City, routes: list[Route]) -> list[dict]:
 
 def route_tab(city: City) -> None:
     """ Routing tab for the main page """
+    analysis_options = RouteAnalysisOptions()
     with ui.column():
         with ui.row().classes("w-full items-center"):
             ui.label("Current Routes").classes("text-xl font-semibold mt-6 mb-2")
@@ -312,7 +320,8 @@ def route_tab(city: City) -> None:
 
         analyze_button.set_enabled(False)
         path_list, through_dict = await handle_progress(
-            progress, analyze_routes, city, current_routes, start_date
+            progress, analyze_routes, city, current_routes, start_date,
+            allow_transfer_shortcuts=analysis_options.allow_transfer_shortcuts
         )
         analyze_button.set_enabled(True)
         await display_data.refresh(start_date=start_date, path_list=path_list, through_dict=through_dict)
@@ -329,11 +338,12 @@ def route_tab(city: City) -> None:
         with ui.tab_panel(shorthand_tab):
             add_route_shorthand(city, on_route_change)
         with ui.tab_panel(top_tab):
-            add_route_top(city, on_route_change)
+            add_route_top(city, on_route_change, analysis_options)
         with ui.tab_panel(map_tab):
             add_route_map(city, on_route_change, lambda route: display_route(city.lines, route))
     with ui.row().classes("items-center w-full flex-nowrap"):
         date_input = get_date_input(label="Riding date")
+        ui.switch("Allow transfer shortcuts").bind_value(analysis_options, "allow_transfer_shortcuts")
         analyze_button = ui.button("Start Analyze", on_click=on_start_click)
         analyze_button.set_enabled(False)
         progress = ui.linear_progress(size="20px", show_value=False).props("instant-feedback").classes("flex-1")
@@ -557,7 +567,8 @@ def add_route_shorthand(city: City, on_route_change: Callable[[Route], None]) ->
 async def get_kth_routes(
     progress_callback: Callable[[int, int], None], city: City, start_station: str, end_station: str,
     start_date: date, start_time: TimeSpec | None, k: int,
-    *, metric: PathMetric, exclude_virtual: bool = False, include_express: bool = False
+    *, metric: PathMetric, exclude_virtual: bool = False, include_express: bool = False,
+    allow_transfer_shortcuts: bool = True
 ) -> list[PathInfo] | list[StaticPathInfo] | None:
     """ Analyze selected routes """
     lines = city.lines
@@ -571,7 +582,8 @@ async def get_kth_routes(
             city.lines, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
             start_station, end_station, start_date, start_time,
-            k=k, include_express=include_express, progress_callback=progress_callback
+            k=k, include_express=include_express,
+            allow_transfer_shortcuts=allow_transfer_shortcuts, progress_callback=progress_callback
         )
         if time_results is None or len(time_results) == 0:
             return None
@@ -591,7 +603,9 @@ async def get_kth_routes(
     return [StaticPathInfo(cost, path, end_station, metric) for cost, path in static_results]
 
 
-def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], None]) -> None:
+def add_route_top(
+    city: City, on_route_change: Callable[[Route | list[Route]], None], analysis_options: RouteAnalysisOptions
+) -> None:
     """ Top (kth) panel to add new routes """
     def on_input_change() -> None:
         """ Handle input changes """
@@ -627,7 +641,7 @@ def add_route_top(city: City, on_route_change: Callable[[Route | list[Route]], N
             progress, get_kth_routes, city, start_station.value, end_station.value,
             start_date, start_time, int(kth_select.value),
             metric=metric_select.value, exclude_virtual=(not virtual_switch.value),
-            include_express=express_switch.value
+            include_express=express_switch.value, allow_transfer_shortcuts=analysis_options.allow_transfer_shortcuts
         )
         calc_button.set_enabled(True)
         await kth_table.refresh(metric=metric_select.value, start_date=start_date, results=results)
@@ -805,7 +819,8 @@ def get_target_arrival(info_dict: dict[str, PathInfo], cur_time: time) -> tuple[
 
 
 async def analyze_routes(
-    progress_callback: Callable[[int, int], None], city: City, routes: list[Route], start_date: date
+    progress_callback: Callable[[int, int], None], city: City, routes: list[Route], start_date: date,
+    *, allow_transfer_shortcuts: bool = True
 ) -> tuple[list[PathData], dict[ThroughSpec, list[ThroughTrain]]]:
     """ Analyze selected routes """
     lines = city.lines
@@ -814,9 +829,10 @@ async def analyze_routes(
     path_dict = await run.io_bound(
         all_time_paths,
         city, train_dict, {
-            i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1]) for i, route in enumerate(routes)
+            i: (reduce_abstract_path(city.lines, route[0], route[1]), route[1])
+            for i, route in enumerate(routes)
         }, start_date,
-        progress_callback=progress_callback, use_process_pool=True
+        progress_callback=progress_callback, use_process_pool=True, allow_transfer_shortcuts=allow_transfer_shortcuts
     )
     if path_dict is None:
         return [], through_dict

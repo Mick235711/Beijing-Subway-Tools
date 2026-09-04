@@ -81,7 +81,10 @@ def equivalent_path(path1: Path, path2: Path) -> bool:
                for ((st1, t1), (st2, t2)) in zip(path1, path2))
 
 
-def fix_path(path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_date: date) -> Path:
+def fix_path(
+    path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_date: date, *,
+    allow_transfer_shortcuts: bool = True
+) -> Path:
     """ Fix virtual transfers within a path """
     if len(path) < 3:
         return path
@@ -99,7 +102,8 @@ def fix_path(path: Path, virtual_dict: dict[tuple[str, str], Transfer], start_da
             assert isinstance(last_train, Train) and isinstance(next_train, Train)
             transfer_time, is_special = virtual_dict[(nc_station, next_station)].get_transfer_time(
                 last_train.line, last_train.direction, next_train.line, next_train.direction,
-                start_date, *last_train.arrival_time_virtual(last_station)[nc_station]
+                start_date, *last_train.arrival_time_virtual(last_station)[nc_station],
+                allow_transfer_shortcuts=allow_transfer_shortcuts
             )
             fixed_path.append((nc_station, (
                 nc_station, next_station,
@@ -117,9 +121,9 @@ def k_shortest_path(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     start_station: str, end_station: str,
-    start_date: date, start_time: TimeSpec,
-    k: int = 1, *, exclude_edge: bool = False, include_express: bool = False,
-    progress_callback: Callable[[int, int], None] | None = None
+    start_date: date, start_time: TimeSpec, k: int = 1,
+    *, exclude_edge: bool = False, include_express: bool = False,
+    allow_transfer_shortcuts: bool = True, progress_callback: Callable[[int, int], None] | None = None
 ) -> list[tuple[BFSResult, Path]]:
     """ Find the k shortest paths """
     result: list[tuple[BFSResult, Path]] = []
@@ -127,8 +131,8 @@ def k_shortest_path(
 
     # First find p1
     bfs_result = bfs(
-        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date,
-        start_station, start_time, exclude_edge=exclude_edge, include_express=include_express
+        lines, train_dict, through_dict, transfer_dict, virtual_dict, start_date, start_station, start_time,
+        exclude_edge=exclude_edge, include_express=include_express, allow_transfer_shortcuts=allow_transfer_shortcuts
     )
     end_result = get_result(bfs_result, end_station, transfer_dict, through_dict)
     if end_result is None:
@@ -205,7 +209,8 @@ def k_shortest_path(
                 station, saved_arrival_time,
                 initial_line_direction=(None if i == 0 else line_direction),
                 exclude_stations={x[0] for x in trace[:i]},
-                exclude_edges=exclude_edges, exclude_edge=exclude_edge, include_express=include_express
+                exclude_edges=exclude_edges, exclude_edge=exclude_edge, include_express=include_express,
+                allow_transfer_shortcuts=allow_transfer_shortcuts
             )
             if saved_train != train:
                 saved_station = station
@@ -219,7 +224,10 @@ def k_shortest_path(
             new_result.initial_time = start_time[0]
             new_result.initial_day = start_time[1]
             final_path = merge_path(limit_path(pk_path, station, end_station), new_path, end_station)
-            fixed_path = fix_path(final_path, virtual_dict, start_date)
+            fixed_path = fix_path(
+                final_path, virtual_dict, start_date,
+                allow_transfer_shortcuts=allow_transfer_shortcuts
+            )
             new_candidate = (new_result, fixed_path)
 
             found = equivalent_path(new_candidate[1], first_path)

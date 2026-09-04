@@ -35,7 +35,7 @@ class BFSResult:
                  initial_time: time, initial_day: bool,
                  arrival_time: time, arrival_day: bool,
                  prev_station: str | None = None, prev_train: Train | VTSpec | None = None,
-                 *, force_next_day: bool = False) -> None:
+                 *, force_next_day: bool = False, allow_transfer_shortcuts: bool = True) -> None:
         """ Constructor """
         self.station = station
         self.start_date = start_date
@@ -43,6 +43,7 @@ class BFSResult:
         self.arrival_time, self.arrival_day = arrival_time, arrival_day
         self.prev_station, self.prev_train = prev_station, prev_train
         self.force_next_day = force_next_day
+        self.allow_transfer_shortcuts = allow_transfer_shortcuts
 
     def initial_time_str(self) -> str:
         """ Get string representation of initial time """
@@ -121,7 +122,10 @@ class BFSResult:
         *, through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None, fare_str: str | None = None
     ) -> str:
         """ Return string representation of the total transfer, etc. """
-        have_dist, _, sum_dist, sum_stairs = total_transfer_duration(self.start_date, path, transfer_dict, through_dict)
+        have_dist, _, sum_dist, sum_stairs = total_transfer_duration(
+            self.start_date, path, transfer_dict, through_dict,
+            allow_transfer_shortcuts=self.allow_transfer_shortcuts
+        )
         indent_str = "    " * indent
         return (f"{indent_str}{self.time_str()}\n" +
                 f"{indent_str}Total time: {format_duration(self.total_duration())}, " +
@@ -212,7 +216,8 @@ class BFSResult:
                         transfer_dict, station,
                         last_train.line, last_train.direction,
                         train.line, train.direction,
-                        cur_date, last_time, last_day
+                        cur_date, last_time, last_day,
+                        allow_transfer_shortcuts=self.allow_transfer_shortcuts
                     )
 
                 total_waiting = diff_time(start_time, last_time, start_day, last_day)
@@ -406,7 +411,8 @@ def total_transfer(path: Path, *, through_dict: dict[ThroughSpec, list[ThroughTr
 
 def total_transfer_duration(
     start_date: date, path: Path, transfer_dict: dict[str, Transfer],
-    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None
+    through_dict: dict[ThroughSpec, list[ThroughTrain]] | None = None,
+    *, allow_transfer_shortcuts: bool = True
 ) -> tuple[bool, float, int, int]:
     """ Get the sum of all transfer times """
     assert len(path) > 0, path
@@ -441,7 +447,8 @@ def total_transfer_duration(
             transfer_dict, next_station,
             train.line, train.direction,
             next_train.line, next_train.direction,
-            start_date, next_time, next_day
+            start_date, next_time, next_day,
+            allow_transfer_shortcuts=allow_transfer_shortcuts
         )
         have_dist = have_dist and (transfer_time[1] is not None and transfer_time[2] is not None)
         sum_duration += transfer_time[0]
@@ -470,7 +477,10 @@ def path_index(
     result2 = (
         result.total_duration(),
         total_transfer(path) + len([1 for _, train in path if not isinstance(train, Train)]),
-        total_transfer_duration(result.start_date, path, transfer_dict, through_dict)[1:],
+        total_transfer_duration(
+            result.start_date, path, transfer_dict, through_dict,
+            allow_transfer_shortcuts=result.allow_transfer_shortcuts
+        )[1:],
         len(expand_path(path, result.station)),
         result.total_distance(path),
     )
@@ -524,8 +534,8 @@ def bfs(
     initial_line_direction: tuple[Line, str] | None = None,
     exclude_stations: set[str] | None = None,
     exclude_edges: dict[str, set[tuple[Line, str]]] | None = None,  # station -> line, direction
-    exclude_edge: bool = False,
-    include_express: bool = False
+    exclude_edge: bool = False, include_express: bool = False,
+    allow_transfer_shortcuts: bool = True
 ) -> dict[tuple[str, str, str], BFSResult]:
     """ Search for the shortest path (by time) to every station """
     # Construct a station -> (line, direction) dict
@@ -553,7 +563,8 @@ def bfs(
             elif line.name != initial_line_direction[0].name:
                 transfer_time, _ = transfer_dict[start_station].get_transfer_time(
                     initial_line_direction[0], initial_line_direction[1], line, direction,
-                    start_date, start_time, start_day
+                    start_date, start_time, start_day,
+                    allow_transfer_shortcuts=allow_transfer_shortcuts
                 )
                 starting_time_dict[(line.name, direction)] = add_min(
                     start_time, (floor if exclude_edge else ceil)(transfer_time[0]), start_day
@@ -579,7 +590,8 @@ def bfs(
                 fr_line, fr_dir, to_line, to_dir, transfer_time, special = virtual_dict[
                     (start_station, new_station)
                 ].get_smallest_time(
-                    to_line=line, to_direction=direction, cur_date=start_date, cur_time=start_time, cur_day=start_day
+                    to_line=line, to_direction=direction, cur_date=start_date, cur_time=start_time, cur_day=start_day,
+                    allow_transfer_shortcuts=allow_transfer_shortcuts
                 )
                 next_time, next_day = add_min(start_time, (floor if exclude_edge else ceil)(transfer_time[0]), start_day)
                 queue.append((new_station, line.name, direction))
@@ -589,7 +601,7 @@ def bfs(
                     next_time, next_day,
                     start_station, (
                         start_station, new_station, (fr_line, fr_dir, to_line, to_dir), transfer_time, special
-                    )
+                    ), allow_transfer_shortcuts=allow_transfer_shortcuts
                 )
     in_queue = set(queue)
     next_train_index: NextTrainIndex = {}
@@ -677,7 +689,8 @@ def bfs(
                     next_station, start_date,
                     start_time, start_day,
                     next_time, next_day,
-                    station, next_train
+                    station, next_train,
+                    allow_transfer_shortcuts=allow_transfer_shortcuts
                 )
                 new_key = (next_station, next_train.line.name, next_train.direction)
                 if (
@@ -725,7 +738,8 @@ def bfs(
             transfer_obj = transfer_dict[station] if new_station == station else virtual_dict[(station, new_station)]
             transfer_time, special = transfer_obj.get_transfer_time(
                 line, direction, new_line, new_direction,
-                start_date, cur_time, cur_day
+                start_date, cur_time, cur_day,
+                allow_transfer_shortcuts=allow_transfer_shortcuts
             )
             next_time, next_day = add_min(cur_time, (floor if exclude_edge else ceil)(transfer_time[0]), cur_day)
             new_result = BFSResult(
@@ -733,7 +747,8 @@ def bfs(
                 start_time, start_day,
                 next_time, next_day,
                 prev_station if new_station == station else station,
-                prev_train if new_station == station else (station, new_station, transfer_spec, transfer_time, special)
+                prev_train if new_station == station else (station, new_station, transfer_spec, transfer_time, special),
+                allow_transfer_shortcuts=allow_transfer_shortcuts
             )
             new_key = (new_station, new_line.name, new_direction)
             if (

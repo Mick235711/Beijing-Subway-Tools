@@ -5,6 +5,7 @@
 
 # Libraries
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import date
 from functools import partial
 from typing import Any, Literal
@@ -38,6 +39,16 @@ AVAILABLE_STATIONS: dict[str, set[Line]] = {}
 CARD_CAPTION = "text-subtitle-1 font-bold"
 CARD_TEXT = "text-h6"
 BADGE_TEXT = "text-h5 text-bold"
+
+
+@dataclass(frozen=True)
+class TimelineTransferData:
+    """ Transfer timing details rendered between two timeline entries """
+
+    transfer_time: TransferData
+    regular_transfer_time: TransferData
+    waiting_time: float | None
+    is_special: bool
 
 
 def get_badge(tag: str, color: str, icon: str | None = None) -> None:
@@ -720,7 +731,8 @@ def train_drawer(
                 with ui.card().classes("q-pa-sm"):
                     if isinstance(full_train, tuple):
                         have_dist, _, sum_walking, sum_stairs = total_transfer_duration(
-                            start_date, full_train[1], city.transfers, through_dict
+                            start_date, full_train[1], city.transfers, through_dict,
+                            allow_transfer_shortcuts=full_train[2].allow_transfer_shortcuts
                         )
                         num_virtual = len([1 for _, t in full_train[1] if not isinstance(t, Train)])
                         if num_virtual > 0:
@@ -800,7 +812,8 @@ def train_drawer(
                     current_context = get_train_id_context(train_dict, full_train)
                     timeline_train_id_dict = None if current_context is None else current_context[1]
                 train_timeline(
-                    train_dict, through_dict, timeline_train_id_dict, full_train, start_date, city.transfers,
+                    train_dict, through_dict, timeline_train_id_dict, full_train, start_date,
+                    city.transfers, city.virtual_transfers,
                     show_tally=True, show_station=select_opt_default
                 )
 
@@ -846,33 +859,48 @@ def get_transfer_waiting_time(
 
 def get_train_transfer_waiting_time(
     transfer_dict: dict[str, Transfer], start_date: date, prev_station: str, station: str,
-    prev_train: Train, train: Train, *, force_next_day: bool = False
-) -> tuple[TransferData, float, bool]:
+    prev_train: Train, train: Train, *, force_next_day: bool = False,
+    allow_transfer_shortcuts: bool = True
+) -> tuple[TimelineTransferData, bool]:
     """ Return a normal transfer's duration, wait, and updated day rollover flag """
     prev_time = prev_train.arrival_time_after(prev_station, station)
-    transfer_time, _ = get_station_transfer_time(
+    transfer_time, is_special = get_station_transfer_time(
         transfer_dict, station,
         prev_train.line, prev_train.direction, train.line, train.direction,
-        start_date, *prev_time
+        start_date, *prev_time,
+        allow_transfer_shortcuts=allow_transfer_shortcuts
+    )
+    regular_transfer_time = transfer_dict[station].get_regular_transfer_time(
+        prev_train.line, prev_train.direction, train.line, train.direction
     )
     waiting_time, force_next_day = get_transfer_waiting_time(
         transfer_time, prev_time, train.departure_time[station], force_next_day=force_next_day
     )
-    return transfer_time, waiting_time, force_next_day
+    return TimelineTransferData(
+        transfer_time, regular_transfer_time, waiting_time, is_special
+    ), force_next_day
+
+
+def show_special_transfer_badge(regular_transfer_time: TransferData) -> None:
+    """ Mark a time-limited shortcut and expose its regular transfer time """
+    with ui.badge("Special", color="warning", text_color="black"):
+        ui.tooltip("Normal transfer time: " + format_duration(regular_transfer_time[0]))
 
 
 @ui.refreshable
 def train_timeline(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
     train_id_dict: dict[str, Train] | None, train: Train | ThroughTrain | PathInfo, start_date: date,
-    transfer_dict: dict[str, Transfer], *, show_station: Literal["all", "stop", "none"] = "all",
+    transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer], *,
+    show_station: Literal["all", "stop", "none"] = "all",
     interval_metric: Literal["none", "num_station", "duration", "distance", "speed"] = "none", show_tally: bool
 ) -> None:
     """ Create a timeline for this train """
     global AVAILABLE_LINES
     train_id_dicts: dict[tuple[str, str], dict[str, Train]] | None = None
-    transfer_time_dict: dict[tuple[str, str | None], tuple[TransferData, float | None]] = {}  # (transfer time, waiting time)
+    transfer_time_dict: dict[tuple[str, str | None], TimelineTransferData] = {}
     if isinstance(train, tuple):
+        allow_transfer_shortcuts = train[2].allow_transfer_shortcuts
         first_t = train[1][0][1]
         first_train = first_t if isinstance(first_t, Train) else None
         last_t = train[1][-1][1]
@@ -960,9 +988,9 @@ def train_timeline(
             if i > 0:
                 prev_station, prev_train_tuple = train[1][i - 1]
                 if isinstance(prev_train_tuple, Train):
-                    transfer_time, waiting_time, force_next_day = get_train_transfer_waiting_time(
+                    transfer_data, force_next_day = get_train_transfer_waiting_time(
                         transfer_dict, start_date, prev_station, inner_station, prev_train_tuple, inner_train,
-                        force_next_day=force_next_day
+                        force_next_day=force_next_day, allow_transfer_shortcuts=allow_transfer_shortcuts
                     )
                 else:
                     if i == 1:
@@ -976,7 +1004,13 @@ def train_timeline(
                         transfer_time, prev_time, inner_train.departure_time[inner_station],
                         force_next_day=force_next_day
                     )
-                transfer_time_dict[(inner_station, inner_train.line.name)] = (transfer_time, waiting_time)
+                    regular_transfer_time = virtual_dict[
+                        (prev_train_tuple[0], prev_train_tuple[1])
+                    ].get_regular_transfer_time(*prev_train_tuple[2])
+                    transfer_data = TimelineTransferData(
+                        transfer_time, regular_transfer_time, waiting_time, prev_train_tuple[4]
+                    )
+                transfer_time_dict[(inner_station, inner_train.line.name)] = transfer_data
 
             next_station = train[2].station if i == len(train[1]) - 1 else train[1][i + 1][0]
             station_list.extend([
@@ -996,7 +1030,12 @@ def train_timeline(
         last_train_tuple = train[1][-1][1]
         if not isinstance(last_train_tuple, Train):
             # Add final virtual transfer text
-            transfer_time_dict[(train[2].station, None)] = (last_train_tuple[3], None)
+            regular_transfer_time = virtual_dict[
+                (last_train_tuple[0], last_train_tuple[1])
+            ].get_regular_transfer_time(*last_train_tuple[2])
+            transfer_time_dict[(train[2].station, None)] = TimelineTransferData(
+                last_train_tuple[3], regular_transfer_time, None, last_train_tuple[4]
+            )
     elif isinstance(train, Train):
         stations = [(s, (train.stations[0], False, train.line, train), train.arrival_time.get(s)) for s in train.stations]
         first_train = train
@@ -1046,6 +1085,7 @@ def train_timeline(
                 continue
 
             transfer_str: tuple[str, str, int | None, int | None] = ("", "", None, None)
+            special_transfer: TimelineTransferData | None = None
             if i < len(stations) - 1:
                 next_station = stations[i + 1][0]
                 next_key_lt = stations[i + 1][1]
@@ -1055,7 +1095,7 @@ def train_timeline(
                 if i == len(stations) - 2 and isinstance(next_key_lt, tuple) and (
                     last_train is not None and last_train.loop_next is not None and next_key_lt[3] is last_train.loop_next
                 ):
-                    transfer_time_value: tuple[TransferData, float | None] | None = None
+                    transfer_time_value: TimelineTransferData | None = None
                 else:
                     j = min(i + 2, len(stations))
                     if show_station != "all" or (in_display(station_list, station_key) and not in_display(station_list, next_key)):
@@ -1082,19 +1122,23 @@ def train_timeline(
                     interval_duration = diff_time_tuple(next_time, interval_start)
                     if transfer_time_value is None:
                         real_interval_duration = interval_duration
-                    elif transfer_time_value[1] is None:
+                    elif transfer_time_value.waiting_time is None:
                         transfer_str = (
-                            f"Transfer: {format_duration(transfer_time_value[0][0])}", "",
-                            transfer_time_value[0][1], transfer_time_value[0][2]
+                            f"Transfer: {format_duration(transfer_time_value.transfer_time[0])}", "",
+                            transfer_time_value.transfer_time[1], transfer_time_value.transfer_time[2]
                         )
-                        real_interval_duration = interval_duration - transfer_time_value[0][0]
+                        real_interval_duration = interval_duration - transfer_time_value.transfer_time[0]
                     else:
                         transfer_str = (
-                            f"Transfer: {format_duration(transfer_time_value[0][0])}",
-                            f"Waiting: {format_duration(transfer_time_value[1])}",
-                            transfer_time_value[0][1], transfer_time_value[0][2]
+                            f"Transfer: {format_duration(transfer_time_value.transfer_time[0])}",
+                            f"Waiting: {format_duration(transfer_time_value.waiting_time)}",
+                            transfer_time_value.transfer_time[1], transfer_time_value.transfer_time[2]
                         )
-                        real_interval_duration = interval_duration - (transfer_time_value[0][0] + transfer_time_value[1])
+                        real_interval_duration = interval_duration - (
+                            transfer_time_value.transfer_time[0] + transfer_time_value.waiting_time
+                        )
+                    if transfer_time_value is not None and transfer_time_value.is_special:
+                        special_transfer = transfer_time_value
                     if isinstance(line_train, tuple):
                         if station in line_train[3].arrival_time:
                             interval_num_sta = len(line_train[3].two_station_interval(station, next_station, expand_all=True))
@@ -1166,6 +1210,8 @@ def train_timeline(
                         ui.label("Virtual transfer")
                         if transfer_str[0] != "":
                             ui.label(transfer_str[0])
+                        if special_transfer is not None:
+                            show_special_transfer_badge(special_transfer.regular_transfer_time)
                         if transfer_str[2] is not None and transfer_str[3] is not None:
                             show_transfer_data(transfer_str[2], transfer_str[3])
                         if transfer_str[1] != "":
@@ -1269,6 +1315,8 @@ def train_timeline(
                         )
                         if transfer_str[0] != "" and not is_same_line_change:
                             ui.label(transfer_str[0])
+                        if special_transfer is not None and not is_same_line_change:
+                            show_special_transfer_badge(special_transfer.regular_transfer_time)
                         if not is_same_line_change and transfer_str[2] is not None and transfer_str[3] is not None:
                             show_transfer_data(transfer_str[2], transfer_str[3])
                         if transfer_str[1] != "":

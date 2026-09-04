@@ -28,7 +28,8 @@ def format_transfer_data(data: TransferData) -> str:
 def get_station_transfer_time(
     transfer_dict: dict[str, "Transfer"], station: str,
     from_line: Line | str, from_direction: str, to_line: Line | str, to_direction: str,
-    cur_date: date | DateGroup, cur_time: time, cur_day: bool = False
+    cur_date: date | DateGroup, cur_time: time, cur_day: bool = False, *,
+    allow_transfer_shortcuts: bool = True
 ) -> tuple[TransferData, bool]:
     """ Retrieve transfer time, treating same-line changes as immediate reboarding """
     from_name = from_line.name if isinstance(from_line, Line) else from_line
@@ -36,7 +37,8 @@ def get_station_transfer_time(
     if from_name == to_name:
         return (0.0, 0, 0), False
     return transfer_dict[station].get_transfer_time(
-        from_line, from_direction, to_line, to_direction, cur_date, cur_time, cur_day
+        from_line, from_direction, to_line, to_direction, cur_date, cur_time, cur_day,
+        allow_transfer_shortcuts=allow_transfer_shortcuts
     )
 
 
@@ -79,24 +81,37 @@ class Transfer:
 
     def get_transfer_time(
         self, from_line: Line | str, from_direction: str, to_line: Line | str, to_direction: str,
-        cur_date: date | DateGroup, cur_time: time, cur_day: bool = False
+        cur_date: date | DateGroup, cur_time: time, cur_day: bool = False,
+        *, allow_transfer_shortcuts: bool = True
     ) -> tuple[TransferData, bool]:
         """ Retrieve transfer time (returns true if special) """
         key = (from_line.name if isinstance(from_line, Line) else from_line, from_direction,
                to_line.name if isinstance(to_line, Line) else to_line, to_direction)
         if key[0] == key[2]:
             return (0.0, 0, 0), False
-        if key in self.special_time:
+        if allow_transfer_shortcuts and key in self.special_time:
             special_time, interval = self.special_time[key]
             if interval.covers(cur_date, cur_time, cur_day):
                 return special_time, True
         assert key in self.transfer_time, (self, key)
         return self.transfer_time[key], False
 
+    def get_regular_transfer_time(
+        self, from_line: Line | str, from_direction: str, to_line: Line | str, to_direction: str
+    ) -> TransferData:
+        """ Retrieve the regular transfer time without applying a time-limited shortcut """
+        key = (from_line.name if isinstance(from_line, Line) else from_line, from_direction,
+               to_line.name if isinstance(to_line, Line) else to_line, to_direction)
+        if key[0] == key[2]:
+            return 0.0, 0, 0
+        assert key in self.transfer_time, (self, key)
+        return self.transfer_time[key]
+
     def get_smallest_time(
         self, from_line: Line | None = None, from_direction: str | None = None,
         to_line: Line | None = None, to_direction: str | None = None,
-        cur_date: date | DateGroup | None = None, cur_time: time | None = None, cur_day: bool = False
+        cur_date: date | DateGroup | None = None, cur_time: time | None = None, cur_day: bool = False,
+        *, allow_transfer_shortcuts: bool = True
     ) -> tuple[str, str, str, str, TransferData, bool]:
         """ Retrieve the smallest transfer time available, given limited parameters """
         if from_line is None:
@@ -122,7 +137,10 @@ class Transfer:
                 if cur_date is not None:
                     # We have a date, use get_transfer_time then
                     assert cur_time is not None, (cur_date, cur_time, cur_day)
-                    transfer_time = self.get_transfer_time(from_l, from_d, to_l, to_d, cur_date, cur_time, cur_day)
+                    transfer_time = self.get_transfer_time(
+                        from_l, from_d, to_l, to_d, cur_date, cur_time, cur_day,
+                        allow_transfer_shortcuts=allow_transfer_shortcuts
+                    )
                 else:
                     transfer_time = (self.transfer_time[(from_l, from_d, to_l, to_d)], False)
                 results.append((from_l, from_d, to_l, to_d, transfer_time[0], transfer_time[1]))

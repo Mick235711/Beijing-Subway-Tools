@@ -68,7 +68,7 @@ def reconstruct_paths(paths: list[PathInfo]) -> list[PathInfo]:
                 cur_time, cur_day,
                 result.arrival_time, result.arrival_day,
                 result.prev_station, result.prev_train,
-                force_next_day=result.force_next_day
+                force_next_day=result.force_next_day, allow_transfer_shortcuts=result.allow_transfer_shortcuts
             )
             new_paths.append((duration + last_minute - minute, path, new_result))
     return sorted(new_paths, key=lambda x: x[2].initial_time_str())
@@ -315,9 +315,11 @@ def path_shorthand(end_station: str, lines: dict[str, Line], path: AbstractPath,
 
 def get_waiting_time(
     path_info: PathInfo, transfer_dict: dict[str, Transfer],
-    *, exclude_transfer: bool = False
+    *, exclude_transfer: bool = False, allow_transfer_shortcuts: bool | None = None
 ) -> float:
     """ Get total waiting time in a path """
+    if allow_transfer_shortcuts is None:
+        allow_transfer_shortcuts = path_info[2].allow_transfer_shortcuts
     total_waiting = 0.0
     cur_time = (path_info[2].initial_time, path_info[2].initial_day)
     for i, (station, train) in enumerate(path_info[1]):
@@ -336,7 +338,8 @@ def get_waiting_time(
                 total_waiting -= get_station_transfer_time(
                     transfer_dict, next_station,
                     train.line, train.direction, next_train.line, next_train.direction,
-                    path_info[2].start_date, cur_time[0], cur_time[1]
+                    path_info[2].start_date, cur_time[0], cur_time[1],
+                    allow_transfer_shortcuts=allow_transfer_shortcuts
                 )[0][0]
     return total_waiting
 

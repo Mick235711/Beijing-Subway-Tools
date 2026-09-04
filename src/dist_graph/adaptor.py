@@ -157,7 +157,7 @@ def to_trains(
     lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     path: Path, end_station: str, cur_date: date, cur_time: time, cur_day: bool = False,
-    *, exclude_edge: bool = False
+    *, exclude_edge: bool = False, allow_transfer_shortcuts: bool = True
 ) -> tuple[BFSResult, BFSPath]:
     """ Query timetable to resolve paths back to possible trains """
     start_date = cur_date
@@ -175,14 +175,16 @@ def to_trains(
                 # Select the smallest virtual transfer time
                 from_line_name, from_direction, to_line_name, to_direction, transfer_time, is_special = \
                     transfer.get_smallest_time(
-                        cur_date=cur_date, cur_time=cur_tuple[0], cur_day=cur_tuple[1]
+                        cur_date=cur_date, cur_time=cur_tuple[0], cur_day=cur_tuple[1],
+                        allow_transfer_shortcuts=allow_transfer_shortcuts
                     )
             else:
                 from_line_name, from_direction = new_path[i - 1][1]  # type: ignore
                 to_line_name, to_direction = new_path[i + 1][1]  # type: ignore
                 transfer_time, is_special = transfer.get_transfer_time(
                     from_line_name, from_direction, to_line_name, to_direction,
-                    cur_date, cur_tuple[0], cur_tuple[1]
+                    cur_date, cur_tuple[0], cur_tuple[1],
+                    allow_transfer_shortcuts=allow_transfer_shortcuts
                 )
             final_new_path.append((
                 station, (station, next_station, (
@@ -210,13 +212,14 @@ def to_trains(
             transfer_dict, next_station,
             line, direction,
             lines[new_path[i + 1][1][0]], new_path[i + 1][1][1],  # type: ignore
-            cur_date, cur_tuple[0], cur_tuple[1]
+            cur_date, cur_tuple[0], cur_tuple[1],
+            allow_transfer_shortcuts=allow_transfer_shortcuts
         )
         cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time[0]))
 
     return BFSResult(
         end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1],
-        force_next_day=force_next_day
+        force_next_day=force_next_day, allow_transfer_shortcuts=allow_transfer_shortcuts
     ), final_new_path
 
 
@@ -320,20 +323,21 @@ def to_trains_wrap(
     lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     path: Path, end_station: str, cur_date: date, minute: int,
-    *, exclude_edge: bool = False
+    *, exclude_edge: bool = False, allow_transfer_shortcuts: bool = True
 ) -> tuple[time, bool, tuple[BFSResult, BFSPath]]:
     """ Wrap around the to_trains() method """
     start_time, start_day = from_minutes(minute)
     return start_time, start_day, to_trains(
         lines, train_dict, transfer_dict, virtual_dict, path, end_station, cur_date, start_time, start_day,
-        exclude_edge=exclude_edge
+        exclude_edge=exclude_edge, allow_transfer_shortcuts=allow_transfer_shortcuts
     )
 
 
 def all_time_path(
     city: City, train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     path: Path, end_station: str, start_date: date,
-    *, exclude_next_day: bool = False, exclude_edge: bool = False, prefix: str = ""
+    *, exclude_next_day: bool = False, exclude_edge: bool = False, prefix: str = "",
+    allow_transfer_shortcuts: bool = True
 ) -> list[PathInfo]:
     """ Get the resolved path in all possible timings """
     # Loop through first train to last train
@@ -353,7 +357,7 @@ def all_time_path(
             work = partial(
                 to_trains_wrap, city.lines, train_dict, city.transfers, city.virtual_transfers,
                 path, end_station, start_date,
-                exclude_edge=exclude_edge
+                exclude_edge=exclude_edge, allow_transfer_shortcuts=allow_transfer_shortcuts
             )
             iterator = executor.map(work, all_list, chunksize=50)
             for start_time, start_day, (bfs_result, bfs_path) in iterator:
@@ -371,7 +375,7 @@ def to_trains_wrap_multi(
     paths: dict[int, tuple[Path, str]], lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     transfer_dict: dict[str, Transfer], virtual_dict: dict[tuple[str, str], Transfer],
     cur_date: date, minute_tuple: tuple[int, int],
-    *, exclude_edge: bool = False
+    *, exclude_edge: bool = False, allow_transfer_shortcuts: bool = True
 ) -> tuple[int, time, bool, tuple[BFSResult, BFSPath]]:
     """ Wrap around the to_trains() method with multiple paths """
     index, minute = minute_tuple
@@ -379,7 +383,7 @@ def to_trains_wrap_multi(
     start_time, start_day = from_minutes(minute)
     return index, start_time, start_day, to_trains(
         lines, train_dict, transfer_dict, virtual_dict, path, end_station, cur_date, start_time, start_day,
-        exclude_edge=exclude_edge
+        exclude_edge=exclude_edge, allow_transfer_shortcuts=allow_transfer_shortcuts
     )
 
 
@@ -388,7 +392,8 @@ def all_time_paths(
     paths: dict[int, tuple[Path, str]], start_date: date,
     *, exclude_next_day: bool = False, exclude_edge: bool = False,
     prefix: Callable[[int, Path, str], str] | None = None,
-    progress_callback: Callable[[int, int], None] | None = None, use_process_pool: bool | None = None
+    progress_callback: Callable[[int, int], None] | None = None, use_process_pool: bool | None = None,
+    allow_transfer_shortcuts: bool = True
 ) -> dict[int, list[PathInfo]]:
     """ Get the resolved list of paths in all possible timings """
     # Loop through first train to last train
@@ -408,7 +413,7 @@ def all_time_paths(
         with executor_cls() as executor:
             work = partial(
                 to_trains_wrap_multi, paths, city.lines, train_dict, city.transfers, city.virtual_transfers,
-                start_date, exclude_edge=exclude_edge
+                start_date, exclude_edge=exclude_edge, allow_transfer_shortcuts=allow_transfer_shortcuts
             )
             iterator = executor.map(work, all_list, chunksize=50)
             last_progress_time = monotonic()
