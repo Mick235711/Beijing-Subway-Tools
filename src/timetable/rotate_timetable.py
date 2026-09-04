@@ -14,14 +14,14 @@ import pyjson5
 from src.city.ask_for_city import ask_for_city, ask_for_line, ask_for_station_in_line
 from src.city.line import Line
 from src.city.train_route import TrainRoute
-from src.common.common import diff_time_tuple, get_time_str, to_pinyin, force_no_indent, rotate_list
+from src.common.common import diff_time_tuple, get_time_str, to_pinyin, force_no_indent, rotate_list, TimeSpec
 from src.routing.export_trains import output_json
 from src.routing.train import Train, parse_trains
 from src.timetable.input_to_timetable import divide_filters, divide_schedule
 from src.timetable.timetable import Timetable
 
 RouteKey = tuple[tuple[str, ...], bool, bool, tuple[tuple[str, int], ...]]
-TimeEntry = tuple[str, tuple[time, bool], int | None]
+TimeEntry = tuple[str, TimeSpec, int | None]
 
 
 def direction_stations_after_rotation(line: Line, direction: str, new_start: str) -> list[str]:

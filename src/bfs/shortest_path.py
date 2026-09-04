@@ -9,8 +9,8 @@ import sys
 from datetime import date, time
 
 from src.bfs.avg_shortest_time import all_time_bfs, shortest_path_args, PathInfo, path_shorthand
-from src.bfs.bfs import BFSResult, Path
-from src.bfs.k_shortest_path import k_shortest_path
+from src.bfs.bfs import BFSResult, Path, BFSOptions
+from src.bfs.k_shortest_path import k_shortest_path, KBFSOptions
 from src.city.ask_for_city import ask_for_city, ask_for_station_pair, ask_for_date, ask_for_time
 from src.city.city import City
 from src.city.line import Line
@@ -149,12 +149,11 @@ def get_kth_path(
         if args.exclude_next_day:
             print("Warning: --exclude-next-day ignored in time mode.")
         num_path = args.num_path or 1
-        results = k_shortest_path(
-            lines, train_dict, through_dict, city.transfers, virtual_transfers,
-            start[0], end[0],
-            start_date, (start_time, start_day),
-            k=num_path, exclude_edge=args.exclude_edge, include_express=args.include_express
-        )
+        results = k_shortest_path(lines, train_dict, through_dict, city.transfers, virtual_transfers, options=KBFSOptions(
+            end[0], num_path, BFSOptions(start[0], start_date, (start_time, start_day),
+                exclude_edge=args.exclude_edge, include_express=args.include_express
+            )
+        ))
         if len(results) == 0:
             print("Unreachable!")
             sys.exit(0)

@@ -6,8 +6,9 @@
 # Libraries
 import argparse
 from datetime import date
-from math import floor, ceil
+from math import ceil
 
+from src.bfs.bfs import BFSOptions
 from src.city.ask_for_city import ask_for_city, ask_for_station, ask_for_date, ask_for_through_train
 from src.city.line import Line, station_full_name
 from src.city.transfer import Transfer
@@ -56,7 +57,7 @@ def analyze_transfer(
             transfer_time, _ = transfer.get_transfer_time(
                 line, direction, new_line, new_direction, cur_date, base_time, base_day
             )
-            minutes = (floor if exclude_edge else ceil)(transfer_time[0])
+            minutes = BFSOptions.process_edge(transfer_time[0], exclude_edge=exclude_edge)
             pre_time, pre_day = add_min(base_time, minutes, base_day)
             candidates = [t for t in new_trains if diff_time_tuple(
                 t.departure_time[new_station], (pre_time, pre_day)
@@ -75,7 +76,7 @@ def analyze_transfer(
         transfer_time, _ = transfer.get_transfer_time(
             line, direction, new_line, new_direction, cur_date, new_time, new_day
         )
-        minutes = (floor if exclude_edge else ceil)(transfer_time[0])
+        minutes = BFSOptions.process_edge(transfer_time[0], exclude_edge=exclude_edge)
         pre_time, pre_day = add_min(new_time, -minutes, new_day)
         if station is None:
             assert len(train_list) == 1, train_list

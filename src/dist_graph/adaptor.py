@@ -9,18 +9,17 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import date, time, timedelta
 from functools import partial
-from math import floor, ceil
 from time import monotonic
 
 from tqdm import tqdm
 
 from src.bfs.avg_shortest_time import PathInfo, get_minute_list, reconstruct_paths
-from src.bfs.bfs import BFSResult, bfs, expand_path
+from src.bfs.bfs import BFSResult, bfs, expand_path, BFSOptions
 from src.bfs.common import AbstractPath, Path as BFSPath
 from src.city.city import City
 from src.city.line import Line
 from src.city.transfer import Transfer, get_station_transfer_time
-from src.common.common import add_min_tuple, from_minutes, get_time_repr
+from src.common.common import add_min_tuple, from_minutes, get_time_repr, TimeSpec
 from src.dist_graph.shortest_path import Graph, Path, shortest_path
 from src.routing.train import Train
 
@@ -130,7 +129,7 @@ def simplify_path(path: Path, end_station: str) -> AbstractPath:
 def resolve_line_segment(
     lines: dict[str, Line], train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     station: str, next_station: str, line_name: str, direction: str,
-    cur_date: date, cur_tuple: tuple[time, bool], *, exclude_edge: bool = False
+    cur_date: date, cur_tuple: TimeSpec, *, exclude_edge: bool = False
 ) -> tuple[BFSResult, BFSPath, date, bool]:
     """ Resolve an abstract line segment while allowing internal train changes """
     line = lines[line_name]
@@ -141,11 +140,10 @@ def resolve_line_segment(
         (cur_date + timedelta(days=1), (time.min, False), True),
     ]
     for query_date, query_tuple, forced_next_day in attempts:
-        results = bfs(
-            restricted_lines, restricted_trains, {}, {}, {},
-            query_date, station, query_tuple,
+        results = bfs(restricted_lines, restricted_trains, {}, {}, {}, options=BFSOptions(
+            station, query_date, query_tuple,
             exclude_edge=exclude_edge, include_express=True
-        )
+        ))
         result = results.get((next_station, line_name, direction))
         if result is None:
             continue
@@ -191,7 +189,7 @@ def to_trains(
                     from_line_name, from_direction, to_line_name, to_direction
                 ), transfer_time, is_special)
             ))
-            cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time[0]))
+            cur_tuple = add_min_tuple(cur_tuple, BFSOptions.process_edge(transfer_time[0], exclude_edge=exclude_edge))
             continue
 
         # Normal line, find a suitable train
@@ -215,7 +213,7 @@ def to_trains(
             cur_date, cur_tuple[0], cur_tuple[1],
             allow_transfer_shortcuts=allow_transfer_shortcuts
         )
-        cur_tuple = add_min_tuple(cur_tuple, (floor if exclude_edge else ceil)(transfer_time[0]))
+        cur_tuple = add_min_tuple(cur_tuple, BFSOptions.process_edge(transfer_time[0], exclude_edge=exclude_edge))
 
     return BFSResult(
         end_station, start_date, start_tuple[0], start_tuple[1], cur_tuple[0], cur_tuple[1],
@@ -527,7 +525,7 @@ def path_from_pairs(
     abstract_path: AbstractPath = []
     dist = 0
     prev_station = start_from
-    cur_station = list(next_station[start_from])[0]
+    cur_station = next(iter(next_station[start_from]))
     def update() -> None:
         """ Update path stats """
         nonlocal dist, abstract_path

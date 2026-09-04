@@ -22,9 +22,9 @@ from nicegui.elements.switch import Switch
 from nicegui.events import GenericEventArguments
 
 from src.bfs.avg_shortest_time import PathInfo, get_waiting_time
-from src.bfs.bfs import path_distance, expand_path, total_transfer
+from src.bfs.bfs import path_distance, expand_path, total_transfer, BFSOptions
 from src.bfs.common import to_abstract
-from src.bfs.k_shortest_path import k_shortest_path
+from src.bfs.k_shortest_path import k_shortest_path, KBFSOptions
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
@@ -44,7 +44,6 @@ from src.ui.common import get_station_html, get_station_selector_options, get_li
 from src.ui.drawers import refresh_station_drawer, refresh_line_drawer, get_line_badge, get_station_badge, \
     refresh_train_drawer
 from src.ui.route_map import add_route_map, add_route_map_viewer
-
 
 PATH_METRIC_OPTIONS: dict[PathMetric, str] = {
     "time": "Fastest", "distance": "Shortest", "station": "Fewest station"
@@ -581,9 +580,12 @@ async def get_kth_routes(
             k_shortest_path,
             city.lines, train_dict, through_dict, city.transfers,
             {} if exclude_virtual else city.virtual_transfers,
-            start_station, end_station, start_date, start_time,
-            k=k, include_express=include_express,
-            allow_transfer_shortcuts=allow_transfer_shortcuts, progress_callback=progress_callback
+            options=KBFSOptions(end_station, k, BFSOptions(
+                start_station, start_date, start_time,
+                include_express=include_express,
+                allow_transfer_shortcuts=allow_transfer_shortcuts
+            )),
+            progress_callback=progress_callback
         )
         if time_results is None or len(time_results) == 0:
             return None

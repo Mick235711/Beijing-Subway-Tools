@@ -9,7 +9,8 @@ from contextlib import redirect_stdout
 from datetime import datetime, time
 from typing import Any, Literal
 
-from src.bfs.k_shortest_path import k_shortest_path
+from src.bfs.bfs import BFSOptions
+from src.bfs.k_shortest_path import k_shortest_path, KBFSOptions
 from src.dist_graph.adaptor import get_dist_graph, to_trains
 from src.dist_graph.shortest_path import k_shortest_static_path
 from src.mcp.context import get_city, get_train_dict, get_through_dict
@@ -138,12 +139,9 @@ def plan_journey(
     output = io.StringIO()
     with redirect_stdout(output):
         if strategy == "min_time":
-            results = k_shortest_path(
-                city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers,
-                start_station, end_station,
-                query_date, (query_time, False),
-                k=num_paths
-            )
+            results = k_shortest_path(city.lines, train_dict, through_dict, city.transfers, city.virtual_transfers, options=KBFSOptions(
+                end_station, num_paths, BFSOptions(start_station, query_date, (query_time, False))
+            ))
         else:
             graph = get_dist_graph(city)
             static_results = k_shortest_static_path(

@@ -10,9 +10,9 @@ import sys
 import questionary
 
 from src.bfs.avg_shortest_time import data_criteria, find_avg_paths
-from src.bfs.bfs import Path
+from src.bfs.bfs import Path, BFSOptions, bfs, get_result
 from src.bfs.common import AbstractPath, to_abstract
-from src.bfs.k_shortest_path import k_shortest_path, merge_path
+from src.bfs.k_shortest_path import merge_path
 from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path, ask_for_shortest_time
 from src.city.ask_for_city import ask_for_station_pair, ask_for_date, ask_for_station
 from src.city.city import City
@@ -393,18 +393,17 @@ def get_multi_path(city: City, args: argparse.Namespace) -> Route:
     current_path: Path = []
     current_tuple = (start_time, start_day)
     for i, (start, end) in enumerate(todo):
-        results = k_shortest_path(
-            lines, train_dict, through_dict, city.transfers, virtual_transfers,
-            start, end, start_date, current_tuple,
-            exclude_edge=args.exclude_edge, include_express=args.include_express
-        )
-        if len(results) == 0:
+        bfs_result = bfs(lines, train_dict, through_dict, city.transfers, virtual_transfers, options=BFSOptions(
+            start, start_date, current_tuple, exclude_edge=args.exclude_edge, include_express=args.include_express
+        ))
+        end_result = get_result(bfs_result, end, city.transfers, through_dict)
+        if end_result is None:
             print("Unreachable!")
             sys.exit(0)
-        assert len(results) == 1, results
 
         # Print results
-        result, path = results[0]
+        result = end_result[1]
+        path = result.shortest_path(bfs_result)
         print(f"\nSegment #{i + 1}: {city.station_full_name(start)} -> {city.station_full_name(end)} from " +
               get_time_repr(current_tuple[0], current_tuple[1]))
         result.pretty_print_path(path, lines, city.transfers, through_dict=through_dict, fare_rules=city.fare_rules)

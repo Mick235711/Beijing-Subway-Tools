@@ -5,9 +5,9 @@
 
 # Libraries
 import argparse
-from math import floor, ceil
 from typing import Literal
 
+from src.bfs.bfs import BFSOptions
 from src.city.city import City
 from src.city.date_group import DateGroup
 from src.city.line import Line, station_full_name
@@ -95,7 +95,7 @@ def avg_waiting_time(
                 transfer_time, _ = transfer_spec.get_transfer_time(
                     lines[from_l], from_d, lines[to_l], to_d, date_group, *train.arrival_time[station1]
                 )
-                minutes = (floor if exclude_edge else ceil)(transfer_time[0])
+                minutes = BFSOptions.process_edge(transfer_time[0], exclude_edge=exclude_edge)
                 while cur_index < len(train_list2) and diff_time_tuple(
                     train_list2[cur_index][1].departure_time[station2], train.arrival_time[station1]
                 ) < minutes + (1 if exclude_edge else 0):
