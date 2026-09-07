@@ -10,7 +10,7 @@
             // 节点2->1, 早晚可逆行
             {
                 from: "1号线", to: "2号线", minutes: 1, distance: 0, stairs: 37,
-                apply_time: [{date_group: "工作日", end: "07:20"}, {date_group: "工作日", start: "09:20", end: "16:30"}, {date_group: "工作日", start: "20:00"}, {date_group: "双休日"}]
+                apply_time: [{date_group: "工作日", end: "07:20"}, {date_group: "工作日", start: "09:00", end: "17:00"}, {date_group: "工作日", start: "19:30"}, {date_group: "双休日"}]
             }
         ],
         "建国门": [
