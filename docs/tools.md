@@ -3399,3 +3399,35 @@ options:
   --address ADDRESS  Server address
   --port PORT        Server port
 ```
+
+# Distribution Scripts
+You can use [`scripts/pack_ui.py`](/scripts/pack_ui.py) to pack the UI into a single distributable native app/executable.
+The command-line arguments are basically the same as what `pyinstaller` supports:
+```
+usage: pack_ui.py [-h] [--name NAME] [--onedir | --onefile] [--windowed |
+                  --console] [--add-data ADD_DATA]
+                  [--exclude-module EXCLUDE_MODULE] [--icon ICON]
+                  [--osx-bundle-identifier OSX_BUNDLE_IDENTIFIER] [--clean]
+                  [--noconfirm] [--dry-run]
+
+Build the native frontend. The default onedir build starts faster than a
+onefile build, and CLI-only scientific/graph packages are excluded.
+
+options:
+  -h, --help            show this help message and exit
+  --name NAME           Application and output name
+  --onedir              Build a fast-starting directory (default)
+  --onefile             Build one slower-starting self-extracting executable
+  --windowed            Hide the terminal window (default)
+  --console             Keep a terminal for diagnostics
+  --add-data ADD_DATA   Additional PyInstaller data mapping
+  --exclude-module EXCLUDE_MODULE
+                        Exclude another optional module in addition to the
+                        existing frontend exclusions
+  --icon ICON           Application icon
+  --osx-bundle-identifier OSX_BUNDLE_IDENTIFIER
+                        macOS bundle identifier
+  --clean               Clear the PyInstaller build cache
+  --noconfirm           Replace an existing output without prompting
+  --dry-run             Print the command without building
+```
