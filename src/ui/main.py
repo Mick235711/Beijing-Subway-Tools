@@ -5,7 +5,9 @@
 
 # Libraries
 import argparse
+import sys
 from datetime import date
+from multiprocessing import freeze_support
 from typing import Any
 
 from nicegui import app, background_tasks, run, ui
@@ -396,6 +398,7 @@ def main() -> None:
     group2.add_argument("--light", action="store_true", help="Light mode")
     group2.add_argument("--dark", action="store_true", help="Dark mode")
     args = parser.parse_args()
+    reload = not getattr(sys, "frozen", False)
 
     if args.light:
         dark = False
@@ -405,7 +408,7 @@ def main() -> None:
         dark = None
 
     if args.browser:
-        ui.run(dark=dark, show=False, title="Beijing Subway Tools - Browser Mode")
+        ui.run(dark=dark, show=False, reload=reload, title="Beijing Subway Tools - Browser Mode")
     else:
         set_native(True)
         app.native.settings['ALLOW_DOWNLOADS'] = True
@@ -415,9 +418,12 @@ def main() -> None:
         else:
             window_w, window_h = tuple(int(x.strip()) for x in args.window_size.split("x"))
             window_size = (window_w, window_h)
-        ui.run(native=True, dark=dark, window_size=window_size, title="Beijing Subway Tools")
+        ui.run(native=True, dark=dark, reload=reload, window_size=window_size, title="Beijing Subway Tools")
 
 
 # Call main
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ == "__main__":
+    freeze_support()
+    main()
+elif __name__ == "__mp_main__":
     main()
