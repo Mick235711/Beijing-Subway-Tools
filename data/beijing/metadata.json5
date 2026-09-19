@@ -354,9 +354,9 @@
         "望京西": [
             {from: "13号线", from_direction: "东行", to: "15号线", minutes: 5.5, distance: 340, stairs: 112},
             {from: "13号线", from_direction: "西行", to: "15号线", minutes: 5, distance: 310, stairs: 112},
-            {from: "13号线", from_direction: "东行", to: "17号线", minutes: 3.5, distance: 130, stairs: 177},
-            {from: "13号线", from_direction: "西行", to: "17号线", minutes: 3, distance: 100, stairs: 177},
-            {from: "15号线", to: "17号线", minutes: 2, distance: 80, stairs: 133}
+            {from: "13号线", from_direction: "东行", to: "17号线", minutes: 4, distance: 130, stairs: 177},
+            {from: "13号线", from_direction: "西行", to: "17号线", minutes: 3.5, distance: 100, stairs: 177},
+            {from: "15号线", to: "17号线", minutes: 3, distance: 80, stairs: 133}
         ],
         "望京": [
             {from: "14号线", to: "15号线", minutes: 2.5, distance: 110, stairs: 114}
