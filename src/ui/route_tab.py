@@ -317,11 +317,16 @@ def route_tab(city: City) -> None:
         if start_date is None:
             return
 
+        client = analyze_button.client
         analyze_button.set_enabled(False)
         path_list, through_dict = await handle_progress(
             progress, analyze_routes, city, current_routes, start_date,
             allow_transfer_shortcuts=analysis_options.allow_transfer_shortcuts
         )
+        if client.is_deleted:
+            return
+        with client:
+            ui.notify("Analysis finished!", type="positive")
         analyze_button.set_enabled(True)
         await display_data.refresh(start_date=start_date, path_list=path_list, through_dict=through_dict)
 
@@ -844,7 +849,6 @@ async def analyze_routes(
         if len(paths) == 0:
             continue
         path_list.append((i, routes[i], paths))
-    ui.notify("Analysis finished!", type="positive")
     return path_list, through_dict
 
 
