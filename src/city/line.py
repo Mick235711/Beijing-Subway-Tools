@@ -338,7 +338,7 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
         if "index" in line_dict:
             index = int(line_dict["index"])
         else:
-            result = re.search(r'\d+', line_file)
+            result = re.search(r'\d+', os.path.basename(line_file))
             assert result is not None, line_file
             index = int(result.group())
 

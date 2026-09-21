@@ -22,6 +22,12 @@ follow, and also [a-new-line-from-scratch.md](docs/a-new-line-from-scratch.md) f
 # Usage of Tools
 See [tools.md](docs/tools.md) for a description of all usable tools and their parameters.
 
+# Frontend UI
+
+To reduce the difficulty of installing prerequisites, this project packages the frontend UI with `pyinstaller` into an executable application; you may download your platform's version under [nighly releases](https://github.com/Mick235711/Beijing-Subway-Tools/releases/tag/continuous-build).
+
+Alternatively, you can also visit the WeChat mini-program "京轨时刻" to have a friendlier interface (Chinese only).
+
 # Data Sources & License
 This work is licensed under [MIT](/LICENSE).
 

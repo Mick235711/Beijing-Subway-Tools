@@ -411,6 +411,8 @@ def main() -> None:
         ui.run(dark=dark, show=False, reload=reload, title="Beijing Subway Tools - Browser Mode")
     else:
         set_native(True)
+        if sys.platform.startswith("linux"):
+            app.native.start_args["gui"] = "qt"
         app.native.settings['ALLOW_DOWNLOADS'] = True
         if args.window_size is None:
             app.native.window_args = {"maximized": True}
