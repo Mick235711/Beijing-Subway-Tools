@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Beijing Subway Tools application icon</title>
+  <defs>
+    <clipPath id="calendar-shape">
+      <rect x="548" y="558" width="400" height="360" rx="70"/>
+    </clipPath>
+  </defs>
+
+  <!-- Beijing Subway simplified logo -->
+  <svg x="70" y="62" width="770" height="770" viewBox="59 59 382 382">
+    <g stroke="#004a9d" fill="none">
+      <path d="M 165,173 H 329 M 165,327 H 329" stroke-width="32"/>
+      <path d="M 186,157 V 343 M 311,169 A 180 180 0 0 1 311,333" stroke-width="42"/>
+      <path d="M 415,202 A 172 172 1 1 0 421,269 H 329" stroke-width="38"/>
+    </g>
+  </svg>
+
+  <!-- Timetable badge -->
+  <g clip-path="url(#calendar-shape)">
+    <rect x="548" y="558" width="400" height="360" fill="#ffffff"/>
+    <rect x="548" y="558" width="400" height="124" fill="#df2d37"/>
+  </g>
+  <rect x="548" y="558" width="400" height="360" rx="70" fill="none" stroke="#004a9d" stroke-width="26"/>
+  <path d="M 650,532 V 608 M 846,532 V 608" fill="none" stroke="#004a9d" stroke-width="30" stroke-linecap="round"/>
+  <path d="M 658,740 H 862 M 658,806 H 862 M 658,872 H 814" fill="none" stroke="#004a9d" stroke-width="24" stroke-linecap="round"/>
+  <path d="M 612,740 H 614 M 612,806 H 614 M 612,872 H 614" fill="none" stroke="#df2d37" stroke-width="28" stroke-linecap="round"/>
+</svg>

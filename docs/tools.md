@@ -3424,7 +3424,7 @@ options:
   --exclude-module EXCLUDE_MODULE
                         Exclude another optional module in addition to the
                         existing frontend exclusions
-  --icon ICON           Application icon
+  --icon ICON           Application icon (default: assets/app-icon.png)
   --osx-bundle-identifier OSX_BUNDLE_IDENTIFIER
                         macOS bundle identifier
   --clean               Clear the PyInstaller build cache

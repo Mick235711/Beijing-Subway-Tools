@@ -13,6 +13,7 @@ from pathlib import Path
 import nicegui
 
 
+DEFAULT_ICON = Path(__file__).resolve().parents[1] / "assets" / "app-icon.png"
 EXCLUDED_UI_MODULES = (
     "graphillion",
     "matplotlib",
@@ -86,7 +87,10 @@ def main() -> None:
         "--exclude-module", action="append", default=[],
         help="Exclude another optional module in addition to the existing frontend exclusions",
     )
-    parser.add_argument("--icon", help="Application icon")
+    parser.add_argument(
+        "--icon", default=str(DEFAULT_ICON),
+        help="Application icon (default: assets/app-icon.png)",
+    )
     parser.add_argument("--osx-bundle-identifier", help="macOS bundle identifier")
     parser.add_argument("--clean", action="store_true", help="Clear the PyInstaller build cache")
     parser.add_argument("--noconfirm", action="store_true", help="Replace an existing output without prompting")

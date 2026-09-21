@@ -198,13 +198,16 @@ def parse_coords(
         assert False, single_type
 
 
-def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map:
+def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map | None:
     """ Parse a single map JSON5 file """
     assert os.path.exists(map_file), map_file
     with open(map_file) as fp:
         map_dict = pyjson5.decode_io(fp)
 
     path = os.path.join(os.path.dirname(map_file), map_dict["path"])
+    if not os.path.exists(path):
+        print(f"Warning: map path {path} does not exist, ignoring...")
+        return None
     shape_type = map_dict.get("shape_type", "circle")
     radius = map_dict["radius"]
     width = map_dict.get("width")
@@ -243,5 +246,6 @@ def get_all_maps(city: City) -> dict[str, Map]:
     res: dict[str, Map] = {}
     for map_file in glob(os.path.join(city.root, "maps", "*.json5")):
         map_obj = parse_map(map_file, city.station_lines)
-        res[map_obj.name] = map_obj
+        if map_obj is not None:
+            res[map_obj.name] = map_obj
     return res
