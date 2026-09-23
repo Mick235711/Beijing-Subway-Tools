@@ -524,11 +524,15 @@
         "西土城": [
             {from: "10号线", to: "昌平线", minutes: 2.5, distance: 90, stairs: 141}
         ],
-        // 参考：https://www.bilibili.com/video/BV1DnBKYTEvt
+        // 参考：https://www.bilibili.com/video/BV1kwBJYoEJY/
         "蓟门桥": [
-            {from: "12号线", to: "昌平线", minutes: 1, distance: 40, stairs: 111},
-            {from: "昌平线", to: "12号线", minutes: 0.5, distance: 60, stairs: 47}
-            // 节点27->12，工作日7-9:30/17-19之外可逆行但不改变时间
+            {from: "12号线", to: "昌平线", minutes: 1.5, distance: 40, stairs: 111},
+            {from: "昌平线", to: "12号线", minutes: 1, distance: 60, stairs: 47},
+            // 节点27->12, 平峰可逆行
+            {
+                from: "12号线", to: "昌平线", minutes: 1, distance: 60, stairs: 47,
+                apply_time: [{date_group: "工作日", end: "07:00"}, {date_group: "工作日", start: "09:30", end: "17:00"}, {date_group: "工作日", start: "19:00"}, {date_group: "双休日"}]
+            }
         ],
         // 参考：https://www.bilibili.com/video/BV1Uj411P72p/
         "六道口": [
