@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import date, timedelta
-from typing import Iterable
+from typing import Callable, Iterable
 
 from src.city.ask_for_city import SERVICE_DAY_BOUNDARY
 from src.city.line import Line
@@ -63,6 +63,9 @@ class UpcomingBoard:
     reference_minute: int
     has_more: bool
     next_departures: tuple[UpcomingDeparture, ...]
+    active_unfiltered_count: int
+    following_unfiltered_count: int
+    filter_active: bool
 
     @property
     def shows_end_of_service(self) -> bool:
@@ -182,6 +185,46 @@ def _all_departures(
     return sorted(result.values(), key=lambda item: (item.service_minute, item.line.index, item.direction))
 
 
+def _select_departures(
+    departures: Iterable[UpcomingDeparture], *, line_name: str | None = None,
+    direction: str | None = None,
+    departure_filter: Callable[[UpcomingDeparture], bool] | None = None
+) -> list[UpcomingDeparture]:
+    """ Select one board's line/direction and apply its optional passenger filter """
+    return [
+        departure for departure in departures
+        if (line_name is None or departure.line.name == line_name)
+        and (direction is None or departure.direction == direction)
+        and (departure_filter is None or departure_filter(departure))
+    ]
+
+
+def get_upcoming_filter_departures(
+    station: str, selected_date: date, current_time: TimeSpec,
+    train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]], *, line_name: str | None = None,
+    direction: str | None = None
+) -> tuple[UpcomingDeparture, ...]:
+    """ Return canonical departures from the active and following service days for filter options """
+    current_minute = to_minutes(current_time[0])
+    if current_minute >= to_minutes(SERVICE_DAY_BOUNDARY):
+        sources = (
+            (selected_date, train_dict),
+            (selected_date + timedelta(days=1), next_train_dict),
+        )
+    else:
+        sources = (
+            (selected_date - timedelta(days=1), previous_train_dict),
+            (selected_date, train_dict),
+        )
+    departures = [
+        departure
+        for service_date, source in sources
+        for departure in _all_departures(station, service_date, source, through_dict)
+    ]
+    return tuple(_select_departures(departures, line_name=line_name, direction=direction))
+
+
 def _combine_boundary(kind: str, values: Iterable[str]) -> str | None:
     """ Build one compact boundary label for one or more endpoints/lines """
     unique = _ordered_unique(values)
@@ -260,39 +303,61 @@ def build_upcoming_board(
     station: str, selected_date: date, current_time: TimeSpec,
     train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict,
     through_dict: dict[ThroughSpec, list[ThroughTrain]], *, line_name: str | None = None,
+    direction: str | None = None,
+    departure_filter: Callable[[UpcomingDeparture], bool] | None = None,
     limit: int = 8, next_limit: int = 3
 ) -> UpcomingBoard:
     """ Build an Upcoming board using calendar time and service-day rollover semantics """
     assert limit > 0 and next_limit > 0, (limit, next_limit)
     current_minute = to_minutes(current_time[0])
 
-    def apply_line_filter(departures: list[UpcomingDeparture]) -> list[UpcomingDeparture]:
-        """ Apply the optional line filter before boundary annotation and row limiting """
-        if line_name is not None:
-            departures = [departure for departure in departures if departure.line.name == line_name]
-        return _annotate_boundaries(departures)
+    def apply_board_filter(departures: list[UpcomingDeparture]) -> list[UpcomingDeparture]:
+        """ Apply this board's filters before boundary annotation and row limiting """
+        return _annotate_boundaries(_select_departures(
+            departures, line_name=line_name, direction=direction,
+            departure_filter=departure_filter
+        ))
+
+    def apply_group_filter(departures: list[UpcomingDeparture]) -> list[UpcomingDeparture]:
+        """ Apply only line/direction grouping for filtered-empty detection """
+        return _select_departures(departures, line_name=line_name, direction=direction)
 
     def collect(service_day: date, source: TrainDict) -> list[UpcomingDeparture]:
         """ Collect and filter one service day """
-        return apply_line_filter(_all_departures(station, service_day, source, through_dict))
+        return apply_board_filter(_all_departures(station, service_day, source, through_dict))
 
     current_unfiltered = _all_departures(station, selected_date, train_dict, through_dict)
-    current_departures = apply_line_filter(current_unfiltered)
+    current_grouped = apply_group_filter(current_unfiltered)
+    current_departures = apply_board_filter(current_unfiltered)
 
     if current_minute >= to_minutes(SERVICE_DAY_BOUNDARY):
         service_date = selected_date
         reference_minute = current_minute
+        service_unfiltered = current_grouped
         service_departures = current_departures
+        following_unfiltered = apply_group_filter(
+            _all_departures(station, selected_date + timedelta(days=1), next_train_dict, through_dict)
+        )
         following_departures = collect(selected_date + timedelta(days=1), next_train_dict)
     else:
         service_date = selected_date - timedelta(days=1)
         reference_minute = 24 * 60 + current_minute
+        previous_unfiltered = _all_departures(station, service_date, previous_train_dict, through_dict)
+        service_unfiltered = apply_group_filter(previous_unfiltered)
         service_departures = collect(service_date, previous_train_dict)
+        following_unfiltered = current_grouped
         following_departures = current_departures
 
+    remaining_unfiltered = [
+        departure for departure in service_unfiltered
+        if departure.service_minute >= reference_minute
+    ]
     remaining = [
         departure for departure in service_departures
         if departure.service_minute >= reference_minute
+    ]
+    following_unfiltered = [
+        departure for departure in following_unfiltered if not departure.departure_time[1]
     ]
     next_departures = tuple(
         departure for departure in following_departures if not departure.departure_time[1]
@@ -303,6 +368,9 @@ def build_upcoming_board(
         reference_minute=reference_minute,
         has_more=len(remaining) > limit,
         next_departures=next_departures,
+        active_unfiltered_count=len(remaining_unfiltered),
+        following_unfiltered_count=len(following_unfiltered),
+        filter_active=departure_filter is not None,
     )
 
 

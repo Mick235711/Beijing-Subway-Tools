@@ -274,15 +274,16 @@ def get_time_input(callback: Callable[[TimeSpec], Any] | None = None, *, label: 
 def get_time_range(
     callback: Callable[[TimeSpec, TimeSpec], Any] | None = None, *,
     label: str | None = None, min_time: TimeSpec | None = None, max_time: TimeSpec | None = None,
-    range_classes: str | None = None
-) -> None:
+    value: tuple[TimeSpec, TimeSpec] | None = None, range_classes: str | None = None
+) -> Any:
     """ Get a range slider for time range selection """
     min_time_conv = min_time or from_minutes(0)
     max_time_conv = max_time or from_minutes(24 * 60)
     min_time_min = to_minutes(*min_time_conv)
     max_time_min = to_minutes(*max_time_conv)
-    repr_min = get_time_repr(*min_time_conv)
-    repr_max = get_time_repr(*max_time_conv)
+    value_min, value_max = value or (min_time_conv, max_time_conv)
+    repr_min = get_time_repr(*value_min)
+    repr_max = get_time_repr(*value_max)
 
     def handle_time_change(new_value: dict[str, int]) -> None:
         """ Handle time slider changes """
@@ -291,13 +292,17 @@ def get_time_range(
         if callback is not None:
             callback(from_minutes(new_value["min"]), from_minutes(new_value["max"]))
 
-    with ui.row().classes("w-[90%] items-center justify-end"):
+    with ui.row().classes("w-full items-center no-wrap gap-3"):
         if label is not None:
-            ui.label(label + ": ")
+            ui.label(label + ":").classes("w-28 flex-none text-right whitespace-nowrap")
         time_range = ui.range(
             min=min_time_min, max=max_time_min,
+            value={"min": to_minutes(*value_min), "max": to_minutes(*value_max)},
             on_change=lambda e: handle_time_change(e.value)
-        ).props(f"label snap left-label-value=\"{repr_min}\" right-label-value=\"{repr_max}\"").classes(range_classes)
+        ).props(f"label snap left-label-value=\"{repr_min}\" right-label-value=\"{repr_max}\"").classes(
+            "w-48 flex-none " + (range_classes or "")
+        )
+    return time_range
 
 
 def get_default_line(lines: dict[str, Line]) -> Line:

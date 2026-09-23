@@ -5,17 +5,19 @@
 
 # Libraries
 from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from functools import partial
+from typing import TypeVar
 
 from nicegui import background_tasks, binding, run, ui
-from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.label import Label
 
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.train_route import TrainRoute
-from src.common.common import get_time_str, direction_repr, suffix_s, to_pinyin, TimeSpec, to_minutes
+from src.common.common import get_time_str, direction_repr, suffix_s, to_pinyin, TimeSpec, to_minutes, from_minutes
 from src.routing.through_train import ThroughTrain, parse_through_train, find_through_train
 from src.routing.train import Train, parse_trains, parse_all_trains, get_train_id
 from src.ui.common import get_date_input, get_time_input, get_default_station, get_station_selector_options, \
@@ -26,7 +28,13 @@ from src.ui.info_tab import InfoData
 from src.ui.timetable_styles import StyleBase, assign_styles, apply_style, apply_formatting, replace_one_text, \
     FilledSquare, FilledCircle, BorderSquare, BorderCircle, SuperText, FormattedText, Colored, \
     BOX_HEIGHT, TITLE_HEIGHT, SINGLE_TEXTS, StyleMode, TimetableMode, FilterMode
-from src.ui.upcoming_departures import TrainDict, UpcomingDeparture, build_upcoming_board, countdown_label
+from src.ui.upcoming_departures import TrainDict, UpcomingDeparture, build_upcoming_board, countdown_label, \
+    get_upcoming_filter_departures
+
+FilterOption = TypeVar("FilterOption")
+UPCOMING_COMBINED = "Combined"
+UPCOMING_PER_LINE = "Per line"
+UPCOMING_PER_DIRECTION = "Per direction"
 
 
 @binding.bindable_dataclass
@@ -39,6 +47,162 @@ class TimetableData:
     through_dict: dict[ThroughSpec, list[ThroughTrain]]
     train_dict_key: tuple[str, date, tuple[str, ...]] | None
     through_dict_key: tuple[str, ...] | None
+
+
+@dataclass(frozen=True)
+class FilterTrain:
+    """ Filterable properties of one line segment or canonical Upcoming departure """
+    train: Train
+    route_keys: tuple[tuple[str, str], ...]
+    start_station: str
+    end_station: str
+    tags: tuple[str, ...]
+    departure_minute: int
+    start_minute: int
+    end_minute: int
+    duration: int
+
+
+def get_filter_train(train: Train, station: str, *, is_through: bool) -> FilterTrain:
+    """ Adapt a train to the shared filter model """
+    tags = get_train_type(train)
+    if is_through:
+        tags.append("Through")
+    if len(tags) > 1 and "Full" in tags:
+        tags.remove("Full")
+    end_station = train.loop_next.stations[0] if train.loop_next is not None else train.stations[-1]
+    return FilterTrain(
+        train=train,
+        route_keys=tuple((train.direction, route.name) for route in train.routes),
+        start_station=train.stations[0],
+        end_station=end_station,
+        tags=tuple(dict.fromkeys(tags)),
+        departure_minute=to_minutes(*train.departure_time[station]),
+        start_minute=to_minutes(*train.start_time()),
+        end_minute=to_minutes(*train.last_time()),
+        duration=train.duration(),
+    )
+
+
+class TrainFilterState:
+    """ Composed, card-local filtering state shared by timetable and Upcoming cards """
+    RANGE_NAMES = ("departure", "start", "end", "duration")
+
+    def __init__(self, items: Iterable[FilterTrain]) -> None:
+        self.active_menu: FilterMode = "route"
+        self.route_defs: dict[tuple[str, str], TrainRoute] = {}
+        self.route_options: set[tuple[str, str]] = set()
+        self.start_options: set[str] = set()
+        self.end_options: set[str] = set()
+        self.tag_options: set[str] = set()
+        self.selected_routes: set[tuple[str, str]] = set()
+        self.selected_starts: set[str] = set()
+        self.selected_ends: set[str] = set()
+        self.selected_tags: set[str] = set()
+        self.bounds: dict[str, tuple[int, int]] = {}
+        self.ranges: dict[str, tuple[int, int]] = {}
+        self.update_options(items, initial=True)
+
+    @staticmethod
+    def _bounds(values: Iterable[int]) -> tuple[int, int]:
+        """ Return stable slider bounds, including for cards without filterable trains """
+        value_list = list(values)
+        return (0, 0) if not value_list else (min(value_list), max(value_list))
+
+    @staticmethod
+    def _reconcile_selection(
+        selected: set[FilterOption], old: set[FilterOption], new: set[FilterOption]
+    ) -> set[FilterOption]:
+        """ Preserve choices while selecting options newly introduced by a live schedule change """
+        return (selected & new) | (new - old)
+
+    def update_options(self, items: Iterable[FilterTrain], *, initial: bool = False) -> None:
+        """ Refresh option domains without losing active filters during live clock updates """
+        item_list = list(items)
+        old_routes = self.route_options
+        old_starts = self.start_options
+        old_ends = self.end_options
+        old_tags = self.tag_options
+        old_bounds = self.bounds.copy()
+
+        self.route_defs = {
+            (item.train.direction, route.name): route
+            for item in item_list for route in item.train.routes
+        }
+        self.route_options = set(self.route_defs)
+        self.start_options = {item.start_station for item in item_list}
+        self.end_options = {item.end_station for item in item_list}
+        self.tag_options = {tag for item in item_list for tag in item.tags}
+        self.bounds = {
+            "departure": self._bounds(item.departure_minute for item in item_list),
+            "start": self._bounds(item.start_minute for item in item_list),
+            "end": self._bounds(item.end_minute for item in item_list),
+            "duration": self._bounds(item.duration for item in item_list),
+        }
+        if initial:
+            self.reset()
+            return
+
+        self.selected_routes = self._reconcile_selection(
+            self.selected_routes, old_routes, self.route_options
+        )
+        self.selected_starts = self._reconcile_selection(
+            self.selected_starts, old_starts, self.start_options
+        )
+        self.selected_ends = self._reconcile_selection(
+            self.selected_ends, old_ends, self.end_options
+        )
+        self.selected_tags = self._reconcile_selection(
+            self.selected_tags, old_tags, self.tag_options
+        )
+        for name in self.RANGE_NAMES:
+            old_range = self.ranges.get(name, old_bounds.get(name, self.bounds[name]))
+            old_bound = old_bounds.get(name, self.bounds[name])
+            new_bound = self.bounds[name]
+            if old_range == old_bound:
+                self.ranges[name] = new_bound
+            else:
+                self.ranges[name] = (
+                    max(new_bound[0], min(old_range[0], new_bound[1])),
+                    max(new_bound[0], min(old_range[1], new_bound[1])),
+                )
+
+    def reset(self) -> None:
+        """ Restore every filter pane to its complete option domain """
+        self.selected_routes = self.route_options.copy()
+        self.selected_starts = self.start_options.copy()
+        self.selected_ends = self.end_options.copy()
+        self.selected_tags = self.tag_options.copy()
+        self.ranges = self.bounds.copy()
+
+    def is_dirty(self) -> bool:
+        """ Whether this card currently excludes any trains """
+        return any((
+            self.selected_routes != self.route_options,
+            self.selected_starts != self.start_options,
+            self.selected_ends != self.end_options,
+            self.selected_tags != self.tag_options,
+            self.ranges != self.bounds,
+        ))
+
+    def matches(self, item: FilterTrain) -> bool:
+        """ Apply OR within categories and AND between categories/ranges """
+        if self.route_options and not any(key in self.selected_routes for key in item.route_keys):
+            return False
+        if self.start_options and item.start_station not in self.selected_starts:
+            return False
+        if self.end_options and item.end_station not in self.selected_ends:
+            return False
+        if self.tag_options and not any(tag in self.selected_tags for tag in item.tags):
+            return False
+        values = {
+            "departure": item.departure_minute,
+            "start": item.start_minute,
+            "end": item.end_minute,
+            "duration": item.duration,
+        }
+        return all(self.ranges[name][0] <= values[name] <= self.ranges[name][1]
+                   for name in self.RANGE_NAMES)
 
 
 def get_train_dicts(lines: Iterable[Line], dates: Iterable[date]) -> dict[date, TrainDict]:
@@ -132,29 +296,98 @@ def timetable_tab(city: City, data: TimetableData) -> None:
     min-width: 1rem;
 }
 .body--dark .pids-service-divider { color: #aab4c4; }
+.pids-board-responsive { container-type: inline-size; }
+.pids-board-responsive .pids-board-header,
+.pids-board-responsive .pids-departure-row {
+    grid-template-columns: minmax(4.25rem, .65fr) minmax(4.5rem, .7fr) minmax(5rem, 1.05fr)
+                           minmax(6rem, 1.3fr) minmax(5.25rem, 1fr) minmax(5rem, 1.1fr);
+    column-gap: .5rem;
+}
+.pids-board-responsive .pids-board-header {
+    font-size: .65rem;
+    letter-spacing: .02em;
+    padding: .45rem .6rem;
+}
+.pids-board-responsive .pids-departure-row { padding: .6rem; }
+.pids-board-responsive .pids-departure-time { font-size: 1.4rem; }
+.pids-board-responsive .pids-destination { font-size: 1rem; }
+@container (max-width: 34rem) {
+    .pids-board-responsive .pids-board-header { display: none; }
+    .pids-board-responsive .pids-departure-row {
+        grid-template-columns: minmax(4.75rem, auto) minmax(0, 1fr)
+                               minmax(0, 1fr) minmax(5rem, auto);
+        grid-template-areas:
+            "time destination destination countdown"
+            "line line route route"
+            "notice notice notice notice";
+        row-gap: .55rem;
+        column-gap: .75rem;
+        min-height: 0;
+    }
+    .pids-board-responsive .pids-cell-countdown { justify-self: end; }
+    .pids-board-responsive .pids-cell-line,
+    .pids-board-responsive .pids-cell-route {
+        align-items: center;
+        align-self: start;
+        display: flex;
+        gap: .4rem;
+        min-width: 0;
+    }
+    .pids-board-responsive .pids-cell-route { justify-content: flex-end; }
+    .pids-board-responsive .pids-line-range { display: none; }
+}
+@container (max-width: 28rem) {
+    .pids-board-responsive .pids-departure-row {
+        column-gap: .5rem;
+        grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr) minmax(4.5rem, auto);
+        grid-template-areas:
+            "time destination countdown"
+            "line route route"
+            "notice notice notice";
+    }
+}
 @media (max-width: 800px) {
     .pids-board-header { display: none; }
     .pids-departure-row {
-        grid-template-columns: minmax(5rem, auto) 1fr;
+        grid-template-columns: minmax(4.75rem, auto) minmax(0, 1fr)
+                               minmax(0, 1fr) minmax(5rem, auto);
         grid-template-areas:
-            "time countdown"
-            "destination destination"
-            "line route"
-            "notice notice";
+            "time destination destination countdown"
+            "line line route route"
+            "notice notice notice notice";
         row-gap: .55rem;
         column-gap: .75rem;
         min-height: 0;
     }
     .pids-cell-countdown { justify-self: end; }
-    .pids-cell-line, .pids-cell-route { align-self: start; }
+    .pids-cell-line, .pids-cell-route {
+        align-items: center;
+        align-self: start;
+        display: flex;
+        gap: .4rem;
+        min-width: 0;
+    }
+    .pids-cell-route { justify-content: flex-end; }
+    .pids-line-range { display: none; }
+}
+@media (max-width: 480px) {
+    .pids-departure-row {
+        column-gap: .5rem;
+        grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr) minmax(4.5rem, auto);
+        grid-template-areas:
+            "time destination countdown"
+            "line route route"
+            "notice notice notice";
+    }
 }
     """)
 
     rendered_mode: str | None = None
     adjacent_train_cache: dict[tuple[str, date, tuple[str, ...]], TrainDict] = {}
+    upcoming_filter_states: dict[tuple[str, str | None], TrainFilterState] = {}
     upcoming_time: TimeSpec = (datetime.now().time().replace(second=0, microsecond=0), False)
     upcoming_live = True
-    upcoming_line = "All"
+    upcoming_view = UPCOMING_COMBINED
     syncing_time_input = False
 
     def current_clock_time() -> TimeSpec:
@@ -228,7 +461,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                             upcoming_board(
                                 city, station_lines=data.info_data.station_lines, station=data.station,
                                 selected_date=data.cur_date, current_time=upcoming_time, is_live=upcoming_live,
-                                selected_line_name=None if upcoming_line == "All" else upcoming_line,
+                                selected_view=upcoming_view, filter_states=upcoming_filter_states,
                                 train_dict=data.train_dict, previous_train_dict=previous_train_dict,
                                 next_train_dict=next_train_dict, through_dict=data.through_dict
                             )
@@ -242,7 +475,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                     await upcoming_board.refresh(
                         city, station_lines=data.info_data.station_lines, station=data.station,
                         selected_date=data.cur_date, current_time=upcoming_time, is_live=upcoming_live,
-                        selected_line_name=None if upcoming_line == "All" else upcoming_line,
+                        selected_view=upcoming_view, filter_states=upcoming_filter_states,
                         train_dict=data.train_dict, previous_train_dict=previous_train_dict,
                         next_train_dict=next_train_dict, through_dict=data.through_dict
                     )
@@ -301,12 +534,14 @@ def timetable_tab(city: City, data: TimetableData) -> None:
             station_temp = station or select_station.value
             if station_temp is None:
                 station_temp = get_default_station(set(city.station_lines.keys()))
+            if station_temp != data.station or new_date is not None:
+                upcoming_filter_states.clear()
             data.station = station_temp
 
             select_station.set_options(get_station_selector_options(city.station_lines))
             select_station.set_value(data.station)
             select_station.update()
-            update_upcoming_line_selector()
+            update_upcoming_view_selector()
 
             if new_date is not None:
                 data.cur_date = new_date
@@ -318,6 +553,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         def on_date_change(new_date: date) -> None:
             """ Update the current date and refresh the train list """
             data.cur_date = new_date
+            upcoming_filter_states.clear()
             on_any_change()
 
         data.info_data.on_line_change.append(lambda: on_station_change(data.station, data.cur_date))
@@ -331,10 +567,15 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         loading = ui.spinner(size="lg").classes("ml-2")
         loading.set_visibility(False)
 
+    def on_display_change() -> None:
+        """ Reset card filters when changing the top-level timetable presentation """
+        upcoming_filter_states.clear()
+        on_any_change()
+
     with ui.row().classes("items-center justify-between"):
         ui.label("Hour display mode: ")
         display_toggle = ui.toggle(["Prefix", "Title", "List", "Combined", "Upcoming"],
-                                   value="Prefix", on_change=on_any_change)
+                                   value="Prefix", on_change=on_display_change)
         skipped_switch = ui.switch("Show skipping trains", on_change=on_any_change)
 
     def on_upcoming_time_change(new_time: TimeSpec) -> None:
@@ -346,29 +587,39 @@ def timetable_tab(city: City, data: TimetableData) -> None:
         upcoming_time = new_time[0], False
         on_any_change()
 
-    def update_upcoming_line_selector(line_name: str | None = None) -> None:
-        """ Refresh the station-specific line filter while preserving valid selections """
-        nonlocal upcoming_line
+    def update_upcoming_view_selector(view_name: str | None = None) -> None:
+        """ Refresh the station-specific Upcoming view while preserving valid selections """
+        nonlocal upcoming_view
         available_lines = {
             line.name: line for line in data.info_data.station_lines.get(data.station, set())
         }
-        requested_line = line_name or upcoming_line
-        upcoming_line = (
-            requested_line if len(available_lines) > 1 and requested_line in available_lines else "All"
-        )
-        line_input.set_options(get_line_selector_options(available_lines, append_options={"All"}))
-        line_input.set_value(upcoming_line)
-        with line_input.add_slot("selected"):
-            if upcoming_line == "All":
-                ui.label("All")
+        modes = [UPCOMING_COMBINED, UPCOMING_PER_DIRECTION]
+        if len(available_lines) > 1:
+            modes.insert(1, UPCOMING_PER_LINE)
+        valid_views = set(modes) | (set(available_lines) if len(available_lines) > 1 else set())
+        requested_view = view_name or upcoming_view
+        new_view = requested_view if requested_view in valid_views else UPCOMING_COMBINED
+        if new_view != upcoming_view:
+            upcoming_filter_states.clear()
+        upcoming_view = new_view
+        options = {
+            mode: f'<div class="w-full" data-autocomplete="{mode}">{mode}</div>'
+            for mode in modes
+        }
+        if len(available_lines) > 1:
+            options.update(get_line_selector_options(available_lines))
+        view_input.set_options(options)
+        view_input.set_value(upcoming_view)
+        with view_input.add_slot("selected"):
+            if upcoming_view in modes:
+                ui.label(upcoming_view)
             else:
-                get_line_badge(available_lines[upcoming_line])
-        line_input.update()
-        upcoming_line_controls.set_visibility(len(available_lines) > 1)
+                get_line_badge(available_lines[upcoming_view])
+        view_input.update()
 
-    def on_upcoming_line_change(line_name: str | None = None) -> None:
-        """ Apply the selected station line without changing the selected time """
-        update_upcoming_line_selector(line_name)
+    def on_upcoming_view_change(view_name: str | None = None) -> None:
+        """ Apply the selected Upcoming grouping without changing the selected time """
+        update_upcoming_view_selector(view_name)
         if display_toggle.value == "Upcoming":
             on_any_change()
 
@@ -377,12 +628,14 @@ def timetable_tab(city: City, data: TimetableData) -> None:
     ) as upcoming_controls:
         ui.label("Current time:")
         time_input = get_time_input(on_upcoming_time_change, label=None).classes("w-36")
-        with ui.row().classes("items-center gap-2") as upcoming_line_controls:
-            ui.label("Line:")
-            line_input = ui.select({"All": "All"}, value="All").props(
+        with ui.row().classes("items-center gap-2"):
+            ui.label("View:")
+            view_input = ui.select(
+                {UPCOMING_COMBINED: UPCOMING_COMBINED}, value=UPCOMING_COMBINED
+            ).props(
                 "use-chips options-html options-dense"
             ).classes("min-w-40 max-w-64").on_value_change(
-                lambda event: on_upcoming_line_change(event.value)
+                lambda event: on_upcoming_view_change(event.value)
             )
         ui.button("Return to now", icon="schedule", on_click=set_upcoming_to_now).props(
             "outline no-caps color=primary"
@@ -512,7 +765,8 @@ def _render_upcoming_departure(
             with ui.element("div").classes("flex flex-wrap items-center gap-1"):
                 get_line_badge(departure.line, add_click=True, force_icon_dir=departure.direction)
                 ui.label(departure.direction).classes("font-medium")
-            get_line_direction_repr(departure.line, departure.direction)
+            with ui.element("div").classes("pids-line-range"):
+                get_line_direction_repr(departure.line, departure.direction)
 
         with ui.element("div").classes("pids-cell-route"):
             ui.label(train_id).classes("font-medium")
@@ -524,72 +778,175 @@ def _render_upcoming_departure(
                     _boundary_notice(city, departure)
 
 
+def _render_upcoming_board_table(
+    city: City, *, station_lines: dict[str, set[Line]], station: str, selected_date: date,
+    current_time: TimeSpec, line_name: str | None, direction: str | None,
+    train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict,
+    through_dict: dict[ThroughSpec, list[ThroughTrain]], filter_state: TrainFilterState | None = None,
+    responsive: bool = False
+) -> None:
+    """ Render one flat Upcoming board, optionally filtered within an expansion card """
+    departure_filter: Callable[[UpcomingDeparture], bool] | None = None
+    if filter_state is not None and filter_state.is_dirty():
+        departure_filter = lambda departure: filter_state.matches(get_filter_train(
+            departure.train, station, is_through=departure.is_through
+        ))
+    board = build_upcoming_board(
+        station, selected_date, current_time, train_dict, previous_train_dict, next_train_dict,
+        through_dict, line_name=line_name, direction=direction, departure_filter=departure_filter
+    )
+
+    board_classes = "pids-board" + (" pids-board-responsive" if responsive else "")
+    with ui.element("div").classes(board_classes):
+        with ui.element("div").classes("pids-board-header"):
+            for class_name, title in (
+                ("pids-cell-time", "Departure"),
+                ("pids-cell-countdown", "Leaves in"),
+                ("pids-cell-line", "Line / direction"),
+                ("pids-cell-destination", "Destination / service"),
+                ("pids-cell-route", "Train"),
+                ("pids-cell-notice", "Notices"),
+            ):
+                ui.label(title).classes(class_name)
+
+        for departure in board.departures:
+            _render_upcoming_departure(
+                city, departure, board.reference_minute, selected_date,
+                train_dict, previous_train_dict, next_train_dict, station_lines
+            )
+
+        if board.shows_end_of_service:
+            with ui.column().classes("pids-board-footer w-full items-center gap-1 q-pa-md"):
+                with ui.row().classes("items-center gap-2"):
+                    filtered_service_ends_early = (
+                        board.filter_active and board.active_unfiltered_count > len(board.departures)
+                    )
+                    if filtered_service_ends_early:
+                        ui.icon("filter_alt_off", color="blue-grey-6")
+                        message = (
+                            "No more departures match the current filters"
+                            if board.departures else "No departures match the current filters"
+                        )
+                    else:
+                        ui.icon("bedtime", color="blue-grey-6")
+                        message = "End of service" if board.departures else "Service has ended for this date"
+                    ui.label(message).classes("font-semibold")
+
+            if board.next_departures:
+                next_date = board.next_departures[0].service_date.isoformat()
+                prefix = "First matching services" if board.filter_active else "First services"
+                ui.label(f"{prefix} on {next_date}").classes(
+                    "pids-board-footer pids-service-divider"
+                )
+                for departure in board.next_departures:
+                    _render_upcoming_departure(
+                        city, departure, None, selected_date,
+                        train_dict, previous_train_dict, next_train_dict, station_lines,
+                        relative_label="Next service"
+                    )
+            elif board.filter_active:
+                with ui.row().classes("pids-board-footer w-full items-center justify-center gap-2 q-pa-md"):
+                    ui.icon("event_busy", color="blue-grey-6")
+                    ui.label("No departures match the filters on the next service day")
+
+
 @ui.refreshable
 def upcoming_board(
     city: City, *, station_lines: dict[str, set[Line]], station: str, selected_date: date,
-    current_time: TimeSpec, is_live: bool, selected_line_name: str | None,
+    current_time: TimeSpec, is_live: bool, selected_view: str,
+    filter_states: dict[tuple[str, str | None], TrainFilterState],
     train_dict: TrainDict, previous_train_dict: TrainDict, next_train_dict: TrainDict,
     through_dict: dict[ThroughSpec, list[ThroughTrain]]
 ) -> None:
-    """ Render the isolated passenger-facing Upcoming display mode """
+    """ Render the passenger-facing Upcoming display and its selected grouping """
     if station not in station_lines:
         return
-    board = build_upcoming_board(
+    lines = sorted(station_lines[station], key=lambda item: item.index)
+    meta_board = build_upcoming_board(
         station, selected_date, current_time, train_dict, previous_train_dict, next_train_dict,
-        through_dict, line_name=selected_line_name
+        through_dict
     )
-    current_label = get_time_str(current_time[0])
+
+    def filter_items(line: Line, direction: str | None) -> list[FilterTrain]:
+        """ Build filter domains from the active and following service schedules """
+        departures = get_upcoming_filter_departures(
+            station, selected_date, current_time, train_dict, previous_train_dict, next_train_dict,
+            through_dict, line_name=line.name, direction=direction
+        )
+        return [
+            get_filter_train(departure.train, station, is_through=departure.is_through)
+            for departure in departures
+        ]
+
+    def render_card(line: Line, direction: str | None, *, split_direction: bool) -> None:
+        """ Render one independently filtered line or line-direction expansion """
+        key = (line.name, direction)
+        items = filter_items(line, direction)
+        if key not in filter_states:
+            filter_states[key] = TrainFilterState(items)
+        else:
+            filter_states[key].update_options(items)
+        state = filter_states[key]
+
+        @ui.refreshable
+        def body() -> None:
+            _render_upcoming_board_table(
+                city, station_lines=station_lines, station=station, selected_date=selected_date,
+                current_time=current_time, line_name=line.name, direction=direction,
+                train_dict=train_dict, previous_train_dict=previous_train_dict,
+                next_train_dict=next_train_dict, through_dict=through_dict,
+                filter_state=state, responsive=split_direction
+            )
+
+        with ui.expansion(value=True).classes("w-[48%]" if split_direction else "w-full") as expansion:
+            body()
+        with expansion.add_slot("header"):
+            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                if direction is None:
+                    with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
+                        get_line_badge(line, add_click=True)
+                        get_line_direction_repr(line)
+                else:
+                    show_line_direction(line, direction)
+                show_filter_menu(state, line, direction, body.refresh)
 
     with ui.column().classes("w-full gap-y-3"):
         with ui.row().classes("w-full items-end justify-between gap-2"):
             with ui.column().classes("gap-0"):
                 ui.label("Upcoming Departures").classes("text-xl font-semibold")
                 with ui.row().classes("items-center gap-1"):
-                    ui.label(
-                        ("As of " if is_live else "Viewing ") + current_label
-                    ).classes("pids-secondary")
+                    ui.label(("As of " if is_live else "Viewing ") + get_time_str(current_time[0])).classes(
+                        "pids-secondary"
+                    )
                     if is_live:
                         ui.badge("Live", color="positive")
-            if board.service_date != selected_date:
-                ui.badge(f"Overnight service from {board.service_date.isoformat()}", color="blue-grey-7")
-
-        with ui.element("div").classes("pids-board"):
-            with ui.element("div").classes("pids-board-header"):
-                for class_name, title in (
-                    ("pids-cell-time", "Departure"),
-                    ("pids-cell-countdown", "Leaves in"),
-                    ("pids-cell-line", "Line / direction"),
-                    ("pids-cell-destination", "Destination / service"),
-                    ("pids-cell-route", "Train"),
-                    ("pids-cell-notice", "Notices"),
-                ):
-                    ui.label(title).classes(class_name)
-
-            for departure in board.departures:
-                _render_upcoming_departure(
-                    city, departure, board.reference_minute, selected_date,
-                    train_dict, previous_train_dict, next_train_dict, station_lines
+            if meta_board.service_date != selected_date:
+                ui.badge(
+                    f"Overnight service from {meta_board.service_date.isoformat()}", color="blue-grey-7"
                 )
 
-            if board.shows_end_of_service:
-                with ui.column().classes("pids-board-footer w-full items-center gap-1 q-pa-md"):
-                    with ui.row().classes("items-center gap-2"):
-                        ui.icon("bedtime", color="blue-grey-6")
-                        ui.label(
-                            "End of service" if board.departures else "Service has ended for this date"
-                        ).classes("font-semibold")
-
-                if board.next_departures:
-                    next_date = board.next_departures[0].service_date.isoformat()
-                    ui.label(f"First services on {next_date}").classes(
-                        "pids-board-footer pids-service-divider"
-                    )
-                    for departure in board.next_departures:
-                        _render_upcoming_departure(
-                            city, departure, None, selected_date,
-                            train_dict, previous_train_dict, next_train_dict, station_lines,
-                            relative_label="Next service"
-                        )
+        if selected_view not in {UPCOMING_PER_LINE, UPCOMING_PER_DIRECTION}:
+            _render_upcoming_board_table(
+                city, station_lines=station_lines, station=station, selected_date=selected_date,
+                current_time=current_time,
+                line_name=None if selected_view == UPCOMING_COMBINED else selected_view,
+                direction=None, train_dict=train_dict, previous_train_dict=previous_train_dict,
+                next_train_dict=next_train_dict, through_dict=through_dict
+            )
+        elif selected_view == UPCOMING_PER_LINE:
+            for index, line in enumerate(lines):
+                if index:
+                    ui.separator()
+                render_card(line, None, split_direction=False)
+        else:
+            for index, line in enumerate(lines):
+                if index:
+                    ui.separator()
+                with ui.row().classes("w-full items-start justify-between"):
+                    for direction in sorted(
+                        line.directions, key=lambda value: (0 if value == line.base_direction() else 1)
+                    ):
+                        render_card(line, direction, split_direction=True)
 
 
 def get_train_list(
@@ -615,11 +972,16 @@ def get_train_list(
 def timetable_expansion(
     city: City, line: Line, direction: str | None, station: str, start_date: date,
     *, train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
-    hour_display: StyleMode, show_skipped: bool = False
+    hour_display: StyleMode, show_skipped: bool = False, filter_active: bool = False
 ) -> None:
     """ Expansion part of the timetable """
     train_list = get_train_list(line, direction, station, train_dict, show_skipped=show_skipped)
     if len(train_list) == 0:
+        with ui.row().classes("w-full items-center justify-center gap-2 q-pa-md text-blue-grey-7"):
+            ui.icon("filter_alt_off" if filter_active else "event_busy")
+            ui.label(
+                "No trains match the current filters" if filter_active else "No trains are available"
+            )
         return
     full_list = get_train_list(line, direction, None, train_dict, show_skipped=show_skipped)
 
@@ -677,6 +1039,52 @@ def timetables(
     if station not in station_lines:
         return
     lines = sorted(station_lines[station], key=lambda l: l.index)
+
+    def render_card(line: Line, direction: str | None) -> None:
+        """ Render one existing timetable card with composed, card-local filtering """
+        train_list = get_train_list(line, direction, station, train_dict, show_skipped=show_skipped)
+        filter_items = [
+            get_filter_train(
+                train, station, is_through=find_through_train(through_dict, train) is not None
+            )
+            for train in train_list
+        ]
+        items_by_train = {id(item.train): item for item in filter_items}
+        state = TrainFilterState(filter_items)
+
+        def filtered_train_dict() -> TrainDict:
+            """ Apply the complete card state to a shallow copy of the source timetable """
+            result = {key: values[:] for key, values in train_dict.items()}
+            directions = line.directions if direction is None else [direction]
+            for inner_direction in directions:
+                result[(line.name, inner_direction)] = [
+                    train for train in train_dict[(line.name, inner_direction)]
+                    if id(train) not in items_by_train or state.matches(items_by_train[id(train)])
+                ]
+            return result
+
+        inner = ui.refreshable(timetable_expansion)
+
+        def refresh_inner() -> None:
+            """ Refresh only this card body after a filter-state mutation """
+            inner.refresh(train_dict=filtered_train_dict(), filter_active=state.is_dirty())
+
+        with ui.expansion(value=True).classes("w-full" if direction is None else "w-[48%]") as expansion:
+            inner(
+                city, line, direction, station, start_date,
+                train_dict=train_dict, through_dict=through_dict,
+                hour_display=hour_display, show_skipped=show_skipped, filter_active=False
+            )
+        with expansion.add_slot("header"):
+            with ui.row().classes("w-full items-center justify-between no-wrap gap-1"):
+                if direction is None:
+                    with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
+                        get_line_badge(line, add_click=True)
+                        get_line_direction_repr(line)
+                else:
+                    show_line_direction(line, direction)
+                show_filter_menu(state, line, direction, refresh_inner)
+
     first = True
     with ui.column().classes("gap-y-4 w-full"):
         for line in lines:
@@ -686,42 +1094,14 @@ def timetables(
                 ui.separator()
 
             if hour_display == "combined":
-                with ui.expansion(value=True).classes("w-full") as expansion:
-                    inner = ui.refreshable(timetable_expansion)
-                    inner(
-                        city, line, None, station, start_date,
-                        train_dict=train_dict, through_dict=through_dict,
-                        hour_display=hour_display, show_skipped=show_skipped
-                    )
-                with expansion.add_slot("header"):
-                    with ui.row().classes("w-full items-center justify-between"):
-                        with ui.row().classes("inline-flex flex-wrap items-center leading-tight gap-x-2"):
-                            get_line_badge(line, add_click=True)
-                            get_line_direction_repr(line)
-                        show_filter_menu(
-                            inner, line, None, station, train_dict, through_dict,
-                            show_skipped=show_skipped
-                        )
+                render_card(line, None)
                 continue
 
             with ui.row().classes("w-full items-start justify-between"):
-                for direction, direction_stations in sorted(
+                for direction, _ in sorted(
                     line.directions.items(), key=lambda x: (0 if x[0] == line.base_direction() else 1)
                 ):
-                    with ui.expansion(value=True).classes("w-[48%]") as expansion:
-                        inner = ui.refreshable(timetable_expansion)
-                        inner(
-                            city, line, direction, station, start_date,
-                            train_dict=train_dict, through_dict=through_dict,
-                            hour_display=hour_display, show_skipped=show_skipped
-                        )
-                    with expansion.add_slot("header"):
-                        with ui.row().classes("w-full items-center justify-between"):
-                            show_line_direction(line, direction)
-                            show_filter_menu(
-                                inner, line, direction, station, train_dict, through_dict,
-                                show_skipped=show_skipped
-                            )
+                    render_card(line, direction)
 
 
 def group_trains(
@@ -929,152 +1309,155 @@ def show_legend_menu(
             )
 
 
-@ui.refreshable
-def show_filter_inner_menu(
-    inner: ui.refreshable, line: Line, direction: str | None, station: str,
-    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]], *,
-    menu_type: FilterMode = "route", show_skipped: bool = False
-) -> None:
-    """ Show context menu for filtering """
-    def on_filter_change(pred: Callable[[Train], bool]) -> None:
-        """ Handle filter changes """
-        new_train_dict: dict[tuple[str, str], list[Train]] = {k: v[:] for k, v in train_dict.items()}
-        if direction is None:
-            for d in line.directions.keys():
-                new_train_dict[(line.name, d)] = [t for t in train_list if t.direction == d and pred(t)]
-        else:
-            new_train_dict[(line.name, direction)] = [t for t in train_list if pred(t)]
-        inner.refresh(train_dict=new_train_dict)
-
-    train_list = get_train_list(line, direction, station, train_dict, show_skipped=show_skipped)
-    if menu_type == "route":
-        checkbox_dict: dict[tuple[str, str], Checkbox] = {}
-        def valid_route(target: Train) -> bool:
-            """ Determine if the train's route is selected """
-            for train_route in target.routes:
-                if not checkbox_dict[(target.direction, train_route.name)].value:
-                    return False
-            return True
-
-        if direction is None:
-            direction_list = sorted(line.directions.keys(), key=lambda x: (0 if x == line.base_direction() else 1))
-        else:
-            direction_list = [direction]
-        for inner_direction in direction_list:
-            routes: dict[tuple[str, str], TrainRoute] = {}
-            for train in train_list:
-                if train.direction != inner_direction:
-                    continue
-                for route in train.routes:
-                    routes[(train.direction, route.name)] = route
-
-            if direction is None:
-                show_line_direction(line, inner_direction)
-            for key, route in sorted(routes.items(), key=lambda r: line.route_sort_key(r[1].direction, [r[1]])):
-                checkbox_dict[key] = ui.checkbox(
-                    value=True, on_change=lambda: on_filter_change(valid_route)
-                ).classes("w-full")
-                with checkbox_dict[key].add_slot("default"):
-                    get_route_repr(line, route)
-    elif menu_type in ["start", "end"]:
-        def target_station(target: Train) -> str:
-            """ Determine if the train's start/end station is selected """
-            if menu_type == "start":
-                return target.stations[0]
-            else:
-                return target.loop_next.stations[0] if target.loop_next is not None else target.stations[-1]
-
-        checkbox_dict2: dict[str, Checkbox] = {}
-        stations: set[str] = {target_station(t) for t in train_list}
-        for station in sorted(stations, key=lambda s: to_pinyin(s)[0]):
-            checkbox_dict2[station] = ui.checkbox(
-                value=True, on_change=lambda: on_filter_change(lambda t: checkbox_dict2[target_station(t)].value)
-            ).classes("w-full")
-            with checkbox_dict2[station].add_slot("default"):
-                get_station_badge(
-                    station, line,
-                    show_badges=False, show_line_badges=False, add_line_click=False
-                )
-    elif menu_type == "tag":
-        tag_dict: dict[str, list[Train]] = {}
-        reverse_tag_dict: dict[Train, list[str]] = {}
-        for train in train_list:
-            result = find_through_train(through_dict, train)
-            route_types = get_train_type(train)
-            if result is not None:
-                route_types.append("Through")
-            if len(route_types) > 1 and "Full" in route_types:
-                route_types.remove("Full")
-            reverse_tag_dict[train] = route_types
-            for tag in route_types:
-                if tag not in tag_dict:
-                    tag_dict[tag] = []
-                tag_dict[tag].append(train)
-
-        checkbox_dict3: dict[str, Checkbox] = {}
-        def valid_tag(target: Train) -> bool:
-            """ Determine if the train's tag is selected """
-            for train_tag in reverse_tag_dict[target]:
-                if not checkbox_dict3[train_tag].value:
-                    return False
-            return True
-
-        for tag in sorted(tag_dict.keys(), key=lambda x: list(ROUTE_TYPES.keys()).index(x)):
-            checkbox_dict3[tag] = ui.checkbox(
-                value=True, on_change=lambda: on_filter_change(valid_tag)
-            ).classes("w-full")
-            with checkbox_dict3[tag].add_slot("default"):
-                get_badge(tag, *ROUTE_TYPES[tag])
-    elif menu_type == "time":
-        def get_time_range_filtered(label: str, pred: Callable[[Train], TimeSpec]) -> None:
-            """ Get a filtered slider based on train arriving times """
-            with ui.row().classes("w-full ml-1"):
-                get_time_range(
-                    min_time=min([pred(t) for t in train_list], key=lambda x: get_time_str(*x)),
-                    max_time=max([pred(t) for t in train_list], key=lambda x: get_time_str(*x)),
-                    label=label, range_classes="max-w-48",
-                    callback=lambda start, end: on_filter_change(
-                        lambda t: to_minutes(*start) <= to_minutes(*pred(t)) <= to_minutes(*end)
-                    )
-                )
-
-        get_time_range_filtered("Departure Time", lambda t: t.departure_time[station])
-        get_time_range_filtered("Start Time", lambda t: t.start_time())
-        get_time_range_filtered(
-            "End Time", lambda t: t.last_time()
-        )
-        with ui.row().classes("w-[90%] items-center justify-end ml-1"):
-            ui.label("Duration: ")
-            min_duration = min([t.duration() for t in train_list])
-            max_duration = max([t.duration() for t in train_list])
-            ui.range(
-                min=min_duration, max=max_duration,
-                on_change=lambda e: on_filter_change(lambda t: e.value["min"] <= t.duration() <= e.value["max"])
-            ).props("label snap").classes("max-w-48")
-    else:
-        assert False, menu_type
-
-
 def show_filter_menu(
-    inner: ui.refreshable, line: Line, direction: str | None, station: str,
-    train_dict: dict[tuple[str, str], list[Train]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
-    *, show_skipped: bool = False
+    state: TrainFilterState, line: Line, direction: str | None, on_filter_change: Callable[[], object]
 ) -> None:
-    """ Display a menu to filter the trains """
-    with ui.button(icon="filter_alt").props("dense flat round size=md") as button:
-        with ui.menu() as menu:
-            # FIXME: switching to another menu while not in default cause caused toggle to not update.
-            # However calling set_value in inner menu is too slow
-            ui.toggle(
-                ["Route", "Start", "End", "Tag", "Time"],
-                value="Route", on_change=lambda e: show_filter_inner_menu.refresh(menu_type=e.value.lower())
+    """ Display composed filters and a card-local reset control """
+    def apply_change() -> None:
+        """ Refresh the card and synchronize the reset affordance """
+        on_filter_change()
+        reset_button.set_enabled(state.is_dirty())
+
+    def update_selection(options: set, key: object, selected: bool) -> None:
+        """ Mutate one checkbox-backed category """
+        if selected:
+            options.add(key)
+        else:
+            options.discard(key)
+        apply_change()
+
+    @ui.refreshable
+    def filter_inner() -> None:
+        """ Render the currently selected filter pane from the shared state model """
+        menu_type = state.active_menu
+        if menu_type == "route":
+            directions = (
+                sorted(line.directions, key=lambda value: (0 if value == line.base_direction() else 1))
+                if direction is None else [direction]
             )
-            with ui.column().classes("mt-4 mb-4 ml-2"):
-                show_filter_inner_menu(
-                    inner, line, direction, station, train_dict, through_dict,
-                    show_skipped=show_skipped
+            rendered = False
+            for inner_direction in directions:
+                route_keys = [key for key in state.route_options if key[0] == inner_direction]
+                if not route_keys:
+                    continue
+                rendered = True
+                if direction is None:
+                    show_line_direction(line, inner_direction)
+                for key in sorted(
+                    route_keys,
+                    key=lambda value: line.route_sort_key(value[0], [state.route_defs[value]])
+                ):
+                    checkbox = ui.checkbox(
+                        value=key in state.selected_routes,
+                        on_change=lambda event, value=key: update_selection(
+                            state.selected_routes, value, event.value
+                        )
+                    ).classes("w-full")
+                    with checkbox.add_slot("default"):
+                        get_route_repr(line, state.route_defs[key])
+            if not rendered:
+                ui.label("No route filters are available").classes("text-blue-grey-7 q-pa-sm")
+        elif menu_type in {"start", "end"}:
+            options = state.start_options if menu_type == "start" else state.end_options
+            selected = state.selected_starts if menu_type == "start" else state.selected_ends
+            if not options:
+                ui.label("No station filters are available").classes("text-blue-grey-7 q-pa-sm")
+            for station_name in sorted(options, key=lambda value: to_pinyin(value)[0]):
+                checkbox = ui.checkbox(
+                    value=station_name in selected,
+                    on_change=lambda event, value=station_name: update_selection(
+                        selected, value, event.value
+                    )
+                ).classes("w-full")
+                with checkbox.add_slot("default"):
+                    get_station_badge(
+                        station_name, line,
+                        show_badges=False, show_line_badges=False, add_line_click=False
+                    )
+        elif menu_type == "tag":
+            if not state.tag_options:
+                ui.label("No tag filters are available").classes("text-blue-grey-7 q-pa-sm")
+            for tag in sorted(state.tag_options, key=lambda value: list(ROUTE_TYPES).index(value)):
+                checkbox = ui.checkbox(
+                    value=tag in state.selected_tags,
+                    on_change=lambda event, value=tag: update_selection(
+                        state.selected_tags, value, event.value
+                    )
+                ).classes("w-full")
+                with checkbox.add_slot("default"):
+                    get_badge(tag, *ROUTE_TYPES[tag])
+        elif menu_type == "time":
+            if not state.route_options:
+                ui.label("No time filters are available").classes("text-blue-grey-7 q-pa-sm")
+                return
+
+            def update_range(name: str, start: TimeSpec, end: TimeSpec) -> None:
+                """ Store one time range and recompute the composed predicate """
+                state.ranges[name] = (to_minutes(*start), to_minutes(*end))
+                apply_change()
+
+            def update_duration(value: dict[str, int]) -> None:
+                """ Store the duration range and recompute the composed predicate """
+                state.ranges["duration"] = (value["min"], value["max"])
+                apply_change()
+
+            for name, label in (
+                ("departure", "Departure Time"),
+                ("start", "Start Time"),
+                ("end", "End Time"),
+            ):
+                with ui.row().classes("w-full no-wrap"):
+                    get_time_range(
+                        min_time=from_minutes(state.bounds[name][0]),
+                        max_time=from_minutes(state.bounds[name][1]),
+                        value=(from_minutes(state.ranges[name][0]), from_minutes(state.ranges[name][1])),
+                        label=label,
+                        callback=partial(update_range, name)
+                    )
+            with ui.row().classes("w-full items-center no-wrap gap-3"):
+                ui.label("Duration:").classes("w-28 flex-none text-right whitespace-nowrap")
+                duration = ui.range(
+                    min=state.bounds["duration"][0], max=state.bounds["duration"][1],
+                    value={
+                        "min": state.ranges["duration"][0],
+                        "max": state.ranges["duration"][1],
+                    },
+                    on_change=lambda event: update_duration(event.value)
+                ).props("label snap").classes("w-48 flex-none")
+                duration.props(
+                    f'left-label-value="{state.ranges["duration"][0]}" '
+                    f'right-label-value="{state.ranges["duration"][1]}"'
                 )
-    button.on("click.stop", lambda: menu.toggle())
+        else:
+            assert False, menu_type
+
+    def switch_menu(menu_name: str) -> None:
+        """ Preserve the selected pane while rebuilding only its controls """
+        state.active_menu = menu_name.lower()  # type: ignore[assignment]
+        filter_inner.refresh()
+
+    def reset_filters() -> None:
+        """ Clear every composed filter while preserving the active pane """
+        state.reset()
+        filter_inner.refresh()
+        apply_change()
+
+    with ui.row().classes("items-center no-wrap gap-0"):
+        with ui.button(icon="filter_alt").props("dense flat round size=md") as button:
+            button.tooltip("Filter trains")
+            with ui.menu() as menu:
+                ui.toggle(
+                    ["Route", "Start", "End", "Tag", "Time"],
+                    value=state.active_menu.title(), on_change=lambda event: switch_menu(event.value)
+                )
+                with ui.column().classes("mt-4 mb-4"):
+                    filter_inner()
+        button.on("click.stop", lambda: menu.toggle())
+
+        reset_button = ui.button(icon="filter_alt_off").props("dense flat round size=md")
+        reset_button.tooltip("Reset filters")
+        reset_button.set_enabled(state.is_dirty())
+        reset_button.on("click.stop", reset_filters)
 
 
 def show_legend(
