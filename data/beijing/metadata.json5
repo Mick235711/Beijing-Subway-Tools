@@ -128,7 +128,7 @@
             // 节点8->7, 非高峰可逆行
             {
                 from: "7号线", to: "8号线", minutes: 1, distance: 90, stairs: 34,
-                apply_time: [{end: "07:00"}, {start: "09:30", end: "17:00"}, {start: "19:00"}]
+                apply_time: [{end: "07:00"}, {start: "09:30", end: "17:00"}, {start: "19:30"}]
             }
         ],
         "军事博物馆": [
@@ -155,7 +155,7 @@
             // 节点9->6, 早晚可逆行
             {
                 from: "6号线", to: "9号线", minutes: 1, distance: 20, stairs: 47,
-                apply_time: [{end: "06:30"}, {start: "20:30"}]
+                apply_time: [{end: "07:00"}, {start: "10:00", end: "16:00"}, {start: "20:00"}]
             }
         ],
         "北京西站": [
