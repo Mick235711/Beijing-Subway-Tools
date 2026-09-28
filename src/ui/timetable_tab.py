@@ -841,8 +841,7 @@ def _render_upcoming_board_table(
                 for departure in board.next_departures:
                     _render_upcoming_departure(
                         city, departure, None, selected_date,
-                        train_dict, previous_train_dict, next_train_dict, station_lines,
-                        relative_label="Next service"
+                        train_dict, previous_train_dict, next_train_dict, station_lines
                     )
             elif board.filter_active:
                 with ui.row().classes("pids-board-footer w-full items-center justify-center gap-2 q-pa-md"):

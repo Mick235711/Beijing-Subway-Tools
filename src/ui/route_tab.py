@@ -1523,7 +1523,10 @@ def display_data(
 
     time_chart = ui.echart({
         **get_chart_options(),
-        "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
+        "xAxis": {
+            "type": "category", "name": "Time", "nameLocation": "middle", "nameGap": 25,
+            "boundaryGap": False, "axisLabel": {}
+        },
         "yAxis": {"type": "value", "name": "Total Duration (min)", "scale": True},
         "tooltip": {"trigger": "axis"},
         "dataZoom": [{

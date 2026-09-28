@@ -630,7 +630,10 @@ def display_train_chart(city: City, *, data: StatsData | None = None) -> None:
 
     train_chart = ui.echart({
         **get_chart_options(),
-        "xAxis": {"type": "category", "name": "Time", "boundaryGap": False, "axisLabel": {}},
+        "xAxis": {
+            "type": "category", "name": "Time", "nameLocation": "middle", "nameGap": 25,
+            "boundaryGap": False, "axisLabel": {}
+        },
         "yAxis": {"type": "value", "name": "Train Count", "nameLocation": "middle", "nameGap": 45},
         "tooltip": {"trigger": "axis"},
         "dataZoom": [
@@ -786,7 +789,7 @@ def display_speed_graph(city: City, *, data: StatsData | None = None) -> None:
 
     speed_graph = ui.echart({
         **get_chart_options(),
-        "xAxis": {"type": "value"},
+        "xAxis": {"type": "value", "nameLocation": "middle", "nameGap": 25},
         "yAxis": {"type": "value", "name": "Average Speed (km/h)", "nameLocation": "middle", "nameGap": 45},
         "tooltip": {"trigger": "item"}
     }).classes("h-200")
