@@ -2006,6 +2006,92 @@ Shortest/Longest Station Distances:
 </pre>
 Notice that `->` indicated single-direction journey only.
 
+### [`station_codes.py`](/src/stats/station_codes.py): Generate unique letter-based station codes
+```
+usage: station_codes.py [-h] [-n LIMIT_NUM] [-a] [-f] [--exclude-express] [-s LIMIT_START] [-e LIMIT_END] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [-c NUM_CHARS] [--force-pinyin]
+
+options:
+  -h, --help            show this help message and exit
+  -n, --limit-num LIMIT_NUM
+                        Limit number of output
+  -a, --all-dates       Show combined data for all date groups
+  -f, --full-only       Only include train that runs the full journey
+  --exclude-express     Exclude express trains
+  -s, --limit-start LIMIT_START
+                        Limit earliest passing time of the trains
+  -e, --limit-end LIMIT_END
+                        Limit latest passing time of the trains
+  -i, --include-lines INCLUDE_LINES
+                        Include lines
+  -x, --exclude-lines EXCLUDE_LINES
+                        Exclude lines
+  -c, --num-chars NUM_CHARS
+                        Minimum number of characters in each station code
+  --force-pinyin        Only use pinyin when generating station codes
+```
+
+Generate a city-unique letter code for each station. Passing `-c` to set the minimum length of the code.
+By default, English translations are used; pass `--force-pinyin` to force Pinyin usage instead.
+The code are guaranteed to be unique for each station and is a subsequence of the corresponding English/Pinyin name.
+Transfer stations have priority in picking the best codes.
+
+Example Usage:
+<pre>
+$ python3 src/stats/station_codes.py -n 20
+? Please select a city: <i>北京</i>
+? Please enter the travel date (yyyy-mm-dd): <i>2026-09-29</i>
+Station Codes:
+#1: 平安里 PAL PingAnLi
+#2: 西直门 XZM XiZhiMen
+#3: 宋家庄 SJZ SongJiaZhuang
+#4: 国家图书馆 NTL NaTionalLibrary
+#5: 苹果园 PGY PingGuoYuan
+#6: 十里河 SLH ShiLiHe
+#7: 草桥 CAQ CAoQiao
+#8: 三元桥 SYQ SanYuanQiao
+#9: 望京西 WJX WangJingXi
+#10: 金安桥 JAQ JinAnQiao
+#11: 东直门 DZM DongZhiMen
+#12: 西单 XDN XiDaN
+#13: 国贸 GUM GUoMao
+#14: 海淀黄庄 HDH HaiDianHuangzhuang
+#15: 公主坟 GZF GongZhuFen
+#16: 角门西 JMX JiaoMenXi
+#17: 东单 DND DoNgDan
+#18: 呼家楼 HJL HuJiaLou
+#19: 惠新西街南口 HXX HuiXinXijienankou
+#20: 西土城 XTC XiTuCheng
+...
+#406: 大兴机场 PKX PKX
+#407: 大兴新城 DXX DaXingXincheng
+#408: 北辛安 BXA BeiXinAn
+#409: 模式口 MSK MoShiKou
+#410: 新首钢 XSG XinShouGang
+#411: 2号航站楼 PT2 PekT2
+#412: 3号航站楼 PT3 PekT3
+#413: 定海园 DHY DingHaiYuan
+#414: 定海园西 DHX DingHaiyuanXi
+#415: 经海一路 JHY JingHaiYilu
+#416: 九号村 JHN JiuHaocuN
+#417: 鹿圈东 LQD LuQuanDong
+#418: 屈庄 MRB MeRcedesBenz
+#419: 融兴街 RXJ RongXingJie
+#420: 瑞合庄 RHZ RuiHeZhuang
+#421: 四海庄 SHZ SiHaiZhuang
+#422: 泰和路 THL TaiHeLu
+#423: 太和桥北 THQ TaiHeQiaobei
+#424: 亦创会展中心 BEI BeijingEtrongIntlexhibitionconventioncenter
+#425: 亦庄同仁 YZT YiZhuangTongren
+
+Station Code Statistics:
+Initials: 317/425 (74.59%)
+Initials + Padding: 95/425 (22.35%)
+First Letters: 1/425 (0.24%)
+Consonants Only: 12/425 (2.82%)
+Other Subsequences: 0/425 (0.00%)
+Longer than 3 characters: 0/425 (0.00%)
+</pre>
+
 ### [`furthest_station.py`](/src/stats/furthest_station.py): Station with the smallest/largest station sums
 ```
 usage: furthest_station.py [-h] [-n LIMIT_NUM] [-d {station,distance}] [-b {sum,stddev,shortest,longest}] [-r] [-i INCLUDE_LINES | -x EXCLUDE_LINES] [--exclude-virtual] [--exclude-single]
