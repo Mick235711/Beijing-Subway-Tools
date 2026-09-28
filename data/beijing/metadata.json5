@@ -217,9 +217,9 @@
                 apply_time: [{end: "07:00"}, {start: "09:00", end: "17:00"}, {start: "19:00"}]
             }
         ],
-        // 参考：https://www.bilibili.com/video/BV1Ffk6BWEZy/
+        // 参考：https://www.bilibili.com/video/BV1B31XBRELj/
         "大红门": [
-            {from: "8号线", to: "10号线", minutes: 3, distance: 170, stairs: 132}
+            {from: "8号线", to: "10号线", minutes: 4, distance: 170, stairs: 132}
         ],
         "六里桥": [
             {from: "9号线", to: "10号线", minutes: 0.5, distance: 0, stairs: 44}
