@@ -16,7 +16,7 @@ from pypinyin import lazy_pinyin
 from src.city.city import City
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
-from src.common.common import percentage_str, to_pinyin
+from src.common.common import percentage_str, suffix_s, to_pinyin
 from src.routing.through_train import ThroughTrain, get_train_set
 from src.routing.train import Train
 from src.stats.common import display_first, parse_args_through
@@ -41,6 +41,7 @@ PINYIN_OVERRIDES = {
     "長庚醫院": ["chang", "geng", "yi", "yuan"],
 }
 CHINESE_DIGITS = "零一二三四五六七八九"
+IGNORED_ENGLISH_WORDS = {"of", "the", "and"}
 CODE_METHOD_LABELS = {
     "initials": "Initials",
     "initials_padding": "Initials + Padding",
@@ -82,7 +83,7 @@ def highlight_source(source: CodeSource, positions: tuple[int, ...]) -> str:
 def alias_source(alias: str) -> CodeSource | None:
     """ Convert an English alias to a code source """
     words = [normalize_spelling(word) for word in re.findall(r"[A-Za-z0-9]+", alias)]
-    words = [word for word in words if word != ""]
+    words = [word for word in words if word != "" and word not in IGNORED_ENGLISH_WORDS]
     if len(words) == 0:
         return None
     spelling = "".join(words)
@@ -173,13 +174,26 @@ def significant_digits(station: str) -> str:
     return "".join(ch for ch in station if ch.isascii() and ch.isdigit())
 
 
+def common_prefix_length(first: str, second: str) -> int:
+    """ Return the number of leading characters shared by two strings """
+    for index, (first_ch, second_ch) in enumerate(zip(first, second)):
+        if first_ch != second_ch:
+            return index
+    return min(len(first), len(second))
+
+
 def source_suffix_starts(
     station: str, stations: Iterable[str], sources_by_station: Mapping[str, list[CodeSource]]
 ) -> dict[CodeSource, int]:
-    """ Find where each source becomes distinct from a prefix station """
+    """ Find where each source becomes distinct from related station names """
+    station_list = list(stations)
     prefix_stations = [
-        prefix for prefix in stations
+        prefix for prefix in station_list
         if prefix != station and station.startswith(prefix)
+    ]
+    shared_prefix_stations = [
+        other for other in station_list
+        if other != station and 3 <= common_prefix_length(station, other) < min(len(station), len(other))
     ]
     result: dict[CodeSource, int] = {}
     for source in sources_by_station[station]:
@@ -189,6 +203,14 @@ def source_suffix_starts(
             for prefix_source in sources_by_station[prefix]
             if len(prefix_source.spelling) < len(source.spelling) and
             source.spelling.startswith(prefix_source.spelling)
+        ]
+        starts += [
+            source_prefix_length
+            for other in shared_prefix_stations
+            for other_source in sources_by_station[other]
+            if 3 <= (source_prefix_length := common_prefix_length(
+                source.spelling, other_source.spelling
+            )) < min(len(source.spelling), len(other_source.spelling))
         ]
         if len(starts) > 0:
             result[source] = max(starts)
@@ -320,7 +342,12 @@ def assign_station_codes(
     return result
 
 
-def display_code_stats(codes: list[StationCode], *, min_chars: int) -> None:
+def most_common_characters(characters: Iterable[str]) -> list[tuple[str, int]]:
+    """ Count characters with an alphabetical tiebreaker """
+    return sorted(Counter(characters).items(), key=lambda entry: (-entry[1], entry[0]))
+
+
+def display_code_stats(codes: list[StationCode], *, min_chars: int, limit_num: int = 5) -> None:
     """ Print statistics about assigned station code methods """
     total = len(codes)
     if total == 0:
@@ -332,6 +359,18 @@ def display_code_stats(codes: list[StationCode], *, min_chars: int) -> None:
         print(f"{label}: {count}/{total} ({percentage_str(count / total)})")
     longer = sum(len(entry.code) > min_chars for entry in codes)
     print(f"Longer than {min_chars} characters: {longer}/{total} ({percentage_str(longer / total)})")
+    print("Top " + suffix_s("used letter", limit_num) + ": " + ", ".join(
+        f"{character} ({count})" for character, count in
+        most_common_characters(character for entry in codes for character in entry.code)[:limit_num]
+    ))
+    print("Top " + suffix_s("starting letter", limit_num) + ": " + ", ".join(
+        f"{character} ({count})" for character, count in
+        most_common_characters(entry.code[0] for entry in codes)[:limit_num]
+    ))
+    print("Top " + suffix_s("ending letter", limit_num) + ": " + ", ".join(
+        f"{character} ({count})" for character, count in
+        most_common_characters(entry.code[-1] for entry in codes)[:limit_num]
+    ))
 
 
 def main() -> None:
@@ -350,7 +389,7 @@ def main() -> None:
     display_first(
         codes, lambda entry: f"{entry.station} {entry.code} {entry.highlighted}", limit_num=args.limit_num
     )
-    display_code_stats(codes, min_chars=args.num_chars)
+    display_code_stats(codes, min_chars=args.num_chars, limit_num=args.limit_num)
 
 
 # Call main

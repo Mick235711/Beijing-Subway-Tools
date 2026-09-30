@@ -2059,7 +2059,7 @@ Station Codes:
 #16: 角门西 JMX JiaoMenXi
 #17: 东单 DND DoNgDan
 #18: 呼家楼 HJL HuJiaLou
-#19: 惠新西街南口 HXX HuiXinXijienankou
+#19: 惠新西街南口 HXN HuiXinxijieNankou
 #20: 西土城 XTC XiTuCheng
 ...
 #406: 大兴机场 PKX PKX
@@ -2084,8 +2084,8 @@ Station Codes:
 #425: 亦庄同仁 YZT YiZhuangTongren
 
 Station Code Statistics:
-Initials: 317/425 (74.59%)
-Initials + Padding: 95/425 (22.35%)
+Initials: 318/425 (74.82%)
+Initials + Padding: 94/425 (22.12%)
 First Letters: 1/425 (0.24%)
 Consonants Only: 12/425 (2.82%)
 Other Subsequences: 0/425 (0.00%)
