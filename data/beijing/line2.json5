@@ -25,7 +25,7 @@
         {name: "朝阳门", dist: 1736},
         {name: "东四十条", dist: 1027},
         {name: "东直门", dist: 824},
-        {name: "雍和宫", dist: 2228, aliases: ["Lama Temple"]},
+        {name: "雍和宫", dist: 2228, aliases: ["Yonghegong Lama Temple"]},
         {name: "安定门", dist: 792},
         {name: "鼓楼大街", dist: 1237},
         {name: "积水潭", dist: 1766}

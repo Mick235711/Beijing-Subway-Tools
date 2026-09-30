@@ -19,7 +19,7 @@
         {name: "惠新西街南口", dist: 1121},
         {name: "和平西桥", dist: 1026},
         {name: "和平里北街", dist: 1059},
-        {name: "雍和宫", dist: 1151, aliases: ["Lama Temple"]},
+        {name: "雍和宫", dist: 1151, aliases: ["Yonghegong Lama Temple"]},
         {name: "北新桥", dist: 866},
         {name: "张自忠路", dist: 791},
         {name: "东四", dist: 1017},
