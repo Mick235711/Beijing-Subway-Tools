@@ -26,6 +26,11 @@ from src.ui.timetable_tab import get_train_dict, timetable_tab, TimetableData
 from src.ui.trains_tab import get_train_list, trains_tab, TrainsData
 
 
+# Preserve Pinyin queries instead of applying the browser's typing corrections.
+ui.input.default_props("autocorrect=off autocapitalize=off spellcheck=false")
+ui.select.default_props("autocorrect=off autocapitalize=off spellcheck=false")
+
+
 @ui.page("/", title="Beijing Subway Tools - Select City")
 async def city_selector() -> None:
     """ City selection page """
