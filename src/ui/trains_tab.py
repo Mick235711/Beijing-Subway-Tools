@@ -50,6 +50,9 @@ def get_train_list(city: City, data: TrainsData) -> list[Train]:
 def trains_tab(city: City, data: TrainsData) -> None:
     """ Train tab for the main page """
     selected_routes: set[str] = set()
+    show_options = ["Train Count", "Transfer", "Station Code", "Icon", "Compact Mode"]
+    show_station_code = True
+    show_select: ui.select | None = None
     with ui.row().classes("items-center justify-between"):
         def apply_train_list(inner_train_list: list[Train]) -> None:
             """ Apply train list to UI """
@@ -126,6 +129,14 @@ def trains_tab(city: City, data: TrainsData) -> None:
             if line_temp is None:
                 line_temp = get_default_line(data.info_data.lines).name
             data.line = line_temp
+
+            if show_select is not None:
+                options = [option for option in show_options if option != "Station Code" or city.lines[data.line].code is not None]
+                selected = [
+                    option for option in options
+                    if (show_station_code if option == "Station Code" else option in show_select.value)
+                ]
+                show_select.set_options(options, value=selected)
 
             select_line.set_options(get_line_selector_options(data.info_data.lines))
             select_line.set_value(data.line)
@@ -212,22 +223,31 @@ def trains_tab(city: City, data: TrainsData) -> None:
             with ui.column():
                 with ui.row().classes("w-full items-center justify-between mt-5 mb-2"):
                     ui.label("Train Routes Diagram").classes("text-xl font-semibold")
-                    show_options = ["Train count", "Transfer", "Icon"]
-
                     def on_show_change() -> None:
                         """ Keep display options ordered and refresh the diagram """
+                        nonlocal show_station_code
+                        assert show_select is not None
                         selected = [option for option in show_options if option in show_select.value]
                         if selected != show_select.value:
                             show_select.set_value(selected)
                             return
+                        if city.lines[data.line].code is not None:
+                            show_station_code = "Station Code" in selected
                         route_timeline.refresh(
-                            show_train_count="Train count" in selected,
+                            show_train_count="Train Count" in selected,
                             show_transfer="Transfer" in selected,
+                            show_station_code=show_station_code,
                             show_icon="Icon" in selected,
+                            compact="Compact Mode" in selected
                         )
 
+                    available_options = [
+                        option for option in show_options
+                        if option != "Station Code" or city.lines[data.line].code is not None
+                    ]
                     show_select = ui.select(
-                        show_options, value=show_options[:], label="Show Info", multiple=True,
+                        available_options, value=[option for option in available_options if option != "Compact Mode"],
+                        label="Show Info", multiple=True,
                         on_change=on_show_change
                     ).props("use-chips").classes("min-w-64")
                 route_timeline(
@@ -255,7 +275,7 @@ def get_through(
     """ Get through route corresponding to a single route """
     matched_list: list[tuple[ThroughSpecEntry | None, ThroughSpecEntry | None]] = []
     for spec in city.through_specs:
-        if not all(l.name in lines.keys() for l, _, _, _ in spec.spec):
+        if not all(l.name in lines for l, _, _, _ in spec.spec):
             continue
         for i, (spec_line, spec_direction, spec_dg, spec_route) in enumerate(spec.spec):
             if line.name == spec_line.name and direction == spec_direction and spec_dg.covers(cur_date) and\
@@ -309,11 +329,36 @@ def filter_trains_by_routes(
     ]
 
 
+def diagram_station_groups(
+    stations: list[str], routes: list[list[str]], icon_stations: set[str], *, compact: bool
+) -> list[tuple[int, int]]:
+    """ Group eligible consecutive station indices into half-open intervals """
+    if not compact:
+        return [(i, i + 1) for i in range(len(stations))]
+    protected = {0, len(stations) - 1}
+    for route in routes:
+        start = stations.index(route[0])
+        protected.update((start, start + len(route) - 1))
+    protected.update(i for i, station in enumerate(stations) if station in icon_stations)
+    groups: list[tuple[int, int]] = []
+    i = 0
+    while i < len(stations):
+        end = i + 1
+        if i not in protected:
+            while end < len(stations) and end not in protected:
+                end += 1
+        groups.append((i, end))
+        i = end
+    return groups
+
+
 @ui.refreshable
 def route_timeline(
     city: City, *, station_lines: dict[str, set[Line]], line: Line, direction: str, cur_date: date,
     train_list: list[Train], show_train_count: bool = True, show_transfer: bool = True, show_icon: bool = True,
-    highlight_routes: set[str] | None = None, route_mode: Literal["single", "combination"] = "single"
+    show_station_code: bool = True,
+    highlight_routes: set[str] | None = None, route_mode: Literal["single", "combination"] = "single",
+    compact: bool = False
 ) -> None:
     """ Create timelines for train routes """
     current_selection: set[str] = set() if highlight_routes is None else highlight_routes
@@ -329,6 +374,11 @@ def route_timeline(
     lines = {l.name: l for ls in station_lines.values() for l in ls}
     stations = line.direction_stations(direction)
     routes = get_route_table(train_list, route_mode=route_mode)
+    groups = diagram_station_groups(
+        stations, [route_stations(route)[0] for route in routes.values()],
+        {station for station in stations if line.station_badges[line.stations.index(station)]} if show_icon else set(),
+        compact=compact
+    )
 
     with ui.row().classes("items-baseline gap-x-0 train-tab-timeline-parent"):
         train_tally = 0
@@ -342,24 +392,35 @@ def route_timeline(
         with ui.timeline(color=timeline_color).classes("w-auto cursor-pointer").on(
             "click", lambda: handle_click(line.direction_base_route[direction].name)
         ):
-            for i, station in enumerate(stations):
-                train_tally += len([t for t in train_list if t.stations[0] == station])
-                train_tally -= len([t for t in train_list if t.stations[-1] == station])
+            for group_index, (i, end) in enumerate(groups):
+                station = stations[i]
+                collapsed = end - i > 1
+                next_collapsed = group_index + 1 < len(groups) and groups[group_index + 1][1] - end > 1
+                for tally_station in stations[i:end]:
+                    train_tally += len([t for t in train_list if t.stations[0] == tally_station])
+                    train_tally -= len([t for t in train_list if t.stations[-1] == tally_station])
                 express_icon = line.station_badges[line.stations.index(station)]
                 if line.loop and (i == 0 or i == len(stations) - 1):
                     express_icon = line.get_direction_icon(direction)
                 elif (i == 0 and entry_before is not None) or (i == len(stations) - 1 and entry_after is not None):
                     express_icon = "sync_alt"
-                with ui.timeline_entry(icon=express_icon if show_icon else None) as entry:
-                    if show_train_count and i != len(stations) - 1:
+                with ui.timeline_entry(icon=" " if collapsed else (express_icon if show_icon else None)) as entry:
+                    if collapsed:
+                        entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{end - i}"')
+                    if show_train_count and not collapsed and not next_collapsed and i != len(stations) - 1:
                         ui.label(suffix_s("train", train_tally)).on("click.stop", lambda: None)
                 with entry.add_slot("title"):
-                    with ui.column().classes("gap-y-1 items-end"):
-                        with ui.row().classes("items-center gap-1"):
+                    with ui.column().classes("gap-y-1 items-end relative"):
+                        with ui.row().classes("items-center gap-1" + (" invisible" if collapsed else "")):
                             get_station_badge(
-                                station, line, show_badges=False, show_line_badges=False
+                                station, line, show_badges=False, show_code_badges=show_station_code,
+                                show_line_badges=False
                             )
-                        if show_transfer and len(station_lines[station]) > 1:
+                        if collapsed and show_train_count:
+                            ui.label(suffix_s("train", train_tally)).classes("absolute right-0 top-0 whitespace-nowrap").style(
+                                "font-size: 14px; font-weight: normal"
+                            ).on("click.stop", lambda: None)
+                        if not collapsed and show_transfer and len(station_lines[station]) > 1:
                             with ui.row().classes("items-center gap-x-1"):
                                 for line2 in sorted(station_lines[station], key=lambda l: l.index):
                                     if line2.name == line.name:
@@ -380,7 +441,12 @@ def route_timeline(
             if start_index != 0:
                 inner_stations = stations[:start_index] + inner_stations
             with ui.timeline(color=timeline_color).classes("w-auto"):
-                for i, station in enumerate(inner_stations):
+                for group_index, (i, end) in enumerate(groups):
+                    if i >= len(inner_stations):
+                        break
+                    station = inner_stations[i]
+                    collapsed = end - i > 1
+                    next_collapsed = group_index + 1 < len(groups) and groups[group_index + 1][1] - end > 1
                     express_icon = line.station_badges[line.stations.index(station)]
                     if line.loop and (
                         (i == 0 and orig_stations[0] == stations[0]) or
@@ -394,17 +460,21 @@ def route_timeline(
                     if station in skip_stations and express_icon is not None:
                         express_icon = ""
                     with ui.timeline_entry(
-                        icon=express_icon if show_icon else None, color=("invisible" if i < start_index else None)
+                        icon=" " if collapsed else (express_icon if show_icon else None),
+                        color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
                         if i >= start_index:
                             entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
                         if start_index > 0 and express_icon == "sync_alt":
                             entry.classes("mt-[-16px]")
-                        if station in skip_stations:
+                        if collapsed:
+                            stopped = sum(s not in skip_stations for s in inner_stations[i:end])
+                            entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{stopped}"')
+                        elif station in skip_stations:
                             entry.classes("skipped-station-dot")
                         elif any(r.stopping_times.get(station, 0) > 0 for r in route):
                             entry.classes("stopped-station-dot")
-                        if show_train_count and i != len(inner_stations) - 1:
+                        if show_train_count and not collapsed and not next_collapsed and i != len(inner_stations) - 1:
                             ui.label("train").classes("invisible text-nowrap w-0")
                     with entry.add_slot("title"):
                         with ui.column().classes("gap-y-1 items-end invisible text-nowrap w-0"):
@@ -413,7 +483,7 @@ def route_timeline(
                                     station, line, show_badges=False, show_code_badges=False, show_line_badges=False,
                                     add_line_click=lambda l: l != line.name
                                 )
-                            if show_transfer and len(station_lines[station]) > 1:
+                            if not collapsed and show_transfer and len(station_lines[station]) > 1:
                                 with ui.row().classes("items-center gap-x-1 w-0"):
                                     for line2 in sorted(station_lines[station], key=lambda l: l.index):
                                         if line2.name == line.name:

@@ -93,6 +93,26 @@ async def main_page(city_name: str) -> None:
 .train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__content {
     padding-top: 8px !important;
 }
+.train-tab-timeline-parent .collapsed-station-dot .q-timeline__content,
+.train-tab-timeline-parent .collapsed-station-dot .q-timeline__subtitle {
+    padding-top: 0 !important;
+}
+.collapsed-station-dot .q-timeline__dot:before {
+    background: transparent;
+}
+.collapsed-station-dot .q-timeline__dot:after {
+    top: 24px;
+}
+.collapsed-station-dot .q-timeline__dot .q-icon {
+    color: inherit;
+    font: inherit;
+    height: 22px;
+    line-height: 22px;
+}
+.collapsed-station-dot .q-timeline__dot .q-icon:before {
+    content: var(--collapsed-count);
+    font-weight: bold;
+}
 .text-invisible {
     visibility: hidden;
 }
