@@ -212,10 +212,24 @@ def trains_tab(city: City, data: TrainsData) -> None:
             with ui.column():
                 with ui.row().classes("w-full items-center justify-between mt-5 mb-2"):
                     ui.label("Train Routes Diagram").classes("text-xl font-semibold")
-                    ui.switch(
-                        "Show train count", value=True,
-                        on_change=lambda v: route_timeline.refresh(show_train_count=v.value)
-                    )
+                    show_options = ["Train count", "Transfer", "Icon"]
+
+                    def on_show_change() -> None:
+                        """ Keep display options ordered and refresh the diagram """
+                        selected = [option for option in show_options if option in show_select.value]
+                        if selected != show_select.value:
+                            show_select.set_value(selected)
+                            return
+                        route_timeline.refresh(
+                            show_train_count="Train count" in selected,
+                            show_transfer="Transfer" in selected,
+                            show_icon="Icon" in selected,
+                        )
+
+                    show_select = ui.select(
+                        show_options, value=show_options[:], label="Show Info", multiple=True,
+                        on_change=on_show_change
+                    ).props("use-chips").classes("min-w-64")
                 route_timeline(
                     city, station_lines=data.info_data.station_lines,
                     line=city.lines[data.line], direction=data.direction, cur_date=data.cur_date,
@@ -298,8 +312,8 @@ def filter_trains_by_routes(
 @ui.refreshable
 def route_timeline(
     city: City, *, station_lines: dict[str, set[Line]], line: Line, direction: str, cur_date: date,
-    train_list: list[Train], show_train_count: bool = True, highlight_routes: set[str] | None = None,
-    route_mode: Literal["single", "combination"] = "single"
+    train_list: list[Train], show_train_count: bool = True, show_transfer: bool = True, show_icon: bool = True,
+    highlight_routes: set[str] | None = None, route_mode: Literal["single", "combination"] = "single"
 ) -> None:
     """ Create timelines for train routes """
     current_selection: set[str] = set() if highlight_routes is None else highlight_routes
@@ -336,7 +350,7 @@ def route_timeline(
                     express_icon = line.get_direction_icon(direction)
                 elif (i == 0 and entry_before is not None) or (i == len(stations) - 1 and entry_after is not None):
                     express_icon = "sync_alt"
-                with ui.timeline_entry(icon=express_icon) as entry:
+                with ui.timeline_entry(icon=express_icon if show_icon else None) as entry:
                     if show_train_count and i != len(stations) - 1:
                         ui.label(suffix_s("train", train_tally)).on("click.stop", lambda: None)
                 with entry.add_slot("title"):
@@ -345,7 +359,7 @@ def route_timeline(
                             get_station_badge(
                                 station, line, show_badges=False, show_line_badges=False
                             )
-                        if len(station_lines[station]) > 1:
+                        if show_transfer and len(station_lines[station]) > 1:
                             with ui.row().classes("items-center gap-x-1"):
                                 for line2 in sorted(station_lines[station], key=lambda l: l.index):
                                     if line2.name == line.name:
@@ -380,7 +394,7 @@ def route_timeline(
                     if station in skip_stations and express_icon is not None:
                         express_icon = ""
                     with ui.timeline_entry(
-                        icon=express_icon, color=("invisible" if i < start_index else None)
+                        icon=express_icon if show_icon else None, color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
                         if i >= start_index:
                             entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
@@ -399,7 +413,7 @@ def route_timeline(
                                     station, line, show_badges=False, show_code_badges=False, show_line_badges=False,
                                     add_line_click=lambda l: l != line.name
                                 )
-                            if len(station_lines[station]) > 1:
+                            if show_transfer and len(station_lines[station]) > 1:
                                 with ui.row().classes("items-center gap-x-1 w-0"):
                                     for line2 in sorted(station_lines[station], key=lambda l: l.index):
                                         if line2.name == line.name:
