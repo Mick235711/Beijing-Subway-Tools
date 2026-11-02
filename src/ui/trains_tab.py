@@ -400,11 +400,24 @@ def route_timeline(
                     train_tally += len([t for t in train_list if t.stations[0] == tally_station])
                     train_tally -= len([t for t in train_list if t.stations[-1] == tally_station])
                 express_icon = line.station_badges[line.stations.index(station)]
-                if line.loop and (i == 0 or i == len(stations) - 1):
+                through_end = i == len(stations) - 1 and entry_after is not None
+                through_start = i == 0 and entry_before is not None
+                loop_marker = line.loop and (i == 0 or i == len(stations) - 1) and not (through_end or through_start)
+                if through_end or through_start:
+                    express_icon = "south"
+                elif loop_marker:
                     express_icon = line.get_direction_icon(direction)
-                elif (i == 0 and entry_before is not None) or (i == len(stations) - 1 and entry_after is not None):
-                    express_icon = "sync_alt"
-                with ui.timeline_entry(icon=" " if collapsed else (express_icon if show_icon else None)) as entry:
+                with ui.timeline_entry(
+                    icon=" " if collapsed else (express_icon if show_icon or through_end or through_start or loop_marker else None)
+                ) as entry:
+                    if through_end or through_start:
+                        entry.classes("through-station-dot")
+                        if show_icon and line.station_badges[line.stations.index(station)] is not None:
+                            entry.classes("through-station-icon-row")
+                    if loop_marker:
+                        entry.classes("loop-station-dot")
+                        if show_icon and line.station_badges[line.stations.index(station)] is not None:
+                            entry.classes("loop-station-icon-row")
                     if collapsed:
                         entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{end - i}"')
                     if show_train_count and not collapsed and not next_collapsed and i != len(stations) - 1:
@@ -448,30 +461,39 @@ def route_timeline(
                     collapsed = end - i > 1
                     next_collapsed = group_index + 1 < len(groups) and groups[group_index + 1][1] - end > 1
                     express_icon = line.station_badges[line.stations.index(station)]
-                    if line.loop and (
-                        (i == 0 and orig_stations[0] == stations[0]) or
-                        (i == len(inner_stations) - 1 and (orig_stations[-1] == stations[-1] and is_loop))
-                    ):
+                    through_end = i == len(inner_stations) - 1 and entry_after is not None
+                    through_start = i == start_index and entry_before is not None
+                    loop_marker = line.loop and not (through_end or through_start) and (
+                        (i == 0 and orig_stations[0] == stations[0] and all(r.starts_with is None for r in route)) or
+                        (i == len(inner_stations) - 1 and orig_stations[-1] == stations[-1] and is_loop)
+                    )
+                    if through_end or through_start:
+                        express_icon = "south"
+                    elif loop_marker:
                         express_icon = line.get_direction_icon(direction)
-                    elif (i == start_index and entry_before is not None) or (
-                        i == len(inner_stations) - 1 and entry_after is not None
-                    ):
-                        express_icon = "sync_alt"
-                    if station in skip_stations and express_icon is not None:
-                        express_icon = ""
+                    skipped = station in skip_stations and not collapsed
                     with ui.timeline_entry(
-                        icon=" " if collapsed else (express_icon if show_icon else None),
+                        icon=" " if collapsed else ("keyboard_double_arrow_down" if skipped else
+                                                    (express_icon if show_icon or through_end or through_start or loop_marker else None)),
                         color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
+                        if (through_end or through_start) and not skipped:
+                            entry.classes("through-station-dot")
+                            if show_icon and line.station_badges[line.stations.index(station)] is not None:
+                                entry.classes("through-station-icon-row")
+                        if loop_marker and not skipped:
+                            entry.classes("loop-station-dot")
+                            if show_icon and line.station_badges[line.stations.index(station)] is not None:
+                                entry.classes("loop-station-icon-row")
                         if i >= start_index:
                             entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
-                        if start_index > 0 and express_icon == "sync_alt":
-                            entry.classes("mt-[-16px]")
                         if collapsed:
                             stopped = sum(s not in skip_stations for s in inner_stations[i:end])
                             entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{stopped}"')
-                        elif station in skip_stations:
+                        elif skipped:
                             entry.classes("skipped-station-dot")
+                            if show_icon and line.station_badges[line.stations.index(station)] is not None:
+                                entry.classes("skipped-station-icon-row")
                         elif any(r.stopping_times.get(station, 0) > 0 for r in route):
                             entry.classes("stopped-station-dot")
                         if show_train_count and not collapsed and not next_collapsed and i != len(inner_stations) - 1:
