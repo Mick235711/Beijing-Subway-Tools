@@ -442,13 +442,15 @@ def combine_brace(brace_dict: dict[T, str], values: T | Iterable[T]) -> str:
 
 
 def apply_slice(orig: list[T], slicer: str) -> list[T]:
-    """ Apply a slicer like [start:end:step] to orig """
+    """ Select elements using [index] or [start:end:step] """
     assert slicer.startswith("[") and slicer.endswith("]"), slicer
-    eval_slicer = slice(*[
+    indices = [
         int(x.strip()) if x.strip() != "" else None
         for x in slicer[1:-1].strip().split(':')
-    ])
-    return list(orig[eval_slicer])
+    ]
+    if len(indices) == 1 and indices[0] is not None:
+        return [orig[indices[0]]]
+    return list(orig[slice(*indices)])
 
 
 def suffix_s(word: str, number: Any, suffix: str = "s") -> str:

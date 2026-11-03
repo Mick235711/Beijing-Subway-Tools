@@ -155,7 +155,7 @@ $ python3 src/timetable/input_to_timetable.py -- -l 5
 
 ### [`timetable_from_prev.py`](/src/timetable/timetable_from_prev.py): Create next timetable from previous station's timetable
 ```
-usage: timetable_from_prev.py [-h] [-l LEVEL] [-b BREAK_ENTRIES] [-e] [-d]
+usage: timetable_from_prev.py [-h] [-l LEVEL] [-b BREAK_ENTRIES] [-e] [-d | --current]
 
 options:
   -h, --help            show this help message and exit
@@ -165,6 +165,8 @@ options:
                         Entry break
   -e, --empty           Show empty timetable
   -d, --do-not-remove   Don't remove soon-to-be-end trains
+  --current             Edit the current station's timetable without advancing
+                        times or removing trains
 ```
 Generate a new timetable by adding a constant minutes number to the previous station's timetable.
 See [here](a-new-line-from-scratch.md#321-fill-by-relative-time-delta) for a detailed description of its usage.
@@ -173,6 +175,7 @@ See [here](a-new-line-from-scratch.md#321-fill-by-relative-time-delta) for a det
 - `-l N` will append `4 * N` spaces before each line. (Default behavior is to not prepend spaces; `-l 5` is recommended for storing timetable specs)
 - `-e` will show empty timetable in modification mode
 - By default, trains that end at the previous station specified will be automatically removed. Specify `-d` to disable this behavior.
+- `--current` edits the selected station's timetable directly, without asking for running time or adding dwell time. It implies `-d` and cannot be combined with it.
 
 Example Usage:
 <pre>

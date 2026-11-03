@@ -265,6 +265,7 @@ There are many possible prompts. The most common ones are:
 - Directly enter a single hour's specification line. For example, `05|11 (22) 33` will delete all previous trains in the 05 line, and then insert those three trains.
 - Add/minus minutes. For example, `05|+2` will add 2 minutes to all trains in the 05 line.
 - Segmented addition/subtraction. For example, `05|+1[:5]` will add 1 minute to the first 5 trains in the 05 line. Other Python slice syntax such as step is also supported.
+- Single-train addition/subtraction uses a zero-based index: `23|-1[-1]` subtracts 1 minute from only the last train in hour 23, while `23|-1[0]` modifies only the first. `23|-1[:-1]` modifies all except the last.
 
 After each modification, the then-current timetable will be shown again. When the timetable matches the real one, you can simply
 enter `ok` or an empty prompt to finish modifying. The specification will then be outputted.

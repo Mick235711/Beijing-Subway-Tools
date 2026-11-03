@@ -197,9 +197,13 @@ def main() -> None:
                         help="Entry break")
     parser.add_argument("-e", "--empty", action="store_true",
                         help="Show empty timetable")
-    parser.add_argument("-d", "--do-not-remove", action="store_true",
-                        help="Don't remove soon-to-be-end trains")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-d", "--do-not-remove", action="store_true",
+                       help="Don't remove soon-to-be-end trains")
+    group.add_argument("--current", action="store_true",
+                       help="Edit the current station's timetable without advancing times or removing trains")
     args = parser.parse_args()
+    args.do_not_remove = args.do_not_remove or args.current
 
     city = ask_for_city()
     line = ask_for_line(city)
@@ -211,10 +215,16 @@ def main() -> None:
         print("End of the route.")
         sys.exit(0)
     timetable = line.timetables()[station][direction][date_group.name]
-    main_input(generate_next(
-        timetable, station, line, direction, date_group,
-        show_empty=args.empty, remove_train=(not args.do_not_remove)
-    ), args, with_date_group=date_group.name)
+    if args.current:
+        timetable = modify_timetable(
+            deepcopy(timetable), station, direction, date_group, show_empty=args.empty
+        )
+    else:
+        timetable = generate_next(
+            timetable, station, line, direction, date_group,
+            show_empty=args.empty, remove_train=(not args.do_not_remove)
+        )
+    main_input(timetable, args, with_date_group=date_group.name)
 
 
 # Call main
