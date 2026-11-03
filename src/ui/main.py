@@ -103,19 +103,23 @@ async def main_page(city_name: str) -> None:
 .train-tab-timeline-parent .loop-station-dot:not(.loop-station-icon-row) .q-timeline__content,
 .train-tab-timeline-parent .loop-station-dot:not(.loop-station-icon-row) .q-timeline__subtitle,
 .train-tab-timeline-parent .skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__content,
-.train-tab-timeline-parent .skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__subtitle {
+.train-tab-timeline-parent .skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__subtitle,
+.train-tab-timeline-parent .stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__content,
+.train-tab-timeline-parent .stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__subtitle {
     padding-top: 0 !important;
 }
 .collapsed-station-dot .q-timeline__dot:before,
 .through-station-dot .q-timeline__dot:before,
 .loop-station-dot .q-timeline__dot:before,
-.skipped-station-dot .q-timeline__dot:before {
+.skipped-station-dot .q-timeline__dot:before,
+.stopped-station-dot .q-timeline__dot:before {
     background: transparent;
 }
 .collapsed-station-dot .q-timeline__dot:after,
 .through-station-dot:not(.through-station-icon-row) .q-timeline__dot:after,
 .loop-station-dot:not(.loop-station-icon-row) .q-timeline__dot:after,
-.skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__dot:after {
+.skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__dot:after,
+.stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__dot:after {
     top: 24px;
 }
 .collapsed-station-dot .q-timeline__dot .q-icon {
@@ -126,12 +130,14 @@ async def main_page(city_name: str) -> None:
 }
 .through-station-dot:not(.through-station-icon-row) .q-timeline__dot .q-icon,
 .loop-station-dot:not(.loop-station-icon-row) .q-timeline__dot .q-icon,
-.skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__dot .q-icon {
+.skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__dot .q-icon,
+.stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__dot .q-icon {
     color: inherit;
     height: 22px;
     line-height: 22px;
 }
-.through-station-dot .q-timeline__dot .q-icon {
+.through-station-dot .q-timeline__dot .q-icon,
+.stopped-station-dot .q-timeline__dot .q-icon {
     color: inherit;
 }
 .skipped-station-dot .q-timeline__dot .q-icon,
@@ -140,7 +146,8 @@ async def main_page(city_name: str) -> None:
     font-weight: bold;
     -webkit-text-stroke: 0.5px currentColor;
 }
-.skipped-station-icon-row .q-timeline__dot .q-icon {
+.skipped-station-icon-row .q-timeline__dot .q-icon,
+.stopped-station-icon-row .q-timeline__dot .q-icon {
     font-size: 24px;
 }
 .loop-station-dot:not(.loop-station-icon-row) .q-timeline__dot .q-icon {
@@ -152,16 +159,6 @@ async def main_page(city_name: str) -> None:
 }
 .text-invisible {
     visibility: hidden;
-}
-.stopped-station-dot .q-timeline__dot:before {
-    width: 3px;
-    height: 12px;
-    background: currentColor;
-    box-shadow: 6px 0 0 currentColor;
-    border: 0;
-    border-radius: 0;
-    transform: translate(3px, 1px);
-    -webkit-transform: translate(3px, 1px);
 }
 .timetable-tab-selection .q-select .q-field__input--padding {
     max-width: 50px;

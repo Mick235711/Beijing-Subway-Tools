@@ -135,9 +135,9 @@ TBD:
   - 两条轻轨: [新北捷运官方网站](https://www.ntmetro.com.tw/basic/?mode=detail&node=460)
   - 机场捷运: [桃园捷运官方网站](https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable.php)
 - 当前时刻表版本：
-  - R/G/O/BL/A/轻轨：2023/11
+  - R/G/O/BL/轻轨：2023/11
   - Y：2025/08
-  - LB: 2026/09
+  - A/LB: 2026/09
 - 换乘时间: [Blog](https://blog.transtaiwan.com/blog/transfer-time-settings/)
 - 各站站间距: [PTT](https://www.ptt.cc/bbs/MRT/M.1342435699.A.99B.html) (LB为[维基数据](https://zh.wikipedia.org/zh-tw/%E4%B8%89%E9%B6%AF%E7%B7%9A#%E8%BB%8A%E7%AB%99))
 

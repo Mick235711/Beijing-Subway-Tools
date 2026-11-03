@@ -472,9 +472,19 @@ def route_timeline(
                     elif loop_marker:
                         express_icon = line.get_direction_icon(direction)
                     skipped = station in skip_stations and not collapsed
+                    stopped = not (collapsed or skipped or through_end or through_start or loop_marker) and any(
+                        r.stopping_times.get(station, 0) > 0 for r in route
+                    )
+                    if collapsed:
+                        display_icon = " "
+                    elif skipped:
+                        display_icon = "keyboard_double_arrow_down"
+                    elif stopped:
+                        display_icon = "pause"
+                    else:
+                        display_icon = express_icon if show_icon or through_end or through_start or loop_marker else None
                     with ui.timeline_entry(
-                        icon=" " if collapsed else ("keyboard_double_arrow_down" if skipped else
-                                                    (express_icon if show_icon or through_end or through_start or loop_marker else None)),
+                        icon=display_icon,
                         color=("invisible" if i < start_index else None)
                     ).style("padding-right: 10px !important") as entry:
                         if (through_end or through_start) and not skipped:
@@ -494,8 +504,10 @@ def route_timeline(
                             entry.classes("skipped-station-dot")
                             if show_icon and line.station_badges[line.stations.index(station)] is not None:
                                 entry.classes("skipped-station-icon-row")
-                        elif any(r.stopping_times.get(station, 0) > 0 for r in route):
+                        elif stopped:
                             entry.classes("stopped-station-dot")
+                            if show_icon and line.station_badges[line.stations.index(station)] is not None:
+                                entry.classes("stopped-station-icon-row")
                         if show_train_count and not collapsed and not next_collapsed and i != len(inner_stations) - 1:
                             ui.label("train").classes("invisible text-nowrap w-0")
                     with entry.add_slot("title"):
