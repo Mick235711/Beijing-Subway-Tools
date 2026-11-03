@@ -476,7 +476,7 @@ def route_timeline(
                         r.stopping_times.get(station, 0) > 0 for r in route
                     )
                     if collapsed:
-                        display_icon = " "
+                        display_icon: str | None = " "
                     elif skipped:
                         display_icon = "keyboard_double_arrow_down"
                     elif stopped:
@@ -498,7 +498,7 @@ def route_timeline(
                         if i >= start_index:
                             entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
                         if collapsed:
-                            stopped = sum(s not in skip_stations for s in inner_stations[i:end])
+                            stopped = sum(s not in skip_stations for s in inner_stations[i:end]) > 0
                             entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{stopped}"')
                         elif skipped:
                             entry.classes("skipped-station-dot")
@@ -672,11 +672,13 @@ def route_table(
     routes_search.bind_value(routes_table, "filter")
 
 
-def calculate_train_rows(train_list: list[Train]) -> list[dict]:
+def calculate_train_rows(train_list: list[Train], *, train_id_dict: dict[str, Train]) -> list[dict]:
     """ Calculate rows for the train table """
     rows = []
-    train_dict = get_train_id(train_list)
-    for train_id, train in train_dict.items():
+    visible_trains = {id(train) for train in train_list}
+    for train_id, train in train_id_dict.items():
+        if id(train) not in visible_trains:
+            continue
         row = {
             "id": train_id,
             "id_sort": to_pinyin(train_id)[0],
@@ -706,7 +708,8 @@ def train_table(
         ui.label("Trains").classes("text-xl font-semibold mt-6 mb-2")
         trains_search = ui.input("Search trains...")
 
-    train_rows = calculate_train_rows(train_list)
+    train_dict = get_train_id(full_list)
+    train_rows = calculate_train_rows(train_list, train_id_dict=train_dict)
     trains_table = ui.table(
         columns=[
             {"name": "id", "label": "ID", "field": "id",
@@ -751,7 +754,6 @@ def train_table(
         rows=train_rows,
         pagination=10
     )
-    train_dict = get_train_id(full_list)
     trains_table.on("trainBadgeClick", lambda n: refresh_train_drawer(
         train_dict[n.args], start_date, n.args, train_dict, station_lines
     ))

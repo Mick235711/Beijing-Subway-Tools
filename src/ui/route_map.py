@@ -647,7 +647,8 @@ def build_map_svg(
         if shape is None:
             continue
         line_data = json.dumps([
-            (line.get_badge(), line.color or "#1976d2", get_text_color(line.color or "#1976d2"))
+            (line.station_code(station) if line.code is not None else line.get_badge(),
+             line.color or "#1976d2", get_text_color(line.color or "#1976d2"))
             for line in sorted(city.station_lines[station], key=lambda item: item.index)
         ], ensure_ascii=False)
         svg.append(shape_svg(

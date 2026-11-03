@@ -218,6 +218,9 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map | None:
     coords: dict[str, Shape | None] = {}
     path_coords: dict[str, Shape | None] = {}
     for station, spec in map_dict["coordinates"].items():
+        if station not in station_lines:
+            print(f"Warning: unknown station {station} ignored!")
+            continue
         if spec is not None and "path_coords" in spec:
             if spec["path_coords"] is None:
                 path_coords[station] = None
