@@ -122,6 +122,13 @@
             {from: "板南線", to: "環狀線", to_direction: "內環", minutes: 7.5},
             {from: "板南線", to: "環狀線", to_direction: "外環", minutes: 8.5}
         ],
+        "頂埔": [
+            // 参考：https://web.metro.taipei/img/ALL/INFOPDF/076.pdf
+            // 出闸换乘，板南线站台-短扶梯-站厅-短通道-扶梯-短通道-扶梯-三莺线东行站台
+            // 时间参考：https://www.bilibili.com/video/BV1knYx68E7s/
+            {from: "板南線", to: "三鶯線", to_direction: "東行", minutes: 3.5},
+            {from: "板南線", to: "三鶯線", to_direction: "西行", minutes: 4.5}
+        ],
         "頭前庄": [
             // 参考：https://web.metro.taipei/img/ALL/INFOPDF/123.pdf
             // 环状线内环3F站台-短通道-2段短扶梯-1F-短扶梯-短通道-B1中和新芦线站厅-短扶梯-B2站台
