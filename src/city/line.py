@@ -360,6 +360,8 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
             line.clockwise_direction = line_dict["clockwise_direction"]
 
     # populate stations
+    station_index_width = line_dict.get("station_index_width", 2)
+    assert type(station_index_width) is int and station_index_width >= 1, station_index_width
     index_reversed = False
     if "index_reversed" in line_dict and line_dict["index_reversed"]:
         index_reversed = True
@@ -376,12 +378,12 @@ def parse_line(carriage_dict: dict[str, Carriage], line_file: str) -> tuple[Line
                 line.station_indexes.append(str(station["index"]))
             elif line.code is not None:
                 if i == 0:
-                    line.station_indexes.append("01")
+                    line.station_indexes.append(f"{1:0{station_index_width}d}")
                 elif index_reversed:
                     assert int(line.station_indexes[-1]) > 0, (line_dict, line.station_indexes)
-                    line.station_indexes.append(f"{int(line.station_indexes[-1]) - 1:>02}")
+                    line.station_indexes.append(f"{int(line.station_indexes[-1]) - 1:0{station_index_width}d}")
                 else:
-                    line.station_indexes.append(f"{int(line.station_indexes[-1]) + 1:>02}")
+                    line.station_indexes.append(f"{int(line.station_indexes[-1]) + 1:0{station_index_width}d}")
             if "badge_icon" in station:
                 line.station_badges.append(station["badge_icon"])
             else:

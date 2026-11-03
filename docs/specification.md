@@ -24,6 +24,7 @@ This specification describes the key-values within `<line x>.json5`.
 | aliases                                                     | No                    | array   | []                       | Aliases (English) for the line                                                                                                                        |
 | code                                                        | No                    | string  |                          | Shorthand code for the line.                                                                                                                          |
 | code_separator                                              | No                    | string  | ""                       | Separation characters between line code and station code                                                                                              |
+| station_index_width                                         | No                    | int     | 2                        | Minimum zero-padded width of automatically generated station indexes (at least 1). Explicit indexes are preserved.                                    |
 | index_reversed                                              | No                    | boolean | false                    | If true, the index is reversed (i.e. decrease instead of increase.)                                                                                   |
 | carriage_num                                                | Yes                   | int     |                          | Maximum number of carriages in use.                                                                                                                   |
 | carriage_type                                               | Yes                   | string  |                          | Type of carriage in use.                                                                                                                              |
@@ -67,7 +68,10 @@ These fields specify the elements of the array `stations`.
 `dist` is not required for the first station.
 Must be in order of the line.
 Not required if provided both `station_names` and `station_dists`.
-If `index` is not provided, it is assumed to be the last station's index +1 (or "01" for the first station).
+If `index` is not provided, it is assumed to be the last station's index +1 (or -1 when `index_reversed` is true),
+starting at 1 for the first station. Generated indexes are zero-padded to at least `station_index_width` digits:
+the default 2 produces "01", "02", etc.; 1 produces "1", "2", etc. Explicit `index` values are kept as written,
+including leading zeros and suffixes such as "14a". Explicit `station_indexes` arrays are also preserved.
 
 ## Routing Specification Format
 A train route refers to a regularly scheduled train visiting several predetermined stations in order. Common train routing includes "Full route", "Short turn on Station X",

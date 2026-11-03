@@ -42,6 +42,12 @@
             "type": "string",
             "default": ""
         },
+        "station_index_width": {
+            "description": "Minimum zero-padded width of automatically generated station indexes; explicit indexes are preserved",
+            "type": "integer",
+            "minimum": 1,
+            "default": 2
+        },
         "index_reversed": {
             "description": "True if the index is reversed (i.e. decrease instead of increase)",
             "type": "boolean",

@@ -7,6 +7,7 @@
     badge_icon: "local_airport",
     aliases: ["Taoyuan Airport MRT", "Jijie"],
     code: "A",
+    station_index_width: 1,
     index: 11,
     carriage_num: 4, // 正常情况下直达车为4+1A，为了交路原因这里保持5编
     carriage_type: "A",
