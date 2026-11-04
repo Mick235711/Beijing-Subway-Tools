@@ -498,8 +498,8 @@ def route_timeline(
                         if i >= start_index:
                             entry.on("click", lambda r=route_name: handle_click(r)).classes("cursor-pointer")
                         if collapsed:
-                            stopped = sum(s not in skip_stations for s in inner_stations[i:end]) > 0
-                            entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{stopped}"')
+                            total_stopped = sum(s not in skip_stations for s in inner_stations[i:end])
+                            entry.classes("collapsed-station-dot").style(f'--collapsed-count: "{total_stopped}"')
                         elif skipped:
                             entry.classes("skipped-station-dot")
                             if show_icon and line.station_badges[line.stations.index(station)] is not None:

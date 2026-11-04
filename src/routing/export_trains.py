@@ -169,6 +169,7 @@ def format_pyetrc(
 
     # Create circuit (line) information
     cur_dist = 0
+    color = (line.color or "#000000").lower()
     station_list: list = []
     add_twice = line.loop and not real_loop
     for station, dist in zip(([line.stations[-1] + loop_suffix] if add_twice else []) + line.stations + (
@@ -181,6 +182,13 @@ def format_pyetrc(
         })
     result: dict[str, dict | list] = {
         "line": {"name": line.name, "start_milestone": 0, "stations": station_list},
+        "config": {
+            "start_hour": 4,
+            "end_hour": 2,
+            "pixels_per_km": 25,
+            "seconds_per_pix": 10,
+            "default_colors": {"default": color, "Metro": color}
+        },
         "options": {
             "max_passed_stations": len(line.stations),
             "period_hours": 24
@@ -194,10 +202,12 @@ def format_pyetrc(
     base_direction = line.base_direction()
     for train_id, train in train_id_dict.items():
         trains_list.append({
-            "UI": {"Color": (line.color or "#000000").lower()},
+            "type": "Metro",
+            "passenger": 2,
+            "UI": {"Color": color},
             "checi": [train_id, train_id, ""] if train.direction == base_direction else [train_id, "", train_id],
             "sfz": train.stations[0],
-            "zdz": train.last_station() + (loop_suffix if line.loop else ""),
+            "zdz": train.last_station() + (loop_suffix if train.loop_next is not None else ""),
             "shown": True,
             "tags": [r.name for r in train.routes],
         })
@@ -276,6 +286,7 @@ def format_pyetrc(
     circuit_list = []
     for i, train_loop in enumerate(segments):
         circuit_list.append({
+            "model": [t for t in train_loop if isinstance(t, Train)][0].train_code(),
             "name": f"{i + 1}",
             "order": [
                 {"checi": find_train_id(train_id_dict, train), "link": True, "virtual": False}
