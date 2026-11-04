@@ -870,9 +870,12 @@ def get_train_transfer_waiting_time(
         start_date, *prev_time,
         allow_transfer_shortcuts=allow_transfer_shortcuts
     )
-    regular_transfer_time = transfer_dict[station].get_regular_transfer_time(
-        prev_train.line, prev_train.direction, train.line, train.direction
-    )
+    if prev_train.line.name == train.line.name:
+        regular_transfer_time: tuple[float, int | None, int | None] = (0.0, 0, 0)
+    else:
+        regular_transfer_time = transfer_dict[station].get_regular_transfer_time(
+            prev_train.line, prev_train.direction, train.line, train.direction
+        )
     waiting_time, force_next_day = get_transfer_waiting_time(
         transfer_time, prev_time, train.departure_time[station], force_next_day=force_next_day
     )

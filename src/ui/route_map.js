@@ -188,7 +188,7 @@ window.routeMapStopAttachment = function(key) {
     window._routeMapAttachments.delete(key);
 };
 
-window.routeMapAttach = function(key, targetId, viewerId) {
+window.routeMapAttach = function(key, targetId, viewerId, hostId) {
     window._routeMapAttachments = window._routeMapAttachments || new Map();
     window.routeMapStopAttachment(key);
 
@@ -196,6 +196,11 @@ window.routeMapAttach = function(key, targetId, viewerId) {
     const app = document.querySelector('#app');
     if (!viewer || !app) return;
     const ensureAttached = () => {
+        if (!document.getElementById(hostId)) {
+            window.routeMapStopAttachment(key);
+            viewer.remove();
+            return;
+        }
         const target = document.getElementById(targetId);
         if (target && viewer.parentNode !== target) target.appendChild(viewer);
     };

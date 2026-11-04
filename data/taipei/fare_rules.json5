@@ -23,7 +23,7 @@
         {
             name: "新北捷运",
             derive_from: {name: "台北捷运"},
-            lines: ["淡海輕軌", "藍海線", "安坑輕軌"]
+            lines: ["淡海輕軌", "藍海線", "安坑輕軌", "三鶯線"]
         },
         {
             // 参考：https://www.tymetro.com.tw/tymetro-new/tw/_images/document/travel-guide/price.pdf

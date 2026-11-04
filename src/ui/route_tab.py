@@ -1207,6 +1207,8 @@ def display_data(
             time_only_mode=True, exclude_next_day=(not forced_next and next_day_switch.value)
         )
         data_dict = {value[0]: value for value in data_list}
+        data_table.run_method("setExpanded", [])
+        clear_expanded_route_map()
         data_table.rows = calculate_data_rows(
             city, best_dict, data_list, cur_time=cur_time[0],
             percentage_field=percentage_select.value, insert_transfer=transfer_select.value.lower(),
@@ -1385,7 +1387,8 @@ def display_data(
         expanded_map_viewers[route_index] = viewer
         ui.run_javascript(
             f"window.routeMapAttach?.("
-            f"'{attachment_key}', 'route-map-result-{route_index}', '{viewer.html_id}')"
+            f"'{attachment_key}', 'route-map-result-{route_index}', '{viewer.html_id}', "
+            f"'{map_viewer_host.html_id}')"
         )
 
     data_table.selected = data_rows[:]
