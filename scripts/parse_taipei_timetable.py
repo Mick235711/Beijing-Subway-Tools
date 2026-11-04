@@ -82,10 +82,15 @@ def main() -> int:
             result = subprocess.run(["pdftotext", "-layout", str(path), "-"],
                                     check=True, capture_output=True)
             tables = parse_layout(result.stdout.decode())
-        for label, table in zip(("Weekdays", "Saturday", "Sunday and national holidays"), tables):
+        labels = ("Weekdays", "Saturday", "Sunday and national holidays")
+        for index, (label, table) in enumerate(zip(labels, tables)):
             print(label)
-            for hour, minutes in table:
-                print(f"{hour:02}|" + " ".join(f"{minute:02}" for minute in minutes))
+            earlier = next((i for i in range(index) if tables[i] == table), None)
+            if earlier is not None:
+                print(f"Same as {labels[earlier]}")
+            else:
+                for hour, minutes in table:
+                    print(f"{hour:02}|" + " ".join(f"{minute:02}" for minute in minutes))
             print()
         print("Note: visual route markings are not included; check the PDF for special destinations.",
               file=sys.stderr)

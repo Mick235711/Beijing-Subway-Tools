@@ -3609,3 +3609,93 @@ Sunday and national holidays
 
 Note: visual route markings are not included; check the PDF for special destinations.
 </pre>
+
+### [`scripts/annotate_originating_services.py`](/scripts/annotate_originating_services.py): Annotate services originating at a station
+```
+usage: annotate_originating_services.py [-h] [--travel-time TRAVEL_TIME]
+                                        [--tolerance TOLERANCE]
+                                        [first] [second]
+
+Annotate likely originating services using adjacent station timetables
+
+positional arguments:
+  first                 first station timetable file
+  second                second station timetable file
+
+options:
+  -h, --help            show this help message and exit
+  --travel-time TRAVEL_TIME
+                        expected travel time in minutes (default: infer 0–30)
+  --tolerance TOLERANCE
+                        allowed variation in minutes (default: 2)
+```
+Compare two adjacent stations in the same direction and print the second timetable with likely originating services in parentheses. Provide both timetable file paths, or omit both to enter each timetable interactively, ending each with a blank line.
+
+The script assumes that every service at the first station continues to the second and that trains remain in order. It infers a common travel time that best matches the schedules, allowing the specified variation. Use `--travel-time` to set a known travel time. Equally good matches can produce different annotations; the script warns when this happens.
+
+Example Usage:
+<pre>
+$ python3 scripts/annotate_originating_services.py
+Enter first station timetable, followed by a blank line:
+<i>06|02 12 20 29 37 47 57
+07|06 17 27 37 46 56
+08|05 15 24 34 43 53
+09|02 12 21 31 40 49 59
+10|07 15 23 31 39 48 56
+11|03 11 20 28 37 45 53
+12|01 09 17 26 34 42 50 58
+13|06 15 23 31 39 47 55
+14|04 12 20 28 36 44 53
+15|01 09 17 25 33 42 50 58
+16|06 14 22 31 39 47 55
+17|03 11 20 28 36 44 52
+18|00 09 17 25 33 43 52
+19|01 09 18 26 35 43 52
+20|00 09 17 26 34 43 51
+21|00 08 17 25 34 41 49 59
+22|09 19 29 39 49 59
+23|10 22 34 47
+00|00 13</i>
+
+Enter second station timetable, followed by a blank line:
+<i>06|00 05 15 23 32 40 50
+07|00 05 09 15 20 25 30 35 40 45 49 55 59
+08|04 08 14 18 23 27 33 37 42 46 52 56
+09|01 05 11 15 20 24 30 34 39 43 49 52 58
+10|01 06 10 14 18 22 26 31 34 39 42 47 50 55 59
+11|03 06 09 11 14 17 20 23 28 31 36 39 44 48 52 56
+12|00 04 09 12 17 20 25 28 33 37 41 45 49 53 58
+13|01 06 09 14 17 22 26 30 34 38 42 47 50 55 58
+14|03 06 11 15 19 23 27 31 36 39 44 47 52 55
+15|00 04 08 12 16 20 25 28 33 36 41 44 49 53 57
+16|01 05 09 14 17 22 25 30 33 38 42 46 50 54 58
+17|03 06 11 14 19 22 27 31 35 39 43 47 52 55
+18|00 03 08 11 16 20 24 28 32 36 41 46 52 55
+19|00 04 09 12 17 21 26 29 34 38 43 46 51 55
+20|00 03 08 12 17 20 25 29 34 37 42 46 51 54 59
+21|03 08 11 16 20 25 28 33 37 40 44 49 52 58
+22|02 11 21 27 32 42 52
+23|02 13 25 37 50
+00|03 17</i>
+
+Estimated travel time: 3 minutes
+06|(00) 05 15 23 32 40 50
+07|00 (05) 09 (15) 20 (25) 30 (35) 40 (45) 49 (55) 59
+08|(04) 08 (14) 18 (23) 27 (33) 37 (42) 46 (52) 56
+09|(01) 05 (11) 15 (20) 24 (30) 34 (39) 43 (49) 52 (58)
+10|01 (06) 10 (14) 18 (22) 26 (31) 34 (39) 42 (47) 50 (55) 59
+11|(03) 06 (09) (11) 14 (17) (20) 23 (28) 31 (36) 39 (44) 48 (52) 56
+12|(00) 04 (09) 12 (17) 20 (25) 28 (33) 37 (41) 45 (49) 53 (58)
+13|01 (06) 09 (14) 17 (22) 26 (30) 34 (38) 42 (47) 50 (55) 58
+14|(03) 06 (11) 15 (19) 23 (27) 31 (36) 39 (44) 47 (52) 55
+15|(00) 04 (08) 12 (16) 20 (25) 28 (33) 36 (41) 44 (49) 53 (57)
+16|01 (05) 09 (14) 17 (22) 25 (30) 33 (38) 42 (46) 50 (54) 58
+17|(03) 06 (11) 14 (19) 22 (27) 31 (35) 39 (43) 47 (52) 55
+18|(00) 03 (08) 11 (16) 20 (24) 28 (32) 36 (41) 46 (52) 55
+19|(00) 04 (09) 12 (17) 21 (26) 29 (34) 38 (43) 46 (51) 55
+20|(00) 03 (08) 12 (17) 20 (25) 29 (34) 37 (42) 46 (51) 54 (59)
+21|03 (08) 11 (16) 20 (25) 28 (33) 37 (40) 44 (49) 52 (58)
+22|02 11 21 (27) 32 42 52
+23|02 13 25 37 50
+00|03 17
+</pre>
