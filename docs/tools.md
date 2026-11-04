@@ -3489,8 +3489,8 @@ options:
   --port PORT        Server port
 ```
 
-# Distribution Scripts
-You can use [`scripts/pack_ui.py`](/scripts/pack_ui.py) to pack the UI into a single distributable native app/executable.
+# Auxiliary Scripts
+### [`scripts/pack_ui.py`](/scripts/pack_ui.py): Pack the UI into a single distributable native app/executable
 The command-line arguments are basically the same as what `pyinstaller` supports:
 ```
 usage: pack_ui.py [-h] [--name NAME] [--onedir | --onefile] [--windowed |
@@ -3520,3 +3520,92 @@ options:
   --noconfirm           Replace an existing output without prompting
   --dry-run             Print the command without building
 ```
+Of course, requires `python3 -m PyInstaller` to be a valid command.
+
+### [`scripts/parse_taipei_timetable.py`](/scripts/parse_taipei_timetable.py): Extract Taipei Metro timetables from a PDF
+```
+usage: parse_taipei_timetable.py [-h] [pdf]
+
+Extract the three Taipei Metro schedules from an embedded-text PDF
+
+positional arguments:
+  pdf         local PDF path; omit to enter a URL
+
+options:
+  -h, --help  show this help message and exit
+```
+Extract the weekday, Saturday, and Sunday/holiday timetables from a three-lane Taipei Metro PDF into the `hour|minutes` input format. Pass a local PDF path, or omit it to enter a URL when prompted.
+
+Requires Poppler's `pdftotext` command be available in PATH.
+
+Visual route markings, such as underlines indicating special destinations, are not included in the output; consult the PDF for those details.
+
+Example Usage:
+<pre>
+$ python3 scripts/parse_taipei_timetable.py
+PDF URL: <i>https://web.metro.taipei/img/ALL/timetables/104a.PDF</i>
+Weekdays
+06|00 05 11 19 25 32 36 40 45 49 53 57
+07|01 05 09 13 16 19 22 25 29 32 35 39 42 45 48 52 55 58
+08|01 05 08 11 14 18 21 24 27 31 34 37 40 43 46 49 52 55 58
+09|01 04 07 11 14 17 20 24 27 30 33 37 40 43 46 50 53 57
+10|02 11 20 29 38 47 56
+11|05 14 23 32 41 50 59
+12|08 17 26 35 44 53
+13|02 11 20 29 38 47 56
+14|05 14 23 32 41 50 59
+15|08 17 26 35 44 53
+16|02 07 11 16 20 24 27 30 33 37 40 43 46 50 53 56 59
+17|03 06 09 12 16 19 22 25 29 32 35 38 42 45 48 51 54 57
+18|01 04 07 10 13 16 20 23 26 29 33 36 39 42 46 49 52 55 59
+19|02 05 08 12 15 18 21 25 28 31 34 38 43 48 51 56
+20|00 08 17 25 34 42 51 59
+21|08 16 25 33 42 50 59
+22|07 15 25 34 43 53
+23|02 08 14 26 38 50
+00|00
+
+Saturday
+06|00 05 11 18 27 35 42 49 58
+07|07 16 24 29 34 42 50 58
+08|06 15 23 31 39 47 55
+09|04 12 20 28 36 44 53
+10|01 09 17 25 33 42 50 58
+11|06 14 22 31 39 47 55 59
+12|03 07 11 15 20 24 28 32 36 40 44 48 52 56
+13|00 04 09 13 17 21 25 29 33 37 41 45 49 53 58
+14|02 06 10 14 18 22 26 30 34 38 42 47 51 55 59
+15|03 07 11 15 19 23 27 31 36 40 44 48 52 56
+16|00 04 08 12 16 20 24 27 31 34 38 41 45 48 52 55 59
+17|02 06 09 13 16 20 23 27 30 34 37 41 44 48 51 55 58
+18|02 05 09 12 16 19 23 26 30 37 44 51 58
+19|05 12 19 26 34 43 51
+20|00 08 17 25 34 42 51 59
+21|08 16 25 33 42 50 59
+22|07 15 25 34 39 42 49 53
+23|02 08 14 26 38 50
+00|00
+
+Sunday and national holidays
+06|00 05 11 18 27 35 42 49 58
+07|07 16 24 29 34 42 52
+08|00 10 20 30 39 49 58
+09|08 17 27 36 46 55
+10|05 14 24 33 42 50 58
+11|06 14 22 31 39 47 55 59
+12|03 07 11 15 20 24 28 32 36 40 44 48 52 56
+13|00 04 09 13 17 21 25 29 33 37 41 45 49 53 58
+14|02 06 10 14 18 22 26 30 34 38 42 47 51 55 59
+15|03 07 11 15 19 23 27 31 36 40 44 48 52 56
+16|00 04 08 12 16 20 25 29 33 37 41 45 49 53 57
+17|01 05 09 14 18 22 26 30 34 38 42 46 50 54 58
+18|03 07 11 15 19 23 27 35 43 52
+19|00 08 16 25 34 43 51
+20|00 08 17 25 34 42 51 59
+21|08 16 25 33 42 50 59
+22|07 15 25 34 39 42 49 53
+23|02 08 14 26 38 50
+00|00
+
+Note: visual route markings are not included; check the PDF for special destinations.
+</pre>

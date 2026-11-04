@@ -3,6 +3,7 @@
 
 """ Build the native NiceGUI application without CLI-only dependencies """
 
+# Libraries
 import argparse
 import os
 import shlex
@@ -105,5 +106,6 @@ def main() -> None:
         subprocess.run(command, check=True, cwd=repository_root)
 
 
+# Call main
 if __name__ == "__main__":
     main()
