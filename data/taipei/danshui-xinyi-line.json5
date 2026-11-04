@@ -11,7 +11,7 @@
     carriage_type: "C",
     design_speed: 80,
     stations: [
-        {name: "廣慈/奉天宮", aliases: ["Guangci/Fengtian Temple"]},
+        {name: "廣慈/奉天宮", aliases: ["Guangci/Fengtian Temple", "Songshan Cihui Temple"]},
         {name: "象山", dist: 1376},
         {name: "台北101/世貿", dist: 859, aliases: ["Taipei 101/World Trade Center"]},
         {name: "信義安和", dist: 1082},

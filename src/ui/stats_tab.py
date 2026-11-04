@@ -194,7 +194,7 @@ def stats_tab(city: City, data: StatsData) -> None:
         def refresh_radar(*, save_image: bool = False) -> None:
             """ Render the radar without resetting the other radar controls. """
             if radar_base_line.value == "Every Line":
-                if radar_sort_trains.value == "None":
+                if radar_sort_trains.value is None or radar_sort_trains.value == "None":
                     radar_sort_trains._change_handlers = []
                     radar_sort_trains.set_value("Start")
                     radar_sort_trains.on_value_change(refresh_radar)
