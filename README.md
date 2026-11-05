@@ -5,7 +5,7 @@ Mainly focus on electronically recording the timetables of subway lines, to faci
 of equ-time graphs.
 
 # Running Requirements
-Python 3.10+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate` and `tqdm`
+Python 3.11+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate` and `tqdm`
 
 (For map-related or drawing-related tasks, also requires `numpy`, `matplotlib` and `scipy`)
 
