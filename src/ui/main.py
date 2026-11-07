@@ -8,6 +8,7 @@ import argparse
 import sys
 from datetime import date
 from multiprocessing import freeze_support
+from pathlib import Path
 from typing import Any
 
 from nicegui import app, background_tasks, run, ui
@@ -24,6 +25,9 @@ from src.ui.route_tab import route_tab
 from src.ui.stats_tab import stats_tab, StatsData, train_chart_data, speed_graph_data, collect_directions
 from src.ui.timetable_tab import get_train_dict, timetable_tab, TimetableData
 from src.ui.trains_tab import get_train_list, trains_tab, TrainsData
+
+
+STYLES_DIR = Path(__file__).resolve().parent / "styles"
 
 
 # Preserve Pinyin queries instead of applying the browser's typing corrections.
@@ -55,130 +59,8 @@ async def main_page(city_name: str) -> None:
     city = get_all_cities()[city_name]
 
     # Global CSS
-    ui.add_css("""
-.drawers-line-timeline .q-timeline__subtitle {
-    margin-bottom: 0;
-    padding-right: 16px !important;
-}
-.drawers-line-timeline .q-timeline__content {
-    padding-left: 0 !important;
-    gap: 0 !important;
-}
-.drawers-line-timeline .q-timeline__entry--icon .q-timeline__content {
-    padding-top: 8px !important;
-}
-.drawers-train-timeline .q-timeline__subtitle {
-    margin-bottom: 0;
-    padding-right: 16px !important;
-}
-.drawers-train-timeline .q-timeline__content {
-    padding-left: 0 !important;
-    gap: 0 !important;
-}
-.drawers-train-timeline .q-timeline__entry--icon .q-timeline__content {
-    padding-top: 8px !important;
-}
-.info-tab-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-.train-tab-timeline-parent .q-timeline__subtitle {
-    margin-bottom: 0;
-    padding-right: 16px !important;
-}
-.train-tab-timeline-parent .q-timeline__content {
-    padding-left: 0 !important;
-    gap: 0 !important;
-    align-items: flex-end !important;
-}
-.train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__content {
-    padding-top: 8px !important;
-}
-.train-tab-timeline-parent .q-timeline__entry--icon .q-timeline__subtitle {
-    padding-top: 0 !important;
-}
-.train-tab-timeline-parent .collapsed-station-dot .q-timeline__content,
-.train-tab-timeline-parent .collapsed-station-dot .q-timeline__subtitle,
-.train-tab-timeline-parent .through-station-dot:not(.through-station-icon-row) .q-timeline__content,
-.train-tab-timeline-parent .through-station-dot:not(.through-station-icon-row) .q-timeline__subtitle,
-.train-tab-timeline-parent .loop-station-dot:not(.loop-station-icon-row) .q-timeline__content,
-.train-tab-timeline-parent .loop-station-dot:not(.loop-station-icon-row) .q-timeline__subtitle,
-.train-tab-timeline-parent .skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__content,
-.train-tab-timeline-parent .skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__subtitle,
-.train-tab-timeline-parent .stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__content,
-.train-tab-timeline-parent .stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__subtitle {
-    padding-top: 0 !important;
-}
-.collapsed-station-dot .q-timeline__dot:before,
-.through-station-dot .q-timeline__dot:before,
-.loop-station-dot .q-timeline__dot:before,
-.skipped-station-dot .q-timeline__dot:before,
-.stopped-station-dot .q-timeline__dot:before {
-    background: transparent;
-}
-.collapsed-station-dot .q-timeline__dot:after,
-.through-station-dot:not(.through-station-icon-row) .q-timeline__dot:after,
-.loop-station-dot:not(.loop-station-icon-row) .q-timeline__dot:after,
-.skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__dot:after,
-.stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__dot:after {
-    top: 24px;
-}
-.collapsed-station-dot .q-timeline__dot .q-icon {
-    color: inherit;
-    font: inherit;
-    height: 22px;
-    line-height: 22px;
-}
-.through-station-dot:not(.through-station-icon-row) .q-timeline__dot .q-icon,
-.loop-station-dot:not(.loop-station-icon-row) .q-timeline__dot .q-icon,
-.skipped-station-dot:not(.skipped-station-icon-row) .q-timeline__dot .q-icon,
-.stopped-station-dot:not(.stopped-station-icon-row) .q-timeline__dot .q-icon {
-    color: inherit;
-    height: 22px;
-    line-height: 22px;
-}
-.through-station-dot .q-timeline__dot .q-icon,
-.stopped-station-dot .q-timeline__dot .q-icon {
-    color: inherit;
-}
-.skipped-station-dot .q-timeline__dot .q-icon,
-.loop-station-dot .q-timeline__dot .q-icon {
-    color: inherit;
-    font-weight: bold;
-    -webkit-text-stroke: 0.5px currentColor;
-}
-.skipped-station-icon-row .q-timeline__dot .q-icon,
-.stopped-station-icon-row .q-timeline__dot .q-icon {
-    font-size: 24px;
-}
-.loop-station-dot:not(.loop-station-icon-row) .q-timeline__dot .q-icon {
-    transform: translateY(0.5px);
-}
-.collapsed-station-dot .q-timeline__dot .q-icon:before {
-    content: var(--collapsed-count);
-    font-weight: bold;
-}
-.text-invisible {
-    visibility: hidden;
-}
-.timetable-tab-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-.route-tab-guided-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-.route-tab-shorthand-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-.route-tab-top-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-.route-tab-top-selection .q-field__bottom {
-    min-height: 20px;
-}
-.stats-tab-selection .q-select .q-field__input--padding {
-    max-width: 50px;
-}
-        """)
+    for stylesheet in sorted(STYLES_DIR.glob("*.css")):
+        ui.add_css(stylesheet.read_text(encoding="utf-8"))
     for each_line in city.lines.values():
         ui.add_css(f"""
 .drawers-line-timeline .text-line-{each_line.index} {{

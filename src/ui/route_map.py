@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from html import escape
 import json
 from pathlib import Path as FilePath
+from typing import Any
+
 from nicegui import ui
 from nicegui.elements.interactive_image import InteractiveImage
 from nicegui.events import GenericEventArguments
@@ -27,7 +29,6 @@ from src.ui.common import get_badge_html
 Image.MAX_IMAGE_PIXELS = 500000000
 
 ROUTE_MAP_SCRIPT = FilePath(__file__).with_suffix(".js").read_text(encoding="utf-8")
-
 SKETCH_BACKGROUND = "#090909"
 SKETCH_EDGE = "#383838"
 SKETCH_VIRTUAL_EDGE = "#666666"
@@ -65,6 +66,7 @@ class MapRouteState:
     """ Mutable route selection independent of its visual representation """
 
     def __init__(self, city: City) -> None:
+        """ Constructor """
         self.city = city
         self.allow_virtual = False
         self.include_express = False
@@ -399,7 +401,7 @@ def station_label_placements(
     canvas = (0.0, 0.0, viewport.width, viewport.height)
     placed_boxes: list[tuple[float, float, float, float]] = []
     placements: dict[str, tuple[float, float, str]] = {}
-    ordered_stations = sorted(font_sizes, key=lambda station: (station not in priority_stations, station))
+    ordered_stations = sorted(font_sizes, key=lambda s: (s not in priority_stations, s))
 
     for station in ordered_stations:
         font_size = font_sizes[station]
@@ -657,7 +659,7 @@ def build_map_svg(
             f'{"" if station_clickable else " route-map-hover-only"}" '
             f'fill="transparent" stroke="transparent" '
             f'stroke-width="{HIT_STROKE_WIDTH}" vector-effect="non-scaling-stroke" pointer-events="all" '
-            f'data-station="{escape(station, quote=True)}" data-lines="{escape(line_data, quote=True)}"'
+            f'data-station="{escape(station)}" data-lines="{escape(line_data)}"'
         ))
         svg.append(shape_svg(
             shape, viewport,
@@ -668,144 +670,96 @@ def build_map_svg(
     return "".join(svg), missing_path_stations
 
 
-def add_route_map(
-    city: City, on_route_change: Callable[[Route], None], render_route: Callable[[Route], None]
-) -> None:
-    """ Add routes by consecutively selecting stations on a map """
-    maps = get_all_maps(city)
-    if len(maps) == 0:
-        ui.label("No maps are available for this city.").classes("text-negative")
-        return
 
-    ui.run_javascript(ROUTE_MAP_SCRIPT)
-    ui.add_css("""
-.route-map-image {
-    overflow: hidden;
-    user-select: none;
-    touch-action: none;
-}
-.route-map-image svg {
-    pointer-events: auto !important;
-    cursor: grab;
-}
-.route-map-image img {
-    position: absolute;
-    left: var(--route-map-x, 0px);
-    top: var(--route-map-y, 0px);
-    width: calc(100% * var(--route-map-scale, 1)) !important;
-    height: calc(100% * var(--route-map-scale, 1)) !important;
-    transform: none !important;
-}
-.route-map-image svg {
-    width: 100% !important;
-    height: 100% !important;
-    transform: none !important;
-}
-.route-map-image img {
-    image-rendering: auto;
-    max-width: none !important;
-    max-height: none !important;
-}
-.route-map-image svg {
-    z-index: 1;
-}
-.route-map-image svg .route-map-hit {
-    cursor: pointer;
-    pointer-events: all;
-}
-.route-map-image svg .route-map-hit.route-map-hover-only {
-    cursor: default;
-}
-.route-map-image svg .route-map-hover {
-    opacity: 0;
-    transition: opacity 120ms ease;
-}
-.route-map-image svg .route-map-hit:hover + .route-map-hover {
-    opacity: 0.9;
-}
-.route-map-image svg .route-map-selected-path {
-    stroke-width: var(--route-map-path-width, 5px);
-}
-.route-map-image svg .route-map-label-detail {
-    display: none;
-}
-.route-map-image.route-map-zoomed svg .route-map-label-detail {
-    display: block;
-}
-.route-map-tooltip {
-    position: absolute;
-    z-index: 10;
-    display: none;
-    pointer-events: none;
-    padding: 7px 9px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 6px;
-    background: rgba(20, 20, 20, 0.94);
-    color: white;
-    font-size: 12px;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
-    white-space: nowrap;
-}
-.route-map-tooltip-lines {
-    display: flex;
-    gap: 4px;
-    margin-top: 5px;
-}
-.route-map-tooltip-badge {
-    display: inline-flex;
-    min-width: 20px;
-    justify-content: center;
-    padding: 2px 5px;
-    border-radius: 4px;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-}
-    """)
-    default_map = "Official Map" if "Official Map" in maps else sorted(maps)[0]
-    state = MapRouteState(city)
-    station_ids = {station: f"route-map-station-{index}" for index, station in enumerate(sorted(city.station_lines))}
-    id_stations = {element_id: station for station, element_id in station_ids.items()}
-    image: InteractiveImage | None = None
-    warning_signature: tuple[str, frozenset[str]] | None = None
+class RouteMapDisplay:
+    """ Render and update the shared interactive map presentation. """
 
-    def notify_missing(map_name: str, missing: set[str]) -> None:
-        """ Notify once for each distinct missing-coordinate result """
-        nonlocal warning_signature
+    def __init__(self, city: City, state: MapRouteState, station_ids: dict[str, str], *, clickable: bool) -> None:
+        """ Constructor """
+        maps = get_all_maps(city)
+        if len(maps) == 0:
+            ui.label("No maps are available for this city.").classes("text-negative")
+            return
+        ui.run_javascript(ROUTE_MAP_SCRIPT)
+
+        self.city = city
+        self.maps = maps
+        self.state = state
+        self.station_ids = station_ids
+        self.clickable = clickable
+        self.image: InteractiveImage | None = None
+        self.warning_signature: tuple[str, frozenset[str]] | None = None
+
+    def default_map(self) -> str:
+        """ Get default map to use """
+        return "Official Map" if "Official Map" in self.maps else min(self.maps)
+
+    def render(self, map_obj: Map, sketch: bool, show_order: bool, station_names: str) -> tuple[MapViewport, str, set[str]]:
+        """ Build an overlay for the current display settings. """
+        viewport = get_viewport(map_obj, sketch=sketch)
+        content, missing = build_map_svg(
+            self.city, map_obj, viewport, self.state, self.station_ids,
+            sketch=sketch, show_path_order=show_order,
+            station_name_mode=station_names, station_clickable=self.clickable
+        )
+        return viewport, content, missing
+
+    def notify_missing(self, map_name: str, missing: set[str]) -> None:
+        """ Notify once for each distinct missing-coordinate result. """
         signature = map_name, frozenset(missing)
-        if len(missing) == 0:
-            warning_signature = None
+        if not missing:
+            self.warning_signature = None
             return
-        if signature == warning_signature:
+        if signature == self.warning_signature:
             return
-        warning_signature = signature
+        self.warning_signature = signature
         ui.notify(
             "Cannot draw part of the route on this map because coordinates are missing for: " +
             ", ".join(sorted(missing)),
             type="warning"
         )
 
-    def current_render() -> tuple[Map, MapViewport, bool, str, set[str]]:
-        """ Build the current map overlay """
-        map_obj = maps[map_select.value]
-        sketch = mode_toggle.value == "Sketch"
-        viewport = get_viewport(map_obj, sketch=sketch)
-        content, missing = build_map_svg(
-            city, map_obj, viewport, state, station_ids,
-            sketch=sketch, show_path_order=show_order_switch.value,
-            station_name_mode=station_name_select.value
-        )
-        return map_obj, viewport, sketch, content, missing
+    def show(self, map_obj: Map, sketch: bool, show_order: bool, station_names: str) -> InteractiveImage:
+        """ Create the map image for the selected map and display mode. """
+        viewport, content, missing = self.render(map_obj, sketch, show_order, station_names)
+        if sketch:
+            self.image = ui.interactive_image(content=content, size=(viewport.width, viewport.height), sanitize=False)
+        else:
+            self.image = ui.interactive_image(map_obj.path, content=content, sanitize=False)
+
+        assert self.image is not None, self.image
+        self.image.classes(f"w-full route-map-image {'bg-[#090909]' if sketch else ''}")
+        self.notify_missing(map_obj.name, missing)
+        return self.image
+
+    def update(self, map_obj: Map, sketch: bool, show_order: bool, station_names: str) -> None:
+        """ Update the existing image's overlay. """
+        if self.image is None:
+            return
+        _, content, missing = self.render(map_obj, sketch, show_order, station_names)
+        self.image.set_content(content)
+        self.notify_missing(map_obj.name, missing)
+
+
+def add_route_map(
+    city: City, on_route_change: Callable[[Route], None], render_route: Callable[[Route], None]
+) -> None:
+    """ Add routes by consecutively selecting stations on a map """
+    state = MapRouteState(city)
+    station_ids = {station: f"route-map-station-{index}" for index, station in enumerate(sorted(city.station_lines))}
+    id_stations = {element_id: station for station, element_id in station_ids.items()}
+    display = RouteMapDisplay(city, state, station_ids, clickable=True)
+
+    def display_settings() -> tuple[Map, bool, bool, str]:
+        """ Get the current map and overlay settings. """
+        return display.maps[map_select.value], mode_toggle.value == "Sketch", show_order_switch.value, station_name_select.value
 
     def refresh_controls() -> None:
         """ Refresh route summary, buttons, and the current SVG overlay """
         undo_button.set_enabled(len(state.waypoints) > 0)
         clear_button.set_enabled(len(state.waypoints) > 0)
         route_summary.refresh()
-        if image is not None:
-            map_obj, _, _, content, missing = current_render()
-            image.set_content(content)
-            notify_missing(map_obj.name, missing)
+        display.update(*display_settings())
 
     def select_station(station: str) -> None:
         """ Handle a station hit-area click """
@@ -867,7 +821,7 @@ def add_route_map(
             return
         refresh_controls()
 
-    def on_edge_line_change(edge: AmbiguousPathEdge, value: object) -> None:
+    def on_edge_line_change(edge: AmbiguousPathEdge, value: Any) -> None:
         """ Apply an explicit line choice to an ambiguous edge in the selected path """
         if not state.set_edge_line(edge.segment_index, edge.start, edge.end, str(value)):
             ui.notify(
@@ -889,7 +843,7 @@ def add_route_map(
 
     with ui.column().classes("w-full") as map_container:
         with ui.row().classes("w-full items-center gap-x-2"):
-            map_select = ui.select(sorted(maps), value=default_map, label="Map").on_value_change(on_view_change)
+            map_select = ui.select(sorted(display.maps), value=display.default_map(), label="Map").on_value_change(on_view_change)
             mode_toggle = ui.toggle(["Regular", "Sketch"], value="Regular").on_value_change(on_view_change)
             virtual_switch = ui.switch(
                 "Allow virtual transfers", value=False,
@@ -964,17 +918,8 @@ def add_route_map(
         @ui.refreshable
         def map_view() -> None:
             """ Display the current regular or sketch map """
-            nonlocal image
-            map_obj, viewport, sketch, content, missing = current_render()
-            if sketch:
-                image = ui.interactive_image(
-                    content=content, size=(viewport.width, viewport.height), sanitize=False
-                )
-            else:
-                image = ui.interactive_image(map_obj.path, content=content, sanitize=False)
-            image.classes(f"w-full route-map-image {'bg-[#090909]' if sketch else ''}")
+            image = display.show(*display_settings())
             image.on("svg:pointerup", on_svg_pointer)
-            notify_missing(map_obj.name, missing)
 
         map_view()
 
@@ -1004,13 +949,6 @@ def add_route_map_zoom_controls(container_id: str) -> None:
 
 def add_route_map_viewer(city: City, route: Route) -> None:
     """ Display a fixed route on a hover-only map """
-    maps = get_all_maps(city)
-    if len(maps) == 0:
-        ui.label("No maps are available for this city.").classes("text-negative")
-        return
-
-    ui.run_javascript(ROUTE_MAP_SCRIPT)
-    default_map = "Official Map" if "Official Map" in maps else sorted(maps)[0]
     state = MapRouteState(city)
     path = reduce_abstract_path(city.lines, route[0], route[1])
     state.waypoints = [route[0][0][0], route[1]]
@@ -1021,44 +959,15 @@ def add_route_map_viewer(city: City, route: Route) -> None:
         station: f"{viewer_key}-station-{index}"
         for index, station in enumerate(sorted(city.station_lines))
     }
-    image: InteractiveImage | None = None
-    warning_signature: tuple[str, frozenset[str]] | None = None
+    display = RouteMapDisplay(city, state, station_ids, clickable=False)
 
-    def notify_missing(map_name: str, missing: set[str]) -> None:
-        """ Notify once for each distinct missing-coordinate result """
-        nonlocal warning_signature
-        signature = map_name, frozenset(missing)
-        if len(missing) == 0:
-            warning_signature = None
-            return
-        if signature == warning_signature:
-            return
-        warning_signature = signature
-        ui.notify(
-            "Cannot draw part of the route on this map because coordinates are missing for: " +
-            ", ".join(sorted(missing)),
-            type="warning"
-        )
-
-    def current_render() -> tuple[Map, MapViewport, bool, str, set[str]]:
-        """ Build the fixed route overlay """
-        map_obj = maps[map_select.value]
-        sketch = mode_toggle.value == "Sketch"
-        viewport = get_viewport(map_obj, sketch=sketch)
-        content, missing = build_map_svg(
-            city, map_obj, viewport, state, station_ids,
-            sketch=sketch, show_path_order=show_order_switch.value,
-            station_name_mode=station_name_select.value, station_clickable=False
-        )
-        return map_obj, viewport, sketch, content, missing
+    def display_settings() -> tuple[Map, bool, bool, str]:
+        """ Get the current map and overlay settings. """
+        return display.maps[map_select.value], mode_toggle.value == "Sketch", show_order_switch.value, station_name_select.value
 
     def refresh_overlay() -> None:
-        """ Update viewer-only SVG options """
-        if image is None:
-            return
-        map_obj, _, _, content, missing = current_render()
-        image.set_content(content)
-        notify_missing(map_obj.name, missing)
+        """ Update viewer-only SVG options. """
+        display.update(*display_settings())
 
     def on_view_change() -> None:
         """ Recreate the viewer for a new map or display mode """
@@ -1067,7 +976,7 @@ def add_route_map_viewer(city: City, route: Route) -> None:
 
     with ui.column().classes("w-full") as map_container:
         with ui.row().classes("w-full items-center gap-x-2"):
-            map_select = ui.select(sorted(maps), value=default_map, label="Map").on_value_change(on_view_change)
+            map_select = ui.select(sorted(display.maps), value=display.default_map(), label="Map").on_value_change(on_view_change)
             mode_toggle = ui.toggle(["Regular", "Sketch"], value="Regular").on_value_change(on_view_change)
             show_order_switch = ui.switch("Show path order", value=False, on_change=refresh_overlay)
             station_name_select = ui.select(
@@ -1080,15 +989,6 @@ def add_route_map_viewer(city: City, route: Route) -> None:
         @ui.refreshable
         def map_view() -> None:
             """ Display the current fixed-route map """
-            nonlocal image
-            map_obj, viewport, sketch, content, missing = current_render()
-            if sketch:
-                image = ui.interactive_image(
-                    content=content, size=(viewport.width, viewport.height), sanitize=False
-                )
-            else:
-                image = ui.interactive_image(map_obj.path, content=content, sanitize=False)
-            image.classes(f"w-full route-map-image {'bg-[#090909]' if sketch else ''}")
-            notify_missing(map_obj.name, missing)
+            display.show(*display_settings())
 
         map_view()

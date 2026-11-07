@@ -48,6 +48,8 @@ def build_command(args: argparse.Namespace) -> list[str]:
         f"{repository_root / 'data'}{os.pathsep}data",
         "--add-data",
         f"{repository_root / 'src' / 'ui' / 'route_map.js'}{os.pathsep}src/ui",
+        "--add-data",
+        f"{repository_root / 'src' / 'ui' / 'styles'}{os.pathsep}src/ui/styles",
     ]
     if args.windowed:
         command.append("--windowed")
