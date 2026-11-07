@@ -265,7 +265,6 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                         missing_dates.append(cur_date)
                     if missing_dates:
                         loaded_dicts = await run.io_bound(get_train_dicts, active_lines, missing_dates)
-                        assert loaded_dicts is not None, loaded_dicts
                         current_line_names = tuple(sorted(
                             line.name for line in data.info_data.station_lines.get(data.station, set())
                         ))
@@ -284,7 +283,7 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                     current_line_names = tuple(sorted(
                         line.name for line in data.info_data.station_lines.get(data.station, set())
                     ))
-                    if train_dict is None or key != (data.station, data.cur_date, current_line_names):
+                    if key != (data.station, data.cur_date, current_line_names):
                         return
                     data.train_dict = train_dict
                     data.train_dict_key = key
@@ -347,8 +346,6 @@ def timetable_tab(city: City, data: TimetableData) -> None:
                     city.through_specs
                 )[1]
             )
-            if through_dict is None:
-                return
             data.through_dict = through_dict
             data.through_dict_key = lines_key
             loading.set_visibility(False)

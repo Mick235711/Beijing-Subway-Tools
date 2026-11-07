@@ -145,8 +145,6 @@ def info_tab(city: City, data: InfoData) -> None:
             city, data.lines, data.station_lines, cur_date,
             full_only=full_only, show_ending=show_ending
         )
-        if calc_result is None:
-            return
         station_rows, new_line_id_dict = calc_result
         line_id_dict = new_line_id_dict
         if stations_table is None:

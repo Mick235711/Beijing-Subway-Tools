@@ -592,7 +592,7 @@ async def get_kth_routes(
             )),
             progress_callback=progress_callback
         )
-        if time_results is None or len(time_results) == 0:
+        if len(time_results) == 0:
             return None
         return [(result.total_duration(), path, result) for result, path in time_results]
 
@@ -605,7 +605,7 @@ async def get_kth_routes(
         ignore_dists=(metric == "station"), include_express=include_express,
         progress_callback=progress_callback
     )
-    if static_results is None or len(static_results) == 0:
+    if len(static_results) == 0:
         return None
     return [StaticPathInfo(cost, path, end_station, metric) for cost, path in static_results]
 
@@ -841,9 +841,6 @@ async def analyze_routes(
         }, start_date,
         progress_callback=progress_callback, use_process_pool=True, allow_transfer_shortcuts=allow_transfer_shortcuts
     )
-    if path_dict is None:
-        return [], through_dict
-
     path_list: list[PathData] = []
     for i, paths in path_dict.items():
         if len(paths) == 0:
