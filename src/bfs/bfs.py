@@ -23,9 +23,10 @@ from src.fare.fare import Fare
 from src.routing.through_train import ThroughTrain, find_through_train
 from src.routing.train import Train
 
+RoutePattern = tuple[frozenset[TrainRoute], frozenset[TrainRoute] | None]
 NextTrainIndex = dict[
     tuple[str, str, str],
-    dict[tuple[str, str, frozenset[TrainRoute]], tuple[list[str], list[Train]]]
+    dict[tuple[str, str, RoutePattern], tuple[list[str], list[Train]]]
 ]
 
 
@@ -320,6 +321,12 @@ def get_all_trains_single(
     return sorted(all_passing, key=lambda t: get_time_str(*t.departure_time[station]))
 
 
+def train_route_pattern(train: Train) -> RoutePattern:
+    """Distinguish services that continue differently across a loop boundary."""
+    continuation = None if train.loop_next is None else frozenset(train.loop_next.routes)
+    return frozenset(train.routes), continuation
+
+
 def find_next_train(
     train_dict: dict[str, dict[str, dict[str, list[Train]]]],
     cur_date: date, cur_time: time, cur_day: bool,
@@ -330,14 +337,14 @@ def find_next_train(
     if index is not None:
         cache_key = (station, line.name, direction)
         if cache_key not in index:
-            route_trains: dict[tuple[str, str, frozenset[TrainRoute]], list[Train]] = {}
+            route_trains: dict[tuple[str, str, RoutePattern], list[Train]] = {}
             for date_group, date_dict in train_dict[line.name][direction].items():
                 if not line.date_groups[date_group].covers(cur_date):
                     continue
                 for train in date_dict:
                     if station not in train.arrival_time or station in train.skip_stations:
                         continue
-                    route_key = (train.line.name, train.direction, frozenset(train.routes))
+                    route_key = (train.line.name, train.direction, train_route_pattern(train))
                     route_trains.setdefault(route_key, []).append(train)
             index[cache_key] = {}
             for route_key, trains in route_trains.items():
@@ -356,7 +363,7 @@ def find_next_train(
         return sorted(indexed_result, key=lambda t: get_time_str(*t.departure_time[station]))
 
     # Find one for each line/direction/routes pair
-    next_by_route: dict[tuple[str, str, frozenset[TrainRoute]], Train] = {}
+    next_by_route: dict[tuple[str, str, RoutePattern], Train] = {}
     all_passing: list[Train] = []
     for date_group, date_dict in train_dict[line.name][direction].items():
         if not line.date_groups[date_group].covers(cur_date):
@@ -368,7 +375,7 @@ def find_next_train(
                     continue
                 all_passing.append(train)
     for train in sorted(all_passing, key=lambda st: get_time_str(*st.departure_time[station])):
-        key = (train.line.name, train.direction, frozenset(train.routes))
+        key = (train.line.name, train.direction, train_route_pattern(train))
         if key not in next_by_route:
             next_by_route[key] = train
     return list(next_by_route.values())
@@ -655,12 +662,12 @@ def bfs(
 
         same_line_arrival = isinstance(prev_train, Train) and prev_train.line.name == line_name
         if same_line_arrival and (line_name, direction) not in multiple_route_patterns:
-            route_patterns: set[frozenset[TrainRoute]] = set()
+            route_patterns: set[RoutePattern] = set()
             for date_group, trains in train_dict[line_name][direction].items():
                 if not line.date_groups[date_group].covers(options.start_date):
                     continue
                 for train in trains:
-                    route_patterns.add(frozenset(train.routes))
+                    route_patterns.add(train_route_pattern(train))
                     if len(route_patterns) > 1:
                         break
                 if len(route_patterns) > 1:

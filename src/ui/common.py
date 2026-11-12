@@ -263,10 +263,12 @@ def get_date_input(callback: Callable[[date], Any] | None = None, *, label: str 
     )
 
 
-def get_time_input(callback: Callable[[TimeSpec], Any] | None = None, *, label: str | None = "Time") -> TimeInput:
+def get_time_input(
+    callback: Callable[[TimeSpec], Any] | None = None, *, label: str | None = "Time", value: str | None = None
+) -> TimeInput:
     """ Get an input box for time selection """
     return ui.time_input(
-        label, value=get_time_str(datetime.now().time()),
+        label, value=value if value is not None else get_time_str(datetime.now().time()),
         on_change=lambda e: None if callback is None or parse_time_opt(e.value) is None else callback(parse_time(e.value))
     )
 

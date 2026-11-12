@@ -1204,6 +1204,11 @@ def display_data(
             time_only_mode=True, exclude_next_day=(not forced_next and next_day_switch.value)
         )
         data_dict = {value[0]: value for value in data_list}
+        graph_baseline_options = ["None"] + [index_name(index) for index, *_ in data_list] + ["Time"]
+        graph_baseline_select.set_options(graph_baseline_options)
+        if len(data_list) <= 1 or graph_baseline_select.value not in graph_baseline_options:
+            graph_baseline_select.set_value("None")
+        graph_baseline_select.set_visibility(len(data_list) > 1)
         data_table.run_method("setExpanded", [])
         clear_expanded_route_map()
         data_table.rows = calculate_data_rows(
@@ -1443,6 +1448,12 @@ def display_data(
             dimensions_set, dataset = calculate_moving_average(dataset, moving_average)
         dimensions = sorted(dimensions_set)
 
+        baseline_mode = graph_baseline_select.value
+        selected_time = parse_time_opt(graph_time_input.value) if baseline_mode == "Time" else None
+        time_key = get_time_str(*selected_time) if selected_time is not None else None
+        if baseline_mode == "Time" and (time_key is None or time_key not in dimensions_set):
+            return
+
         time_chart.options["legend"]["data"] = sorted(dataset.keys(), key=lambda x: parse_index(x))
         time_chart.options["xAxis"]["data"] = dimensions
         if tooltip_select.value == "Auto":
@@ -1450,7 +1461,7 @@ def display_data(
         elif tooltip_select.value == "All":
             time_chart.options["xAxis"]["axisLabel"]["interval"] = 0
         time_chart.options["tooltip"]["trigger"] = "axis" if tooltip_select.value == "Hover" else "item"
-        show_arrival_time = data_select.value == "Arrival Time" and graph_baseline_select.value == "None"
+        show_arrival_time = data_select.value == "Arrival Time" and baseline_mode == "None"
         time_chart.options["yAxis"]["name"] = (
             "Arrival Time" if show_arrival_time else data_select.value + " (min)"
         )
@@ -1478,15 +1489,26 @@ def display_data(
                 "(params) => params.value.toFixed(2)" if moving_average > 1 else "(params) => params.value"
             )
         }
-        def get_mark_point(inner_data_dict: dict[str, float]) -> list[dict]:
+        def get_series_data(inner_data_dict: dict[str, float]) -> list[float | None]:
+            """ Get the displayed values, relative to the selected path or time. """
+            if baseline_mode == "None":
+                return [inner_data_dict.get(t) for t in dimensions]
+            if baseline_mode == "Time":
+                baseline_value = inner_data_dict.get(time_key) if time_key is not None else None
+                return [
+                    None if t not in inner_data_dict or baseline_value is None
+                    else inner_data_dict[t] - baseline_value for t in dimensions
+                ]
+            baseline_data = dataset.get(baseline_mode, {})
+            return [
+                None if t not in inner_data_dict or t not in baseline_data
+                else inner_data_dict[t] - baseline_data[t] for t in dimensions
+            ]
+
+        def get_mark_point(series_data: list[float | None]) -> list[dict]:
             """ Get specification for mark point array """
             mark_point_array: list[dict] = []
-            baseline_data = dataset.get(graph_baseline_select.value, {})
-            plotted = {
-                t: value if graph_baseline_select.value == "None" else value - baseline_data[t]
-                for t, value in inner_data_dict.items()
-                if t in dimensions_set and (graph_baseline_select.value == "None" or t in baseline_data)
-            }
+            plotted = {t: value for t, value in zip(dimensions, series_data) if value is not None}
             if not plotted:
                 return mark_point_array
             if max_switch.value:
@@ -1499,15 +1521,6 @@ def display_data(
                 })
             return mark_point_array
 
-        def get_series_data(inner_data_dict: dict[str, float]) -> list[float | None]:
-            """ Get data to be displayed """
-            if graph_baseline_select.value == "None":
-                return [None if t not in inner_data_dict else inner_data_dict[t] for t in dimensions]
-            baseline_data = dataset[graph_baseline_select.value]
-            return [
-                None if t not in inner_data_dict or t not in baseline_data
-                else inner_data_dict[t] - baseline_data[t] for t in dimensions
-            ]
         time_chart.options["series"] = [
             {
                 "name": series_name,
@@ -1516,7 +1529,7 @@ def display_data(
                 "smooth": True,
                 "showSymbol": tooltip_select.value not in ["Hover", "None"],
                 "markPoint": {
-                    "data": get_mark_point(inner_data_dict),
+                    "data": get_mark_point(get_series_data(inner_data_dict)),
                     "label": mark_point_label
                 } if max_switch.value or min_switch.value else None
             } for series_name, inner_data_dict in sorted(dataset.items(), key=lambda x: parse_index(x[0]))
@@ -1540,9 +1553,16 @@ def display_data(
             "Total Duration", "Arrival Time", "Moving Time", "Outside Trains", "Total Waiting"
         ], value="Total Duration", label="Viewing data", on_change=on_chart_data_change)
         graph_baseline_select = ui.select(
-            ["None"] + [index_name(index) for index, *_ in data_list], label="Baseline", value="None",
+            ["None"] + [index_name(index) for index, *_ in data_list] + ["Time"], label="Baseline", value="None",
             on_change=on_chart_data_change
         ).classes("min-w-25")
+        graph_baseline_select.set_visibility(len(data_list) > 1)
+        common_times = set.intersection(*(set(info_dict) for _, _, info_dict, *_ in data_list))
+        default_time = min(common_times) if common_times else min(data_list[0][2])
+        graph_time_input = get_time_input(
+            lambda _: on_chart_data_change(), label="Target time", value=default_time
+        ).classes("w-30")
+        graph_time_input.bind_visibility_from(graph_baseline_select, "value", backward=lambda value: value == "Time")
         max_switch = ui.switch("Add max marker", on_change=on_chart_data_change)
         min_switch = ui.switch("Add min marker", on_change=on_chart_data_change)
         ui.label("Symbol:")
