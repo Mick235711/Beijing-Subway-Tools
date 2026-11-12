@@ -1423,6 +1423,11 @@ def display_data(
         for index, _, info_dict, *_ in data_list:
             if data_select.value == "Total Duration":
                 dataset[index_name(index)] = {time_str: data[0] for time_str, data in info_dict.items()}
+            elif data_select.value == "Arrival Time":
+                dataset[index_name(index)] = {
+                    time_str: to_minutes(data[2].arrival_time, data[2].arrival_day or data[2].force_next_day)
+                    for time_str, data in info_dict.items()
+                }
             elif data_select.value in ["Outside Trains", "Total Waiting"]:
                 dataset[index_name(index)] = {time_str: get_waiting_time(
                     data, city.transfers, exclude_transfer=(data_select.value == "Total Waiting")
@@ -1445,26 +1450,52 @@ def display_data(
         elif tooltip_select.value == "All":
             time_chart.options["xAxis"]["axisLabel"]["interval"] = 0
         time_chart.options["tooltip"]["trigger"] = "axis" if tooltip_select.value == "Hover" else "item"
-        time_chart.options["yAxis"]["name"] = data_select.value + " (min)"
+        show_arrival_time = data_select.value == "Arrival Time" and graph_baseline_select.value == "None"
+        time_chart.options["yAxis"]["name"] = (
+            "Arrival Time" if show_arrival_time else data_select.value + " (min)"
+        )
+        # Use extended hours (e.g. 25:30) for the next service day, matching departure labels.
+        time_formatter = """(value) => {
+            const seconds = Math.round(value * 60);
+            const sign = seconds < 0 ? '-' : '';
+            const absolute = Math.abs(seconds);
+            const hours = Math.floor(absolute / 3600);
+            const minutes = Math.floor((absolute % 3600) / 60);
+            const remainder = absolute % 60;
+            return sign + String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0')
+                + (remainder ? ':' + String(remainder).padStart(2, '0') : '');
+        }"""
+        time_chart.options["yAxis"]["axisLabel"] = {
+            ":formatter": time_formatter if show_arrival_time else "(value) => value"
+        }
+        time_chart.options["tooltip"][":valueFormatter"] = (
+            time_formatter if show_arrival_time else "(value) => value"
+        )
 
         mark_point_label = {
             "show": True,
-            ":formatter": "(params) => params.value.toFixed(2)" if moving_average > 1 else "(params) => params.value"
+            ":formatter": f"(params) => ({time_formatter})(params.value)" if show_arrival_time else (
+                "(params) => params.value.toFixed(2)" if moving_average > 1 else "(params) => params.value"
+            )
         }
         def get_mark_point(inner_data_dict: dict[str, float]) -> list[dict]:
             """ Get specification for mark point array """
             mark_point_array: list[dict] = []
+            baseline_data = dataset.get(graph_baseline_select.value, {})
+            plotted = {
+                t: value if graph_baseline_select.value == "None" else value - baseline_data[t]
+                for t, value in inner_data_dict.items()
+                if t in dimensions_set and (graph_baseline_select.value == "None" or t in baseline_data)
+            }
+            if not plotted:
+                return mark_point_array
             if max_switch.value:
                 mark_point_array.append({
-                    "type": "max", "id": "_marker", "name": "Max (" + max(
-                        [t for t in dimensions if t in inner_data_dict], key=lambda t: inner_data_dict[t]
-                    ) + ")"
+                    "type": "max", "id": "_marker", "name": "Max (" + max(plotted, key=plotted.__getitem__) + ")"
                 })
             if min_switch.value:
                 mark_point_array.append({
-                    "type": "min", "id": "_marker", "name": "Min (" + min(
-                        [t for t in dimensions if t in inner_data_dict], key=lambda t: inner_data_dict[t]
-                    ) + ")"
+                    "type": "min", "id": "_marker", "name": "Min (" + min(plotted, key=plotted.__getitem__) + ")"
                 })
             return mark_point_array
 
@@ -1506,7 +1537,7 @@ def display_data(
 
     with ui.row().classes("w-full items-center justify-center"):
         data_select = ui.select([
-            "Total Duration", "Moving Time", "Outside Trains", "Total Waiting"
+            "Total Duration", "Arrival Time", "Moving Time", "Outside Trains", "Total Waiting"
         ], value="Total Duration", label="Viewing data", on_change=on_chart_data_change)
         graph_baseline_select = ui.select(
             ["None"] + [index_name(index) for index, *_ in data_list], label="Baseline", value="None",
