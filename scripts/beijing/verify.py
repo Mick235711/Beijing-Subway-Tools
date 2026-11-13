@@ -4,7 +4,7 @@
 """ Compare captured passenger departures without rewriting project timetables """
 
 # Libraries
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -51,15 +51,84 @@ def map_direction(line: Line, station: str, label: str) -> str | None:
         if station in (stations := line.direction_stations(direction))
         and label in stations and stations.index(station) < stations.index(label)
     ]
+    if len(matches) > 1 and line.end_circle_start is not None:
+        endpoints = [direction for direction in matches if line.direction_stations(direction)[-1] == label]
+        return endpoints[0] if len(endpoints) == 1 else None
     return matches[0] if len(matches) == 1 else None
 
 
+def end_circle_locations(line: Line, station: str, catalogue: Catalogue, locations: list[dict]) -> list[dict]:
+    """ Resolve end-circle API aliases without counting the shared boarding stream twice """
+    shared = line.in_end_circle(station)
+    base_direction = line.base_direction()
+    arc = {name for name in line.stations if line.in_end_circle(name)}
+    base_end = line.direction_stations(base_direction)[-1]
+    grouped: dict[tuple[str | None, int], dict] = {}
+    maximum_counts: dict[tuple[str | None, int], Counter[tuple]] = defaultdict(Counter)
+    invalid = []
+    for location in locations:
+        label = catalogue.by_code.get(str(location.get("directDeviceLocation")))
+        label_name = station_name(line, label.station_name) if label else None
+        fallback = map_direction(line, station, label_name) if label_name else None
+        groups = location.get("direction")
+        if not isinstance(groups, list):
+            raise ValueError("Expected direction buckets to be a list")
+        for group in groups:
+            records = group.get("timetables")
+            if not isinstance(records, list):
+                raise ValueError("Expected timetables to be a list")
+            parts: dict[str | None, list[dict]] = defaultdict(list)
+            if shared:
+                parts[base_direction] = records
+            else:
+                for record in records:
+                    endpoint = catalogue.by_code.get(str(record.get("destDeviceLocation")))
+                    destination = station_name(line, endpoint.station_name) if endpoint else None
+                    direction = map_direction(line, station, destination) if destination else None
+                    parts[direction if direction is not None else fallback].append(record)
+                if not records:
+                    parts[fallback] = []
+            day = group.get("isWeekDay")
+            for direction, values in parts.items():
+                if type(day) is not int or day not in (0, 1):
+                    invalid.append(dict(location, _project_direction=direction, direction=[group]))
+                    continue
+                key = direction, day
+                if key not in grouped:
+                    grouped[key] = {
+                        "directDeviceLocation": location.get("directDeviceLocation"),
+                        "_project_direction": direction,
+                        "_project_direction_aliases": list(line.directions) if shared else [direction],
+                        "_api_alias_records_collapsed": 0,
+                        "direction": [{"isWeekDay": day, "timetables": []}]
+                    }
+                target = grouped[key]
+                if not shared:
+                    target["direction"][0]["timetables"].extend(values)
+                    continue
+                # Take a multiset union across API views, preserving duplicates within a view.
+                view_counts: Counter[tuple] = Counter()
+                for record in values:
+                    endpoint = catalogue.by_code.get(str(record.get("destDeviceLocation")))
+                    destination = station_name(line, endpoint.station_name) if endpoint else None
+                    full_service = record.get("isHalf") == 0 and destination in arc | {base_end}
+                    route_key = "shared-full-service" if full_service else str(record.get("destDeviceLocation"))
+                    signature = record.get("arriveTime"), record.get("isHalf"), route_key
+                    view_counts[signature] += 1
+                    if view_counts[signature] > maximum_counts[key][signature]:
+                        target["direction"][0]["timetables"].append(record)
+                    else:
+                        target["_api_alias_records_collapsed"] += 1
+                maximum_counts[key] |= view_counts
+    return list(grouped.values()) + invalid
+
+
 def automatic_date_group(line: Line, bucket: int) -> str | None:
-    """ Map only exact, unrestricted weekday sets; never apply reference dates """
+    """ Map one unrestricted project group covering the entire API weekday set """
     weekdays = {1, 2, 3, 4, 5} if bucket == 1 else {6, 7}
     groups = [
         name for name, group in line.date_groups.items()
-        if group.dates is None and group.weekday == weekdays
+        if group.dates is None and weekdays <= group.weekday
         and group.start_date is None and group.end_date is None
     ]
     return groups[0] if len(groups) == 1 else None
@@ -248,6 +317,8 @@ def compare_first_last(
             label = catalogue.by_code.get(str(event.get("directDeviceLocation")))
             label_name = station_name(line, label.station_name) if label else None
             direction = map_direction(line, station, label_name) if label_name else None
+            if line.end_circle_start is not None and destination is not None and destination != station:
+                direction = map_direction(line, station, destination)
             if direction is None and destination is not None:
                 if destination != station:
                     direction = map_direction(line, station, destination)
@@ -288,8 +359,6 @@ def compare_first_last(
                 problem = "Cannot map the reported destination/direction to the project"
             if problem is None and line.loop and event.get("isHalf") != 1:
                 problem = "Circular destination/termination is ambiguous"
-            if problem is None and line.end_circle_start is not None:
-                problem = "End-circle boundary train identity is ambiguous"
             selected: Train | None = None
             if problem is None and destination is not None and direction is not None and group is not None:
                 key = direction, group
@@ -407,12 +476,15 @@ def verify_snapshot(
         issues.append("Source locations is null/empty; this does not mean there are no trains")
     elif not isinstance(locations, list):
         raise ValueError("Expected locations to be a list or null")
-    seen = set()
+    if line.end_circle_start is not None and locations:
+        locations = end_circle_locations(line, station, catalogue, locations)
+    seen: set[tuple[str, int]] = set()
     for location in locations or []:
         code = str(location.get("directDeviceLocation"))
         label = catalogue.by_code.get(code)
         name = station_name(line, label.station_name) if label else None
-        direction = map_direction(line, station, name) if name else None
+        direction = location.get("_project_direction") if "_project_direction" in location else \
+            map_direction(line, station, name) if name else None
         if direction is None:
             issues.append(f"Unmapped direction code {code} ({label.station_name if label else 'unknown'})")
             continue
@@ -429,10 +501,11 @@ def verify_snapshot(
             key = (direction, day)
             if key in seen:
                 raise ValueError(f"Duplicate source direction/day bucket: {key}")
-            seen.add(key)
+            aliases = location.get("_project_direction_aliases", [direction])
+            seen.update((alias, day) for alias in aliases)
             target = date_group if date_group is not None else automatic_date_group(line, day)
             if target is None:
-                issues.append(f"Bucket {day}: no exact project calendar mapping; use --bucket and --date-group")
+                issues.append(f"Bucket {day}: no single project calendar covers this API bucket; use --bucket and --date-group")
                 continue
             offset = minute_offset if minute_offset is not None else MINUTE_OFFSETS.get((line_name, station, direction), 0)
             records = group.get("timetables")
@@ -440,6 +513,23 @@ def verify_snapshot(
                 raise ValueError("Expected timetables to be a list")
             source, source_issues = normalize_records(records, catalogue, line.loop, offset)
             issues.extend(f"{direction}/bucket {day}: {issue}" for issue in source_issues)
+            if len(aliases) > 1:
+                # API termini on the shared arc are segmentation labels, not necessarily physical ends.
+                arc = {name for name in line.stations if line.in_end_circle(name)}
+                base_end = line.direction_stations(direction)[-1]
+                for row in source:
+                    if row["is_half"] == 0 and station_name(line, row["destination_label"]) in arc:
+                        row["compatible_destinations"] = list(dict.fromkeys(row["compatible_destinations"] + [base_end]))
+                        row["destination_ambiguous"] = True
+                primary = line.timetables().get(station, {}).get(direction, {}).get(target)
+                for alias in aliases:
+                    table = line.timetables().get(station, {}).get(alias, {}).get(target)
+                    if table is None:
+                        issues.append(f"Missing shared end-circle project timetable: {alias}/{target}")
+                    elif primary is not None and [train.sort_key() for train in table.trains_sorted()] != [
+                        train.sort_key() for train in primary.trains_sorted()
+                    ]:
+                        issues.append(f"Shared end-circle project departures differ: {direction}/{alias}/{target}")
             excluded_source = []
             if station == LOOP_BOUNDARIES.get(line_name):
                 excluded_source = [
@@ -456,11 +546,13 @@ def verify_snapshot(
                 issues.append(f"{direction}/bucket {day}: repeated minutes cannot be fully verified against time-keyed project data")
             result.update({
                 "direction": direction, "api_bucket": day, "date_group": target,
-                "calendar_mapping": "explicit" if date_group is not None else "exact weekday set",
+                "calendar_mapping": "explicit" if date_group is not None else "API weekdays covered by project group",
                 "api_minute_offset": offset,
                 "offset_basis": "CLI override" if minute_offset is not None else
                 "Existing official-timetable +2min correction" if offset else "none",
-                "excluded_repository": excluded, "excluded_api": excluded_source
+                "excluded_repository": excluded, "excluded_api": excluded_source,
+                "project_direction_aliases": aliases,
+                "api_alias_records_collapsed": location.get("_api_alias_records_collapsed", 0)
             })
             report["comparisons"].append(result)
     # A missing direction/day must be distinguished from an empty set of departures.

@@ -248,11 +248,12 @@ def print_report(report: dict, table_format: str = "simple") -> None:
     """ Keep console output bounded; JSON retains all individual differences """
     scope = "departures and first/last events" if "first_last_comparisons" in report else "departures only"
     print(f"{report['line']} / {report['station']}: {report['status'].upper()} (compared {scope})")
-    print(f"Captured: {report['fetched_at']}")
+    print(f"Captured: {report['fetched_at']}\n")
     if report["comparisons"]:
         print(tabulate(
             [[
-                row["direction"], row["api_bucket"], row["date_group"], row["api_count"],
+                " / ".join(row.get("project_direction_aliases", [row["direction"]])),
+                row["api_bucket"], row["date_group"], row["api_count"],
                 row["repository_count"], row["common_minutes"], row["compatible_destinations"]
             ] for row in report["comparisons"]],
             headers=[
@@ -262,7 +263,10 @@ def print_report(report: dict, table_format: str = "simple") -> None:
             tablefmt=table_format
         ))
     for row in report["comparisons"]:
-        print(f"\n{row['direction']} / API bucket {row['api_bucket']} → {row['date_group']}")
+        direction_label = " / ".join(row.get("project_direction_aliases", [row["direction"]]))
+        print(f"\n{direction_label} / API bucket {row['api_bucket']} → {row['date_group']}")
+        if row.get("api_alias_records_collapsed"):
+            print(f"Shared end-circle API alias records collapsed: {row['api_alias_records_collapsed']}")
         if row["api_minute_offset"]:
             print(f"API minute correction: {row['api_minute_offset']:+} ({row['offset_basis']})")
         counts: dict[str, int] = defaultdict(int)
@@ -310,7 +314,7 @@ def print_report(report: dict, table_format: str = "simple") -> None:
         if row["ambiguous_destination_matches"]:
             print(f"\nLoop destination compatibility only: {row['ambiguous_destination_matches']} records")
     for issue in report["coverage_issues"]:
-        print(f"Coverage: {issue}")
+        print(f"\nCoverage: {issue}")
     print()
     if report.get("first_last_comparisons"):
         print("First/last comparison (API minus project; API time includes the listed correction):")
