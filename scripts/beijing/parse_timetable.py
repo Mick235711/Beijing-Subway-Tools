@@ -20,6 +20,7 @@ from scripts.beijing.ruubypay import Catalogue, NetworkClient, StationCode, cach
 from scripts.beijing.verify import verify_snapshot
 from src.city.ask_for_city import ask_for_line, ask_for_station_in_line
 from src.city.city import parse_city
+from src.common.common import suffix_s
 
 
 # Preset dirs
@@ -272,8 +273,27 @@ def print_report(report: dict, table_format: str = "simple") -> None:
         for key, title in [("repository_only", "Project only"), ("api_only", "API only")]:
             if row[key]:
                 values = ", ".join(entry["time"] for entry in row[key][:20])
-                print(f"{title} ({len(row[key])}): {values}" + (" …" if len(row[key]) > 20 else ""))
+                print(f"{title} ({len(row[key])}): {values}" + (" ..." if len(row[key]) > 20 else ""))
+        for key, title in [
+            ("nearest_minute_matches", "Nearest-minute matches (also ceiling)"),
+            ("ceiling_matches", "Ceiling-only matches")
+        ]:
+            pairs = row[key]
+            if pairs:
+                print("\n" + title + " (" + suffix_s("pair", len(pairs)) + "):")
+                print(tabulate(
+                    [[
+                        f"{pair['api']['time']}:{pair['api']['raw_epoch'] % 60:02}",
+                        pair["repository"]["time"], pair["api"]["destination_label"],
+                        pair["repository"]["destination"]
+                    ] for pair in pairs[:10]],
+                    headers=["API time (adjusted)", "Project time", "API destination", "Project destination"],
+                    tablefmt=table_format
+                ))
+                if len(pairs) > 10:
+                    print("... Use --json or --report for all pairs.")
         if row["destination_differences"]:
+            print()
             print(tabulate(
                 [[
                     difference["time"],
@@ -282,10 +302,13 @@ def print_report(report: dict, table_format: str = "simple") -> None:
                 ] for difference in row["destination_differences"][:20]],
                 headers=["Time", "API destination", "Project destination"], tablefmt=table_format
             ))
-        if not (row["repository_only"] or row["api_only"] or row["destination_differences"]):
+        if not (
+            row["repository_only"] or row["api_only"] or row["destination_differences"]
+            or row["nearest_minute_matches"] or row["ceiling_matches"]
+        ):
             print("All trains matched.")
         if row["ambiguous_destination_matches"]:
-            print(f"Loop destination compatibility only: {row['ambiguous_destination_matches']} records")
+            print(f"\nLoop destination compatibility only: {row['ambiguous_destination_matches']} records")
     for issue in report["coverage_issues"]:
         print(f"Coverage: {issue}")
     print()

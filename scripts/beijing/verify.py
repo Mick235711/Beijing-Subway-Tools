@@ -136,6 +136,58 @@ def repository_records(
     return included, excluded
 
 
+def pair_rounded_records(
+    source: list[dict], repository: list[dict]
+) -> tuple[list[dict], list[dict], list[dict], list[dict]]:
+    """ Pair residual departures once, preferring nearest-minute over ceiling-only matches """
+    candidates: dict[int, list[int]] = {}
+    seconds: dict[int, int] = {}
+    for index, row in enumerate(source):
+        epoch = row.get("raw_epoch")
+        if not isinstance(epoch, int) or isinstance(epoch, bool) or epoch % 60 == 0:
+            continue
+        seconds[index] = epoch % 60
+        destinations = {canonical_station_name(name) for name in row["compatible_destinations"]}
+        candidates[index] = [
+            target for target, entry in enumerate(repository)
+            if entry["minute"] == row["minute"] + 1
+            and canonical_station_name(entry["destination"]) in destinations
+        ]
+    owners: dict[int, int] = {}
+
+    def assign(index: int, visited: set[int]) -> bool:
+        """ Reassign a flexible route match when another record needs its destination """
+        for target in candidates[index]:
+            if target in visited:
+                continue
+            visited.add(target)
+            if target not in owners or assign(owners[target], visited):
+                owners[target] = index
+                return True
+        return False
+
+    order = sorted(candidates, key=lambda index: (
+        seconds[index] < 30, len(source[index]["compatible_destinations"]), index
+    ))
+    for index in order:
+        assign(index, set())
+    matched = {index: target for target, index in owners.items()}
+    nearest: list[dict] = []
+    ceiling: list[dict] = []
+    for index, target in sorted(matched.items()):
+        pair = {
+            "api": source[index], "repository": repository[target],
+            "rounded_time": minute_text(repository[target]["minute"]),
+            "methods": ["nearest", "ceiling"] if seconds[index] >= 30 else ["ceiling"]
+        }
+        (nearest if seconds[index] >= 30 else ceiling).append(pair)
+    return (
+        nearest, ceiling,
+        [row for index, row in enumerate(source) if index not in matched],
+        [row for target, row in enumerate(repository) if target not in owners]
+    )
+
+
 def compare_records(source: list[dict], repository: list[dict]) -> dict:
     """ Match minutes as multisets, and destinations only where observable """
     api_by_minute, repo_by_minute = defaultdict(list), defaultdict(list)
@@ -172,12 +224,13 @@ def compare_records(source: list[dict], repository: list[dict]) -> dict:
     duplicates = [{
         "time": minute_text(minute), "count": len(rows)
     } for minute, rows in sorted(api_by_minute.items()) if len(rows) > 1]
+    nearest, ceiling, only_api, only_repo = pair_rounded_records(only_api, only_repo)
     return {
         "api_count": len(source), "repository_count": len(repository),
         "common_minutes": common_minutes, "compatible_destinations": compatible,
         "ambiguous_destination_matches": ambiguous, "api_only": only_api,
         "repository_only": only_repo, "destination_differences": route_differences,
-        "duplicate_api_minutes": duplicates
+        "nearest_minute_matches": nearest, "ceiling_matches": ceiling, "duplicate_api_minutes": duplicates
     }
 
 
@@ -406,7 +459,7 @@ def verify_snapshot(
                 "calendar_mapping": "explicit" if date_group is not None else "exact weekday set",
                 "api_minute_offset": offset,
                 "offset_basis": "CLI override" if minute_offset is not None else
-                "Existing official-timetable +2min correction in daxing-airport-express.json5" if offset else "none",
+                "Existing official-timetable +2min correction" if offset else "none",
                 "excluded_repository": excluded, "excluded_api": excluded_source
             })
             report["comparisons"].append(result)
@@ -434,6 +487,7 @@ def verify_snapshot(
     report["coverage_issues"] = sorted(set(issues))
     differences = any(
         row["api_only"] or row["repository_only"] or row["destination_differences"]
+        or row["nearest_minute_matches"] or row["ceiling_matches"]
         for row in report["comparisons"]
     ) or any(
         row["status"] == "difference" for row in report.get("first_last_comparisons", [])
