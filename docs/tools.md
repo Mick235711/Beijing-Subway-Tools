@@ -3490,41 +3490,72 @@ options:
 ```
 
 # Auxiliary Scripts
-### [`scripts/pack_ui.py`](/scripts/pack_ui.py): Pack the UI into a single distributable native app/executable
-The command-line arguments are basically the same as what `pyinstaller` supports:
-```
-usage: pack_ui.py [-h] [--name NAME] [--onedir | --onefile] [--windowed |
-                  --console] [--add-data ADD_DATA]
-                  [--exclude-module EXCLUDE_MODULE] [--icon ICON]
-                  [--osx-bundle-identifier OSX_BUNDLE_IDENTIFIER] [--clean]
-                  [--noconfirm] [--dry-run]
 
-Build the native frontend. The default onedir build starts faster than a
-onefile build, and CLI-only scientific/graph packages are excluded.
+### [`scripts/beijing/parse_timetable.py`](/scripts/beijing/parse_timetable.py): Official Beijing code lookup and timetable verification
 
-options:
-  -h, --help            show this help message and exit
-  --name NAME           Application and output name
-  --onedir              Build a fast-starting directory (default)
-  --onefile             Build one slower-starting self-extracting executable
-  --windowed            Hide the terminal window (default)
-  --console             Keep a terminal for diagnostics
-  --add-data ADD_DATA   Additional PyInstaller data mapping
-  --exclude-module EXCLUDE_MODULE
-                        Exclude another optional module in addition to the
-                        existing frontend exclusions
-  --icon ICON           Application icon (default: assets/app-icon.png)
-  --osx-bundle-identifier OSX_BUNDLE_IDENTIFIER
-                        macOS bundle identifier
-  --clean               Clear the PyInstaller build cache
-  --noconfirm           Replace an existing output without prompting
-  --dry-run             Print the command without building
-```
-Of course, requires `python3 -m PyInstaller` to be a valid command.
+This tool reads the Ruubypay official subway map's static catalogue and captures one station-line timetable at a time. Verification is offline and never edits project data.
 
-### [`scripts/parse_taipei_timetable.py`](/scripts/parse_taipei_timetable.py): Extract Taipei Metro timetables from a PDF
+Systems without an IANA timezone database need `tzdata` for Beijing-time conversion.
+
+Download the two catalogue resources once, then query them offline:
+
+```bash
+python3 scripts/beijing/parse_timetable.py codes refresh
+python3 scripts/beijing/parse_timetable.py codes lines
+python3 scripts/beijing/parse_timetable.py codes stations --line "昌平线"
+python3 scripts/beijing/parse_timetable.py codes stations --station "清河站"
+python3 scripts/beijing/parse_timetable.py codes decode 0x09004915
 ```
-usage: parse_taipei_timetable.py [-h] [pdf]
+
+Code queries include suburban railways and other catalogue entries without timetables. Decimal input may be zero-padded; hexadecimal input requires `0x`. Query commands support `--json`.
+
+Capture a station using a full code, a line/station code pair, or exact catalogue names:
+
+```bash
+python3 scripts/beijing/parse_timetable.py fetch --device-location 150995204
+python3 scripts/beijing/parse_timetable.py fetch --line-code 1 --station-code 04
+python3 scripts/beijing/parse_timetable.py fetch --line "10号线" --station "巴沟"
+```
+
+Each command prints the snapshot path to stdout; diagnostics go to stderr. Available command-line options:
+
+- An intact capture less than 24 hours old is reused without a request; `--refresh` forces a new capture and `--max-age-hours` changes the reuse window.
+- A name selection deduplicates map aliases for the same station/official line; use `--device-location` to select a particular alias.
+- One timetable request obtains both directions and both API day buckets. `--with-first-last` optionally adds the separate first/last endpoint's boundary evidence. If that extra request fails, the successful timetable is already saved; retrying reuses it while completing the missing boundary request.
+- The default cache is `.cache/ruubypay/` in this repository; set a shared custom location with `--cache-dir PATH` **before** `codes` or `fetch`.
+- All network operations sharing a cache are serialized, with randomized 30–60-second spacing persisted across invocations.
+- A transient connection/server failure gets at most one retry after 60–120 seconds. `--max-requests` caps attempts, including metadata and retries (default and maximum 20).
+- `--json` prints every difference; the console summary limits long lists.
+
+Static resources refresh only through `codes refresh`. Captures embed their catalogue, raw UTF-8 responses, response hashes, retrieval times and schema version, so moving a snapshot does not require the original cache.
+Successful captures are immutable; `latest.json` pointers select the most recent one. No raw response is interpreted as a timetable update automatically.
+
+Compare a saved capture against expanded project timetables:
+
+```bash
+python3 scripts/beijing/parse_timetable.py verify /path/to/capture.json
+python3 scripts/beijing/parse_timetable.py verify /path/to/capture.json --report /path/to/report.json
+python3 scripts/beijing/parse_timetable.py verify /path/to/airport.json --bucket 0 --date-group "周日"
+```
+
+Program exit codes:
+
+- **0** matches within the compared scope
+- **1** differences
+- **2** input/network/schema errors
+- **3** incomplete coverage without observed differences
+- A report can contain differences and incomplete coverage together, in which case exit 1 takes precedence.
+
+Comparison rules:
+
+- Project terminal arrivals and synthetic entries at express skipped stops are excluded and listed separately. Physical origins/middle starts, express type and the entire stopping pattern cannot be verified from this source.
+- Loop direction labels have explicit mappings. A pseudo-destination can represent circulation or actual termination there; matching either is reported as ambiguous.
+- Default date-group mapping requires exactly the weekday set Mon–Fri or Sat–Sun without date restrictions. Split calendars need `--bucket` and `--date-group` together.
+- Optional first/last `destTime` values provide boundary evidence only, not full-day terminal arrivals. Their actual dates/times are retained separately from timetable anchors.
+
+### [`scripts/taipei/parse_timetable.py`](/scripts/taipei/parse_timetable.py): Extract Taipei Metro timetables from a PDF
+```
+usage: parse_timetable.py [-h] [pdf]
 
 Extract the three Taipei Metro schedules from an embedded-text PDF
 
@@ -3542,7 +3573,7 @@ Visual route markings, such as underlines indicating special destinations, are n
 
 Example Usage:
 <pre>
-$ python3 scripts/parse_taipei_timetable.py
+$ python3 scripts/taipei/parse_timetable.py
 PDF URL: <i>https://web.metro.taipei/img/ALL/timetables/104a.PDF</i>
 Weekdays
 06|00 05 11 19 25 32 36 40 45 49 53 57
@@ -3610,6 +3641,38 @@ Sunday and national holidays
 Note: visual route markings are not included; check the PDF for special destinations.
 </pre>
 
+### [`scripts/pack_ui.py`](/scripts/pack_ui.py): Pack the UI into a single distributable native app/executable
+The command-line arguments are basically the same as what `pyinstaller` supports:
+```
+usage: pack_ui.py [-h] [--name NAME] [--onedir | --onefile] [--windowed |
+                  --console] [--add-data ADD_DATA]
+                  [--exclude-module EXCLUDE_MODULE] [--icon ICON]
+                  [--osx-bundle-identifier OSX_BUNDLE_IDENTIFIER] [--clean]
+                  [--noconfirm] [--dry-run]
+
+Build the native frontend. The default onedir build starts faster than a
+onefile build, and CLI-only scientific/graph packages are excluded.
+
+options:
+  -h, --help            show this help message and exit
+  --name NAME           Application and output name
+  --onedir              Build a fast-starting directory (default)
+  --onefile             Build one slower-starting self-extracting executable
+  --windowed            Hide the terminal window (default)
+  --console             Keep a terminal for diagnostics
+  --add-data ADD_DATA   Additional PyInstaller data mapping
+  --exclude-module EXCLUDE_MODULE
+                        Exclude another optional module in addition to the
+                        existing frontend exclusions
+  --icon ICON           Application icon (default: assets/app-icon.png)
+  --osx-bundle-identifier OSX_BUNDLE_IDENTIFIER
+                        macOS bundle identifier
+  --clean               Clear the PyInstaller build cache
+  --noconfirm           Replace an existing output without prompting
+  --dry-run             Print the command without building
+```
+Of course, requires `python3 -m PyInstaller` to be a valid command.
+
 ### [`scripts/annotate_originating_services.py`](/scripts/annotate_originating_services.py): Annotate services originating at a station
 ```
 usage: annotate_originating_services.py [-h] [--travel-time TRAVEL_TIME]
@@ -3619,15 +3682,15 @@ usage: annotate_originating_services.py [-h] [--travel-time TRAVEL_TIME]
 Annotate likely originating services using adjacent station timetables
 
 positional arguments:
-  first                 first station timetable file
-  second                second station timetable file
+  first                 First station timetable file
+  second                Second station timetable file
 
 options:
-  -h, --help            show this help message and exit
+  -h, --help            Show this help message and exit
   --travel-time TRAVEL_TIME
-                        expected travel time in minutes (default: infer 0–30)
+                        Expected travel time in minutes (default: infer 0–30)
   --tolerance TOLERANCE
-                        allowed variation in minutes (default: 2)
+                        Allowed variation in minutes (default: 2)
 ```
 Compare two adjacent stations in the same direction and print the second timetable with likely originating services in parentheses. Provide both timetable file paths, or omit both to enter each timetable interactively, ending each with a blank line.
 

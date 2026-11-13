@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """ Annotate likely originating services using adjacent station timetables """
@@ -145,10 +145,10 @@ def annotate(text: str, origins: set[int]) -> str:
 def main() -> int:
     """ Main function """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("first", nargs="?", type=Path, help="first station timetable file")
-    parser.add_argument("second", nargs="?", type=Path, help="second station timetable file")
-    parser.add_argument("--travel-time", type=int, help="expected travel time in minutes (default: infer 0–30)")
-    parser.add_argument("--tolerance", type=int, default=2, help="allowed variation in minutes (default: 2)")
+    parser.add_argument("first", nargs="?", type=Path, help="First station timetable file")
+    parser.add_argument("second", nargs="?", type=Path, help="Second station timetable file")
+    parser.add_argument("--travel-time", type=int, help="Expected travel time in minutes (default: infer 0–30)")
+    parser.add_argument("--tolerance", type=int, default=2, help="Allowed variation in minutes (default: 2)")
     args = parser.parse_args()
     if (args.first is None) != (args.second is None):
         parser.error("provide both timetable files or neither")

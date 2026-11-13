@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """ Extract the three Taipei Metro schedules from an embedded-text PDF """
@@ -65,7 +65,7 @@ def parse_layout(text: str) -> list[list[tuple[int, list[int]]]]:
 def main() -> int:
     """ Main function """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("pdf", nargs="?", type=Path, help="local PDF path; omit to enter a URL")
+    parser.add_argument("pdf", nargs="?", type=Path, help="Local PDF path; omit to enter a URL")
     args = parser.parse_args()
     try:
         with tempfile.TemporaryDirectory() as directory:
