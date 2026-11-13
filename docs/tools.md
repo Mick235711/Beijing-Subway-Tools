@@ -3493,7 +3493,7 @@ options:
 
 ### [`scripts/beijing/parse_timetable.py`](/scripts/beijing/parse_timetable.py): Official Beijing code lookup and timetable verification
 
-This tool reads the Ruubypay official subway map's static catalogue and captures one station-line timetable at a time. Verification is offline and never edits project data.
+This tool reads the Ruubypay official subway map's static catalogue and captures station-line timetables.
 
 Systems without an IANA timezone database need `tzdata` for Beijing-time conversion.
 
@@ -3503,11 +3503,19 @@ Download the two catalogue resources once, then query them offline:
 python3 scripts/beijing/parse_timetable.py codes refresh
 python3 scripts/beijing/parse_timetable.py codes lines
 python3 scripts/beijing/parse_timetable.py codes stations --line "昌平线"
+python3 scripts/beijing/parse_timetable.py codes stations --line "1号线" -t github
 python3 scripts/beijing/parse_timetable.py codes stations --station "清河站"
 python3 scripts/beijing/parse_timetable.py codes decode 0x09004915
+python3 scripts/beijing/parse_timetable.py codes query  # prompt for line/station
 ```
 
-Code queries include suburban railways and other catalogue entries without timetables. Decimal input may be zero-padded; hexadecimal input requires `0x`. Query commands support `--json`.
+Code queries include suburban railways and other catalogue entries without timetables. Decimal input may be zero-padded; hexadecimal input requires `0x`. Available command-line options:
+
+- Query commands support `--json`
+- Tables use `tabulate`, with `-t`/`--table-format` selecting its format (default `simple`)
+- `--line` accepts project names such as `1号线`/`4号线` as well as the official `1号线八通线`/`4号线大兴线`
+- `codes query` uses the existing interactive line/station prompts and the project's lines/stations
+- With `--json`, prompts and selection diagnostics go to stderr.
 
 Capture a station using a full code, a line/station code pair, or exact catalogue names:
 
@@ -3515,14 +3523,16 @@ Capture a station using a full code, a line/station code pair, or exact catalogu
 python3 scripts/beijing/parse_timetable.py fetch --device-location 150995204
 python3 scripts/beijing/parse_timetable.py fetch --line-code 1 --station-code 04
 python3 scripts/beijing/parse_timetable.py fetch --line "10号线" --station "巴沟"
+python3 scripts/beijing/parse_timetable.py fetch --station "西直门"
+python3 scripts/beijing/parse_timetable.py fetch  # prompt for line/station
 ```
 
-Each command prints the snapshot path to stdout; diagnostics go to stderr. Available command-line options:
+Each command prints snapshot paths to stdout (one per selected line); diagnostics go to stderr. Passing only `--station` fetches every catalogue line at that station, deduplicating map aliases for the same line. All lines share one paced client and one request budget; successful captures remain saved if a later request fails. Available command-line options:
 
-- An intact capture less than 24 hours old is reused without a request; `--refresh` forces a new capture and `--max-age-hours` changes the reuse window.
+- The latest intact capture is reused regardless of age or catalogue refreshes; `--refresh` forces a new timetable capture.
 - A name selection deduplicates map aliases for the same station/official line; use `--device-location` to select a particular alias.
 - One timetable request obtains both directions and both API day buckets. `--with-first-last` optionally adds the separate first/last endpoint's boundary evidence. If that extra request fails, the successful timetable is already saved; retrying reuses it while completing the missing boundary request.
-- The default cache is `.cache/ruubypay/` in this repository; set a shared custom location with `--cache-dir PATH` **before** `codes` or `fetch`.
+- The default cache is `.cache/ruubypay/` in this repository; set a shared custom location with `--cache-dir PATH` **before** `codes`, `fetch`, or `verify`.
 - All network operations sharing a cache are serialized, with randomized 30–60-second spacing persisted across invocations.
 - A transient connection/server failure gets at most one retry after 60–120 seconds. `--max-requests` caps attempts, including metadata and retries (default and maximum 20).
 - `--json` prints every difference; the console summary limits long lists.
@@ -3536,7 +3546,13 @@ Compare a saved capture against expanded project timetables:
 python3 scripts/beijing/parse_timetable.py verify /path/to/capture.json
 python3 scripts/beijing/parse_timetable.py verify /path/to/capture.json --report /path/to/report.json
 python3 scripts/beijing/parse_timetable.py verify /path/to/airport.json --bucket 0 --date-group "周日"
+python3 scripts/beijing/parse_timetable.py verify --device-location 150995204
+python3 scripts/beijing/parse_timetable.py verify --line-code 1 --station-code 04
+python3 scripts/beijing/parse_timetable.py verify --line "1号线" --station "古城" -t github
+python3 scripts/beijing/parse_timetable.py verify  # prompt for line/station
 ```
+
+Without a snapshot path, `verify` accepts the same single station-line selectors as `fetch` and reads that code's latest cached capture. If no selector is given, it prompts for a line and station first, just like `fetch`.
 
 Program exit codes:
 

@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from scripts.beijing.ruubypay import Catalogue, response_data
+from scripts.beijing.ruubypay import Catalogue, LINE_NAMES, canonical_station_name, response_data
 from src.city.city import City
 from src.city.line import Line
 from src.timetable.timetable import route_skip_stations
@@ -16,8 +16,6 @@ from src.timetable.timetable import route_skip_stations
 
 # City-specific constants
 BEIJING = ZoneInfo("Asia/Shanghai")
-NORMALIZATION_VERSION = 1
-LINE_NAMES = {"1号线八通线": "1号线", "4号线大兴线": "4号线"}
 LOOP_DIRECTIONS = {"2号线": {"西直门": "外环", "积水潭": "内环"},
                    "10号线": {"巴沟": "内环", "车道沟": "外环"}}
 LOOP_BOUNDARIES = {"2号线": "西直门", "10号线": "首经贸"}
@@ -32,10 +30,12 @@ def minute_text(value: int) -> str:
 
 
 def station_name(line: Line, name: str) -> str | None:
-    """ Resolve exact station names and existing aliases, without fuzzy guesses """
+    """ Resolve names, project line qualifiers and existing aliases without fuzzy guesses """
     if name in line.stations:
         return name
-    matches = [station for station, aliases in line.station_aliases.items() if name in aliases]
+    matches = [station for station in line.stations
+               if canonical_station_name(station) == canonical_station_name(name)
+               or name in line.station_aliases.get(station, [])]
     return matches[0] if len(matches) == 1 else None
 
 
@@ -98,7 +98,7 @@ def normalize_records(records: list[dict], catalogue: Catalogue, loop: bool,
             "destination_label": destination, "is_half": record["isHalf"],
             "destination_ambiguous": pseudo,
             "compatible_destinations": [destination, "环行"] if pseudo else [destination]})
-    return sorted(normalized, key=lambda row: row["raw_epoch"]), sorted(set(issues))
+    return sorted(normalized, key=lambda r: r["raw_epoch"]), sorted(set(issues))
 
 
 def repository_records(line: Line, station: str, direction: str,
@@ -135,13 +135,14 @@ def compare_records(source: list[dict], repository: list[dict]) -> dict:
     only_api, only_repo, route_differences = [], [], []
     common_minutes = compatible = ambiguous = 0
     for minute in sorted(api_by_minute.keys() | repo_by_minute.keys()):
-        api = sorted(api_by_minute[minute], key=lambda row: len(row["compatible_destinations"]))
+        api = sorted(api_by_minute[minute], key=lambda r: len(r["compatible_destinations"]))
         repo = list(repo_by_minute[minute])
         common_minutes += min(len(api), len(repo))
         unmatched = []
         for row in api:
+            destinations = {canonical_station_name(name) for name in row["compatible_destinations"]}
             index = next((index for index, entry in enumerate(repo)
-                          if entry["destination"] in row["compatible_destinations"]), None)
+                          if canonical_station_name(entry["destination"]) in destinations), None)
             if index is None:
                 unmatched.append(row)
             else:
@@ -180,13 +181,9 @@ def verify_snapshot(snapshot: dict, catalogue: Catalogue, city: City, *,
     if date_group is not None and date_group not in line.date_groups:
         raise ValueError(f"Unknown date group {date_group}; available: {', '.join(line.date_groups)}")
     report = {
-        "normalization_version": NORMALIZATION_VERSION,
         "station": station, "line": line_name, "device_location": snapshot["device_location"],
         "catalogue_version": catalogue.version, "fetched_at": snapshot["timetable"]["fetched_at"],
         "coverage": "Selected passenger departures only; reference dates are not validity dates",
-        "unverified_fields": ["Physical train origins and middle starts", "Express service type and full stopping pattern",
-                              "All terminal arrivals", "Circulation versus termination at a loop pseudo-boundary",
-                              "Holiday applicability and current timetable validity"],
         "coverage_issues": [], "notes": [], "comparisons": []}
     issues = report["coverage_issues"]
     if line_name == "大兴机场线":

@@ -11,6 +11,7 @@ import http.client
 import json
 import os
 import random
+import re
 import sys
 import time
 import urllib.error
@@ -26,10 +27,19 @@ from typing import Any
 MAP_URL = "https://appconfig.ruubypay.com/stations/map-h5.json"
 CODES_URL = "https://appconfig.ruubypay.com/stations/acclocation.json"
 API_ROOT = "https://api.ruubypay.com/marketingpis/appSides/"
-SOURCE_URL = "https://web.ruubypay.com/web/bj-subway-map-h5-output/#/map"
 PUBLIC_MAC_KEY = bytes.fromhex("355DA83AA3EB3B8E6B7E406B39AFD60BA0442240")
-SCHEMA_VERSION = 1
 JSON_OUTPUT = "latest.json"
+LINE_NAMES = {"1号线八通线": "1号线", "4号线大兴线": "4号线"}
+
+
+def canonical_line_name(name: str) -> str:
+    """ Match project line names and the official combined-line names """
+    return LINE_NAMES.get(name, name)
+
+
+def canonical_station_name(name: str) -> str:
+    """ Remove the project's line-specific qualifier, e.g. 大钟寺(13号线) """
+    return re.sub(r"\(\d+号线\)$", "", name)
 
 
 def utc_now() -> str:
@@ -133,11 +143,12 @@ class Catalogue:
 
     def select(self, *, line: str | None = None, line_code: int | None = None,
                station: str | None = None) -> list[StationCode]:
-        """ Filter by exact official name or encoded line code """
+        """ Filter by project/official names or encoded line code """
         return sorted((row for row in self.entries
-                       if (line is None or row.line_name == line)
+                       if (line is None or canonical_line_name(row.line_name) == canonical_line_name(line))
                        and (line_code is None or row.line_code == line_code)
-                       and (station is None or row.station_name == station)),
+                       and (station is None or canonical_station_name(row.station_name) ==
+                            canonical_station_name(station))),
                       key=lambda row: (row.line_code, row.station_code))
 
     def station(self, value: str) -> StationCode:
@@ -266,7 +277,7 @@ def refresh_catalogue(client: NetworkClient) -> Catalogue:
     catalogue = Catalogue.from_resources(resources)
     path = client.cache / "catalogue" / f"{catalogue.version}.json"
     if not path.exists():
-        write_json(path, {"schema_version": SCHEMA_VERSION, "resources": resources}, exclusive=True)
+        write_json(path, {"resources": resources}, exclusive=True)
     write_json(path.parent / JSON_OUTPUT, {"file": path.name, "refreshed_at": utc_now()})
     return catalogue
 
@@ -280,16 +291,12 @@ def load_catalogue(cache: Path) -> Catalogue:
     if Path(filename).name != filename:
         raise ValueError("Invalid catalogue pointer")
     value = read_json(pointer.parent / filename)
-    if value.get("schema_version") != SCHEMA_VERSION:
-        raise ValueError("Unsupported catalogue schema")
     return Catalogue.from_resources(value["resources"])
 
 
 def load_snapshot(path: Path) -> tuple[dict, Catalogue]:
     """ Check a self-contained timetable capture without any network access """
     value = read_json(path)
-    if value.get("schema_version") != SCHEMA_VERSION or value.get("kind") != "ruubypay-timetable":
-        raise ValueError("Unsupported timetable snapshot schema")
     catalogue = Catalogue.from_dict(value["catalogue"])
     catalogue.station(value["device_location"])
     if "timetable" not in value:
@@ -302,9 +309,8 @@ def load_snapshot(path: Path) -> tuple[dict, Catalogue]:
     return value, catalogue
 
 
-def cached_snapshot(cache: Path, catalogue: Catalogue, code: str, max_age: float,
-                    with_first_last: bool) -> Path | None:
-    """ Reuse an intact capture; never refresh it as a side effect of verification """
+def latest_snapshot(cache: Path, code: str) -> Path | None:
+    """ Resolve an intact latest capture independently of age or catalogue refreshes """
     pointer = cache / "timetables" / code / JSON_OUTPUT
     if not pointer.exists():
         return None
@@ -312,12 +318,20 @@ def cached_snapshot(cache: Path, catalogue: Catalogue, code: str, max_age: float
     if Path(filename).name != filename:
         raise ValueError("Invalid timetable pointer")
     path = pointer.parent / filename
-    snapshot, old_catalogue = load_snapshot(path)
-    if old_catalogue.version != catalogue.version or (with_first_last and "first_last" not in snapshot):
+    snapshot, _ = load_snapshot(path)
+    if snapshot["device_location"] != code:
+        raise ValueError("Cached snapshot does not match the selected deviceLocation")
+    return path
+
+
+def cached_snapshot(cache: Path, code: str, with_first_last: bool) -> Path | None:
+    """ Reuse the latest intact capture regardless of age or catalogue refreshes """
+    path = latest_snapshot(cache, code)
+    if path is None:
         return None
-    fetched = datetime.fromisoformat(snapshot["timetable"]["fetched_at"]).timestamp()
-    age = time.time() - fetched
-    return path if 0 <= age <= max_age else None
+    if with_first_last and "first_last" not in load_snapshot(path)[0]:
+        return None
+    return path
 
 
 def publish_snapshot(cache: Path, snapshot: dict) -> Path:
@@ -334,8 +348,7 @@ def fetch_snapshot(client: NetworkClient, catalogue: Catalogue, code: str,
     """ Fetch one station-line code and preserve raw responses and their provenance """
     catalogue.station(code)
     snapshot: dict = {
-        "schema_version": SCHEMA_VERSION, "kind": "ruubypay-timetable",
-        "source": SOURCE_URL, "device_location": code, "catalogue": catalogue.to_dict(),
+        "device_location": code, "catalogue": catalogue.to_dict(),
         "timetable": timetable if timetable is not None else
         client.request(API_ROOT + "getStationTimetable", code)
     }
