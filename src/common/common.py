@@ -446,7 +446,7 @@ def apply_slice(orig: list[T], slicer: str) -> list[T]:
     assert slicer.startswith("[") and slicer.endswith("]"), slicer
     indices = [
         int(x.strip()) if x.strip() != "" else None
-        for x in slicer[1:-1].strip().split(':')
+        for x in slicer[1:-1].strip().split(":")
     ]
     if len(indices) == 1 and indices[0] is not None:
         return [orig[indices[0]]]
@@ -728,19 +728,19 @@ class NoIndent:
     def __init__(self, value: list | tuple) -> None:
         """ Constructor """
         if not isinstance(value, (list, tuple)):
-            raise TypeError('Only lists and tuples can be wrapped')
+            raise TypeError("Only lists and tuples can be wrapped")
         self.value = value
 
 
 class InnerArrayEncoder(json.JSONEncoder):
     """ Encoder to make inner array show on one line """
-    FORMAT_SPEC = '@@{}@@'  # Unique string pattern of NoIndent object ids.
-    regex = re.compile(FORMAT_SPEC.format(r'(\d+)'))  # compile(r'@@(\d+)@@')
+    FORMAT_SPEC = "@@{}@@"  # Unique string pattern of NoIndent object ids.
+    regex = re.compile(FORMAT_SPEC.format(r"(\d+)"))  # compile(r'@@(\d+)@@')
 
     def __init__(self, **kwargs: Any) -> None:
         """ Constructor """
         # Keyword arguments to ignore when encoding NoIndent wrapped values.
-        ignore = {'cls', 'indent'}
+        ignore = {"cls", "indent"}
 
         # Save copy of any keyword argument values needed for use here.
         self._kwargs = {k: v for k, v in kwargs.items() if k not in ignore}

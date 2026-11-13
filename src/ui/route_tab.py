@@ -336,7 +336,7 @@ def route_tab(city: City) -> None:
         shorthand_tab = ui.tab("Shorthand")
         top_tab = ui.tab("Top")
         map_tab = ui.tab("Map")
-    with ui.tab_panels(add_route_tabs, value=guided_tab).classes('w-full'):
+    with ui.tab_panels(add_route_tabs, value=guided_tab).classes("w-full"):
         with ui.tab_panel(guided_tab):
             add_route_guided(city, on_route_change)
         with ui.tab_panel(shorthand_tab):

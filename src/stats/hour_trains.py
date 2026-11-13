@@ -92,7 +92,7 @@ def main() -> None:
             for full_only in [True, False]:
                 for capacity in [True, False]:
                     data = minute_trains(all_trains, full_only=full_only, use_capacity=capacity)
-                    filename = base + ('_full' if full_only else '') + ('_cap' if capacity else '') + ext
+                    filename = base + ("_full" if full_only else "") + ("_cap" if capacity else "") + ext
                     print(f"Writing to {filename}...")
                     with open(filename, "w", encoding="utf-8") as fp:
                         json.dump(data, fp, indent=4, ensure_ascii=False)

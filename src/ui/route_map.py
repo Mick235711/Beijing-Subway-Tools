@@ -900,7 +900,7 @@ def add_route_map(
                                 '<div class="flex items-center justify-between w-full gap-x-3">'
                                 f'{get_badge_html(line, line.name)}'
                                 f'<span class="text-grey">{distance_str(distance)}</span>'
-                                '</div>'
+                                "</div>"
                             )
                             for line, distance in edge.choices
                         }

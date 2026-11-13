@@ -224,28 +224,28 @@ def avg_shortest_in_city(
         len_dict[station] += 1
         for station2, data in result.items():
             if station2 not in result_dict:
-                if strategy == 'avg':
+                if strategy == "avg":
                     result_dict[station2] = (0.0, 0.0, 0.0, 0.0)
                 else:
                     # data[1] is std dev, skip that
                     result_dict[station2] = (data[0], data[2], data[3], data[4])
             if station2 not in len_dict:
                 len_dict[station2] = 0
-            if strategy == 'avg':
+            if strategy == "avg":
                 result_dict[station2] = (
                     result_dict[station2][0] + data[0],
                     result_dict[station2][1] + data[2],
                     result_dict[station2][2] + data[3],
                     result_dict[station2][3] + data[4]
                 )
-            elif strategy == 'min':
+            elif strategy == "min":
                 result_dict[station2] = (
                     min(result_dict[station2][0], data[0]),
                     min(result_dict[station2][1], data[2]),
                     min(result_dict[station2][2], data[3]),
                     min(result_dict[station2][3], data[4])
                 )
-            elif strategy == 'max':
+            elif strategy == "max":
                 result_dict[station2] = (
                     max(result_dict[station2][0], data[0]),
                     max(result_dict[station2][1], data[2]),
@@ -255,7 +255,7 @@ def avg_shortest_in_city(
             else:
                 assert False, f"Unknown strategy: {strategy}"
             len_dict[station2] += 1
-    if strategy == 'avg':
+    if strategy == "avg":
         for station, station_data in result_dict.items():
             result_dict[station] = (
                 station_data[0] / len_dict[station],

@@ -294,13 +294,13 @@ def get_colormap(color_map: str | None = None) -> Colormap:
     """ Get colormap and levels """
     if color_map is None:
         cmap: Colormap = LinearSegmentedColormap("GYR", {
-            'red': ((0.0, 0.0, 0.0),
+            "red": ((0.0, 0.0, 0.0),
                     (0.5, 1.0, 1.0),
                     (1.0, 1.0, 1.0)),
-            'green': ((0.0, 1.0, 1.0),
+            "green": ((0.0, 1.0, 1.0),
                       (0.5, 1.0, 1.0),
                       (1.0, 0.0, 0.0)),
-            'blue': ((0.0, 0.0, 0.0),
+            "blue": ((0.0, 0.0, 0.0),
                      (0.5, 0.0, 0.0),
                      (1.0, 0.0, 0.0))
         })

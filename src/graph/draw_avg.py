@@ -43,7 +43,7 @@ def main() -> None:
 
     img = Image.open(map_obj.path)
     draw = ImageDraw.Draw(img)
-    if args.strategy == 'min':
+    if args.strategy == "min":
         for station in stations:
             result_dict[station] = 0.0
     draw_all_station(draw, (0.0, 0.0, 0.0), map_obj, result_dict)

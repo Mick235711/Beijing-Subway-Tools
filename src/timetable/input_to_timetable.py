@@ -299,7 +299,7 @@ def to_json_format(
     trains = timetable.trains_sorted()
     for first_train, delta in divide_schedule(trains, break_entries):
         res += f'{start}    {{first_train: "{get_time_str(first_train)}", delta: {delta}}},\n'
-    res = res[:-2] + '\n'  # remove trailing comma
+    res = res[:-2] + "\n"  # remove trailing comma
 
     # filters part
     res += f"{start}],\n{start}filters: [\n"
