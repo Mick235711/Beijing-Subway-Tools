@@ -17,8 +17,7 @@ from pathlib import Path
 def parse_layout(text: str) -> list[list[tuple[int, list[int]]]]:
     """ Read aligned columns, rejecting text that cannot be parsed safely """
     lines = text.splitlines()
-    headers = [(i, list(re.finditer(r"\bHour\b", line)))
-               for i, line in enumerate(lines)]
+    headers = [(i, list(re.finditer(r"\bHour\b", line))) for i, line in enumerate(lines)]
     headers = [(i, matches) for i, matches in headers if len(matches) == 3]
     if len(headers) != 1:
         raise ValueError("Expected exactly one three-column Hour header")
@@ -30,8 +29,7 @@ def parse_layout(text: str) -> list[list[tuple[int, list[int]]]]:
             continue
         if line.lstrip().startswith(("註", "注")):
             break
-        cells = [line[boundaries[0]:boundaries[1]],
-                 line[boundaries[1]:boundaries[2]], line[boundaries[2]:]]
+        cells = [line[boundaries[0]:boundaries[1]], line[boundaries[1]:boundaries[2]], line[boundaries[2]:]]
         if any(re.search(r"[^\s0-9]", cell) for cell in cells):
             raise ValueError(f"Unexpected text in timetable: {line.strip()}")
         for lane, cell in enumerate(cells):

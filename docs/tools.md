@@ -3567,7 +3567,7 @@ Comparison rules:
 - Project terminal arrivals and synthetic entries at express skipped stops are excluded and listed separately. Physical origins/middle starts, express type and the entire stopping pattern cannot be verified from this source.
 - Loop direction labels have explicit mappings. A pseudo-destination can represent circulation or actual termination there; matching either is reported as ambiguous.
 - Default date-group mapping requires exactly the weekday set Mon–Fri or Sat–Sun without date restrictions. Split calendars need `--bucket` and `--date-group` together.
-- Optional first/last `destTime` values provide boundary evidence only, not full-day terminal arrivals. Their actual dates/times are retained separately from timetable anchors.
+- When first/last data was captured with `--with-first-last`, verification also compares `driveTime` at the queried station and `destTime` at that service's destination against the corresponding project train.
 
 ### [`scripts/taipei/parse_timetable.py`](/scripts/taipei/parse_timetable.py): Extract Taipei Metro timetables from a PDF
 ```

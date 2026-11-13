@@ -124,32 +124,36 @@ class Catalogue:
         for row in contents[CODES_URL]:
             code = row["device_location"]
             line_code, station_code = decode_location(code)
-            entries.append(StationCode(lines[row["line_id"]], names[row["station_id"]],
-                                       row["line_id"], row["station_id"],
-                                       line_code, station_code, code))
+            entries.append(StationCode(
+                lines[row["line_id"]], names[row["station_id"]], row["line_id"], row["station_id"],
+                line_code, station_code, code
+            ))
         version = digest("".join(sorted(resource["sha256"] for resource in resources)))
         return cls(entries, version, max(resource["fetched_at"] for resource in resources))
 
     @classmethod
     def from_dict(cls, value: dict) -> Catalogue:
         """ Restore the exact catalogue embedded in a timetable capture """
-        return cls([StationCode(**entry) for entry in value["entries"]],
-                   value["version"], value["captured_at"])
+        return cls([StationCode(**entry) for entry in value["entries"]], value["version"], value["captured_at"])
 
     def to_dict(self) -> dict:
         """ Make timetable captures independently usable offline """
-        return {"version": self.version, "captured_at": self.captured_at,
-                "entries": [asdict(row) for row in self.entries]}
+        return {
+            "version": self.version,
+            "captured_at": self.captured_at,
+            "entries": [asdict(row) for row in self.entries]
+        }
 
-    def select(self, *, line: str | None = None, line_code: int | None = None,
-               station: str | None = None) -> list[StationCode]:
+    def select(
+        self, *, line: str | None = None, line_code: int | None = None, station: str | None = None
+    ) -> list[StationCode]:
         """ Filter by project/official names or encoded line code """
-        return sorted((row for row in self.entries
-                       if (line is None or canonical_line_name(row.line_name) == canonical_line_name(line))
-                       and (line_code is None or row.line_code == line_code)
-                       and (station is None or canonical_station_name(row.station_name) ==
-                            canonical_station_name(station))),
-                      key=lambda row: (row.line_code, row.station_code))
+        return sorted((
+            row for row in self.entries
+            if (line is None or canonical_line_name(row.line_name) == canonical_line_name(line))
+            and (line_code is None or row.line_code == line_code)
+            and (station is None or canonical_station_name(row.station_name) == canonical_station_name(station))
+        ), key=lambda row: (row.line_code, row.station_code))
 
     def station(self, value: str) -> StationCode:
         """ Resolve one full decimal/hex deviceLocation from the catalogue """
@@ -169,8 +173,11 @@ def resource_body(resource: dict) -> Any:
 
 def signed_arguments(code: str, timestamp: int | None = None) -> dict[str, str]:
     """ Reproduce the map's scalar-field canonicalization and HMAC """
-    arguments = {"cityCode": "1101", "deviceLocation": code,
-                 "ts": str(int(time.time()) if timestamp is None else timestamp)}
+    arguments = {
+        "cityCode": "1101",
+        "deviceLocation": code,
+        "ts": str(int(time.time()) if timestamp is None else timestamp)
+    }
     canonical = "".join(key + arguments[key] + "||" for key in sorted(arguments, key=str.lower))
     arguments["mac"] = hmac.new(PUBLIC_MAC_KEY, canonical.encode(), hashlib.sha1).hexdigest().upper()
     return arguments
@@ -225,12 +232,12 @@ class NetworkClient:
             request = urllib.request.Request(
                 url, data=json.dumps(arguments).encode() if arguments else None,
                 headers={"Content-Type": "application/json", "Accept": "application/json"}
-                if arguments else {"Accept": "application/json"})
+                if arguments else {"Accept": "application/json"}
+            )
             try:
                 with urllib.request.urlopen(request, timeout=30) as response:
                     body = response.read().decode("utf-8")
-                result = {"url": url, "fetched_at": utc_now(), "sha256": digest(body),
-                          "raw_response": body}
+                result = {"url": url, "fetched_at": utc_now(), "sha256": digest(body), "raw_response": body}
                 if arguments:
                     result["request"] = {key: value for key, value in arguments.items() if key != "mac"}
                 return result
@@ -263,8 +270,10 @@ def response_data(resource: dict) -> list[dict]:
     """ Reject business/signing failures even when the HTTP status is successful """
     value = resource_body(resource)
     if value.get("resCode") not in ("00000000", "0000"):
-        raise ValueError(f"API error {value.get('resCode')}: {value.get('resMessage')}; "
-                         "check the public map before retrying or updating the signing key")
+        raise ValueError(
+            f"API error {value.get('resCode')}: {value.get('resMessage')}; "
+            "check the public map before retrying or updating the signing key"
+        )
     data = value.get("resData")
     if not isinstance(data, list):
         raise ValueError("Expected resData to be a list")
@@ -343,8 +352,10 @@ def publish_snapshot(cache: Path, snapshot: dict) -> Path:
     return path
 
 
-def fetch_snapshot(client: NetworkClient, catalogue: Catalogue, code: str,
-                   with_first_last: bool = False, timetable: dict | None = None) -> Path:
+def fetch_snapshot(
+    client: NetworkClient, catalogue: Catalogue, code: str,
+    with_first_last: bool = False, timetable: dict | None = None
+) -> Path:
     """ Fetch one station-line code and preserve raw responses and their provenance """
     catalogue.station(code)
     snapshot: dict = {

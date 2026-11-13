@@ -65,8 +65,10 @@ def table_options(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     """ Expose only the agreed catalogue, capture and single-station comparison scope """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cache-dir", type=Path, default=CACHE_DIR,
-                        help="Shared catalogue, capture and network-state directory")
+    parser.add_argument(
+        "--cache-dir", type=Path, default=CACHE_DIR,
+        help="Shared catalogue, capture and network-state directory"
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     codes = commands.add_parser("codes", help="Offline code queries; refresh explicitly")
     queries = codes.add_subparsers(dest="query", required=True)
@@ -109,17 +111,24 @@ def print_stations(entries: list[StationCode], args: argparse.Namespace) -> None
     if not entries:
         raise ValueError("No matching catalogue entries; use the names in 'codes lines/stations'")
     if args.json:
-        print_json([dict(asdict(row), device_location_hex=f"0x{row.device_location:08X}",
-                         line_code_hex=f"0x{row.line_code:02X}", station_code_hex=f"0x{row.station_code:02X}")
-                    for row in entries])
+        print_json([
+            dict(
+                asdict(row), device_location_hex=f"0x{row.device_location:08X}",
+                line_code_hex=f"0x{row.line_code:02X}", station_code_hex=f"0x{row.station_code:02X}"
+            ) for row in entries
+        ])
     else:
         print(tabulate(
-            [[row.line_name, row.station_name, row.line_code,
-              f"{row.station_code:02}/0x{row.station_code:02X}",
-              f"{row.device_location}/0x{row.device_location:08X}", row.station_id] for row in entries],
-            headers=["Line", "Station", "Line code", "Station code (decimal/hex)",
-                     "deviceLocation (decimal/hex)", "Metadata station_id"],
-            tablefmt=args.table_format, disable_numparse=True))
+            [[
+                row.line_name, row.station_name, row.line_code, f"{row.station_code:02}/0x{row.station_code:02X}",
+                f"{row.device_location}/0x{row.device_location:08X}", row.station_id
+            ] for row in entries],
+            headers=[
+                "Line", "Station", "Line code", "Station code (decimal/hex)",
+                "deviceLocation (decimal/hex)", "Metadata station_id"
+            ],
+            tablefmt=args.table_format, disable_numparse=True
+        ))
 
 
 def query_codes(args: argparse.Namespace, cache: Path) -> None:
@@ -130,10 +139,12 @@ def query_codes(args: argparse.Namespace, cache: Path) -> None:
         print(f"Cached {len(catalogue.entries)} station-line codes; version {catalogue.version}")
         return
     if args.query == "decode":
-        line, station = decode_location(args.device_location)
-        result = {"device_location": args.device_location, "device_location_hex": f"0x{args.device_location:08X}",
-                  "line_code": line, "line_code_hex": f"0x{line:02X}",
-                  "station_code": station, "station_code_hex": f"0x{station:02X}"}
+        line_code, station_code = decode_location(args.device_location)
+        result = {
+            "device_location": args.device_location, "device_location_hex": f"0x{args.device_location:08X}",
+            "line_code": line_code, "line_code_hex": f"0x{line_code:02X}",
+            "station_code": station_code, "station_code_hex": f"0x{station_code:02X}"
+        }
         if (cache / "catalogue" / "latest.json").exists():
             row = load_catalogue(cache).by_code.get(str(args.device_location))
             if row:
@@ -141,24 +152,28 @@ def query_codes(args: argparse.Namespace, cache: Path) -> None:
         if args.json:
             print_json(result)
         else:
-            print(tabulate(result.items(), headers=["Field", "Value"], tablefmt=args.table_format,
-                           disable_numparse=True))
+            print(tabulate(result.items(), headers=["Field", "Value"], tablefmt=args.table_format, disable_numparse=True))
         return
     catalogue = load_catalogue(cache)
     if args.query == "lines":
         grouped = defaultdict(list)
         for row in catalogue.entries:
             grouped[(row.line_code, row.line_id, row.line_name)].append(row)
-        rows = [{"line_name": name, "line_id": line_id, "line_code": code,
-                 "line_code_hex": f"0x{code:02X}", "catalogue_entries": len(entries)}
-                for (code, line_id, name), entries in sorted(grouped.items())]
+        rows = [{
+            "line_name": name, "line_id": line_id, "line_code": code,
+            "line_code_hex": f"0x{code:02X}", "catalogue_entries": len(entries)
+        } for (code, line_id, name), entries in sorted(grouped.items())]
         if args.json:
             print_json(rows)
         else:
-            print(tabulate([[row["line_name"], f"{row['line_code']}/{row['line_code_hex']}",
-                             row["line_id"], row["catalogue_entries"]] for row in rows],
-                           headers=["Line", "Line code (decimal/hex)", "Metadata line_id", "Entries"],
-                           tablefmt=args.table_format, disable_numparse=True))
+            print(tabulate(
+                [[
+                    row["line_name"], f"{row['line_code']}/{row['line_code_hex']}",
+                    row["line_id"], row["catalogue_entries"]
+                ] for row in rows],
+                headers=["Line", "Line code (decimal/hex)", "Metadata line_id", "Entries"],
+                tablefmt=args.table_format, disable_numparse=True
+            ))
     elif args.query == "query":
         line, station = query_station()
         print_stations(catalogue.select(line=line, station=station), args)
@@ -178,8 +193,10 @@ def select_codes(args: argparse.Namespace, catalogue: Catalogue, *, station_only
         line, station = query_station()
     all_lines = line is None and line_code is None
     if (all_lines and not station_only) or (station is None and station_code is None):
-        raise ValueError("Provide --device-location or both a line and a station selector" +
-                         ("; fetch also accepts --station alone" if station_only else ""))
+        raise ValueError(
+            "Provide --device-location or both a line and a station selector" +
+            ("; fetch also accepts --station alone" if station_only else "")
+        )
     if station_code is not None and line_code is None:
         raise ValueError("Use --line-code with --station-code to select an exact code segment")
     entries = catalogue.select(line=line, line_code=line_code, station=station)
@@ -228,14 +245,21 @@ def verification_path(args: argparse.Namespace, cache: Path) -> Path:
 
 def print_report(report: dict, table_format: str = "simple") -> None:
     """ Keep console output bounded; JSON retains all individual differences """
-    print(f"{report['line']} / {report['station']}: {report['status'].upper()} (compared departures only)")
+    scope = "departures and first/last events" if "first_last_comparisons" in report else "departures only"
+    print(f"{report['line']} / {report['station']}: {report['status'].upper()} (compared {scope})")
     print(f"Captured: {report['fetched_at']}")
     if report["comparisons"]:
-        print(tabulate([[row["direction"], row["api_bucket"], row["date_group"], row["api_count"],
-                         row["repository_count"], row["common_minutes"], row["compatible_destinations"]]
-                        for row in report["comparisons"]],
-                       headers=["Direction", "API bucket", "Date group", "API", "Project", "Common minutes",
-                                "Compatible destinations"], tablefmt=table_format))
+        print(tabulate(
+            [[
+                row["direction"], row["api_bucket"], row["date_group"], row["api_count"],
+                row["repository_count"], row["common_minutes"], row["compatible_destinations"]
+            ] for row in report["comparisons"]],
+            headers=[
+                "Direction", "API bucket", "Date group", "API", "Project", "Common minutes",
+                "Compatible destinations"
+            ],
+            tablefmt=table_format
+        ))
     for row in report["comparisons"]:
         print(f"\n{row['direction']} / API bucket {row['api_bucket']} → {row['date_group']}")
         if row["api_minute_offset"]:
@@ -250,24 +274,36 @@ def print_report(report: dict, table_format: str = "simple") -> None:
                 values = ", ".join(entry["time"] for entry in row[key][:20])
                 print(f"{title} ({len(row[key])}): {values}" + (" …" if len(row[key]) > 20 else ""))
         if row["destination_differences"]:
-            print(tabulate([[difference["time"],
-                             ", ".join(entry["destination_label"] for entry in difference["api"]),
-                             ", ".join(entry["destination"] for entry in difference["repository"])]
-                            for difference in row["destination_differences"][:20]],
-                           headers=["Time", "API destination", "Project destination"], tablefmt=table_format))
+            print(tabulate(
+                [[
+                    difference["time"],
+                    ", ".join(entry["destination_label"] for entry in difference["api"]),
+                    ", ".join(entry["destination"] for entry in difference["repository"])
+                ] for difference in row["destination_differences"][:20]],
+                headers=["Time", "API destination", "Project destination"], tablefmt=table_format
+            ))
+        if not (row["repository_only"] or row["api_only"] or row["destination_differences"]):
+            print("All trains matched.")
         if row["ambiguous_destination_matches"]:
             print(f"Loop destination compatibility only: {row['ambiguous_destination_matches']} records")
     for issue in report["coverage_issues"]:
         print(f"Coverage: {issue}")
-    for note in report["notes"]:
-        print(f"Note: {note}")
     print()
-    if report.get("first_last_events"):
-        print(tabulate([["last" if event.get("isLast") else "first", event["destination_name"],
-                         event["driveTime_beijing"], event["destTime_beijing"]]
-                        for event in report["first_last_events"]],
-                       headers=["Boundary", "Destination", "driveTime (Beijing)", "destTime (Beijing)"],
-                       tablefmt=table_format))
+    if report.get("first_last_comparisons"):
+        print("First/last comparison (API minus project; API time includes the listed correction):")
+        print(tabulate(
+            [[
+                row["boundary"], row["field"], row["station"], row["direction"],
+                row["service_date"], row["date_group"], row["api_time"], row["api_minute_offset"],
+                row["project_time"], row["delta_minutes"], row["delta_seconds"], row["status"]
+            ] for row in report["first_last_comparisons"]],
+            headers=[
+                "Boundary", "Field", "Station", "Direction", "Service day", "Date group",
+                "API time", "Offset (min)", "Project", "Δ min", "Δ sec", "Status"
+            ],
+            tablefmt=table_format
+        ))
+        print()
     print("Use --json or --report for the full comparison and raw timestamp references.")
 
 
@@ -287,8 +323,7 @@ def main() -> int:
             with ExitStack() as stack:
                 client = None
                 for code in codes:
-                    path = None if args.refresh else cached_snapshot(
-                        cache, code, args.with_first_last)
+                    path = None if args.refresh else cached_snapshot(cache, code, args.with_first_last)
                     if path is None:
                         partial = None if args.refresh else latest_snapshot(cache, code)
                         capture_catalogue = catalogue
@@ -308,9 +343,10 @@ def main() -> int:
         if args.report and args.report.resolve() == path.resolve():
             raise ValueError("--report must not overwrite the source snapshot")
         snapshot, catalogue = load_snapshot(path)
-        report = verify_snapshot(snapshot, catalogue, parse_city(str(CITY_ROOT)),
-                                 bucket=args.bucket, date_group=args.date_group,
-                                 minute_offset=args.minute_offset)
+        report = verify_snapshot(
+            snapshot, catalogue, parse_city(str(CITY_ROOT)),
+            bucket=args.bucket, date_group=args.date_group, minute_offset=args.minute_offset
+        )
         report["snapshot"] = str(path.resolve())
         if args.report:
             write_json(args.report, report)
