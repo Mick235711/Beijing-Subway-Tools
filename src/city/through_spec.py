@@ -132,7 +132,7 @@ def parse_through_single_direction(
     ) for direction in first_line.directions.keys() if first_route in first_line.train_routes[direction]]
 
     # Extend loop
-    for (line_temp, route), date_group in zip(lines_routes, date_groups):
+    for (line_temp, route), date_group in zip(lines_routes, date_groups[1:]):
         line = lines[line_temp]
         for i, spec in enumerate(current_spec):
             if spec is None:
@@ -182,18 +182,18 @@ def parse_single_through_spec(lines: dict[str, Line], spec_dict: dict[str, Any],
     """ Parse JSON5 spec as through train specification """
     lines_list = spec_dict["lines"]
     if "directions" in spec_dict or "direction" in spec_dict:
-        if "direction" in spec_dict:
-            directions = [spec_dict["direction"] for _ in lines_list]
-        else:
+        if "directions" in spec_dict:
             directions = spec_dict["directions"]
             assert len(lines_list) == len(directions), spec_dict
+        else:
+            directions = [spec_dict["direction"] for _ in lines_list]
         return [ThroughSpec([
             (lines[line], direction, lines[line].date_groups[date_group], lines[line].train_routes[direction][route])
             for line, direction, date_group, route in zip(lines_list, directions, date_groups, routes)
         ])]
     lines_routes = list(zip(lines_list, routes))
     spec1_list = parse_through_single_direction(lines, lines_routes, date_groups)
-    spec2_list = parse_through_single_direction(lines, list(reversed(lines_routes)), date_groups)
+    spec2_list = parse_through_single_direction(lines, list(reversed(lines_routes)), list(reversed(date_groups)))
     through_dict: dict[str, ThroughSpec] = {spec.spec[0][1]: spec for spec in spec1_list if spec is not None}
     for spec in spec2_list:
         if spec is not None:

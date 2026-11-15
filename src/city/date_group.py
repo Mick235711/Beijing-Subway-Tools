@@ -20,7 +20,7 @@ class DateGroup:
         """ Constructor """
         self.name = name
         self.aliases = aliases or []
-        self.dates = dates
+        self.dates = None if dates is None else {date.fromisoformat(value) for value in dates}
         if self.dates is None:
             self.weekday = weekday or {1, 2, 3, 4, 5, 6, 7}
             assert all(1 <= x <= 7 for x in self.weekday), self.weekday
@@ -50,7 +50,7 @@ class DateGroup:
 
     def covers(self, cur_date: date) -> bool:
         """ Determine if the given date is covered """
-        if self.dates:
+        if self.dates is not None:
             return cur_date in self.dates
         if self.start_date and cur_date < self.start_date:
             return False

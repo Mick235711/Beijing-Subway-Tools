@@ -32,16 +32,17 @@ This specification describes the key-values within `<line x>.json5`.
 | stations                                                    | No                    | array   |                          | An array describing properties of stations. See below for fields.                                                                                     |
 | must_include                                                | No                    | array   | []                       | An array of station names that must be included in the routing (i.e. for express train services).                                                     |
 | force_start                                                 | No                    | boolean | false                    | If true, routes using this line will only be shown if at least one of starting/ending point is on this line.<br>Ignored if `must_include` is present. |
-| station_names                                               | No                    | array   |                          | An array of station names. Ignored if `stations` is provided.                                                                                         |
-| station_dists                                               | No                    | array   |                          | An array of distance between stations in meters (length one less than `station_names`). Ignored if `stations` is provided.                            |
-| station_alias                                               | No                    | object  |                          | A dictionary (station_name to alias) of station's English aliases. Ignored if `stations` is provided.                                                 |
-| station_indexes                                             | No                    | array   |                          | An array of station indexes. Ignored if `stations` is provided.                                                                                       |
+| station_names                                               | Without `stations`    | array   |                          | An array of station names. Ignored if `stations` is provided.                                                                                         |
+| station_dists                                               | Without `stations`    | array   |                          | Distances in meters between stations; one fewer than `station_names`, or the same length for a loop. Ignored if `stations` is provided.               |
+| station_aliases                                             | Without `stations`    | object  |                          | Maps station names to arrays of English aliases. May be empty. Ignored if `stations` is provided.                                                     |
+| station_indexes                                             | Without `stations`    | array   |                          | Station indexes in station order, one per station. Ignored if `stations` is provided.                                                                 |
 | loop                                                        | No                    | boolean | false                    | Indicate if this line is a loop line                                                                                                                  |
 | loop_last_segment                                           | If loop is true       | int     |                          | Indicate the minutes required for last segment.                                                                                                       |
 | clockwise_direction                                         | If loop is true       | string  |                          | Indicate the clockwise direction                                                                                                                      |
 | train_routes                                                | Yes                   | object  |                          | Data on all possible train routing. Must have 1 or 2 keys representing the general direction (i.e. eastbound, counterclockwise, etc.).                |
 | train_routes.`<direction>`                                  | Yes                   | object  |                          | Train routing in this direction. Keys should be the name of the routing (i.e. short turn, branch A, etc.).                                            |
 | train_routes.`<direction>`.aliases                          | No                    | array   | []                       | Aliases (English) for the direction                                                                                                                   |
+| train_routes.`<direction>`.icon                             | No                    | string  |                          | Icon displayed for the direction.                                                                                                                     |
 | train_routes.`<direction>`.reversed                         | No                    | boolean | false                    | If true, these trains runs in the opposite direction to the direction specified with `stations` or `station_names`.                                   |
 | train_routes.`<direction>`.end_circle                       | No                    | bool    | false                    | Specify that this direction ends in itself.                                                                                                           |
 | train_routes.`<direction>`.end_circle_split_dist            | if end_circle is true | int     |                          | Specify the distance of split (see [a-new-line docs](/docs/a-new-line-from-scratch.md)).                                                              |
@@ -57,36 +58,44 @@ This specification describes the key-values within `<line x>.json5`.
 ## Station Specification Format
 These fields specify the elements of the array `stations`.
 
-| Key        | Required                         | Type   | Default | Value                                   |
-|------------|----------------------------------|--------|---------|-----------------------------------------|
-| name       | Yes                              | string |         | Name of the station                     |
-| dist       | If loop or not the first station | int    |         | Distance to last station in meters      | 
-| aliases    | No                               | array  | []      | Aliases (English) for the station       |
-| index      | No                               | string |         | Shorthand station code for this station |
-| badge_icon | No                               | string |         | Optional icon for the station badge     |
+| Key        | Required                         | Type          | Default | Value                                   |
+|------------|----------------------------------|---------------|---------|-----------------------------------------|
+| name       | Yes                              | string        |         | Name of the station                     |
+| dist       | If loop or not the first station | int           |         | Distance to last station in meters      | 
+| aliases    | No                               | array         | []      | Aliases (English) for the station       |
+| index      | No                               | string or int |         | Shorthand station code for this station |
+| badge_icon | No                               | string        |         | Optional icon for the station badge     |
 
-`dist` is not required for the first station.
+`dist` is required on each station after the first; on a loop, the first station's `dist`
+is also required and represents the distance from the last station back to the first.
 Must be in order of the line.
-Not required if provided both `station_names` and `station_dists`.
-If `index` is not provided, it is assumed to be the last station's index +1 (or -1 when `index_reversed` is true),
+`stations` may be omitted when all four legacy fields `station_names`, `station_dists`,
+`station_aliases`, and `station_indexes` are present. If `stations` is present, those fields are ignored.
+If `index` is not provided and the line has a `code`, it is assumed to be the last station's index +1 (or -1 when `index_reversed` is true),
 starting at 1 for the first station. Generated indexes are zero-padded to at least `station_index_width` digits:
 the default 2 produces "01", "02", etc.; 1 produces "1", "2", etc. Explicit `index` values are kept as written,
-including leading zeros and suffixes such as "14a". Explicit `station_indexes` arrays are also preserved.
+including leading zeros and suffixes such as "14a". Integer station indexes are converted to strings.
+An automatically generated index following an explicit index requires that preceding index to be numeric.
+Explicit `station_indexes` arrays are also preserved.
 
 ## Routing Specification Format
 A train route refers to a regularly scheduled train visiting several predetermined stations in order. Common train routing includes "Full route", "Short turn on Station X",
 "Clockwise", "Branch A", etc. The routing for a line is specified under `train_routes.<direction>.<routing_name>`.
 
-| Key            | Required | Type   | Default           | Value                                                                                            |
-|----------------|----------|--------|-------------------|--------------------------------------------------------------------------------------------------|
-| starts_with    | No       | string | The first station | Specify that those trains starts at this station.                                                |
-| ends_with      | No       | string | The last station  | Specify that those trains ends at this station.                                                  |
-| skip           | No       | array  | []                | Specify that those station will be skipped.                                                      |
-| skip_timetable | No       | bool   | false             | Specify if skipped station still have passing time entry in the timetable.                       |
-| stations       | No       | array  |                   | Specify the stations that this route stops at. If present, routing-shape attributes are ignored. |
-| real_end       | No       | string | The last station  | Specify that this route actually runs (without passenger) to another station.                    |
-| carriage_num   | No       | int    | Same as line      | Specify that this route use fewer carriages.                                                     |
-| stopping_times | No       | object | `{}`              | Map station names to whole minutes every train on this route stops before departing.             |
+| Key            | Required | Type   | Default           | Value                                                                                      |
+|----------------|----------|--------|-------------------|--------------------------------------------------------------------------------------------|
+| starts_with    | No       | string | The first station | Specify that those trains starts at this station.                                          |
+| ends_with      | No       | string | The last station  | Specify that those trains ends at this station.                                            |
+| skip           | No       | array  | []                | Specify that those station will be skipped.                                                |
+| skip_timetable | No       | bool   | false             | Specify if skipped station still have passing time entry in the timetable.                 |
+| stations       | No       | array  |                   | Specify the stations on this route. If present, `starts_with` and `ends_with` are ignored. |
+| loop           | No       | bool   | Line's `loop`     | Override whether this route is a loop, for example `false` for a depot-return train.       |
+| real_end       | No       | string | The last station  | Specify that this route actually runs (without passenger) to another station.              |
+| carriage_num   | No       | int    | Same as line      | Specify that this route use fewer carriages.                                               |
+| stopping_times | No       | object | `{}`              | Map station names to whole minutes every train on this route stops before departing.       |
+
+`skip` and `skip_timetable` still apply when `stations` is supplied. A route whose final station
+is not the final station of the direction is treated as non-looping regardless of its `loop` value.
 
 Timetable schedule entries remain **departure times**. For a route with
 `stopping_times: {"Station A": 3}`, a train scheduled at `08:05` at Station A arrives at `08:02`
@@ -103,13 +112,13 @@ through-service, and loop junction stations.
 A date group is a couple of dates where trains are scheduled the same, such as Weekdays, Saturdays, etc.
 The date groups for a line are specified under `date_groups.<group_name>`.
 
-| Key     | Required | Type                     | Default                 | Value                                                                                                        |
-|---------|----------|--------------------------|-------------------------|--------------------------------------------------------------------------------------------------------------|
-| aliases | No       | array                    | []                      | Aliases (English) for the group                                                                              |
-| weekday | No       | array                    | `[1, 2, 3, 4, 5, 6, 7]` | Specify the day of week this group includes.                                                                 |
-| dates   | No       | array                    |                         | Specify the dates (`["2022-02-02", ...]`) this group includes. If present, all other attributes are ignored. |
-| from    | No       | string<br>("yyyy-mm-dd") | Forever                 | The starting date of this group.                                                                             |
-| until   | No       | string<br>("yyyy-mm-dd") | Forever                 | The ending date of this group.                                                                               |
+| Key     | Required | Type                     | Default                 | Value                                                                                                                  |
+|---------|----------|--------------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------|
+| aliases | No       | array                    | []                      | Aliases (English) for the group                                                                                        |
+| weekday | No       | array                    | `[1, 2, 3, 4, 5, 6, 7]` | Specify the day of week this group includes.                                                                           |
+| dates   | No       | array                    |                         | Specify the dates (`["2022-02-02", ...]`) this group includes. If present, `weekday`, `from`, and `until` are ignored. |
+| from    | No       | string<br>("yyyy-mm-dd") | Forever                 | The starting date of this group.                                                                                       |
+| until   | No       | string<br>("yyyy-mm-dd") | Forever                 | The ending date of this group.                                                                                         |
 
 ## Schedule Specification Format
 At a station, direction, or date group, `derive_from: {name: "...", offset: N}` copies the source timetable. `name` is required; `offset` is an optional integer number of minutes (default 0, negative values are allowed). At station level the name is another station on this line; at direction level it is another direction at the same station; at date group level it is another date group at the same station and direction.
@@ -124,15 +133,16 @@ Sources may appear later in the file and derivations may be chained, but cycles 
 
 Train schedule is specified as one of the two formats: the simple format and the delta format.
 The `timetable.<station>.<direction>.<group_name>.schedule` key is an array of a list of schedules, all schedules are added together to form the schedule of this line.
+Times accept `H:MM` or `HH:MM`; hours 24 through 47 represent the following day.
 
 In the simple format, the schedule is just `{trains: ["hh:mm", "hh:mm", ...]}` specifying the leaving time of trains.
 
-In the delta format, the schedule is `{first_train: "hh:mm", delta: [...]}` specifying the first leaving time, and then deltas are added to the first leaving time to get all other leaving time.
+In the delta format, the schedule is `{first_train: "hh:mm", delta: [...]}` specifying the first leaving time, and then deltas are added to the first leaving time to get all other leaving time. If both `trains` and delta fields are present, `trains` takes precedence.
 The format of the delta array is:
 ```
 delta_array := "[" (single_spec | multi_spec)* "]"
 single_spec := int
-multi_spec := "[" int "," delta_array "]"
+multi_spec := "[" non_negative_int "," delta_array "]"
 ```
 For example, assume the first time is 07:00:
 ```
@@ -155,7 +165,9 @@ They are specified in the `timetable.<station>.<direction>.<group_name>.filters`
 | first_train | No       | string<br>("hh:mm") | First scheduled train | Specify the first leaving time within this filter.                                                                     |
 | skip_trains | No       | int                 | 0                     | Specify that N trains should be skipped.                                                                               |
 | until       | No       | string<br>("hh:mm") | Last scheduled train  | Specify the last leaving time within this filter.                                                                      |
-| count       | No       | int                 | All trains between    | Specify the number of trains within this filter. If present, `until` is ignored.                                       |
+| count       | No       | int                 | All trains between    | Specify the number of trains within this filter. If present, `until` does not limit the selection.                     |
+
+When both `count` and `until` are present, the loader still parses and validates `until` before using `count`.
 
 For example, assuming the schedule is trained every 2 minutes from 07:00:
 ```
@@ -212,6 +224,10 @@ For a through train specification, each element of the array should follow the f
 | date_group  | No       | string | All dates                        | The date group that this through train runs on. Ignored if `date_groups` is present. |
 | date_groups | No       | array  | `[date_group for line in lines]` | The date group (for each line) that this through train runs on.                      |
 
+Each plural array has one element per line; repeated values are allowed. When neither date-group
+field is present, all lines must have the same date-group names in the same order, and a through
+train is created for each group.
+
 # Carriage Specification Format
 **Schema**: [`carriage_types.schema.json5`](/docs/schema/carriage_types.schema.json5)
 
@@ -231,30 +247,32 @@ In the global dict, key is the code for this carriage type, value is specified a
 
 This specification describes the key-values within `maps/*.json5`.
 
-| Key                | Required              | Type   | Default  | Value                                                                             |
-|--------------------|-----------------------|--------|----------|-----------------------------------------------------------------------------------|
-| name               | Yes                   | string |          | Name of the map                                                                   |
-| path               | Yes                   | string |          | Path to the described map                                                         |
-| shape_type         | No                    | string | circle   | Shape of station. Currently can only be circle or rectangle.                      |
-| radius             | Yes                   | float  |          | Radius of the circle on a regular station                                         |
-| width              | If shape is rectangle | float  |          | Width of the rectangle on a regular station.                                      |
-| height             | If shape is rectangle | float  |          | Height of the rectangle on a regular station.                                     |
-| font_size          | No                    | float  |          | Font size for regular stations. Will be automatically determined if not provided  |
-| transfer_radius    | No                    | float  | `radius` | Radius of the circle on a transfer station                                        |
-| transfer_width     | No                    | float  | `width`  | Width of the rectangle on a transfer station.                                     |
-| transfer_height    | No                    | float  | `height` | Height of the rectangle on a transfer station.                                    |
-| transfer_font_size | No                    | float  |          | Font size for transfer stations. Will be automatically determined if not provided |
-| coordinates        | Yes                   | object |          | Contains mapping from station to `{x: <x>, y: <y>[, r: <r>]}`                     |
+| Key                | Required              | Type           | Default  | Value                                                                             |
+|--------------------|-----------------------|----------------|----------|-----------------------------------------------------------------------------------|
+| name               | Yes                   | string         |          | Name of the map                                                                   |
+| path               | Yes                   | string         |          | Path to the described map                                                         |
+| shape_type         | No                    | string         | circle   | Shape of station. Currently can only be circle or rectangle.                      |
+| radius             | Yes                   | number or pair |          | Radius of the circle, or `[rx, ry]` for an ellipse, on a regular station          |
+| width              | If shape is rectangle | float          |          | Width of the rectangle on a regular station.                                      |
+| height             | If shape is rectangle | float          |          | Height of the rectangle on a regular station.                                     |
+| font_size          | No                    | float          |          | Font size for regular stations. Will be automatically determined if not provided  |
+| transfer_radius    | No                    | number or pair | `radius` | Radius of the circle, or `[rx, ry]` for an ellipse, on a transfer station         |
+| transfer_width     | No                    | float          | `width`  | Width of the rectangle on a transfer station.                                     |
+| transfer_height    | No                    | float          | `height` | Height of the rectangle on a transfer station.                                    |
+| transfer_font_size | No                    | float          |          | Font size for transfer stations. Will be automatically determined if not provided |
+| coordinates        | Yes                   | object         |          | Contains mapping from station to `{x: <x>, y: <y>[, r: <r>]}`                     |
 
 Note that the coordinate system starts in the upper left corner as `(0, 0)`. Also notice that the x-y coordinates are not
 the circle center, but the upper-left corner of the bounding box too.
 
 For different `shape_type`s, the possible radius specification (fields for `coordinates` beside `x` and `y`) are different:
-- For `circle`, can be either `r` or both `rx` and `ry` (for ellipse, in this case `radius` and `transfer_radius` must be 2-tuples).
-- For `rectangle`, must be `w` and `h`. Optionally `r` can be included to indicate rounded corners.
+- For `circle`, a numeric default radius gives circles and accepts an optional `r` override. A two-element default radius gives ellipses and accepts `rx` and `ry` overrides.
+- For `rectangle`, `w` and `h` override the map's width and height; `r` overrides its corner radius. Map-level `width` and `height` are required even when an individual station switches to a rectangle.
 
 For each station's coordinate specification, it is also possible to specify `path_coords` field to indicate that
-this coordinates should be used instead when drawing paths.
+these coordinates should be used instead when drawing paths. A station may have both its normal
+`x`/`y` and `path_coords`, only `path_coords` (no station shape), or a null coordinate (no shape).
+Setting `path_coords` to null suppresses the station's path shape while retaining its normal shape.
 
 # Fare Rule Specification Format
 **Schema**: [`fare_rules.schema.json5`](/docs/schema/fare_rules.schema.json5)
@@ -267,12 +285,12 @@ This specification describes the key-values within `fare_rules.json5`.
 | rule_groups        | Yes                          | array  |          | Rule groups                                                                                                                 |
 | Within each group: |                              |        |          |                                                                                                                             |
 | name               | Yes                          | string |          | Name for this group                                                                                                         |
-| derive_from        | No                           | object |          | Name of the group this group derives from. If present, all fields except `name` will be inherited from the group specified. |
+| derive_from        | No                           | object |          | Source group and optional fare multiplier; see inheritance rules below.                                                     |
 | lines              | No                           | array  | All left | Applicable lines                                                                                                            |
 | starting_stations  | No                           | array  | []       | Applicable starting stations                                                                                                |
 | ending_stations    | No                           | array  | []       | Applicable ending stations                                                                                                  |
 | basis              | If `derive_from` is empty    | string |          | Fare rule basis (see below)                                                                                                 |
-| rules              | Yes                          | array  |          | Fare rule specification (see below)                                                                                         |
+| rules              | Unless derived               | array  |          | Fare rule specification (see below)                                                                                         |
 | inner_basis        | If `apply_time` is not empty | string |          | Whether the apply_time field applies to entries (`entry`) or exits (`exit`)                                                 |
 | apply_time         | No                           | array  | []       | Applicable date and time                                                                                                    |
 
@@ -280,7 +298,7 @@ In general, the fare rules for a city are specified by several groups; each grou
 for a set of lines denoted by the `lines` field. When `lines` is not present, this group will apply to all lines
 not described by other groups. (There can be at most one group without a `lines` field.)
 
-Currently, there are three types of a fare basis supported as `basis` field:
+Currently, there are four types of a fare basis supported as `basis` field:
 - `single`: Fare is constant regardless of how far you traveled.
     - In this case, the `rules` field can simply be `[{fare: N}]`. You can also optionally supply the `apply_time` fields.
 - `distance`: Fare is calculated based on the distance traveled.
@@ -289,19 +307,22 @@ Currently, there are three types of a fare basis supported as `basis` field:
 
 If `derive_from` is supplied, this group's info will be derived from another group.
 The source group may appear anywhere in `rule_groups`; derivations may be chained, but missing references and cycles are errors. Group order still determines fare-rule precedence.
-The `derived_from` format should be `{name: "some_group", ...}`, where the additional modifiers include:
-- `portion`: A float that indicates that every fare should be multiplied to a fixed amount of value.
+The `derive_from` format is `{name: "some_group", portion: N}`, where `portion` defaults to 1.
+`basis`, `lines`, `starting_stations`, and `ending_stations` inherit from the source unless supplied
+on the derived group. If `rules` is omitted, the source rules are copied and their fares multiplied
+by `portion`; explicit `rules` replace them and are not multiplied. A group-level `apply_time`
+overrides the copied rules' time intervals and basis. Otherwise copied rules keep their own intervals.
 
 In cases other than `single`, the `rules` field should be supplied as an array of objects, each describing one fare type.
 Each object should contain the following fields:
 
-| Key        | Required                     | Type       | Default          | Value                                                                       |
-|------------|------------------------------|------------|------------------|-----------------------------------------------------------------------------|
-| fare       | Yes                          | float      |                  | Fare for this group                                                         |
-| start      | No                           | int/string | 0                | Starting station/distance in meter (inclusive)                              |
-| end        | No                           | int/string | Largest possible | Ending station/distance in meter (inclusive)                                |
-| basis      | If `apply_time` is not empty | string     |                  | Whether the apply_time field applies to entries (`entry`) or exits (`exit`) |
-| apply_time | No                           | array      | []               | Applicable date and time                                                    |
+| Key        | Required                                              | Type       | Default             | Value                                                                       |
+|------------|-------------------------------------------------------|------------|---------------------|-----------------------------------------------------------------------------|
+| fare       | Yes                                                   | float      |                     | Fare for this group                                                         |
+| start      | For `manual`                                          | int/string | 0                   | Starting station/distance in meter (inclusive)                              |
+| end        | For `manual`                                          | int/string | Largest possible    | Ending station/distance in meter (inclusive)                                |
+| basis      | If `apply_time` is present and no group `inner_basis` | string     | Group `inner_basis` | Whether the apply_time field applies to entries (`entry`) or exits (`exit`) |
+| apply_time | No                                                    | array      | []                  | Applicable date and time                                                    |
 
 The `apply_time` field allows you to specify that this fare rule only applies on specific date and/or time.
 The format of this field is the same as it in [the metadata section](#metadata-specification-format).

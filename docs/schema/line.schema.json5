@@ -4,6 +4,28 @@
     "description": "Describes properties and timetable of a subway line",
     "type": "object",
     "$defs": {
+        "time": {
+            "type": "string",
+            "description": "Service-day time; hours 24–47 refer to the following day",
+            "pattern": "^(?:[01]?[0-9]|[2-3][0-9]|4[0-7]):[0-5][0-9]$"
+        },
+        "delta": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {"type": "integer"},
+                    {
+                        "type": "array",
+                        "prefixItems": [
+                            {"type": "integer", "minimum": 0},
+                            {"$ref": "#/$defs/delta"}
+                        ],
+                        "minItems": 2,
+                        "maxItems": 2
+                    }
+                ]
+            }
+        },
         "timetable_derivation": {
             "type": "object",
             "properties": {
@@ -37,9 +59,8 @@
             "pattern": "^#[0-9A-Fa-f]{6}$"
         },
         "badge": {
-            "description": "Badge for the line",
-            "type": "string",
-            "default": "color or str(index)"
+            "description": "Badge for the line; defaults to code or str(index)",
+            "type": "string"
         },
         "badge_icon": {
             "description": "Icon for the line badge",
@@ -53,7 +74,6 @@
             "description": "Aliases (English) for the line",
             "type": "array",
             "items": {"type": "string"},
-            "minItems": 1,
             "uniqueItems": true
         },
         "code": {
@@ -106,12 +126,11 @@
                         "description": "Aliases (English) for the station",
                         "type": "array",
                         "items": {"type": "string"},
-                        "minItems": 1,
                         "uniqueItems": true
                     },
                     "index": {
                         "description": "Shorthand station code for this station",
-                        "type": "string"
+                        "type": ["string", "integer"]
                     },
                     "badge_icon": {
                         "description": "Icon for the station badge",
@@ -127,7 +146,6 @@
             "description": "Station names that must be included in the routing",
             "type": "array",
             "items": {"type": "string"},
-            "minItems": 1,
             "uniqueItems": true
         },
         "force_start": {
@@ -155,10 +173,14 @@
             "additionalProperties": {
                 "type": "array",
                 "items": {"type": "string"},
-                "minItems": 1,
                 "uniqueItems": true
-            },
-            "minProperties": 1
+            }
+        },
+        "station_indexes": {
+            "description": "Station indexes, in the same order as station_names",
+            "type": "array",
+            "items": {"type": ["string", "integer"]},
+            "minItems": 2
         },
         "loop": {
             "description": "True if this line is a loop line",
@@ -184,13 +206,16 @@
                         "description": "Aliases (English) for the direction",
                         "type": "array",
                         "items": {"type": "string"},
-                        "minItems": 1,
                         "uniqueItems": true
                     },
                     "reversed": {
                         "description": "True if trains runs in the opposite direction to the direction specified in line",
                         "type": "boolean",
                         "default": false
+                    },
+                    "icon": {
+                        "description": "Icon displayed for this direction",
+                        "type": "string"
                     },
                     "end_circle": {
                         "description": "True if this direction ends in itself",
@@ -223,13 +248,16 @@
                             "description": "Those stations will be skipped",
                             "type": "array",
                             "items": {"type": "string"},
-                            "minItems": 1,
                             "uniqueItems": true
                         },
                         "skip_timetable": {
                             "description": "True if skipped station still have passing time entry in the timetable",
                             "type": "boolean",
                             "default": false
+                        },
+                        "loop": {
+                            "description": "Override whether this route loops; defaults to the line's loop value",
+                            "type": "boolean"
                         },
                         "stations": {
                             "description": "Stations that this route stops at",
@@ -259,11 +287,10 @@
                     "additionalProperties": false
                 },
                 "minProperties": 1,
-                "dependentRequired": {
-                    "end_circle": ["end_circle_split_dist", "end_circle_start"]
-                }
+                "if": {"properties": {"end_circle": {"const": true}}, "required": ["end_circle"]},
+                "then": {"required": ["end_circle_split_dist", "end_circle_start"]}
             },
-            "minProperties": 2,
+            "minProperties": 1,
             "maxProperties": 2
         },
         "date_groups": {
@@ -276,7 +303,6 @@
                         "description": "Aliases (English) for the group",
                         "type": "array",
                         "items": {"type": "string"},
-                        "minItems": 1,
                         "uniqueItems": true
                     },
                     "weekday": {
@@ -291,7 +317,6 @@
                         "description": "The dates (YYYY-MM-DD) this group includes",
                         "type": "array",
                         "items": {"type": "string", "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$"},
-                        "minItems": 1,
                         "uniqueItems": true
                     },
                     "from": {
@@ -305,8 +330,7 @@
                         "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$",
                     }
                 },
-                "additionalProperties": false,
-                "minProperties": 1
+                "additionalProperties": false
             },
             "minProperties": 1
         },
@@ -338,37 +362,19 @@
                                     "properties": {
                                         "trains": {
                                             "type": "array",
-                                            "items": {
-                                                "type": "string",
-                                                "pattern": "^[0-2][0-9]:[0-5][0-9]$"
-                                            },
+                                            "items": {"$ref": "#/$defs/time"},
                                             "minItems": 1,
                                             "uniqueItems": true
                                         },
                                         "first_train": {
                                             "description": "First train of the day",
-                                            "type": "string",
-                                            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            "$ref": "#/$defs/time"
                                         },
                                         "delta": {
-                                            "type": "array",
-                                            "items": {
-                                                "oneOf": [
-                                                    {
-                                                        "type": "integer"
-                                                    },
-                                                    {
-                                                        "type": "array",
-                                                        "minItems": 1,
-                                                        "uniqueItems": false
-                                                    }
-                                                ]
-                                            },
-                                            "minItems": 1,
-                                            "uniqueItems": false
+                                            "$ref": "#/$defs/delta"
                                         }
                                     },
-                                    "oneOf": [
+                                    "anyOf": [
                                         {"required": ["trains"]},
                                         {"required": ["first_train", "delta"]}
                                     ],
@@ -389,14 +395,13 @@
                                         "trains": {
                                             "description": "Trains leaving time this filter includes",
                                             "type": "array",
-                                            "items": {"type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$"},
+                                            "items": {"$ref": "#/$defs/time"},
                                             "minItems": 1,
                                             "uniqueItems": true
                                         },
                                         "first_train": {
                                             "description": "First leaving time within this filter",
-                                            "type": "string",
-                                            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            "$ref": "#/$defs/time"
                                         },
                                         "skip_trains": {
                                             "description": "Number of trains that should be skipped",
@@ -405,8 +410,7 @@
                                         },
                                         "until": {
                                             "description": "Last leaving time within this filter",
-                                            "type": "string",
-                                            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+                                            "$ref": "#/$defs/time"
                                         },
                                         "count": {
                                             "description": "Number of trains within this filter",
@@ -418,7 +422,20 @@
                                 }
                             }
                         },
+                        "if": {"properties": {"filters": {"minItems": 1}}, "required": ["filters"]},
+                        "then": {"required": ["schedule"]},
                         "additionalProperties": false
+                    }
+                },
+                "if": {"not": {"required": ["derive_from"]}},
+                "then": {
+                    "additionalProperties": {
+                        "if": {"not": {"required": ["derive_from"]}},
+                        "then": {
+                            "additionalProperties": {
+                                "anyOf": [{"required": ["schedule"]}, {"required": ["derive_from"]}]
+                            }
+                        }
                     }
                 },
                 "minProperties": 1
@@ -427,12 +444,17 @@
         }
     },
     "required": ["name", "carriage_num", "carriage_type", "design_speed", "train_routes", "date_groups", "timetable"],
-    "oneOf": [
+    "anyOf": [
         {"required": ["stations"]},
-        {"required": ["station_names", "station_dists"]}
+        {"required": ["station_names", "station_dists", "station_aliases", "station_indexes"]}
     ],
-    "dependentRequired": {
-        "loop": ["loop_last_segment", "clockwise_direction"]
+    "if": {"properties": {"loop": {"const": true}}, "required": ["loop"]},
+    "then": {
+        "required": ["loop_last_segment", "clockwise_direction"],
+        "properties": {"stations": {"items": {"required": ["dist"]}}}
+    },
+    "else": {
+        "properties": {"stations": {"prefixItems": [{}], "items": {"required": ["dist"]}}}
     },
     "additionalProperties": false
 }

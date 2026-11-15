@@ -207,7 +207,7 @@ def route_without_timetable(routes: TrainRoute | list[TrainRoute]) -> set[str]:
     return {s for s in skip_stations if s not in skip_temp}
 
 
-def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
+def parse_delta(delta: list[Any]) -> list[int]:
     """ Parse the delta field """
     res: list[int] = []
     for elem in delta:
@@ -215,7 +215,7 @@ def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
             res.append(elem)
         else:
             assert isinstance(elem[0], int) and isinstance(elem[1], list), elem
-            res += elem[0] * elem[1]
+            res += elem[0] * parse_delta(elem[1])
     return res
 
 

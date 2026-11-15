@@ -224,11 +224,12 @@ def parse_map(map_file: str, station_lines: dict[str, set[Line]]) -> Map | None:
         if spec is not None and "path_coords" in spec:
             if spec["path_coords"] is None:
                 path_coords[station] = None
-            path_coords[station] = parse_coords(
-                station, spec["path_coords"], station_lines, shape_type=shape_type,
-                radius=radius, transfer_radius=transfer_radius,
-                width=width, height=height, transfer_width=transfer_width, transfer_height=transfer_height
-            )
+            else:
+                path_coords[station] = parse_coords(
+                    station, spec["path_coords"], station_lines, shape_type=shape_type,
+                    radius=radius, transfer_radius=transfer_radius,
+                    width=width, height=height, transfer_width=transfer_width, transfer_height=transfer_height
+                )
         if spec is None or ("x" not in spec and "y" not in spec):
             coords[station] = None
             continue

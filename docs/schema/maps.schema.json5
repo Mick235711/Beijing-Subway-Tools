@@ -3,6 +3,14 @@
     "title": "JSON5 Schema For Subway Maps",
     "description": "Describes properties for subway maps of a city",
     "type": "object",
+    "$defs": {
+        "radius": {
+            "oneOf": [
+                {"type": "number"},
+                {"type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}], "minItems": 2, "maxItems": 2}
+            ]
+        }
+    },
     "properties": {
         "name": {
             "description": "Name of the map",
@@ -20,7 +28,7 @@
         },
         "radius": {
             "description": "Radius of regular stations",
-            "type": "number"
+            "$ref": "#/$defs/radius"
         },
         "width": {
             "description": "Width of regular stations",
@@ -36,7 +44,7 @@
         },
         "transfer_radius": {
             "description": "Radius of transfer stations",
-            "type": "number"
+            "$ref": "#/$defs/radius"
         },
         "transfer_width": {
             "description": "Width of transfer stations",
@@ -92,6 +100,7 @@
                         },
                         "path_coords": {
                             "description": "Alternative coordinates for drawing paths",
+                            "oneOf": [{
                             "type": "object",
                             "properties": {
                                 "x": {
@@ -130,9 +139,10 @@
                             },
                             "required": ["x", "y"],
                             "additionalProperties": false
+                            }, {"type": "null"}]
                         }
                     },
-                    "oneOf": [
+                    "anyOf": [
                         {"required": ["x", "y"]},
                         {"required": ["path_coords"]}
                     ],
@@ -142,6 +152,8 @@
             "minProperties": 1
         }
     },
-    "required": ["name", "path", "radius"],
+    "required": ["name", "path", "radius", "coordinates"],
+    "if": {"properties": {"shape_type": {"const": "rectangle"}}, "required": ["shape_type"]},
+    "then": {"required": ["width", "height"]},
     "additionalProperties": false
 }
