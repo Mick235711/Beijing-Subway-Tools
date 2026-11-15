@@ -26,7 +26,9 @@ EXCLUDED_UI_MODULES = (
     "mypy",
     "docutils",
     "redis",
-    "cryptography"
+    "cryptography",
+    # Frozen builds disable Uvicorn's development-only auto-reloader.
+    "watchfiles"
 )
 
 

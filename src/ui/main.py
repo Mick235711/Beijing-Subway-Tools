@@ -13,6 +13,7 @@ from typing import Any
 
 from nicegui import app, background_tasks, run, ui
 
+import src.ui as ui_package
 from src.city.city import get_all_cities
 from src.city.line import Line
 from src.common.common import suffix_s
@@ -27,7 +28,7 @@ from src.ui.timetable_tab import get_train_dict, timetable_tab, TimetableData
 from src.ui.trains_tab import get_train_list, trains_tab, TrainsData
 
 
-STYLES_DIR = Path(__file__).resolve().parent / "styles"
+STYLES_DIR = Path(ui_package.__file__).resolve().parent / "styles"
 
 
 # Preserve Pinyin queries instead of applying the browser's typing corrections.
