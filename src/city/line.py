@@ -14,7 +14,7 @@ import pyjson5
 from src.city.carriage import Carriage
 from src.city.date_group import DateGroup, parse_date_group
 from src.city.train_route import TrainRoute, parse_train_route, route_dist, stations_dist
-from src.common.common import distance_str, average, circular_dist
+from src.common.common import distance_str, average, circular_dist, from_minutes, to_minutes
 from src.timetable.timetable import Timetable, parse_timetable, route_stations, route_skip_stations
 
 
@@ -266,18 +266,139 @@ class Line:
         """ Get timetables """
         if self.timetables_processed is not None:
             return self.timetables_processed
-        self.timetables_processed = {}
-        for station, elem1 in self.timetable_dict.items():
-            self.timetables_processed[station] = {}
-            for direction, elem2 in elem1.items():
-                self.timetables_processed[station][direction] = {}
-                for date_group, elem3 in elem2.items():
-                    self.timetables_processed[station][direction][date_group] = parse_timetable(
-                        station, self.direction_base_route[direction],
-                        self.date_groups[date_group], self.train_routes[direction],
-                        elem3["schedule"], elem3.get("filters", [])
+        specs = self.timetable_dict
+        active: set[tuple] = set()
+
+        def guarded(fn):
+            """ Cache resolution results and reject recursive dependencies. """
+            @lru_cache(maxsize=None)
+            def wrapped(*key):
+                """ Resolve one key while tracking the active dependency chain. """
+                token = (fn.__name__, *key)
+                if token in active:
+                    raise ValueError(f"Cyclic timetable derivation: {token}")
+                active.add(token)
+                try:
+                    return fn(*key)
+                finally:
+                    active.remove(token)
+            return wrapped
+
+        def reference(spec: dict, *, allow_station: bool = False) -> tuple[str, int, tuple[str, ...]] | None:
+            """ Validate and unpack an optional timetable derivation. """
+            if "derive_from" not in spec:
+                return None
+            ref = spec["derive_from"]
+            if not isinstance(ref, dict) or not isinstance(ref.get("name"), str) or not ref["name"] \
+                    or set(ref) - ({"name", "offset", "exclude", "station"} if allow_station else {"name", "offset", "exclude"}) \
+                    or type(ref.get("offset", 0)) is not int \
+                    or not isinstance(ref.get("exclude", []), list) \
+                    or not all(isinstance(name, str) for name in ref.get("exclude", [])) \
+                    or ("station" in ref and (not isinstance(ref["station"], str) or not ref["station"])):
+                raise ValueError(f"Invalid timetable derive_from: {ref!r}")
+            return ref["name"], ref.get("offset", 0), tuple(ref.get("exclude", []))
+
+        @guarded
+        def station_directions(station: str) -> tuple[str, ...]:
+            """ List inherited and locally specified directions for a station. """
+            if station not in specs:
+                raise ValueError(f"Unknown source timetable station: {station}")
+            spec = specs[station]
+            ref = reference(spec)
+            inherited = station_directions(ref[0]) if ref else ()
+            return tuple(dict.fromkeys((*inherited, *(k for k in spec if k != "derive_from"))))
+
+        def direction_source(station: str, direction: str) -> tuple[str, str, int, tuple[str, ...]] | None:
+            """ Identify the inherited or explicitly derived direction and offset. """
+            station_spec = specs[station]
+            spec = station_spec.get(direction, {})
+            station_ref = reference(station_spec)
+            inherited = station_ref is not None and direction in station_directions(station_ref[0])
+            own_ref = reference(spec, allow_station=True)
+            if inherited and own_ref:
+                raise ValueError(f"Nested derive_from on inherited direction: {station}/{direction}")
+            if inherited:
+                assert station_ref is not None, station_ref
+                return station_ref[0], direction, station_ref[1], station_ref[2]
+            if own_ref:
+                return spec["derive_from"].get("station", station), own_ref[0], own_ref[1], own_ref[2]
+            return None
+
+        @guarded
+        def direction_groups(station: str, direction: str) -> tuple[str, ...]:
+            """ List inherited and locally specified date groups for a direction. """
+            if direction not in station_directions(station):
+                raise ValueError(f"Unknown source timetable direction: {station}/{direction}")
+            spec = specs[station].get(direction, {})
+            source = direction_source(station, direction)
+            inherited = direction_groups(source[0], source[1]) if source else ()
+            return tuple(dict.fromkeys((*inherited, *(k for k in spec if k != "derive_from"))))
+
+        @guarded
+        def group_timetable(station: str, direction: str, group: str) -> Timetable:
+            """ Resolve inherited trains and merge the group's additional schedule. """
+            if group not in direction_groups(station, direction):
+                raise ValueError(f"Unknown source timetable date group: {station}/{direction}/{group}")
+            spec = specs[station].get(direction, {}).get(group, {})
+            source = direction_source(station, direction)
+            inherited = source is not None and group in direction_groups(source[0], source[1])
+            own_ref = reference(spec)
+            if inherited and own_ref:
+                raise ValueError(f"Nested derive_from on inherited date group: {station}/{direction}/{group}")
+            if inherited:
+                assert source is not None, source
+                source_group = (source[0], source[1], group, source[2], source[3])
+            elif own_ref:
+                source_group = (station, direction, own_ref[0], own_ref[1], own_ref[2])
+            else:
+                source_group = None
+            if source_group is None and "schedule" not in spec:
+                raise ValueError(f"Missing schedule: {station}/{direction}/{group}")
+            if spec.get("filters") and not spec.get("schedule"):
+                raise ValueError(f"Filters require an additional schedule: {station}/{direction}/{group}")
+            additional = parse_timetable(
+                station, self.direction_base_route[direction], self.date_groups[group],
+                self.train_routes[direction], spec.get("schedule", []), spec.get("filters", []),
+                reject_duplicates=source_group is not None
+            )
+            trains = {}
+            if source_group:
+                source_station, source_direction, source_name, offset, excluded = source_group
+                source_table = group_timetable(source_station, source_direction, source_name)
+                for train in source_table.trains.values():
+                    if any(route.name in excluded for route in train.route_iter()):
+                        continue
+                    minute = to_minutes(train.leaving_time, train.next_day) + offset
+                    if not 0 <= minute < 2880:
+                        raise ValueError(f"Offset outside service-day range: {station}/{direction}/{group}: {minute}")
+                    leaving_time, next_day = from_minutes(minute)
+                    try:
+                        routes = [self.train_routes[direction][route.name] for route in train.route_iter()]
+                    except KeyError as exc:
+                        raise ValueError(f"Missing inherited route {exc.args[0]!r} in {direction}") from exc
+                    if leaving_time in trains:
+                        raise ValueError(f"Duplicate inherited departure: {station}/{direction}/{group} {leaving_time}")
+                    trains[leaving_time] = Timetable.Train(
+                        station, self.date_groups[group], leaving_time,
+                        routes[0] if len(routes) == 1 else routes, next_day
                     )
-        return self.timetables_processed
+            for leaving_time, train in additional.trains.items():
+                if leaving_time in trains:
+                    raise ValueError(f"Duplicate derived departure: {station}/{direction}/{group} {leaving_time}")
+                trains[leaving_time] = train
+            return Timetable(dict(sorted(trains.items(), key=lambda item: item[1].sort_key_str())),
+                             self.direction_base_route[direction])
+
+        result = {
+            station: {
+                direction: {group: group_timetable(station, direction, group)
+                            for group in direction_groups(station, direction)}
+                for direction in station_directions(station)
+            }
+            for station in specs
+        }
+        self.timetables_processed = result
+        return result
 
     def determine_direction(self, station1: str, station2: str) -> str:
         """ Determine the direction by two stations """

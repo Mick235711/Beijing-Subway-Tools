@@ -271,11 +271,27 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
     fare = Fare(fare_file, [], currency)
     group_dict: dict[str, FareRule] = {}
     filled: set[str] = set()
-    for inner_dict in fare_dict["rule_groups"]:
-        name = inner_dict["name"]
-        assert name not in group_dict, (group_dict, name)
+    specs = {}
+    for rule_group in fare_dict["rule_groups"]:
+        inner_name = rule_group["name"]
+        if inner_name in specs:
+            raise ValueError(f"Duplicate fare rule group: {inner_name}")
+        specs[inner_name] = rule_group
+    resolving: set[str] = set()
+
+    def resolve(name: str) -> FareRule:
+        """ Resolve a fare group and its sources, rejecting missing references and cycles. """
+        nonlocal fill_index
+        if name in group_dict:
+            return group_dict[name]
+        if name in resolving:
+            raise ValueError(f"Cyclic fare rule derivation involving {name!r}")
+        if name not in specs:
+            raise ValueError(f"Unknown fare rule group: {name!r}")
+        resolving.add(name)
+        inner_dict = specs[name]
         if "derive_from" in inner_dict:
-            derived = group_dict[inner_dict["derive_from"]["name"]]
+            derived = resolve(inner_dict["derive_from"]["name"])
             portion = float(inner_dict["derive_from"].get("portion", 1.0))
             basis = inner_dict.get("basis", derived.basis)
             derived_lines = derived.lines
@@ -296,7 +312,7 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
         rule_lines = sorted(inner_dict.get("lines", derived_lines), key=lambda l: lines[l].index)
         if len(rule_lines) == 0:
             if derived is not None:
-                assert derived.name == fill_index, (group_dict, derived, fill_index)
+                assert len(derived.lines) == 0 and fill_index is not None, (group_dict, derived, fill_index)
             else:
                 assert fill_index is None, (group_dict, fill_index)
                 fill_index = name
@@ -314,6 +330,7 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
             apply_time_group = parse_time_interval(date_groups, inner_dict["apply_time"])
         else:
             apply_time_group = None
+        nonlocal fare
         group_dict[name] = FareRule(fare, name, basis, rule_lines, derived_rules, starting, ending)
         if len(derived_rules) != 0 and apply_time_group is not None:
             for inner_rule in group_dict[name].rules:
@@ -347,10 +364,15 @@ def parse_fare_rules(fare_file: str, lines: dict[str, Line], date_groups: dict[s
                 group_dict[name].rules.append(FareRule.Rule(
                     group_dict[name], rule.fare, rule.basis, end, start, rule.apply_time
                 ))
+        resolving.remove(name)
+        return group_dict[name]
+
+    for inner_name in specs:
+        resolve(inner_name)
 
     for fill_index in to_fill:
         group_dict[fill_index].lines = sorted(
             [line for line in lines if line not in filled],
             key=lambda l: lines[l].index
         )
-    return Fare(fare_file, list(group_dict.values()), currency)
+    return Fare(fare_file, [group_dict[n] for n in specs], currency)

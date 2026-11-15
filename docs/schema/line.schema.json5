@@ -3,6 +3,29 @@
     "title": "JSON5 Schema For Line",
     "description": "Describes properties and timetable of a subway line",
     "type": "object",
+    "$defs": {
+        "timetable_derivation": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "offset": {"type": "integer", "default": 0},
+                "exclude": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        },
+        "direction_timetable_derivation": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "station": {"type": "string", "minLength": 1},
+                "offset": {"type": "integer", "default": 0},
+                "exclude": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["name"],
+            "additionalProperties": false
+        }
+    },
     "properties": {
         "name": {
             "description": "Name of the line",
@@ -293,13 +316,20 @@
             "additionalProperties": {
                 "description": "Data on the train schedule for this station",
                 "type": "object",
+                "properties": {
+                    "derive_from": {"$ref": "#/$defs/timetable_derivation"}
+                },
                 "additionalProperties": {
                     "description": "Data on the train schedule for this direction",
                     "type": "object",
+                    "properties": {
+                        "derive_from": {"$ref": "#/$defs/direction_timetable_derivation"}
+                    },
                     "additionalProperties": {
                         "description": "Data on the train schedule for this date group",
                         "type": "object",
                         "properties": {
+                            "derive_from": {"$ref": "#/$defs/timetable_derivation"},
                             "schedule": {
                                 "type": "array",
                                 "items": {
@@ -388,11 +418,8 @@
                                 }
                             }
                         },
-                        "required": ["schedule"],
                         "additionalProperties": false
-                    },
-                    "minProperties": 2,
-                    "maxProperties": 2
+                    }
                 },
                 "minProperties": 1
             },

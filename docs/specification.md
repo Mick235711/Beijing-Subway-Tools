@@ -51,8 +51,8 @@ This specification describes the key-values within `<line x>.json5`.
 | date_groups.`<group_name>`                                  | Yes                   | object  |                          | See ["Date Group Specification Format"](#date-group-specification-format) below.                                                                      |
 | timetable                                                   | Yes                   | object  |                          | Data on the train schedule on this line. Keys should be the station names + direction + date group name.                                              |
 | timetable.`<station>`.`<direction>`.`<group_name>`          | Yes                   | object  |                          | Data on the train schedule leaving this station in this direction on those dates.                                                                     |
-| timetable.`<station>`.`<direction>`.`<group_name>`.schedule | Yes                   | array   |                          | See ["Schedule Specification Format"](#schedule-specification-format) below.                                                                          |
-| timetable.`<station>`.`<direction>`.`<group_name>`.filters  | No                    | array   |                          | See ["Schedule Filter Specification Format"](#schedule-filter-specification-format) below.                                                            |
+| timetable.`<station>`.`<direction>`.`<group_name>`.schedule | Unless derived        | array   |                          | See ["Schedule Specification Format"](#schedule-specification-format) below.                                                                          |
+| timetable.`<station>`.`<direction>`.`<group_name>`.filters  | No                    | array   | []                       | See ["Schedule Filter Specification Format"](#schedule-filter-specification-format) below.                                                            |
 
 ## Station Specification Format
 These fields specify the elements of the array `stations`.
@@ -112,6 +112,16 @@ The date groups for a line are specified under `date_groups.<group_name>`.
 | until   | No       | string<br>("yyyy-mm-dd") | Forever                 | The ending date of this group.                                                                               |
 
 ## Schedule Specification Format
+At a station, direction, or date group, `derive_from: {name: "...", offset: N}` copies the source timetable. `name` is required; `offset` is an optional integer number of minutes (default 0, negative values are allowed). At station level the name is another station on this line; at direction level it is another direction at the same station; at date group level it is another date group at the same station and direction.
+
+A direction-level reference may also specify `station` to select a direction at another station on the same line, for example `derive_from: {station: "园博园", name: "西南行", offset: 2}`.
+
+At any level, `exclude` may list source route names. A source train is not inherited if any of its routes has a listed name; trains in the destination's own `schedule` are unaffected. For example, `derive_from: {station: "古城", name: "西行", offset: 5, exclude: ["古城回库车"]}` omits all trains assigned to `古城回库车`, including trains with multiple routes.
+
+An upper-level derivation copies all source keys, including keys omitted at the destination. Destination entries for existing keys add to the copied trains. New destination-only keys start independently and may specify their own `derive_from`; a key already inherited from an upper level must not specify another derivation. A derived date group may omit `schedule`. Its `filters` apply only to its additional scheduled trains, and inherited trains retain their route assignments. When copying between directions, route names must exist in the destination direction.
+
+Sources may appear later in the file and derivations may be chained, but cycles and missing sources are errors. Offsets are applied to each copied train, including across midnight; results must remain within the service day and the following day. An additional train at the same departure time as an inherited train is an error.
+
 Train schedule is specified as one of the two formats: the simple format and the delta format.
 The `timetable.<station>.<direction>.<group_name>.schedule` key is an array of a list of schedules, all schedules are added together to form the schedule of this line.
 
@@ -278,6 +288,7 @@ Currently, there are three types of a fare basis supported as `basis` field:
 - `manual`: Fare is specified manually for each pair of stations.
 
 If `derive_from` is supplied, this group's info will be derived from another group.
+The source group may appear anywhere in `rule_groups`; derivations may be chained, but missing references and cycles are errors. Group order still determines fare-rule precedence.
 The `derived_from` format should be `{name: "some_group", ...}`, where the additional modifiers include:
 - `portion`: A float that indicates that every fare should be multiplied to a fixed amount of value.
 

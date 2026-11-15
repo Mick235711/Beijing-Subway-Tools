@@ -219,9 +219,11 @@ def parse_delta(delta: list[int | list[int | list[int]]]) -> list[int]:
     return res
 
 
-def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
-                    route_dict: dict[str, TrainRoute],
-                    schedule: list[dict[str, Any]], filters: list[dict[str, Any]]) -> Timetable:
+def parse_timetable(
+    station: str, base_route: TrainRoute, date_group: DateGroup,
+    route_dict: dict[str, TrainRoute], schedule: list[dict[str, Any]], filters: list[dict[str, Any]],
+    *, reject_duplicates: bool = False
+) -> Timetable:
     """ Parse the schedule and filter fields """
     trains: dict[time, Timetable.Train] = {}
     last_leaving_time: time | None = None
@@ -232,6 +234,8 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
                 leaving_time, next_day = parse_time(entry_time)
                 if i > 0 and leaving_time < parse_time(entry["trains"][i - 1])[0]:
                     next_day = True
+                if reject_duplicates and leaving_time in trains:
+                    raise ValueError(f"Duplicate scheduled departure: {station} {leaving_time}")
                 trains[leaving_time] = Timetable.Train(
                     station, date_group, leaving_time, base_route, next_day)
         else:
@@ -240,10 +244,14 @@ def parse_timetable(station: str, base_route: TrainRoute, date_group: DateGroup,
             if last_leaving_time is not None and last_leaving_time > leaving_time:
                 next_day = True
             last_leaving_time = leaving_time
+            if reject_duplicates and leaving_time in trains:
+                raise ValueError(f"Duplicate scheduled departure: {station} {leaving_time}")
             trains[leaving_time] = Timetable.Train(
                 station, date_group, leaving_time, base_route, next_day)
             for delta in parse_delta(entry["delta"]):
                 leaving_time, next_day = add_min(leaving_time, delta, next_day)
+                if reject_duplicates and leaving_time in trains:
+                    raise ValueError(f"Duplicate scheduled departure: {station} {leaving_time}")
                 trains[leaving_time] = Timetable.Train(
                     station, date_group, leaving_time, base_route, next_day)
     trains = dict(sorted(trains.items(), key=lambda x: x[1].sort_key_str()))
