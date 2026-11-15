@@ -4,7 +4,8 @@
 """ Frontend - Timetable Styles """
 
 # Libraries
-from typing import cast, override, Literal
+from typing import cast, Literal
+from typing_extensions import override
 
 from src.city.train_route import TrainRoute
 from src.common.common import to_pinyin, TimeSpec

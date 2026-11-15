@@ -1,0 +1,19 @@
+# Runtime dependencies for the command-line tools, UI, and MCP server.
+fastmcp==4.2.0
+matplotlib==3.10.8; python_version < "3.15"
+matplotlib==3.11.2; python_version >= "3.15"
+networkx==3.6.1; python_version < "3.15"
+networkx==3.7; python_version >= "3.15"
+nicegui==4.0.0
+numpy==2.3.5; python_version < "3.15"
+numpy==2.5.4; python_version >= "3.15"
+Pillow==13.0.0
+pyjson5==2.0.1
+pypinyin==0.55.0
+pywebview==6.2.1
+questionary==2.1.1
+scipy==1.16.3; python_version < "3.15"
+scipy==1.18.1; python_version >= "3.15"
+tabulate==0.10.0
+tqdm==4.70.1
+typing-extensions==4.16.0

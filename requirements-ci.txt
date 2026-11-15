@@ -1,0 +1,8 @@
+# Runtime dependencies, plus schema validation and repository-wide mypy.
+-r requirements.txt
+jsonschema==4.26.0
+mypy==2.4.1
+types-jsonschema==4.26.0.20261006
+types-networkx==3.6.1.20261114
+types-tabulate==0.10.0.20261006
+types-tqdm==4.70.0.20261106

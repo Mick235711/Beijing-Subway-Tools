@@ -5,15 +5,13 @@ Mainly focus on electronically recording the timetables of subway lines, to faci
 of equ-time graphs.
 
 # Running Requirements
-Python 3.11+, PyPI packages: `questionary`, `pyjson5`, `pypinyin`, `tabulate` and `tqdm`
+Python 3.11+. Install the dependencies for the command-line tools, maps, frontend UI, and MCP server with:
 
-(For map-related or drawing-related tasks, also requires `numpy`, `matplotlib` and `scipy`)
+```sh
+python -m pip install -r requirements.txt
+```
 
-(For finding the longest route in the network, requires `networkx` or optionally `graphillion` for finding non-repeating paths)
-
-(For frontend UI in `ui/`, requires `nicegui` and `pywebview`)
-
-(For MCP capabilities in `mcp/`, requires `fastmcp`)
+Finding non-repeating paths with the optional Graphillion backend also requires `graphillion`.
 
 (For auxiliary scripts, [see corresponding documentation](docs/tools.md#auxiliary-scripts) to determine their requirements.)
 
