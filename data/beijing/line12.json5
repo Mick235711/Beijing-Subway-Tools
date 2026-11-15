@@ -65,32 +65,7 @@
                 }
             },
             "西行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:48", delta: [[6, [8]], 6, 6, 6, 5, 6, [38, [4]], 5, 5, 5, 6, 6]},
-                        {first_train: "10:10", delta: [[58, [7]], 5, 5, [37, [4]], 5, 4, 5, 5, 6, 6, 6, 6, [23, [7]]]},
-                        {first_train: "23:05", delta: [8, 8]}
-                    ],
-                    filters: [
-                        {plan: "东坝西出库车", first_train: "05:48", count: 3},
-                        {plan: "东坝西出库车", trains: ["07:09", "07:17", "07:29", "07:37"]},
-                        {plan: "东坝西出库车", first_train: "07:49", skip_trains: 1, until: "08:29"},
-                        {plan: "东坝西出库车", trains: ["08:41"]},
-                        {plan: "东坝西出库车", first_train: "17:10", skip_trains: 1, count: 3},
-                        {plan: "东坝西出库车", first_train: "17:38", skip_trains: 1, count: 3},
-                        {plan: "东坝西出库车", first_train: "18:06", skip_trains: 1, count: 3},
-                        {plan: "东坝西出库车", trains: ["18:34", "18:42"]}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:48", delta: [[8, [8]], [139, [7]], 8, 8]}
-                    ],
-                    filters: [
-                        {plan: "东坝西出库车", first_train: "05:48", count: 3}
-                    ]
-                }
+                derive_from: {station: "蓝靛厂", name: "西行", offset: 3},
             }
         },
         "蓝靛厂": {
@@ -907,28 +882,7 @@
         },
         "东坝北": {
             "东行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:17", delta: [8, 8, 8, 6, 6, 6, 6, 5, 7, 6, 6, 8, 7, 5]},
-                        {first_train: "06:58", delta: [8, 8, 8, 7, 6, 6, 6, 6, 5, [38, [4]], 5, 5, 5]},
-                        {first_train: "10:51", delta: [6, 6, [57, [7]], 6, 6, 5, [38, [4]], 5, 5, 5, 6, 6]},
-                        {first_train: "21:04", delta: [6, [22, [7]], 8, 8, 8, 9]}
-                    ],
-                    filters: [
-                        {plan: "东坝西出库车", first_train: "05:17", until: "06:37"}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:17", delta: [[5, [8]], 7, 7, 7, 5, 6, 7, 8, 5, 9, 8, 8, 6]},
-                        {first_train: "07:22", delta: [8, 8, [138, [7]], 8, 8, 8, 9]}
-                    ],
-                    filters: [
-                        {plan: "东坝西出库车", first_train: "05:17", until: "06:36"},
-                        {plan: "东坝西出库车", trains: ["07:20"]}
-                    ]
-                }
+                derive_from: {station: "东坝西", name: "东行", offset: 3},
             },
             "西行": {
                 "工作日": {

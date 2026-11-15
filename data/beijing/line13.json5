@@ -81,37 +81,7 @@
                 }
             },
             "西行": {
-                // 以+4min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:30", delta: [8, 7, 8, 6, 6, 6, 6, 7, 8, [6, [4]], 5, 3, 5, [4, [4]]]},
-                        {first_train: "07:29", delta: [[3, [3, 3, 4, 3]], [12, [3]], [6, [4, 3, 3, 3]], 3, 6]},
-                        {first_train: "10:17", delta: [6, 6, [20, [9, 8]], 8, 8, 6, 5, 4, 3, 5, 4, 5, [23, [4, 3]]]},
-                        {first_train: "19:42", delta: [[5, [4]], 5, 4, 5, 5, 4, 5, 5, 4, 3, 4, 6, 4]},
-                        {first_train: "21:03", delta: [[12, [6]], 7, 8, 8, 7, 8, 9, 8, 9, 10, 10, 8]}
-                    ],
-                    filters: [
-                        {plan: "霍营出库车", first_train: "05:30", until: "06:24"},
-                        {plan: "霍营出库车", first_train: "06:36", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["07:17", "07:32", "07:39", "07:55", "08:05"]},
-                        {plan: "霍营出库车", first_train: "08:20", skip_trains: 2, count: 4},
-                        {plan: "霍营出库车", trains: ["09:01", "09:20"]},
-                        {plan: "霍营出库车", first_train: "16:36", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["17:11", "17:18", "17:29", "17:36"]},
-                        {plan: "霍营出库车", first_train: "17:46", skip_trains: 1, count: 4},
-                        {plan: "霍营出库车", trains: ["18:18"]},
-                        {plan: "霍营出库车", first_train: "18:25", skip_trains: 3, count: 3}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:30", delta: [[5, [8]], 7, 7, 8, 9, 9, 9, 8, 9, [113, [8]], 9, 9]},
-                        {first_train: "22:48", delta: [10, 10, 7, 8, 8, 8, 8]}
-                    ],
-                    filters: [
-                        {plan: "霍营出库车", first_train: "05:30", until: "06:24"}
-                    ]
-                }
+                derive_from: {station: "大钟寺(13号线)", name: "西行", offset: 4},
             }
         },
         "大钟寺(13号线)": {
@@ -1150,41 +1120,7 @@
         },
         "东直门": {
             "东行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:26", delta: [10, 9, 6, 6, 6, 7, 5, 5, 5, 7, 7, 3, 4, 3]},
-                        {first_train: "06:54", delta: [6, 5, 4, 3, 4, 3, 6, 3, 4, 6, 4, 5, 3, 5]},
-                        {first_train: "07:59", delta: [4, 4, 4, 5, 3, 4, 4, [4, [4, 3, 3, 3]], 3, 3]},
-                        {first_train: "09:28", delta: [3, 4, 5, 3, 4, 6, 4, 5, [5, [7, 6]], 5, 6, 6]},
-                        {first_train: "11:30", delta: [[15, [9, 8]], 9, 7, 3, 7, 6, 4, 7, 8, 4, 5, 8]},
-                        {first_train: "17:02", delta: [5, 3, 8, 6, 4, 4, 6, 4, 4, 5, 5, [16, [4, 3]]]},
-                        {first_train: "19:53", delta: [5, 7, 7, 6, 5, 7, 7, 5, 6, 4, 4, 5, 4, 5]},
-                        {first_train: "21:15", delta: [4, 5, 5, 5, 7, 4, 5, 8, 8, 10, 8, 10, 6, 8]},
-                        {first_train: "22:58", delta: [8, 10, 7, 8, 8]}
-                    ],
-                    filters: [
-                        {plan: "霍营出库车", first_train: "05:26", count: 3},
-                        {plan: "霍营出库车", first_train: "05:57", skip_trains: 1, count: 3},
-                        {plan: "立水桥出库车", first_train: "05:51", skip_trains: 1, count: 4},
-                        {plan: "立水桥出库车", trains: ["06:42"]},
-                        {plan: "立水桥出库车", first_train: "06:49", skip_trains: 2, count: 4},
-                        {plan: "立水桥出库车", trains: ["16:01"]},
-                        {plan: "立水桥出库车", first_train: "16:17", skip_trains: 3, count: 3},
-                        {plan: "立水桥出库车", trains: ["17:24"]}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:26", delta: [10, 9, 6, 8, 11, 10, 6, 6, [6, [8]], 7, 8, 9, [110, [8]]]},
-                        {first_train: "22:32", delta: [9, 9, 9, [5, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "霍营出库车", first_train: "05:26", count: 3},
-                        {plan: "霍营出库车", first_train: "05:59", count: 3},
-                        {plan: "立水桥出库车", trains: ["05:51", "06:26"]}
-                    ]
-                }
+                derive_from: {station: "柳芳", name: "东行", offset: 3},
             },
             "西行": {
                 "工作日": {

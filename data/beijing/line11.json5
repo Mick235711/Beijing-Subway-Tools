@@ -45,19 +45,7 @@
                 }
             },
             "北行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:36", delta: [[6, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [13, [10]]]}
-                    ],
-                    filters: []
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:36", delta: [[101, [10]]]}
-                    ],
-                    filters: []
-                }
+                derive_from: {station: "金安桥", name: "北行", offset: 3},
             }
         },
         "金安桥": {
@@ -122,19 +110,7 @@
         },
         "新首钢": {
             "南行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:47", delta: [[5, [10]], 9, [7, [9, 8]], [53, [10]], [9, [8, 9]], 9, [14, [10]]]}
-                    ],
-                    filters: []
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:47", delta: [[101, [10]]]}
-                    ],
-                    filters: []
-                }
+                derive_from: {station: "北辛安", name: "南行", offset: 3},
             },
             "北行": {
                 "工作日": {

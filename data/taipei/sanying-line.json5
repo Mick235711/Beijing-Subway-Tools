@@ -73,144 +73,53 @@
                 }
             },
             "東行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:05", delta: [6, 6, 5, 5, 6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "20:03", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:05"]},
-                        {plan: "龍埔始發空車", trains: ["06:11"]},
-                        {plan: "臺北大學始發空車", trains: ["06:17"]},
-                        {plan: "鶯歌車站始發空車", trains: ["06:22"]},
-                        {plan: "國華始發空車", trains: ["06:27"]}
-                    ]
-                },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:05", delta: [9, 3, 7, 9, [128, [8]], 11, 5, [5, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:05"]},
-                        {plan: "三峽始發空車", trains: ["06:14"]},
-                        {plan: "臺北大學始發空車", trains: ["06:17"]},
-                        {plan: "陶瓷老街始發空車", trains: ["06:24"]}
-                    ]
-                }
+                derive_from: {station: "媽祖田", name: "東行", offset: 2}
             }
         },
         "媽祖田": {
-            // 以+2min计算
             "西行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:02", delta: [8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:32", delta: [[33, [8]], 6]}
-                    ],
-                    filters: []
-                },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:02", delta: [[135, [8]]]}
-                    ],
-                    filters: []
-                }
+                derive_from: {station: "頂埔", name: "西行", offset: 2},
             },
             "東行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [6, 6, 5, 5, 6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "20:01", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:03"]},
-                        {plan: "龍埔始發空車", trains: ["06:09"]},
-                        {plan: "臺北大學始發空車", trains: ["06:15"]},
-                        {plan: "鶯歌車站始發空車", trains: ["06:20"]},
-                        {plan: "國華始發空車", trains: ["06:25"]}
-                    ]
-                },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [9, 3, 7, 9, [128, [8]], 11, 5, [5, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:03"]},
-                        {plan: "三峽始發空車", trains: ["06:12"]},
-                        {plan: "臺北大學始發空車", trains: ["06:15"]},
-                        {plan: "陶瓷老街始發空車", trains: ["06:22"]}
-                    ]
-                }
+                derive_from: {station: "長壽山", name: "東行", offset: 3},
             }
         },
         "長壽山": {
-            // 以+3min计算
             "西行": {
+                derive_from: {station: "媽祖田", name: "西行", offset: 3},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [5, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:35", delta: [[33, [8]], 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
-                        {plan: "長壽山始發空車", trains: ["06:00"]}
+                        {plan: "長壽山始發空車", trains: ["06:00"]},
                     ]
                 },
                 "例假日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [5, [135, [8]]]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
-                        {plan: "長壽山始發空車", trains: ["06:00"]}
+                        {plan: "長壽山始發空車", trains: ["06:00"]},
                     ]
-                }
+                },
             },
             "東行": {
+                derive_from: {station: "橫溪", name: "東行", offset: 3},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [6, 6, 5, 5, 6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:58", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "長壽山始發空車", trains: ["06:00"]},
-                        {plan: "龍埔始發空車", trains: ["06:06"]},
-                        {plan: "臺北大學始發空車", trains: ["06:12"]},
-                        {plan: "鶯歌車站始發空車", trains: ["06:17"]},
-                        {plan: "國華始發空車", trains: ["06:22"]}
                     ]
                 },
                 "例假日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [9, 3, 7, 9, [128, [8]], 11, 5, [5, [8]]]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "長壽山始發空車", trains: ["06:00"]},
-                        {plan: "三峽始發空車", trains: ["06:09"]},
-                        {plan: "臺北大學始發空車", trains: ["06:12"]},
-                        {plan: "陶瓷老街始發空車", trains: ["06:19"]}
                     ]
-                }
+                },
             }
         },
         "橫溪": {
             // 以+3min计算
             "西行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [5, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:38", delta: [[33, [8]], 6]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:03"]}
-                    ]
-                },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [5, [135, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:03"]}
-                    ]
-                }
+                derive_from: {station: "長壽山", name: "西行", offset: 3},
             },
             "東行": {
                 "平常日": {
@@ -238,74 +147,35 @@
             }
         },
         "龍埔": {
-            // 以+3min计算
             "西行": {
+                derive_from: {station: "橫溪", name: "西行", offset: 3},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [6, 5, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:41", delta: [[33, [8]], 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "龍埔始發空車", trains: ["06:00"]},
-                        {plan: "長壽山始發空車", trains: ["06:06"]}
                     ]
                 },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:06", delta: [5, [135, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "長壽山始發空車", trains: ["06:06"]}
-                    ]
-                }
             },
             "東行": {
+                derive_from: {station: "三峽", name: "東行", offset: 3},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [6, 5, 5, 6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:52", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 7]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "龍埔始發空車", trains: ["06:00"]},
-                        {plan: "臺北大學始發空車", trains: ["06:06"]},
-                        {plan: "鶯歌車站始發空車", trains: ["06:11"]},
-                        {plan: "國華始發空車", trains: ["06:16"]}
                     ]
                 },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [3, 7, 9, [128, [8]], 11, 5, [4, [8]], 9]}
-                    ],
-                    filters: [
-                        {plan: "三峽始發空車", trains: ["06:03"]},
-                        {plan: "臺北大學始發空車", trains: ["06:06"]},
-                        {plan: "陶瓷老街始發空車", trains: ["06:13"]}
-                    ]
-                }
             }
         },
         "三峽": {
             // 以+3min计算
             "西行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [6, 5, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:44", delta: [[33, [8]], 6]}
-                    ],
-                    filters: [
-                        {plan: "龍埔始發空車", trains: ["06:03"]},
-                        {plan: "長壽山始發空車", trains: ["06:09"]}
-                    ]
-                },
+                derive_from: {station: "龍埔", name: "西行", offset: 3},
                 "例假日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [9, 5, [135, [8]]]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "三峽始發空車", trains: ["06:00"]},
-                        {plan: "長壽山始發空車", trains: ["06:09"]}
                     ]
-                }
+                },
             },
             "東行": {
                 "平常日": {
@@ -332,96 +202,49 @@
             }
         },
         "臺北大學": {
-            // 以+3min计算
             "西行": {
+                derive_from: {station: "三峽", name: "西行", offset: 3},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [6, 6, 5, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:47", delta: [[33, [8]], 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "臺北大學始發空車", trains: ["06:00"]},
-                        {plan: "龍埔始發空車", trains: ["06:06"]},
-                        {plan: "長壽山始發空車", trains: ["06:12"]}
                     ]
                 },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [9, 5, [135, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "三峽始發空車", trains: ["06:03"]},
-                        {plan: "長壽山始發空車", trains: ["06:12"]}
-                    ]
-                }
             },
             "東行": {
+                derive_from: {station: "鶯歌車站", name: "東行", offset: 5},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [5, 5, 6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:46", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "臺北大學始發空車", trains: ["06:00"]},
-                        {plan: "鶯歌車站始發空車", trains: ["06:05"]},
-                        {plan: "國華始發空車", trains: ["06:10"]}
                     ]
                 },
                 "例假日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [7, 9, [128, [8]], 11, 5, [5, [8]]]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "臺北大學始發空車", trains: ["06:00"]},
-                        {plan: "陶瓷老街始發空車", trains: ["06:07"]}
                     ]
-                }
+                },
             }
         },
         "鶯歌車站": {
-            // 以+5min计算
             "西行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:05", delta: [6, 6, 5, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:52", delta: [[33, [8]], 6]}
-                    ],
-                    filters: [
-                        {plan: "臺北大學始發空車", trains: ["06:05"]},
-                        {plan: "龍埔始發空車", trains: ["06:11"]},
-                        {plan: "長壽山始發空車", trains: ["06:17"]}
-                    ]
-                },
+                derive_from: {station: "臺北大學", name: "西行", offset: 5},
                 "例假日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [8, 9, 5, [135, [8]]]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "鶯歌車站始發空車", trains: ["06:00"]},
-                        {plan: "三峽始發空車", trains: ["06:08"]},
-                        {plan: "長壽山始發空車", trains: ["06:17"]}
                     ]
-                }
+                },
             },
             "東行": {
+                derive_from: {station: "陶瓷老街", name: "東行", offset: 2},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [5, 6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:41", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
                         {plan: "鶯歌車站始發空車", trains: ["06:00"]},
-                        {plan: "國華始發空車", trains: ["06:05"]}
                     ]
                 },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:02", delta: [9, [128, [8]], 11, 5, [5, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "陶瓷老街始發空車", trains: ["06:02"]}
-                    ]
-                }
             }
         },
         "陶瓷老街": {
@@ -451,23 +274,13 @@
                 }
             },
             "東行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:39", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
+                derive_from: {station: "國華", name: "東行", offset: 3},
+                "例假日": {
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
-                        {plan: "國華始發空車", trains: ["06:03"]}
+                        {plan: "陶瓷老街始發空車", trains: ["06:00"]},
                     ]
                 },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [9, [128, [8]], 11, 5, [5, [8]]]}
-                    ],
-                    filters: [
-                        {plan: "陶瓷老街始發空車", trains: ["06:00"]}
-                    ]
-                }
             }
         },
         "國華": {
@@ -498,21 +311,13 @@
                 }
             },
             "東行": {
+                derive_from: {station: "永吉公園", name: "東行", offset: 3},
                 "平常日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [6, 8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:36", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
+                    schedule: [{trains: ["06:00"]}],
                     filters: [
-                        {plan: "國華始發空車", trains: ["06:00"]}
+                        {plan: "國華始發空車", trains: ["06:00"]},
                     ]
                 },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:06", delta: [[128, [8]], 11, 5, [5, [8]]]}
-                    ],
-                    filters: []
-                }
             }
         },
         "永吉公園": {
@@ -543,19 +348,7 @@
                 }
             },
             "東行": {
-                "平常日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [8, 8, 8, [21, [6]], [67, [8]], 4, [10, [6]], 8, 8, 8, [5, [6]]]},
-                        {first_train: "19:33", delta: [[27, [8]], 9, 7, 8, 8, 8, 8, 6]}
-                    ],
-                    filters: []
-                },
-                "例假日": {
-                    schedule: [
-                        {first_train: "06:03", delta: [[128, [8]], 11, 5, [5, [8]]]}
-                    ],
-                    filters: []
-                }
+                derive_from: {station: "鶯桃福德", name: "東行", offset: 3},
             }
         },
         "鶯桃福德": {

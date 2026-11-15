@@ -63,26 +63,7 @@
                 }
             },
             "西行": {
-                // 以+4min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:32", delta: [8, 8, 7, 8, 9, 9, 8, 8, 8, [5, [7]], 6, 6, 5]},
-                        {first_train: "07:43", delta: [[24, [5]], 6, 6, 7, 7, 8, 8, 8, [33, [10]], 9, 8, [7, [7]]]},
-                        {first_train: "17:16", delta: [6, 5, 6, [21, [5]], [9, [6]], 7, 7, 7, 8, 8, 8, 8]},
-                        {first_train: "21:14", delta: [9, [11, [10]]]}
-                    ],
-                    filters: [
-                        {plan: "霍营东出库车", first_train: "05:32", count: 4}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:32", delta: [11, [105, [10]]]}
-                    ],
-                    filters: [
-                        {plan: "霍营东出库车", first_train: "05:32", count: 3}
-                    ]
-                }
+                derive_from: {station: "上地软件园", name: "西行", offset: 4},
             }
         },
         "上地软件园": {
@@ -487,33 +468,7 @@
         },
         "天通苑东": {
             "东行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:22", delta: [8, 8, 8, 8, 9, 9, 8, 4, 4, 7, 9, 8, 4, 4]},
-                        {first_train: "07:08", delta: [5, 3, [2, [7, 3, 4, 7]], 3, 4, 6, 5, 6, [24, [5]]]},
-                        {first_train: "10:28", delta: [6, 7, 7, 8, 8, 8, [26, [10]], 5, 5, 10, 10, 5, 5]},
-                        {first_train: "16:22", delta: [5, 5, 10, 4, 5, 8, 3, 4, [2, [7, 3, 4, 7]], 3]},
-                        {first_train: "17:55", delta: [6, 5, 6, [21, [5]], [9, [6]], 7, 7, 7, 8, 8, 8, 8]},
-                        {first_train: "21:53", delta: [9, 10, 10, 10, 10, 9, 10, 11, 10]}
-                    ],
-                    filters: [
-                        {plan: "霍营东出库车", first_train: "05:22", until: "06:03"},
-                        {plan: "天通苑出库车", trains: ["06:24"]},
-                        {plan: "天通苑出库车", first_train: "06:56", skip_trains: 2, count: 3},
-                        {plan: "天通苑出库车", trains: ["07:47", "08:01", "15:37"]},
-                        {plan: "天通苑出库车", first_train: "16:07", skip_trains: 2, count: 5},
-                        {plan: "天通苑出库车", trains: ["17:37", "17:51"]}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:22", delta: [[104, [10]], 9, 10, 11, 10]}
-                    ],
-                    filters: [
-                        {plan: "霍营东出库车", first_train: "05:22", count: 5}
-                    ]
-                }
+                derive_from: {station: "太平庄", name: "东行", offset: 3},
             },
             "西行": {
                 "工作日": {

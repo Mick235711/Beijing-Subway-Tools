@@ -55,40 +55,12 @@
                     ]
                 },
                 "周日": {
-                    schedule: [
-                        {first_train: "06:00", delta: [8, [35, [9, 10, 9]], 14, 15, 15, 15]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "06:00", skip_trains: 2, until: "22:19"}
-                    ]
+                    derive_from: {name: "周六"},
+                    schedule: [{trains: ["23:12", "23:27"]}]
                 }
             },
             "出城": {
-                // 以+14min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:51", delta: [10, 9, [106, [8]], 9, 9, 9, 9, 10, 9, 9, 10, 9, [7, [10]]]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "05:51", skip_trains: 2, until: "22:41"}
-                    ]
-                },
-                "周六": {
-                    schedule: [
-                        {first_train: "05:51", delta: [10, 9, 10, 10, [34, [10, 9, 9]], 10, 9, 10]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "05:51", skip_trains: 2, until: "22:41"}
-                    ]
-                },
-                "周日": {
-                    schedule: [
-                        {first_train: "05:51", delta: [10, 9, 10, 10, [34, [10, 9, 9]], 10, 9, 10]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "05:51", skip_trains: 2, until: "22:41"}
-                    ]
-                }
+                derive_from: {station: "大兴新城", name: "出城", offset: 14},
             }
         },
         "大兴新城": {
@@ -111,12 +83,8 @@
                     ]
                 },
                 "周日": {
-                    schedule: [
-                        {first_train: "06:12", delta: [10, [35, [9, 10, 9]], 15, 15, 15, 15]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "06:12", skip_trains: 2, until: "22:33"}
-                    ]
+                    derive_from: {name: "周六"},
+                    schedule: [{trains: ["23:27", "23:42"]}]
                 }
             },
             "出城": {
@@ -137,43 +105,13 @@
                     ]
                 },
                 "周日": {
-                    schedule: [
-                        {first_train: "05:37", delta: [10, 9, 10, 10, [34, [10, 9, 9]], 10, 9, 10]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "05:37", skip_trains: 2, until: "22:27"}
-                    ]
+                    derive_from: {name: "周六"}
                 }
             }
         },
         "草桥": {
             "进城": {
-                // 以+8min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "06:20", delta: [10, [108, [8]], 9, 10, 9, 9, 10, 9, 9, 10, 10, 10, 10]},
-                        {first_train: "22:50", delta: [15, 15]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "06:38", skip_trains: 2, until: "23:05"}
-                    ]
-                },
-                "周六": {
-                    schedule: [
-                        {first_train: "06:20", delta: [10, [35, [9, 10, 9]], 15, 15]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "06:20", skip_trains: 2, until: "22:41"}
-                    ]
-                },
-                "周日": {
-                    schedule: [
-                        {first_train: "06:20", delta: [10, [35, [9, 10, 9]], 15, 15, 15, 15]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "06:20", skip_trains: 2, until: "22:41"}
-                    ]
-                }
+                derive_from: {station: "大兴新城", name: "进城", offset: 8},
             },
             "出城": {
                 "工作日": {
@@ -194,12 +132,7 @@
                     ]
                 },
                 "周日": {
-                    schedule: [
-                        {first_train: "05:30", delta: [8, 10, 9, 10, 10, [34, [9, 10, 9]], 9, 12]}
-                    ],
-                    filters: [
-                        {plan: "4节编组", first_train: "05:30", skip_trains: 2, until: "22:18"}
-                    ]
+                    derive_from: {name: "周六"}
                 }
             }
         }

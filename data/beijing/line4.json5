@@ -113,48 +113,7 @@
                 }
             },
             "北行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "05:57", delta: [10, 10, 7, 7, 7, 6, 6, 5, [5, [4]], [12, [3]], 2, 2, [20, [4]]]},
-                        {first_train: "09:19", delta: [[14, [2]], [6, [3, 2]], [18, [3]], [47, [6]], [6, [3]], [13, [2, 3]], [38, [2]]]},
-                        {first_train: "18:34", delta: [[17, [3, 2]], [15, [3]], [21, [4]], [8, [6]], 5, 7, 6, 6, 6]},
-                        {first_train: "23:32", delta: [7, 8, 8, 8, 8]}
-                    ],
-                    filters: [
-                        {plan: "公益西桥出库车", first_train: "05:57", count: 4},
-                        {plan: "公益西桥出库车", trains: ["07:18", "07:24"]},
-                        {plan: "公益西桥出库车", first_train: "15:56", skip_trains: 1, until: "16:38"},
-                        {plan: "公益西桥出库车", trains: ["16:53", "17:24", "17:40"]},
-                        {plan: "公益西桥出库车", first_train: "17:52", skip_trains: 3, count: 4},
-                        {plan: "黄村西大街始发空车", first_train: "07:30", skip_trains: 1, count: 5},
-                        {plan: "新宫始发空车", first_train: "09:23", skip_trains: 1, until: "10:29"},
-                        {plan: "新宫始发空车", first_train: "10:38", skip_trains: 1, until: "11:08"},
-                        {plan: "新宫始发空车", trains: ["16:43", "16:48"]},
-                        {plan: "新宫始发空车", first_train: "16:58", skip_trains: 1, count: 4},
-                        {plan: "新宫始发空车", trains: ["17:20"]},
-                        {plan: "新宫始发空车", first_train: "17:28", skip_trains: 1, count: 3},
-                        {plan: "新宫始发空车", trains: ["17:42"]},
-                        {plan: "新宫始发空车", first_train: "17:48", skip_trains: 3, count: 4},
-                        {plan: "新宫始发空车", first_train: "18:22", skip_trains: 2, count: 5},
-                        {plan: "新宫始发空车", trains: ["18:59"]},
-                        {plan: "新宫始发空车", first_train: "19:04", skip_trains: 2, count: 5},
-                        {plan: "新宫始发空车", first_train: "19:39", skip_trains: 1, until: "20:48"},
-                        {plan: "新宫始发空车", first_train: "21:00", skip_trains: 2, until: "22:00"}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "05:57", delta: [12, 8, 7, 7, 7, 7, [6, [5]], [28, [4]], [44, [3]], 4, 4, [66, [5]]]},
-                        {first_train: "17:02", delta: [4, [54, [3]], [18, [5]], 6, 5, [27, [6]]]}
-                    ],
-                    filters: [
-                        {plan: "公益西桥出库车", first_train: "05:57", count: 4},
-                        {plan: "公益西桥出库车", trains: ["06:38", "06:50"]},
-                        {plan: "公益西桥出库车", first_train: "07:23", skip_trains: 2, until: "09:10"},
-                        {plan: "公益西桥出库车", first_train: "09:22", skip_trains: 3, until: "11:10"}
-                    ]
-                }
+                derive_from: {station: "北宫门", name: "北行", offset: 3},
             }
         },
         "北宫门": {
@@ -2744,25 +2703,7 @@
         },
         "天宫院": {
             "南行": {
-                // 以+3min计算
-                "工作日": {
-                    schedule: [
-                        {first_train: "06:21", delta: [13, 13, 12, 12, 8, 9, 7, 7, 5, 5, 3, [6, [4]], 3]},
-                        {first_train: "08:26", delta: [3, 4, 3, 4, 3, 6, 6, 6, [21, [4]], [5, [5]], [7, [4]]]},
-                        {first_train: "11:24", delta: [5, 5, 5, 5, [43, [6]], 5, [13, [6]], [5, [3, 4, 4, 4]], [25, [3]]]},
-                        {first_train: "19:58", delta: [[11, [5]], [12, [6]], 7, [9, [8]], 9, 6, 5, 6, 8]}
-                    ],
-                    filters: [
-                        {plan: "公益西桥出库车", trains: ["07:28", "07:42"]}
-                    ]
-                },
-                "双休日": {
-                    schedule: [
-                        {first_train: "06:21", delta: [12, 8, 8, [8, [6]], [57, [4]], [59, [5]], [6, [4]], [31, [3]], [10, [5, 4]]]},
-                        {first_train: "19:53", delta: [[13, [6]], 4, [19, [5]], [6, [6]], 7, 6, 7, 6, 6]}
-                    ],
-                    filters: []
-                }
+                derive_from: {station: "生物医药基地", name: "南行", offset: 3},
             },
             "北行": {
                 "工作日": {

@@ -22,7 +22,7 @@ BEIJING = ZoneInfo("Asia/Shanghai")
 LOOP_DIRECTIONS = {"2号线": {"西直门": "外环", "积水潭": "内环"}, "10号线": {"巴沟": "内环", "车道沟": "外环"}}
 LOOP_BOUNDARIES = {"2号线": "西直门", "10号线": "首经贸"}
 # Explicit corrections already documented in the project, not fitted to differences.
-MINUTE_OFFSETS = {}  # {("大兴机场线", "大兴机场", "进城"): 2, ("大兴机场线", "草桥", "出城"): 2}
+MINUTE_OFFSETS: dict[tuple[str, str, str], int] = {}  # {("大兴机场线", "大兴机场", "进城"): 2, ("大兴机场线", "草桥", "出城"): 2}
 
 
 def minute_text(value: int) -> str:
