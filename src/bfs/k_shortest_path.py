@@ -9,7 +9,7 @@ from datetime import date
 from typing import Callable
 
 from src.bfs.bfs import Path, BFSResult, bfs, expand_path, superior_path, path_index, get_result, combine_trains, \
-    BFSOptions
+    BFSOptions, remove_unnecessary_train_changes
 from src.city.line import Line
 from src.city.through_spec import ThroughSpec
 from src.city.transfer import Transfer
@@ -56,12 +56,23 @@ def merge_path(path1: Path, path2: Path, path2_end: str, *, tolerate_same_line: 
         if not tolerate_same_line:
             assert path2[0][1].line.end_circle_start is not None or\
                    path2[0][1].direction == path1[-1][1].direction, (path1, path2)
-        if path2[0][1] == path1[-1][1].loop_next or path2[0][1].line.end_circle_start is not None:
+        if path2[0][1] is path1[-1][1].loop_next:
             return path1 + path2[1:]
 
         # Detect if we have an exact backtracked situation
         path2_next = path2_end if len(path2) == 1 else path2[1][0]
         if path2[0][1].direction != path1[-1][1].direction:
+            if path2[0][1].line.end_circle_start is not None:
+                first, second = path1[-1][1], path2[0][1]
+                start, change = path1[-1][0], path2[0][0]
+                if first.can_reach(start, change) and first.can_reach(start, path2_next) and \
+                        second.can_reach(change, path2_next) and \
+                        change in first.two_station_interval(start, path2_next) and \
+                        first.arrival_time_after(start, change) == second.arrival_time[change] and \
+                        first.departure_time_virtual(start)[change] == second.departure_time[change] and \
+                        first.arrival_time_after(start, path2_next) == second.arrival_time_after(change, path2_next):
+                    return path1 + path2[1:]
+                return path1 + path2
             if path1[-1][0] == path2_next:
                 return merge_path(path1[:-1], path2[1:], path2_end, tolerate_same_line=tolerate_same_line)
             if path1[-1][0] in path2[0][1].arrival_time_two_station(path2[0][0], path2_next):
@@ -171,7 +182,7 @@ def k_shortest_path(
                 if len(prev_trace) <= i:
                     continue
                 prev_station, prev_train = prev_trace[i]
-                if prev_station != station:
+                if prev_station != station or not equivalent_path(prev_trace[:i], trace[:i]):
                     continue
                 if i > 0:
                     prev2_train = prev_trace[i - 1][1]
@@ -228,6 +239,7 @@ def k_shortest_path(
             new_result.initial_time = inner_options.start_time[0]
             new_result.initial_day = inner_options.start_time[1]
             final_path = merge_path(limit_path(pk_path, station, options.end_station), new_path, options.end_station)
+            final_path = remove_unnecessary_train_changes(final_path, options.end_station, transfer_dict, inner_options)
             fixed_path = fix_path(
                 final_path, virtual_dict, inner_options.start_date,
                 allow_transfer_shortcuts=inner_options.allow_transfer_shortcuts
@@ -243,7 +255,7 @@ def k_shortest_path(
                         # Store only the lowest duration one
                         if superior_path(
                             bfs_result, new_candidate[0], cur_result, transfer_dict, through_dict,
-                            path1=new_candidate[1]
+                            path1=new_candidate[1], path2=cur_candidate
                         ):
                             candidate[j] = new_candidate
                         break

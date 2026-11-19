@@ -37,7 +37,9 @@ class BFSResult:
                  initial_time: time, initial_day: bool,
                  arrival_time: time, arrival_day: bool,
                  prev_station: str | None = None, prev_train: Train | VTSpec | None = None,
-                 *, force_next_day: bool = False, allow_transfer_shortcuts: bool = True) -> None:
+                 *, force_next_day: bool = False, allow_transfer_shortcuts: bool = True,
+                 search_options: BFSOptions | None = None,
+                 transfer_dict: dict[str, Transfer] | None = None) -> None:
         """ Constructor """
         self.station = station
         self.start_date = start_date
@@ -46,6 +48,7 @@ class BFSResult:
         self.prev_station, self.prev_train = prev_station, prev_train
         self.force_next_day = force_next_day
         self.allow_transfer_shortcuts = allow_transfer_shortcuts
+        self.search_options, self.transfer_dict = search_options, transfer_dict
 
     def initial_time_str(self) -> str:
         """ Get string representation of initial time """
@@ -97,9 +100,13 @@ class BFSResult:
             key = results[key].prev_key()
         assert prev_station is not None and prev_train is not None, self
         if len(path) == 0:
-            return [(prev_station, prev_train)]
-        next_station = self.station if len(path) == 1 else path[1][0]
-        return combine_trains([(prev_station, prev_train)], [path[0]], next_station) + path[1:]
+            path = [(prev_station, prev_train)]
+        else:
+            next_station = self.station if len(path) == 1 else path[1][0]
+            path = combine_trains([(prev_station, prev_train)], [path[0]], next_station) + path[1:]
+        if self.search_options is not None and self.transfer_dict is not None:
+            path = remove_unnecessary_train_changes(path, self.station, self.transfer_dict, self.search_options)
+        return path
 
     def total_duration(self) -> int:
         """ Get total duration """
@@ -557,6 +564,77 @@ class BFSOptions:
         return self.process_edge(value, exclude_edge=self.exclude_edge)
 
 
+def remove_unnecessary_train_changes(
+    path: Path, end_station: str, transfer_dict: dict[str, Transfer], options: BFSOptions, *,
+    protected_stations: set[str] | None = None
+) -> Path:
+    """ Board a following same-line train earlier when the existing connection permits it. """
+    path = list(path)
+    i = 0
+    while i + 1 < len(path):
+        station, first = path[i]
+        change_station, second = path[i + 1]
+        next_station = end_station if i + 2 == len(path) else path[i + 2][0]
+        if not isinstance(first, Train) or not isinstance(second, Train) or \
+                first.line != second.line or first.direction != second.direction or \
+                station not in second.departure_time or station in second.skip_stations or \
+                not second.can_reach(station, change_station) or not second.can_reach(station, next_station) or \
+                change_station not in second.two_station_interval(station, next_station):
+            i += 1
+            continue
+
+        if protected_stations:
+            earlier_stops = set(first.two_station_interval(station, change_station)) & protected_stations
+            second_stops = set(second.two_station_interval(station, change_station))
+            if any(stop not in second_stops or (stop != station and not second.can_reach(station, stop))
+                   for stop in earlier_stops):
+                i += 1
+                continue
+
+        if i == 0:
+            if station != options.start_station:
+                i += 1
+                continue
+            ready = options.start_time
+            if options.initial_line_direction is not None:
+                line, direction = options.initial_line_direction
+                if line == second.line and direction != second.direction:
+                    i += 1
+                    continue
+                transfer, _ = get_station_transfer_time(
+                    transfer_dict, station, line, direction, second.line, second.direction,
+                    options.start_date, *ready, allow_transfer_shortcuts=options.allow_transfer_shortcuts
+                )
+                ready = add_min(ready[0], options.process(transfer[0]), ready[1])
+        else:
+            previous_station, previous = path[i - 1]
+            if not isinstance(previous, Train):
+                if previous[1] != station:
+                    i += 1
+                    continue
+                if i == 1:
+                    arrival = options.start_time
+                else:
+                    prior_station, prior = path[i - 2]
+                    if not isinstance(prior, Train):
+                        i += 1
+                        continue
+                    arrival = prior.arrival_time_after(prior_station, previous_station)
+                ready = add_min(arrival[0], options.process(previous[3][0]), arrival[1])
+            else:
+                arrival = previous.arrival_time_after(previous_station, station)
+                transfer, _ = get_station_transfer_time(
+                    transfer_dict, station, previous.line, previous.direction, second.line, second.direction,
+                    options.start_date, *arrival, allow_transfer_shortcuts=options.allow_transfer_shortcuts
+                )
+                ready = add_min(arrival[0], options.process(transfer[0]), arrival[1])
+        if get_time_str(*ready) <= get_time_str(*second.departure_time[station]):
+            path[i:i + 2] = [(station, second)]
+        else:
+            i += 1
+    return path
+
+
 def bfs(
     lines: dict[str, Line],
     train_dict: dict[str, dict[str, dict[str, list[Train]]]], through_dict: dict[ThroughSpec, list[ThroughTrain]],
@@ -628,7 +706,8 @@ def bfs(
                     next_time, next_day,
                     options.start_station, (
                         options.start_station, new_station, (fr_line, fr_dir, to_line, to_dir), transfer_time, special
-                    ), allow_transfer_shortcuts=options.allow_transfer_shortcuts
+                    ), allow_transfer_shortcuts=options.allow_transfer_shortcuts,
+                    search_options=options, transfer_dict=transfer_dict
                 )
     in_queue = set(queue)
     next_train_index: NextTrainIndex = {}
@@ -716,7 +795,8 @@ def bfs(
                     start_time, start_day,
                     next_time, next_day,
                     station, next_train,
-                    allow_transfer_shortcuts=options.allow_transfer_shortcuts
+                    allow_transfer_shortcuts=options.allow_transfer_shortcuts,
+                    search_options=options, transfer_dict=transfer_dict
                 )
                 new_key = (next_station, next_train.line.name, next_train.direction)
                 if (
@@ -774,7 +854,8 @@ def bfs(
                 next_time, next_day,
                 prev_station if new_station == station else station,
                 prev_train if new_station == station else (station, new_station, transfer_spec, transfer_time, special),
-                allow_transfer_shortcuts=options.allow_transfer_shortcuts
+                allow_transfer_shortcuts=options.allow_transfer_shortcuts,
+                search_options=options, transfer_dict=transfer_dict
             )
             new_key = (new_station, new_line.name, new_direction)
             if (

@@ -10,7 +10,7 @@ import sys
 import questionary
 
 from src.bfs.avg_shortest_time import data_criteria, find_avg_paths
-from src.bfs.bfs import Path, BFSOptions, bfs, get_result
+from src.bfs.bfs import Path, BFSOptions, bfs, get_result, remove_unnecessary_train_changes
 from src.bfs.common import to_abstract
 from src.bfs.k_shortest_path import merge_path
 from src.bfs.shortest_path import get_kth_path, ask_for_shortest_path, ask_for_shortest_time
@@ -122,6 +122,8 @@ def get_multi_path(city: City, args: argparse.Namespace) -> Route:
     # Actual work
     current_path: Path = []
     current_tuple = (start_time, start_day)
+    initial_options = BFSOptions(start, start_date, current_tuple, exclude_edge=args.exclude_edge)
+    required_stops: set[str] = set()
     for i, (start, end) in enumerate(todo):
         bfs_result = bfs(lines, train_dict, through_dict, city.transfers, virtual_transfers, options=BFSOptions(
             start, start_date, current_tuple, exclude_edge=args.exclude_edge, include_express=args.include_express
@@ -144,6 +146,10 @@ def get_multi_path(city: City, args: argparse.Namespace) -> Route:
             current_path = path
         else:
             current_path = merge_path(current_path, path, end, tolerate_same_line=True)
+            current_path = remove_unnecessary_train_changes(
+                current_path, end, city.transfers, initial_options, protected_stations=required_stops
+            )
+        required_stops.add(end)
     return to_abstract(current_path), todo[-1][1]
 
 
