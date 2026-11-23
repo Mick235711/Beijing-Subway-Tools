@@ -254,9 +254,9 @@
             {from: "12号线", to: "8号线", minutes: 4.5, distance: 240, stairs: 118}
             // 超长伪节点8->12
         ],
-        // 参考：https://www.bilibili.com/video/BV1XEBKYBEPV
+        // 参考：https://www.bilibili.com/video/BV1bSpz6QEPb
         "长春桥": [
-            {from: "10号线", to: "12号线", minutes: 2, distance: 110, stairs: 126}
+            {from: "10号线", to: "12号线", minutes: 2.5, distance: 110, stairs: 126}
         ],
         // 10-CAE参考：https://www.bilibili.com/video/BV1Xm4y1W743/
         // 10-12参考：https://www.bilibili.com/video/BV1MaqfYmEQQ
