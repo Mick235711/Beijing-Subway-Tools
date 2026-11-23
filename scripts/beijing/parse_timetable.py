@@ -12,6 +12,7 @@ from contextlib import ExitStack, redirect_stdout
 from dataclasses import asdict
 from pathlib import Path
 
+import questionary
 from tabulate import tabulate
 
 from scripts.beijing.ruubypay import Catalogue, NetworkClient, StationCode, cached_snapshot, decode_location, \
@@ -95,7 +96,7 @@ def build_parser() -> argparse.ArgumentParser:
     fetch.add_argument("--with-first-last", action="store_true", help="One extra boundary-evidence lookup")
     fetch.add_argument("--refresh", action="store_true", help="Ignore the reusable timetable cache")
     fetch.add_argument("--max-requests", type=int, default=20, help="Including retries, maximum 20")
-    verify = commands.add_parser("verify", help="Compare a capture offline; prompt when no path or selector is given")
+    verify = commands.add_parser("verify", help="Compare a capture; offer to fetch when no cached capture exists")
     verify.add_argument("snapshot", type=Path, nargs="?", help="Snapshot path; otherwise select a latest cached capture")
     station_selector(verify)
     verify.add_argument("--bucket", type=int, choices=[0, 1], help="Explicit API bucket; requires --date-group")
@@ -240,7 +241,21 @@ def verification_path(args: argparse.Namespace, cache: Path) -> Path:
         code = select_code(args, load_catalogue(cache))
     path = latest_snapshot(cache, code)
     if path is None:
-        raise ValueError(f"No cached capture for deviceLocation {code}; run fetch first")
+        if not sys.stdin.isatty():
+            raise ValueError(f"No cached capture for deviceLocation {code}; interactive confirmation required to fetch")
+        with redirect_stdout(sys.stderr):
+            confirmed = questionary.confirm(
+                f"No cached capture for deviceLocation {code}. Fetch it now?", default=False
+            ).ask()
+        if not confirmed:
+            raise ValueError(f"No cached capture for deviceLocation {code}; fetch declined")
+        catalogue = load_catalogue(cache)
+        catalogue.station(code)
+        # A capture may have been saved while the confirmation prompt was open.
+        path = latest_snapshot(cache, code)
+        if path is None:
+            with NetworkClient(cache) as client:
+                path = fetch_snapshot(client, catalogue, code)
     return path
 
 
@@ -366,6 +381,8 @@ def main() -> int:
                     print(path.resolve(), flush=True)
             return 0
 
+        if (args.bucket is None) != (args.date_group is None):
+            raise ValueError("Provide --bucket 0/1 and --date-group together")
         path = verification_path(args, cache)
         if args.report and args.report.resolve() == path.resolve():
             raise ValueError("--report must not overwrite the source snapshot")
