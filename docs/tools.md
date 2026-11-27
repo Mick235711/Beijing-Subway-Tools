@@ -3491,7 +3491,26 @@ options:
 
 # Auxiliary Scripts
 
-### [`scripts/beijing/parse_timetable.py`](/scripts/beijing/parse_timetable.py): Official Beijing code lookup and timetable verification
+### [`scripts/beijing/parse_timetable.py`](/scripts/beijing/parse_timetable.py): Extract timetable numbers from an Beijing Subway timetable image
+
+```sh
+python3 scripts/beijing/parse_timetable.py /path/to/timetable.png > timetable.txt
+python3 scripts/beijing/parse_timetable.py  # prompt for an HTTP or HTTPS image URL
+```
+
+Requires NumPy, Pillow, and Tesseract 5 with English language data available in `PATH`.
+The extractor expects a level, uncropped timetable with blue digits, regularly spaced rows,
+and an hour column on the left. It prints the number of trains parsed, followed by one
+row per hour, with the hour and two-digit minutes separated by spaces; detection
+diagnostics and the URL prompt go to stderr.
+
+Check the result against the image: OCR can produce plausible but incorrect or missing numbers.
+The destination markings are not extracted.
+If a row's minutes wrap backwards once, they are printed as read and a warning is sent to stderr;
+the script does not move those minutes to another hour.
+The script rejects some invalid or ambiguous results, but these checks cannot guarantee correctness.
+
+### [`scripts/beijing/verify_timetable.py`](/scripts/beijing/verify_timetable.py): Official Beijing code lookup and timetable verification
 
 This tool reads the Ruubypay official subway map's static catalogue and captures station-line timetables.
 
@@ -3500,13 +3519,13 @@ Systems without an IANA timezone database need `tzdata` for Beijing-time convers
 Download the two catalogue resources once, then query them offline:
 
 ```bash
-python3 scripts/beijing/parse_timetable.py codes refresh
-python3 scripts/beijing/parse_timetable.py codes lines
-python3 scripts/beijing/parse_timetable.py codes stations --line "昌平线"
-python3 scripts/beijing/parse_timetable.py codes stations --line "1号线" -t github
-python3 scripts/beijing/parse_timetable.py codes stations --station "清河站"
-python3 scripts/beijing/parse_timetable.py codes decode 0x09004915
-python3 scripts/beijing/parse_timetable.py codes query  # prompt for line/station
+python3 scripts/beijing/verify_timetable.py codes refresh
+python3 scripts/beijing/verify_timetable.py codes lines
+python3 scripts/beijing/verify_timetable.py codes stations --line "昌平线"
+python3 scripts/beijing/verify_timetable.py codes stations --line "1号线" -t github
+python3 scripts/beijing/verify_timetable.py codes stations --station "清河站"
+python3 scripts/beijing/verify_timetable.py codes decode 0x09004915
+python3 scripts/beijing/verify_timetable.py codes query  # prompt for line/station
 ```
 
 Code queries include suburban railways and other catalogue entries without timetables. Decimal input may be zero-padded; hexadecimal input requires `0x`. Available command-line options:
@@ -3520,11 +3539,11 @@ Code queries include suburban railways and other catalogue entries without timet
 Capture a station using a full code, a line/station code pair, or exact catalogue names:
 
 ```bash
-python3 scripts/beijing/parse_timetable.py fetch --device-location 150995204
-python3 scripts/beijing/parse_timetable.py fetch --line-code 1 --station-code 04
-python3 scripts/beijing/parse_timetable.py fetch --line "10号线" --station "巴沟"
-python3 scripts/beijing/parse_timetable.py fetch --station "西直门"
-python3 scripts/beijing/parse_timetable.py fetch  # prompt for line/station
+python3 scripts/beijing/verify_timetable.py fetch --device-location 150995204
+python3 scripts/beijing/verify_timetable.py fetch --line-code 1 --station-code 04
+python3 scripts/beijing/verify_timetable.py fetch --line "10号线" --station "巴沟"
+python3 scripts/beijing/verify_timetable.py fetch --station "西直门"
+python3 scripts/beijing/verify_timetable.py fetch  # prompt for line/station
 ```
 
 Each command prints snapshot paths to stdout (one per selected line); diagnostics go to stderr. Passing only `--station` fetches every catalogue line at that station, deduplicating map aliases for the same line. All lines share one paced client and one request budget; successful captures remain saved if a later request fails. Available command-line options:
@@ -3543,13 +3562,13 @@ Successful captures are immutable; `latest.json` pointers select the most recent
 Compare a saved capture against expanded project timetables:
 
 ```bash
-python3 scripts/beijing/parse_timetable.py verify /path/to/capture.json
-python3 scripts/beijing/parse_timetable.py verify /path/to/capture.json --report /path/to/report.json
-python3 scripts/beijing/parse_timetable.py verify /path/to/airport.json --bucket 0 --date-group "周日"
-python3 scripts/beijing/parse_timetable.py verify --device-location 150995204
-python3 scripts/beijing/parse_timetable.py verify --line-code 1 --station-code 04
-python3 scripts/beijing/parse_timetable.py verify --line "1号线" --station "古城" -t github
-python3 scripts/beijing/parse_timetable.py verify  # prompt for line/station
+python3 scripts/beijing/verify_timetable.py verify /path/to/capture.json
+python3 scripts/beijing/verify_timetable.py verify /path/to/capture.json --report /path/to/report.json
+python3 scripts/beijing/verify_timetable.py verify /path/to/airport.json --bucket 0 --date-group "周日"
+python3 scripts/beijing/verify_timetable.py verify --device-location 150995204
+python3 scripts/beijing/verify_timetable.py verify --line-code 1 --station-code 04
+python3 scripts/beijing/verify_timetable.py verify --line "1号线" --station "古城" -t github
+python3 scripts/beijing/verify_timetable.py verify  # prompt for line/station
 ```
 
 Without a snapshot path, `verify` accepts the same single station-line selectors as `fetch` and reads that code's latest cached capture. If no selector is given, it prompts for a line and station first, just like `fetch`.

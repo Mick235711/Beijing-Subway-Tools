@@ -115,7 +115,7 @@ As the first station in a line, we cannot use relative time delta to deduce a ti
 Therefore, we need to fill the timetable manually.
 
 First, you need to obtain a text version of timetable,
-either by OCR-ing the timetable image or obtain from some data source.
+either by OCR-ing the timetable image (for Beijing, the [OCR script](/docs/tools.md#scriptsbeijingparse_timetablepy-extract-timetable-numbers-from-an-beijing-subway-timetable-image) may help) or obtain from some data source.
 For example, the text representation for the above picture is like:
 ```
 05 11 20 27 34 38 43 47 50 54 58
